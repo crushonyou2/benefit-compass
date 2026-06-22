@@ -1,0 +1,26 @@
+# secrets
+.env
+
+# python
+ingest/.venv/
+__pycache__/
+*.pyc
+
+# 원시 응답 샘플 (개인 키로 받은 데이터 — 커밋 금지)
+ingest/samples/
+
+# 적재한 코퍼스 (용량 큼, 재생성 가능)
+ingest/data/
+
+# node
+node_modules/
+web/dist/
+
+# java / gradle (wrapper 파일 gradlew·gradle/wrapper 는 커밋 유지)
+api/build/
+api/.gradle/
+*.class
+
+# OS
+.DS_Store
+Thumbs.db

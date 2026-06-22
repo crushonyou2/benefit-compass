@@ -1,0 +1,9 @@
+{
+  "recall@1": 0.5167,
+  "recall@5": 0.7167,
+  "recall@10": 0.7833,
+  "mrr@10": 0.6135,
+  "n": 60,
+  "candidates": 30,
+  "reranker": "bge-reranker-v2-m3"
+}
