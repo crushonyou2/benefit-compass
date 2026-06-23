@@ -1,5 +1,8 @@
 import { useState } from 'react'
 
+// 배포 시 VITE_API_BASE에 Cloud Run api URL 주입. 로컬은 빈 값 → vite 프록시 사용.
+const API_BASE = import.meta.env.VITE_API_BASE || ''
+
 export default function App() {
   const [query, setQuery] = useState('')
   const [age, setAge] = useState('')
@@ -17,7 +20,7 @@ export default function App() {
     setError(null)
     setResult(null)
     try {
-      const res = await fetch('/api/ask', {
+      const res = await fetch(`${API_BASE}/api/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

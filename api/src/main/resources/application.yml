@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${PORT:8080}   # Cloud Run은 PORT 환경변수를 주입
 
 ml:
   base-url: ${ML_BASE_URL:http://localhost:8000}

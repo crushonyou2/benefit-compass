@@ -3,10 +3,10 @@
 
 Spring Boot API가 호출하는 내부 서비스. 질의를 e5로 임베딩하고,
 구조적 자격필터 + pgvector 검색으로 후보 정책을 반환한다.
-(라이브는 bi-encoder 단독 — 리랭킹은 CPU ~20s/q로 느려 eval 전용.)
+RERANK=1(기본, 로컬)이면 cross-encoder 리랭킹, RERANK=0(배포)이면 bi-encoder만 사용.
 
 실행: uvicorn app:app --port 8000
-필요: DATABASE_URL (.env)
+필요(env): DATABASE_URL / 선택: RERANK, COSINE_MIN
 """
 import os
 import pathlib
@@ -21,6 +21,8 @@ from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer, CrossEncoder
 
 CANDIDATES = 30   # bi-encoder가 뽑는 후보 수 (리랭킹 대상)
+RERANK = os.getenv("RERANK", "1") == "1"             # 0이면 리랭커 끔 (배포: 무료 CPU 속도/메모리)
+COSINE_MIN = float(os.getenv("COSINE_MIN", "0.78"))  # 리랭커 끌 때 bi-encoder 코사인 컷
 
 # 지역코드(zipCd)가 부정확해 기관명으로 보강 필터링. region 코드 앞2자리 → 시도 키워드.
 SIDO = {
@@ -85,7 +87,8 @@ state = {}
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     state["model"] = SentenceTransformer("intfloat/multilingual-e5-base")
-    state["reranker"] = CrossEncoder("BAAI/bge-reranker-v2-m3")
+    if RERANK:
+        state["reranker"] = CrossEncoder("BAAI/bge-reranker-v2-m3")
     yield
 
 
@@ -130,12 +133,15 @@ def search(req: SearchReq):
     if not cands:
         return {"results": []}
 
-    # cross-encoder 리랭킹: 질의↔정책을 직접 비교해 관련성 재산정 (bi-encoder 코사인보다 정확)
-    pairs = [[q, ((c["title"] or "") + " " + (c["support_content"] or ""))[:400]]
-             for c in cands]
-    logits = state["reranker"].predict(pairs)
-    for c, lg in zip(cands, logits):
-        c["score"] = float(lg)   # cross-encoder 원시 점수 (높을수록 관련)
-    cands.sort(key=lambda c: c["score"], reverse=True)
-    cands = [c for c in cands if c["score"] >= req.min_score]
+    if RERANK:
+        # cross-encoder 리랭킹: 질의↔정책을 직접 비교해 관련성 재산정 (코사인보다 정확)
+        pairs = [[q, ((c["title"] or "") + " " + (c["support_content"] or ""))[:400]]
+                 for c in cands]
+        for c, lg in zip(cands, state["reranker"].predict(pairs)):
+            c["score"] = float(lg)   # cross-encoder 원시 점수
+        cands.sort(key=lambda c: c["score"], reverse=True)
+        cands = [c for c in cands if c["score"] >= req.min_score]
+    else:
+        # 리랭커 미사용(배포 등): bi-encoder 코사인 점수로 컷 (이미 거리순 정렬)
+        cands = [c for c in cands if c["score"] >= COSINE_MIN]
     return {"results": cands[:req.k]}
