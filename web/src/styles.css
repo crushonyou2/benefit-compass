@@ -69,7 +69,40 @@ header p { margin: 0 0 24px; color: var(--muted); }
 .form button:hover { background: var(--primary-dark); }
 .form button:disabled { opacity: 0.6; cursor: default; }
 
-.error { color: #b42318; border-color: #f4c1bb; background: #fff4f2; }
+.cold-start-hint {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.loading-note {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #eef4ff;
+  color: #24416f;
+}
+
+.loading-note strong,
+.loading-note small { display: block; }
+.loading-note strong { font-size: 13px; }
+.loading-note small { margin-top: 2px; color: #58709a; font-size: 12px; }
+.spinner {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  border: 2px solid #bfd1f6;
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error { color: #9f241b; border-color: #f4c1bb; background: #fff4f2; }
+.error strong { display: block; }
+.error p { margin: 4px 0 0; font-size: 14px; }
 
 .answer h2, .sources h2 { font-size: 16px; margin: 0 0 12px; }
 .answer-text { white-space: pre-wrap; margin: 0; }
