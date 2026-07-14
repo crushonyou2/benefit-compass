@@ -2,7 +2,9 @@
 FROM eclipse-temurin:17-jdk AS build
 WORKDIR /app
 COPY . .
-RUN chmod +x ./gradlew && ./gradlew clean bootJar -x test --no-daemon
+RUN sed -i 's/\r$//' ./gradlew \
+    && chmod +x ./gradlew \
+    && ./gradlew clean bootJar -x test --no-daemon
 
 # --- run stage (JRE 17) ---
 FROM eclipse-temurin:17-jre
