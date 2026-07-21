@@ -93,6 +93,10 @@ runtime = ModelRuntime()
 
 def load_models():
     """Load imports and weights together so the recorded duration is complete."""
+    if MODEL_LOCAL_ONLY:
+        # Applies to every Hugging Face-backed loader, including the optional reranker.
+        os.environ.setdefault("HF_HUB_OFFLINE", "1")
+        os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
     from sentence_transformers import SentenceTransformer
 
     kwargs = {"local_files_only": True} if MODEL_LOCAL_ONLY else {}

@@ -1,5 +1,8 @@
+import os
+import sys
 import threading
 import time
+import types
 import unittest
 from unittest.mock import patch
 
@@ -9,6 +12,29 @@ import app as ml_app
 
 
 class HealthReadinessApiTest(unittest.TestCase):
+    def test_local_only_mode_disables_all_hub_access_before_model_import(self):
+        captured = {}
+
+        class FakeSentenceTransformer:
+            def __init__(self, model_name, **kwargs):
+                captured["model_name"] = model_name
+                captured["kwargs"] = kwargs
+
+        fake_module = types.ModuleType("sentence_transformers")
+        fake_module.SentenceTransformer = FakeSentenceTransformer
+
+        with patch.dict(os.environ, {}, clear=True), \
+                patch.dict(sys.modules, {"sentence_transformers": fake_module}), \
+                patch.object(ml_app, "MODEL_LOCAL_ONLY", True), \
+                patch.object(ml_app, "RERANK", False):
+            models = ml_app.load_models()
+            self.assertEqual("1", os.environ["HF_HUB_OFFLINE"])
+            self.assertEqual("1", os.environ["TRANSFORMERS_OFFLINE"])
+
+        self.assertIn("model", models)
+        self.assertEqual("intfloat/multilingual-e5-base", captured["model_name"])
+        self.assertEqual({"local_files_only": True}, captured["kwargs"])
+
     def test_liveness_responds_while_readiness_waits_for_model_loader(self):
         loader_started = threading.Event()
         release_loader = threading.Event()

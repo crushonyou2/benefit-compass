@@ -40,6 +40,10 @@ Prometheus 지표는 `/actuator/prometheus`, 상태 확인은 `/actuator/health`
 | `ml_total` | ML `/search` 내부 전체 시간 |
 | `gemini` | 재시도를 포함한 Gemini 답변 생성 시간 |
 
+측정 CSV의 `client_api_residual_ms`는 클라이언트가 본 전체 시간에서 `api_to_ml`과
+`gemini`를 뺀 값이다. Cloud Run이 애플리케이션에 요청을 넘기기 전의 API 콜드스타트,
+클라이언트↔API 네트워크와 API 직렬화 등이 함께 들어가므로 단일 원인으로 해석하지 않는다.
+
 `outcome`은 `success`, `degraded`, `error`만 사용한다. 질문, 나이, 지역,
 검색어 해시, 정책 ID는 태그나 로그에 넣지 않는다. 응답의 `Server-Timing`도 같은
 고정 이름만 허용한다.

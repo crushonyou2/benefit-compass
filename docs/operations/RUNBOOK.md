@@ -22,8 +22,11 @@
 
 ## 콜드·웜 재현
 
-공개 트래픽을 바꾸지 않은 새 tagged revision의 URL을 사용해야 첫 요청을 콜드로
-판정할 수 있다. 기존 URL을 오래 방치했다는 이유만으로 콜드라고 추정하지 않는다.
+공개 트래픽을 바꾸지 않은 새 tagged revision의 URL을 사용하되, 새 revision이라는 이유만으로
+첫 요청을 콜드라고 단정하지 않는다. 배포 검증 과정에서 만들어진 인스턴스가 남아 있을 수 있다.
+스크립트 첫 행은 `cold_candidate`로 저장하고, 같은 ML revision의 `ml_model_load`와
+`ml_search` 로그가 해당 요청 직전에 같은 인스턴스에서 이어졌는지 확인된 경우에만 콜드로
+판정한다. 기존 URL을 오래 방치했다는 이유만으로도 콜드라고 추정하지 않는다.
 
 ```powershell
 .\scripts\measure-cold-warm.ps1 `
@@ -32,13 +35,23 @@
   -Scenario 'before' `
   -Revision 'benefit-api-REVISION' `
   -Runs 6 `
-  -FirstRequestCold `
+  -FirstRequestColdCandidate `
   -OutputCsv '.\docs\operations\cold-warm-before-YYYY-MM-DD.csv'
 ```
 
 스크립트는 2026-07-14 기준선과 같은 고정 비식별 질문을 메모리에서만 사용한다.
 CSV에는 질문·나이 열이 없으며 revision, 요청 순서, 응답시간, 상태, 결과 건수,
-고정 구간 시간만 저장한다.
+고정 구간 시간만 저장한다. `cold_verification=pending_revision_log`인 행은 다음 형식의
+로그 확인이 끝날 때까지 콜드 성과로 쓰지 않는다.
+
+```powershell
+gcloud logging read `
+  'resource.type="cloud_run_revision" AND resource.labels.revision_name="ML_REVISION" AND (textPayload:"ml_model_load" OR textPayload:"ml_search")' `
+  --freshness=30m `
+  --format='table(timestamp,labels.instanceId,textPayload)'
+```
+
+애플리케이션 로그는 모델 이벤트, request ID, 고정 구간명·시간과 결과 건수만 포함한다.
 
 ## 5xx가 증가할 때
 

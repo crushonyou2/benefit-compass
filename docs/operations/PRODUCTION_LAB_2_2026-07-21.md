@@ -21,7 +21,8 @@
 검색 요청은 다음 값으로 분해된다.
 
 ```text
-API 전체 요청
+클라이언트 end-to-end
+├─ client_api_residual
 ├─ api_to_ml
 │  ├─ api_ml_transport = api_to_ml - ml_total
 │  └─ ml_total
@@ -43,7 +44,7 @@ ML `/health`는 프로세스 생존, `/ready`는 모델 준비 상태를 나타�
 2026-07-21 KST 실행 결과:
 
 - `api\gradlew.bat test --no-daemon`: Java 단위·API 테스트 7개 통과
-- `python -m unittest -v`: ML 단위·health/readiness/search API 테스트 6개 통과
+- `python -m unittest -v`: ML 단위·health/readiness/search API 테스트 7개 통과
 - PowerShell parser로 `scripts/measure-cold-warm.ps1` 문법 확인
 - 현재 공개 API에서 스크립트가 HTTP 200과 결과 5건을 읽는 스모크 테스트 확인
 
@@ -71,7 +72,8 @@ cd api
 각각 100% 유지한다. 최소 인스턴스는 설정하지 않는다.
 
 1. 관측 코드 + `MODEL_LOCAL_ONLY=0`인 API/ML revision을 `--no-traffic` 태그로 배포한다.
-2. 새 API 태그 URL의 첫 검색 1회와 연속 웜 검색 5회를 `before` CSV로 저장한다.
+2. 새 API 태그 URL의 첫 검색 후보 1회와 연속 웜 검색 5회를 `before` CSV로 저장한다.
+   첫 행은 ML revision의 모델 로딩·검색 로그가 같은 인스턴스에서 이어진 경우에만 콜드로 확정한다.
 3. 모델이 이미지에 이미 포함된 조건에서 외부 모델 조회를 금지하는
    `MODEL_LOCAL_ONLY=1`만 바꾼 ML revision과 이를 가리키는 API revision을 새 태그로 만든다.
 4. 같은 입력·리소스·지역·횟수로 `after` CSV를 저장한다.
@@ -79,9 +81,9 @@ cd api
 
 Sentence Transformers의
 [`local_files_only`](https://www.sbert.net/docs/package_reference/sentence_transformer/model.html)는
-로컬 파일만 사용하도록 제한한다. 이 프로젝트는 모델을 이미지 빌드 단계에 미리 내려받으므로
-최소 인스턴스나 CPU·메모리 증설 없이 적용할 수 있다. 실제 개선 여부는 배포 후 CSV로만
-판정하며, 감소를 미리 성과로 기록하지 않는다.
+로컬 파일만 사용하도록 제한한다. 이 프로젝트는 모델을 이미지 빌드 단계에 미리 내려받고,
+Hugging Face/Transformers offline 모드도 함께 켠다. 최소 인스턴스나 CPU·메모리 증설은
+없다. 실제 개선 여부는 배포 후 CSV로만 판정하며, 감소를 미리 성과로 기록하지 않는다.
 
 ## 배포·측정 결과
 
@@ -92,9 +94,11 @@ Sentence Transformers의
 
 실제 측정 전에는 원인이나 개선 효과를 확정하지 않는다. 현재 알려진 측정 한계는 다음과 같다.
 
-- tagged revision의 첫 요청은 API와 ML을 함께 콜드로 만들지만 Cloud Run 이미지 fetch 등
-  플랫폼 구간은 애플리케이션 내부 타이머 밖에 있다.
+- 콜드로 검증된 tagged revision 요청도 Cloud Run 이미지 fetch 등 플랫폼 구간은
+  애플리케이션 내부 타이머 밖에 있다. 배포 직후 인스턴스가 남아 있을 수 있으므로
+  revision 로그로 콜드 여부를 별도 검증해야 한다.
 - `api_ml_transport`는 순수 네트워크 RTT가 아니라 프록시·직렬화/역직렬화 잔여 시간이다.
+- `client_api_residual`은 API 플랫폼 시작, 클라이언트 네트워크, API 직렬화가 섞인 잔여값이다.
 - DB 연결과 쿼리는 분리하지만 Neon 내부 휴면 해제 세부 단계까지는 보이지 않는다.
 - Gemini는 외부 서비스 변동성이 있으므로 검색 콜드스타트 비교와 분리한다.
 

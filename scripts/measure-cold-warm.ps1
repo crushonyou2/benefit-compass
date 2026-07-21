@@ -19,7 +19,8 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$OutputCsv,
 
-    [switch]$FirstRequestCold
+    [Alias('FirstRequestCold')]
+    [switch]$FirstRequestColdCandidate
 )
 
 $ErrorActionPreference = 'Stop'
@@ -118,18 +119,35 @@ try {
             if ($null -ne $response) { $response.Dispose() }
         }
 
-        $temperature = if ($FirstRequestCold -and $run -eq 1) { 'cold' } else { 'warm' }
+        $isColdCandidate = $FirstRequestColdCandidate -and $run -eq 1
+        $temperature = if ($isColdCandidate) { 'cold_candidate' } else { 'warm' }
+        $coldVerification = if ($isColdCandidate) {
+            'pending_revision_log'
+        } else {
+            'not_applicable'
+        }
+        $durationMs = [math]::Round($startedAt.Elapsed.TotalMilliseconds, 3)
+        $clientApiResidualMs = $null
+        if ($null -ne $timing['api_to_ml']) {
+            $knownApiSegmentsMs = [double]$timing['api_to_ml']
+            if ($null -ne $timing['gemini']) {
+                $knownApiSegmentsMs += [double]$timing['gemini']
+            }
+            $clientApiResidualMs = [math]::Max(0.0, $durationMs - $knownApiSegmentsMs)
+        }
         $rows.Add([pscustomobject]@{
             scenario = $Scenario
             revision = $Revision
             run = $run
             temperature = $temperature
+            cold_verification = $coldVerification
             timestamp_utc = [DateTimeOffset]::UtcNow.ToString('o')
             endpoint = $endpoint
-            duration_ms = [math]::Round($startedAt.Elapsed.TotalMilliseconds, 3)
+            duration_ms = $durationMs
             status = $status
             result_count = $resultCount
             request_id = $requestId
+            client_api_residual_ms = $clientApiResidualMs
             api_to_ml_ms = $timing['api_to_ml']
             api_ml_transport_ms = $timing['api_ml_transport']
             ml_model_wait_ms = $timing['ml_model_wait']
@@ -156,6 +174,7 @@ if (-not (Test-Path -LiteralPath $parent)) {
 }
 $rows | Export-Csv -LiteralPath $resolvedOutput -NoTypeInformation -Encoding utf8
 $rows | Format-Table run, temperature, duration_ms, status, result_count,
-    api_to_ml_ms, api_ml_transport_ms, ml_model_wait_ms, ml_embedding_ms, ml_db_connect_ms, ml_db_query_ms,
+    client_api_residual_ms, api_to_ml_ms, api_ml_transport_ms, ml_model_wait_ms,
+    ml_embedding_ms, ml_db_connect_ms, ml_db_query_ms,
     ml_total_ms, gemini_ms
 Write-Output "Raw CSV: $resolvedOutput"
