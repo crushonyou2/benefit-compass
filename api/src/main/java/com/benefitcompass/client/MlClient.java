@@ -5,6 +5,7 @@ import com.benefitcompass.dto.Policy;
 import com.benefitcompass.dto.RecommendRequest;
 import com.benefitcompass.observability.SegmentObservation;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -24,6 +25,7 @@ public class MlClient {
     private final RestClient client;
     private final SegmentObservation observation;
 
+    @Autowired
     public MlClient(@Value("${ml.base-url}") String baseUrl, SegmentObservation observation) {
         this(RestClient.builder()
                 .baseUrl(baseUrl)

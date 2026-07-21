@@ -2,6 +2,7 @@ package com.benefitcompass.client;
 
 import com.benefitcompass.observability.SegmentObservation;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -23,6 +24,7 @@ public class GeminiClient {
     private final String model;
     private final SegmentObservation observation;
 
+    @Autowired
     public GeminiClient(@Value("${gemini.api-key}") String apiKey,
                         @Value("${gemini.model}") String model,
                         SegmentObservation observation) {
