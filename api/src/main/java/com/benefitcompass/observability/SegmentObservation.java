@@ -3,6 +3,7 @@ package com.benefitcompass.observability;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
@@ -47,6 +48,7 @@ public class SegmentObservation {
     private final boolean enabled;
     private final ThreadLocal<RequestTimings> requestTimings = new ThreadLocal<>();
 
+    @Autowired
     public SegmentObservation(
             MeterRegistry metrics,
             @Value("${benefitcompass.observability.segments-enabled:true}") boolean enabled
