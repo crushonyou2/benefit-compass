@@ -99,12 +99,13 @@ class HealthReadinessApiTest(unittest.TestCase):
         with patch.object(ml_app, "runtime", fake_runtime), \
                 patch.object(ml_app, "RERANK", False), \
                 patch.object(ml_app.psycopg2, "connect", return_value=FakeConnection()):
-            with TestClient(ml_app.app) as client:
-                response = client.post(
-                    "/search",
-                    headers={"X-Request-ID": "request-123"},
-                    json={"query": "fixed synthetic query", "age": None, "k": 5},
-                )
+            with self.assertLogs(ml_app.log, level="INFO") as captured:
+                with TestClient(ml_app.app) as client:
+                    response = client.post(
+                        "/search",
+                        headers={"X-Request-ID": "request-123"},
+                        json={"query": "fixed synthetic query", "age": None, "k": 5},
+                    )
 
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, len(response.json()["results"]))
@@ -121,6 +122,10 @@ class HealthReadinessApiTest(unittest.TestCase):
             timing_names,
         )
         self.assertIn("X-ML-Model-Load-Ms", response.headers)
+        joined_logs = "\n".join(captured.output)
+        self.assertIn("request_id=request-123", joined_logs)
+        self.assertNotIn("fixed synthetic query", joined_logs)
+        self.assertNotIn("age", joined_logs)
 
 
 if __name__ == "__main__":

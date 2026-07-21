@@ -87,7 +87,9 @@ ORDER BY t.dist
 LIMIT %(n)s
 """
 
-log = logging.getLogger("benefitcompass.ml")
+# Uvicorn config owns this logger in production, so INFO lifecycle/search events
+# are emitted instead of being silently filtered by Python's WARNING root level.
+log = logging.getLogger("uvicorn.error")
 runtime = ModelRuntime()
 
 
