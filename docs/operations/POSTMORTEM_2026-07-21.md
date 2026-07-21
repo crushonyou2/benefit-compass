@@ -5,6 +5,29 @@
 검증은 0% tagged revision에만 수행해 공개 사용자 영향은 없었다. 기준 API revision 두 개가
 시작에 실패했지만 공개 traffic은 기존 revision 100%를 유지했다.
 
+2026-07-22 재검증도 새 API/ML revision 네 개를 0% tag로만 만들었다. 공개 traffic과
+min instances는 바꾸지 않았다. 첫 재배포 명령은 잘못된 `--max=10` 플래그 때문에 revision
+생성 전에 종료됐고 서비스 상태 변화나 사용자 영향은 없었다.
+
+## 2026-07-22 재검증 결론
+
+1. 같은 API/ML digest·자원에서 `MODEL_LOCAL_ONLY=0/1`만 달리해 scale-to-zero cold 5쌍을
+   수집했다. 10개 첫 요청 모두 API·ML 새 instance와 request ID로 cold가 검증됐다.
+2. `/ready` startup probe 적용 뒤 정상 첫 검색의 `ml_model_wait`는 약 0.01ms였다. 모델 준비
+   대기는 사라진 것이 아니라 ML handler 전 Cloud Run startup·queue로 이동했고,
+   `api_ml_transport` 중앙값이 약 26~27초로 가장 컸다.
+3. local-only에서 모델 로딩 중앙값은 24.239초에서 23.093초로 1.146초(4.73%) 작은 값이
+   관측됐다. 하지만 paired 평균 모델 로딩은 악화됐고 cold end-to-end 중앙값도 37.678초에서
+   37.781초로 0.103초 늘었다. 성능 개선은 미확정이며, 외부 Hub 의존 제거와 정상 동작만
+   확인됐다.
+4. pair별 모델 로딩 차이는 -2.674~+4.887초, end-to-end 차이는 -2.622~+5.102초였다.
+   Cloud Run instance 시작·CPU 스케줄링, 첫 embedding, DB 연결·쿼리 변동이 남아 있어
+   5쌍으로 공개 traffic 전환이나 통계적 효과를 주장할 수 없다.
+
+배포 실패의 직접 원인은 gcloud가 `--max`를 지원하지 않는다는 점이었다. dry-run은 명령을
+출력만 하고 CLI 유효성을 검사하지 않아 이를 잡지 못했다. API/ML 모두
+`--max-instances=20/10`으로 수정했고, 이후 실제 0% 배포와 dry-run assertion이 통과했다.
+
 ## 관찰된 원인
 
 1. 동일 입력의 재현 첫 요청 35.328초 중 모델 readiness 대기가 26.097초(73.87%)로
@@ -41,15 +64,17 @@
   INFO 로그를 재검증했다.
 - 2026-07-22 로컬 보완에서 `/ready` startup probe 배포 조건, 성공·실패 공통 timing header,
   고정 API 오류 응답, reranker local-only 전달을 추가했다. 2차 리뷰에서 MVC 405/415 상태 보존,
-  최대 240초 첫 probe 예산, before/after 배포 인자를 추가했다. Java 테스트 12개와 Python 테스트
-  9개가 통과했지만 새 Cloud Run revision은 아직 만들지 않았으므로 배포 검증 완료로 세지 않는다.
+  최대 240초 첫 probe 예산, before/after 배포 인자를 추가했다. 새 0% API/ML revision 네 개에서
+  probe, recommend/ask, timing header와 cold instance 증거를 검증했고 Java 테스트 12개와
+  Python 테스트 9개가 통과했다.
 
 ## 후속 작업
 
-- local-only 1.99%는 콜드 쌍 n=1이므로 성능 개선으로 확정하지 않는다. 검증된 변화는 외부 Hub
-  확인 경로가 사라진 것이며, 성능은 최소 5쌍 pilot 뒤 분산을 보고 추가 표본 수를 정한다.
-- 새 0% revision에서 HTTP `/ready` startup probe가 모델 로딩을 startup CPU 구간 안에서
-  완료시키는지 확인한다. 첫 배포는 최대 240초 예산으로 시작하고 실측 뒤 조인다. 최소
-  인스턴스와 always-on CPU는 사용하지 않는다.
+- 5쌍 pilot에서 모델 로딩 중앙값 감소가 관측됐지만 인과적 성능 개선과 end-to-end 개선은
+  확인되지 않았다. 공개 traffic
+  전환 전에 표본 수를 늘리거나, 더 큰 병목인 startup queue와 이미지/model load 자체를 줄이는
+  별도 비용 없는 변경을 검증한다.
+- `/ready` startup probe 240초 예산은 모든 표본에서 통과했다. 예산 축소는 더 다양한 cold
+  표본과 최악값을 확보한 뒤 별도 변경으로 검증한다. 최소 인스턴스와 always-on CPU는 사용하지 않는다.
 - DB connection 재사용은 warm 약 430ms 병목 후보지만, stale connection 복구와 Neon 유휴
   정책·비용을 함께 검증하기 전에는 적용하지 않는다.

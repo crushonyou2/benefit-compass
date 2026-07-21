@@ -39,6 +39,9 @@ Cloud Run의 요청 기반 CPU에서는 process가 살아 있어도 background �
 
 ML 배포 후보는 `/ready` HTTP startup probe가 200이 되기 전 traffic을 받지 않아야 한다.
 저장소의 배포 스크립트는 기본이 dry-run이며, 사용자 승인 뒤에만 `-Execute`를 붙인다.
+dry-run은 gcloud 플래그 유효성까지 검사하지 않는다. 2026-07-22에는 `--max`가 실제 CLI에서
+거부된 뒤 `--max-instances`로 수정됐다. gcloud 버전 변경 뒤에는 parser/dry-run뿐 아니라
+0% canary 한 건의 실제 종료 코드도 확인한다.
 
 ```powershell
 .\scripts\deploy-production-lab-2.ps1 `
@@ -126,6 +129,11 @@ gcloud logging read `
 
 검증된 명령·원본 CSV·로그 증거 예시는
 [Production Lab 2 결과](PRODUCTION_LAB_2_2026-07-21.md)를 따른다.
+
+2026-07-22 검증값은 15분 유휴 5쌍이며 10/10 첫 요청이 API·ML 새 instance로 확인됐다.
+`MODEL_LOCAL_ONLY=1`에서 모델 로딩 중앙값 24.239초→23.093초가 관측됐지만 paired 평균과
+cold 전체 중앙값은 개선하지 못했다. 성능 효과는 미확정이므로 이 토글만으로 공개 traffic을
+전환하지 않는다.
 
 ## 5xx가 증가할 때
 

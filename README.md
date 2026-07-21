@@ -78,14 +78,15 @@ recall@5/@10이 살짝 내려간 건 60문항 기준 1문항 차이라 사실상
 
 같은 날 관측 코드를 Cloud Run `benefit-api-00002-ndd`로 배포했습니다. health·Prometheus·검색·요청 ID를 검증했으며, CRLF로 인한 첫 빌드 실패와 복구 과정은 [배포 기록](docs/operations/DEPLOYMENT_2026-07-14.md)에 남겼습니다.
 
-2026-07-21 Production Lab 2에서는 공개 traffic을 바꾸지 않은 0% revision으로 콜드스타트를
-API↔ML, 모델 준비, 임베딩, DB 연결·쿼리, Gemini로 분리했습니다. 동일 입력 재현 첫 요청
-35.328초의 73.87%가 모델 readiness 대기였습니다. 같은 이미지·리소스의 scale-to-zero
-동시 비교에서 local-only 모델 로딩은 25.897초→25.381초였지만 표본이 조건별 1개라
-성능 개선으로 확정하지 않았습니다. 검증된 변화는 런타임 Hub 확인 경로 제거입니다.
-후속 리뷰에서 모델 준비 전 traffic 허용 가능성을 발견해 `/ready` startup probe와 실패
-응답 관측을 로컬에서 보완했으며, 이 보완은 새 0% revision 재검증 전까지 배포 완료로
-간주하지 않습니다. 상세 원본·revision·한계는
+2026-07-21~22 Production Lab 2에서는 공개 traffic을 바꾸지 않은 0% revision으로
+콜드스타트를 API↔ML, 모델 준비, 임베딩, DB 연결·쿼리, Gemini로 분리했습니다. 리뷰 뒤
+`/ready` startup probe를 적용한 동일 image·리소스 before/after를 15분 유휴 5쌍으로
+재측정했고, 10개 첫 요청 모두 API·ML 새 instance 로그로 cold를 확인했습니다.
+비용 없는 local-only 변경에서 모델 로딩 중앙값 24.239초→23.093초(-4.73%)가 관측됐지만,
+pair 평균은 오히려 악화됐고 cold 전체 중앙값도 37.678초→37.781초(+0.27%)로 개선되지
+않았습니다. 따라서 성능 개선은 미확정이며, 검증된 개선은 런타임 Hub 의존 제거와 정상
+동작입니다. 사용자 지연 개선은 주장하지 않습니다.
+상세 원본·revision·한계는
 [Production Lab 2 결과](docs/operations/PRODUCTION_LAB_2_2026-07-21.md)에 기록했습니다.
 최소 인스턴스와 공개 traffic 변경은 적용하지 않았습니다.
 

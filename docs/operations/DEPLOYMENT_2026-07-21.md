@@ -31,7 +31,7 @@ Spring이 주 생성자를 선택하지 못한 것이 원인이었다. `@Autowir
 
 main 병합, push, 공개 traffic 변경, 외부 공개는 수행하지 않았다.
 
-## 2026-07-22 리뷰 후 상태
+## 2026-07-22 리뷰 후 재검증
 
 후속 코드 리뷰에서 위 최종 ML revision에 `/ready` startup probe가 없고 기본 TCP probe만
 사용된 사실을 확인했다. 따라서 해당 revision의 검색·로그 측정은 유효하지만, 모델 준비 전
@@ -39,12 +39,49 @@ traffic을 차단하는 배포 후보로는 승인하지 않는다. 실패 응�
 응답, `/ready` startup probe 조건을 로컬 코드와
 `scripts/deploy-production-lab-2.ps1`에 보완했다.
 
-이 보완 코드는 아직 Cloud Run에 재배포하지 않았다. 새 ML/API 0% revision, startup probe
-성공, 실패/성공 타이밍 헤더, 동일 조건 콜드·웜 재측정이 확인될 때까지 Production Lab 2의
-배포 검증은 **재검증 대기**다. 공개 traffic과 기존 revision은 변경하지 않았다.
-
 2차 리뷰 뒤 첫 startup probe 예산은 120초에서 Cloud Run 상한인 240초로 넓혔고, 실측 뒤에만
 낮추도록 파라미터화했다. 배포 스크립트는 `MODEL_LOCAL_ONLY=0/1`을 모두 만들 수 있으며
-API/ML의 CPU·메모리·concurrency·timeout·max·port를 기존 실험값으로 명시한다. MVC 405/415가
-500으로 바뀌던 로컬 회귀도 수정했으며 새 revision은 여전히 만들지 않았다. `--port=8080`은
-기존 Cloud Run 기본값과 Dockerfile 기본값을 명시적으로 고정한 no-op 조건으로 추가했다.
+API/ML의 CPU·메모리·concurrency·timeout·max instances·port를 기존 실험값으로 명시한다.
+MVC 405/415가 500으로 바뀌던 로컬 회귀도 수정했다. `--port=8080`은 기존 Cloud Run 기본값과
+Dockerfile 기본값을 명시적으로 고정한 no-op 조건이다.
+
+사용자 승인 뒤 커밋 `0ba0aa425db71430549b1ff4ac15419812a9d015`에서 API와 ML 이미지를
+각각 한 번만 빌드했다.
+
+| 역할 | Cloud Build ID | image digest |
+|---|---|---|
+| API | `ece820db-175a-4652-8eed-bcfd8b5d035e` | `sha256:f0e88ec2bb403867f156d762893e0f0804f378b4e75d49aba6e029c387474472` |
+| ML | `38276cd9-65f6-45ac-83ca-8b009bdfad7d` | `sha256:1070274d936397be06e925a1eea52687f7df2597d499a7d2dc0c7f79e6954b14` |
+
+before/after는 이 동일 digest를 사용한다. ML은 2 vCPU·2GiB·concurrency 160·timeout
+300초·max instances 10·startup CPU boost·`/ready` HTTP startup probe 240초 예산,
+API는 1 vCPU·1GiB·concurrency 80·timeout 300초·max instances 20·startup CPU boost다.
+두 서비스 모두 min instances 기본값 0이고 `--no-traffic`으로 만들었다.
+
+| 역할 | revision | 안전 조건 | 결과 |
+|---|---|---|---|
+| ML before | `benefit-ml-pl2b-0ba0aa4` | `MODEL_LOCAL_ONLY=0`, 0% | ready |
+| ML after | `benefit-ml-pl2a-0ba0aa4` | `MODEL_LOCAL_ONLY=1`, 0% | ready |
+| API before | `benefit-api-pl2b-0ba0aa4` | before ML tag 연결, 0% | ready |
+| API after | `benefit-api-pl2a-0ba0aa4` | after ML tag 연결, 0% | ready |
+
+첫 실제 ML 배포 시 `gcloud run deploy`가 `--max=10`을 인식하지 않아 revision 생성 전에
+종료했다. Cloud Run 상태 변경은 없었다. 스크립트의 API/ML 플래그를 각각
+`--max-instances=20/10`으로 고치고 dry-run assertion을 통과한 뒤 재실행했다. 이 오류와
+수정은 커밋 `0ba0aa4` 뒤 작업 트리 변경으로 남긴다.
+
+각 조건 5회의 scale-to-zero 측정에서 `/ready`는 모델 로딩 동안 503, 완료 뒤 200을 반환했고,
+모든 첫 요청은 API와 ML 양쪽의 `AUTOSCALING` 새 instance로 확인됐다. 10개 모두 같은 ML
+instance에서 모델 로딩 완료와 첫 검색 request ID가 이어졌다. 원본은
+`cold-instance-evidence-2026-07-22.csv`에 있다.
+
+배포 뒤 Cloud Run에서 다시 읽은 digest·CPU·memory·concurrency·timeout·max/min instances·
+port·startup probe·tag·traffic의 안전한 필드 원본은
+[`deployment-validation-2026-07-22.csv`](deployment-validation-2026-07-22.csv)에 보존했다.
+전체 환경변수와 secret 값은 조회하거나 기록하지 않았다.
+
+측정 시간대의 HF Hub warning은 before ML revision 5건, after ML revision 0건이었다.
+after의 5개 cold 검색과 후속 warm 검색은 모두 200이어서 local-only의 정상 동작을 확인했다.
+
+재검증 뒤에도 공개 traffic은 API `benefit-api-00002-ndd`, ML `benefit-ml-00001-wvn`에
+각각 100%로 유지됐다. main 병합, push, 공개 traffic 전환과 외부 공개는 수행하지 않았다.

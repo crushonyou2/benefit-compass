@@ -61,5 +61,7 @@ startup probe 뒤의 ML 인스턴스 시작·요청 큐 대기는 ML 내부 `ml_
 고정 9 segment × 3 outcome Timer는 대시보드 계열을 안정시키기 위해 시작 시 등록되므로,
 아직 발생하지 않은 조합도 `/actuator/prometheus`에 count 0으로 보일 수 있다.
 
-2026-07-21의 0% tagged revision 실측값은 목표치가 아니라 운영 기준선이다. 콜드·웜·Gemini
-원본과 해석 한계는 [Production Lab 2 결과](PRODUCTION_LAB_2_2026-07-21.md)에 기록한다.
+2026-07-21~22의 0% tagged revision 실측값은 목표치가 아니라 운영 기준선이다. 최종
+scale-to-zero 5쌍에서 local-only 모델 로딩 중앙값 4.73% 감소가 관측됐지만 paired 평균과
+cold end-to-end 중앙값은 개선되지 않아 성능 효과는 미확정이다. 콜드·웜·Gemini 원본과 해석 한계는
+[Production Lab 2 결과](PRODUCTION_LAB_2_2026-07-21.md)에 기록한다.

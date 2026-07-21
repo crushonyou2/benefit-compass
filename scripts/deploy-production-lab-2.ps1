@@ -56,14 +56,14 @@ $deployArgs = @(
 )
 
 if ($Stage -eq 'Ml') {
-    $deployArgs += @('--cpu=2', '--memory=2Gi', '--concurrency=160', '--timeout=300', '--max=10')
+    $deployArgs += @('--cpu=2', '--memory=2Gi', '--concurrency=160', '--timeout=300', '--max-instances=10')
     $deployArgs += "--update-env-vars=MODEL_LOCAL_ONLY=$ModelLocalOnly"
     # The probe budget gates container admission. MODEL_READY_TIMEOUT_SECONDS separately
     # protects direct/local requests that race readiness without Cloud Run gating.
     # Passing /ready gates traffic on model readiness while /health remains liveness-only.
     $deployArgs += "--startup-probe=httpGet.path=/ready,httpGet.port=$ContainerPort,initialDelaySeconds=0,failureThreshold=$StartupFailureThreshold,timeoutSeconds=1,periodSeconds=2"
 } else {
-    $deployArgs += @('--cpu=1', '--memory=1Gi', '--concurrency=80', '--timeout=300', '--max=20')
+    $deployArgs += @('--cpu=1', '--memory=1Gi', '--concurrency=80', '--timeout=300', '--max-instances=20')
     $deployArgs += "--update-env-vars=ML_BASE_URL=$MlBaseUrl"
 }
 
