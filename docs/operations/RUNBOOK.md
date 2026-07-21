@@ -8,6 +8,38 @@
 4. Neon 연결 실패, ML 서비스 준비 지연, Gemini 호출 지연 순서로 로그를 확인한다.
 5. 질문 원문은 장애 조사 목적으로도 로그에 남기지 않는다.
 
+### 구간 판별 순서
+
+1. API 응답의 `Server-Timing`에서 `api_to_ml`, `ml_total`, `gemini`를 확인한다.
+2. `api_to_ml`이 크고 `ml_total`이 작으면 `api_ml_transport`와 API/ML revision을 확인한다.
+3. `ml_model_wait`가 크면 ML `/health`와 `/ready`를 각각 확인한다. `/health` 200은
+   모델 준비 완료를 뜻하지 않는다.
+4. `ml_db_connect`가 크면 Neon 휴면 해제·TLS 연결, `ml_db_query`가 크면 SQL/벡터 검색을 본다.
+5. `/api/ask`에서만 `gemini`가 기록된다. 검색 전용 `/api/policies/recommend`에는 없다.
+
+허용된 구간명 외 `Server-Timing` 값은 API가 버린다. 로그에는 request ID, 고정 구간명,
+결과 건수와 시간만 남기고 요청 본문은 남기지 않는다.
+
+## 콜드·웜 재현
+
+공개 트래픽을 바꾸지 않은 새 tagged revision의 URL을 사용해야 첫 요청을 콜드로
+판정할 수 있다. 기존 URL을 오래 방치했다는 이유만으로 콜드라고 추정하지 않는다.
+
+```powershell
+.\scripts\measure-cold-warm.ps1 `
+  -ApiBaseUrl 'https://TAGGED-REVISION-URL' `
+  -Mode recommend `
+  -Scenario 'before' `
+  -Revision 'benefit-api-REVISION' `
+  -Runs 6 `
+  -FirstRequestCold `
+  -OutputCsv '.\docs\operations\cold-warm-before-YYYY-MM-DD.csv'
+```
+
+스크립트는 2026-07-14 기준선과 같은 고정 비식별 질문을 메모리에서만 사용한다.
+CSV에는 질문·나이 열이 없으며 revision, 요청 순서, 응답시간, 상태, 결과 건수,
+고정 구간 시간만 저장한다.
+
 ## 5xx가 증가할 때
 
 1. 응답의 `X-Request-ID`로 해당 요청 로그를 찾는다.

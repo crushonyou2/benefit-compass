@@ -12,7 +12,8 @@ class RequestObservationFilterTest {
     @Test
     void recordsOnlyNormalizedEndpointAndStatusTags() throws Exception {
         SimpleMeterRegistry registry = new SimpleMeterRegistry();
-        RequestObservationFilter filter = new RequestObservationFilter(registry);
+        RequestObservationFilter filter = new RequestObservationFilter(
+                registry, new SegmentObservation(registry));
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/ask");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -29,7 +30,8 @@ class RequestObservationFilterTest {
     @Test
     void collapsesUnknownApiPathsToPreventHighCardinality() throws Exception {
         SimpleMeterRegistry registry = new SimpleMeterRegistry();
-        RequestObservationFilter filter = new RequestObservationFilter(registry);
+        RequestObservationFilter filter = new RequestObservationFilter(
+                registry, new SegmentObservation(registry));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/arbitrary-user-value");
         MockHttpServletResponse response = new MockHttpServletResponse();
 

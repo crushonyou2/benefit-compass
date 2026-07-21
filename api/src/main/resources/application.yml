@@ -8,6 +8,10 @@ gemini:
   api-key: ${GEMINI_API_KEY:}
   model: gemini-3.1-flash-lite   # 답변 짧고 빠르게 (3.5-flash는 thinking으로 느림)
 
+benefitcompass:
+  observability:
+    segments-enabled: ${SEGMENT_OBSERVABILITY_ENABLED:true}
+
 management:
   endpoints:
     web:

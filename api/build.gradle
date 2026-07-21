@@ -26,3 +26,13 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+tasks.register('observationOverhead', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.benefitcompass.observability.ObservationOverheadBenchmark'
+    if (!project.hasProperty('overheadOutput')) {
+        throw new GradleException('Use -PoverheadOutput=<absolute csv path>')
+    }
+    args project.property('overheadOutput')
+}

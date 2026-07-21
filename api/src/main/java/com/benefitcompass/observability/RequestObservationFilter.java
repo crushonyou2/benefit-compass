@@ -27,9 +27,11 @@ public class RequestObservationFilter extends OncePerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(RequestObservationFilter.class);
     private static final Set<String> KNOWN_ENDPOINTS = Set.of("/api/ask", "/api/policies/recommend");
     private final MeterRegistry metrics;
+    private final SegmentObservation segments;
 
-    public RequestObservationFilter(MeterRegistry metrics) {
+    public RequestObservationFilter(MeterRegistry metrics, SegmentObservation segments) {
         this.metrics = metrics;
+        this.segments = segments;
     }
 
     @Override
@@ -51,6 +53,7 @@ public class RequestObservationFilter extends OncePerRequestFilter {
 
         response.setHeader("X-Request-ID", requestId);
         MDC.put("requestId", requestId);
+        segments.beginRequest();
         try {
             filterChain.doFilter(request, response);
         } finally {
@@ -63,6 +66,7 @@ public class RequestObservationFilter extends OncePerRequestFilter {
                     .record(durationNanos, TimeUnit.NANOSECONDS);
             log.info("api_request method={} endpoint={} status={} duration_ms={}",
                     request.getMethod(), endpoint, response.getStatus(), durationNanos / 1_000_000);
+            segments.clearRequest();
             MDC.remove("requestId");
         }
     }

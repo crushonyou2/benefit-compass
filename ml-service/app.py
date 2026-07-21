@@ -10,19 +10,25 @@ RERANK=1(기본, 로컬)이면 cross-encoder 리랭킹, RERANK=0(배포)이면 b
 """
 import os
 import pathlib
+import logging
+import time
 from contextlib import asynccontextmanager
-from typing import Optional
+from typing import Annotated, Optional
 
 from dotenv import load_dotenv
 import psycopg2
-from fastapi import FastAPI
+from fastapi import FastAPI, Header, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from sentence_transformers import SentenceTransformer, CrossEncoder
+
+from runtime_state import ModelRuntime, safe_request_id, server_timing_header
 
 CANDIDATES = 30   # bi-encoder가 뽑는 후보 수 (리랭킹 대상)
 RERANK = os.getenv("RERANK", "1") == "1"             # 0이면 리랭커 끔 (배포: 무료 CPU 속도/메모리)
 COSINE_MIN = float(os.getenv("COSINE_MIN", "0.78"))  # 리랭커 끌 때 bi-encoder 코사인 컷
+MODEL_READY_TIMEOUT_SECONDS = float(os.getenv("MODEL_READY_TIMEOUT_SECONDS", "120"))
+MODEL_LOCAL_ONLY = os.getenv("MODEL_LOCAL_ONLY", "0") == "1"
 
 # 지역코드(zipCd)가 부정확해 기관명으로 보강 필터링. region 코드 앞2자리 → 시도 키워드.
 SIDO = {
@@ -81,14 +87,37 @@ ORDER BY t.dist
 LIMIT %(n)s
 """
 
-state = {}
+log = logging.getLogger("benefitcompass.ml")
+runtime = ModelRuntime()
+
+
+def load_models():
+    """Load imports and weights together so the recorded duration is complete."""
+    from sentence_transformers import SentenceTransformer
+
+    kwargs = {"local_files_only": True} if MODEL_LOCAL_ONLY else {}
+    models = {"model": SentenceTransformer("intfloat/multilingual-e5-base", **kwargs)}
+    if RERANK:
+        from sentence_transformers import CrossEncoder
+        models["reranker"] = CrossEncoder("BAAI/bge-reranker-v2-m3")
+    return models
+
+
+def load_models_with_log():
+    log.info("ml_model_load event=start rerank=%s local_only=%s", RERANK, MODEL_LOCAL_ONLY)
+    try:
+        models = load_models()
+    except BaseException as exc:
+        log.error("ml_model_load event=error error_type=%s", type(exc).__name__)
+        raise
+    snapshot = runtime.snapshot()
+    log.info("ml_model_load event=complete duration_ms=%.3f", snapshot.model_load_ms)
+    return models
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    state["model"] = SentenceTransformer("intfloat/multilingual-e5-base")
-    if RERANK:
-        state["reranker"] = CrossEncoder("BAAI/bge-reranker-v2-m3")
+    runtime.start(load_models_with_log)
     yield
 
 
@@ -107,41 +136,102 @@ class SearchReq(BaseModel):
 
 @app.get("/health")
 def health():
+    """Liveness only: the process can respond even while models are loading."""
     return {"status": "ok"}
 
 
+@app.get("/ready")
+def ready():
+    """Readiness is 200 only after every configured model is loaded."""
+    snapshot = runtime.snapshot()
+    status_code = 200 if snapshot.status == "ready" else 503
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "status": snapshot.status,
+            "model_load_ms": round(snapshot.model_load_ms, 3),
+            "rerank": RERANK,
+            "local_only": MODEL_LOCAL_ONLY,
+        },
+    )
+
+
 @app.post("/search")
-def search(req: SearchReq):
-    q = strip_region(req.query)   # 지역어 제거 (지역 필터 미지원, 잡음 방지)
-    qvec = state["model"].encode([f"query: {q}"], normalize_embeddings=True)[0]
-    vec = "[" + ",".join(f"{x:.6f}" for x in qvec) + "]"
-    # Neon 등 서버리스 DB는 유휴 시 잠들어 풀의 커넥션이 죽으므로 요청마다 새 연결.
-    conn = psycopg2.connect(DB)
+def search(
+    req: SearchReq,
+    response: Response,
+    x_request_id: Annotated[str | None, Header()] = None,
+):
+    request_started_ns = time.perf_counter_ns()
+    request_id = safe_request_id(x_request_id)
+    timings = {name: 0.0 for name in
+               ("model_wait", "embedding", "db_connect", "db_query", "rerank")}
+    conn = None
     try:
+        started_ns = time.perf_counter_ns()
+        models = runtime.wait(MODEL_READY_TIMEOUT_SECONDS)
+        timings["model_wait"] = (time.perf_counter_ns() - started_ns) / 1_000_000.0
+
+        q = strip_region(req.query)   # 지역어 제거 (지역 필터 미지원, 잡음 방지)
+        started_ns = time.perf_counter_ns()
+        qvec = models["model"].encode([f"query: {q}"], normalize_embeddings=True)[0]
+        timings["embedding"] = (time.perf_counter_ns() - started_ns) / 1_000_000.0
+        vec = "[" + ",".join(f"{x:.6f}" for x in qvec) + "]"
+
+        # Neon 등 서버리스 DB는 유휴 시 잠들어 풀의 커넥션이 죽으므로 요청마다 새 연결.
+        started_ns = time.perf_counter_ns()
+        conn = psycopg2.connect(DB)
+        timings["db_connect"] = (time.perf_counter_ns() - started_ns) / 1_000_000.0
+        started_ns = time.perf_counter_ns()
         cur = conn.cursor()
-        cur.execute(SQL, {"vec": vec, "age": req.age,
-                          "rp": (f"{req.region}%" if req.region else None), "n": CANDIDATES})
-        rows = cur.fetchall()
-        cur.close()
+        try:
+            cur.execute(SQL, {"vec": vec, "age": req.age,
+                              "rp": (f"{req.region}%" if req.region else None),
+                              "n": CANDIDATES})
+            rows = cur.fetchall()
+        finally:
+            cur.close()
+        timings["db_query"] = (time.perf_counter_ns() - started_ns) / 1_000_000.0
+
+        cols = ["source_id", "title", "org", "support_content", "apply_method",
+                "apply_url", "age_min", "age_max", "income_etc", "score"]
+        cands = [dict(zip(cols, row)) for row in rows]
+        cands = region_filter(cands, req.region)   # 기관명 기반 지역 보강 필터
+
+        if cands and RERANK:
+            started_ns = time.perf_counter_ns()
+            # cross-encoder 리랭킹: 질의↔정책을 직접 비교해 관련성 재산정
+            pairs = [[q, ((c["title"] or "") + " "
+                           + (c["support_content"] or ""))[:400]] for c in cands]
+            for cand, logit in zip(cands, models["reranker"].predict(pairs)):
+                cand["score"] = float(logit)
+            cands.sort(key=lambda cand: cand["score"], reverse=True)
+            cands = [cand for cand in cands if cand["score"] >= req.min_score]
+            timings["rerank"] = (time.perf_counter_ns() - started_ns) / 1_000_000.0
+        elif cands:
+            cands = [cand for cand in cands if cand["score"] >= COSINE_MIN]
+
+        result = {"results": cands[:req.k]}
+        timings["ml_total"] = (time.perf_counter_ns() - request_started_ns) / 1_000_000.0
+        response.headers["Server-Timing"] = server_timing_header(timings)
+        response.headers["X-ML-Model-Load-Ms"] = f"{runtime.snapshot().model_load_ms:.3f}"
+        log.info(
+            "ml_search request_id=%s outcome=success result_count=%d "
+            "model_wait_ms=%.3f embedding_ms=%.3f db_connect_ms=%.3f "
+            "db_query_ms=%.3f rerank_ms=%.3f total_ms=%.3f",
+            request_id, len(result["results"]), timings["model_wait"],
+            timings["embedding"], timings["db_connect"], timings["db_query"],
+            timings["rerank"], timings["ml_total"],
+        )
+        return result
+    except (TimeoutError, RuntimeError) as exc:
+        log.error("ml_search request_id=%s outcome=not_ready error_type=%s",
+                  request_id, type(exc).__name__)
+        raise HTTPException(status_code=503, detail="ML models are not ready") from exc
+    except Exception as exc:
+        log.error("ml_search request_id=%s outcome=error error_type=%s",
+                  request_id, type(exc).__name__)
+        raise
     finally:
-        conn.close()
-
-    cols = ["source_id", "title", "org", "support_content", "apply_method",
-            "apply_url", "age_min", "age_max", "income_etc", "score"]
-    cands = [dict(zip(cols, r)) for r in rows]
-    cands = region_filter(cands, req.region)   # 기관명 기반 지역 보강 필터
-    if not cands:
-        return {"results": []}
-
-    if RERANK:
-        # cross-encoder 리랭킹: 질의↔정책을 직접 비교해 관련성 재산정 (코사인보다 정확)
-        pairs = [[q, ((c["title"] or "") + " " + (c["support_content"] or ""))[:400]]
-                 for c in cands]
-        for c, lg in zip(cands, state["reranker"].predict(pairs)):
-            c["score"] = float(lg)   # cross-encoder 원시 점수
-        cands.sort(key=lambda c: c["score"], reverse=True)
-        cands = [c for c in cands if c["score"] >= req.min_score]
-    else:
-        # 리랭커 미사용(배포 등): bi-encoder 코사인 점수로 컷 (이미 거리순 정렬)
-        cands = [c for c in cands if c["score"] >= COSINE_MIN]
-    return {"results": cands[:req.k]}
+        if conn is not None:
+            conn.close()
