@@ -28,6 +28,11 @@
 `ml_search` 로그가 해당 요청 직전에 같은 인스턴스에서 이어졌는지 확인된 경우에만 콜드로
 판정한다. 기존 URL을 오래 방치했다는 이유만으로도 콜드라고 추정하지 않는다.
 
+Cloud Run의 요청 기반 CPU에서는 process가 살아 있어도 background 모델 loader가 유휴 중
+거의 진행되지 않을 수 있다. `/health` 200과 경과 wall time만으로 모델이 CPU를 계속 사용했다고
+가정하지 않는다. 확정 측정은 scale-to-zero 후 `AUTOSCALING` 새 instance 시작, 같은 instance의
+첫 검색, 응답의 `ml_model_wait`·`X-ML-Model-Load-Ms`를 함께 확인한다.
+
 ```powershell
 .\scripts\measure-cold-warm.ps1 `
   -ApiBaseUrl 'https://TAGGED-REVISION-URL' `
@@ -52,6 +57,9 @@ gcloud logging read `
 ```
 
 애플리케이션 로그는 모델 이벤트, request ID, 고정 구간명·시간과 결과 건수만 포함한다.
+
+검증된 명령·원본 CSV·로그 증거 예시는
+[Production Lab 2 결과](PRODUCTION_LAB_2_2026-07-21.md)를 따른다.
 
 ## 5xx가 증가할 때
 

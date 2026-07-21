@@ -51,3 +51,6 @@ Prometheus 지표는 `/actuator/prometheus`, 상태 확인은 `/actuator/health`
 ML 서비스의 `/health`는 프로세스 생존만, `/ready`는 모델 준비 완료 여부와
 모델 로딩 경과/완료 시간만 반환한다. 모델 이름이나 환경 변수 값, 사용자 입력은
 상태 응답에 포함하지 않는다.
+
+2026-07-21의 0% tagged revision 실측값은 목표치가 아니라 운영 기준선이다. 콜드·웜·Gemini
+원본과 해석 한계는 [Production Lab 2 결과](PRODUCTION_LAB_2_2026-07-21.md)에 기록한다.
