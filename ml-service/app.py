@@ -17,7 +17,7 @@ from typing import Annotated, Optional
 
 from dotenv import load_dotenv
 import psycopg2
-from fastapi import FastAPI, Header, HTTPException, Response
+from fastapi import FastAPI, Header, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -105,7 +105,7 @@ def load_models():
     models = {"model": SentenceTransformer("intfloat/multilingual-e5-base", **kwargs)}
     if RERANK:
         from sentence_transformers import CrossEncoder
-        models["reranker"] = CrossEncoder("BAAI/bge-reranker-v2-m3")
+        models["reranker"] = CrossEncoder("BAAI/bge-reranker-v2-m3", **kwargs)
     return models
 
 
@@ -156,8 +156,18 @@ def ready():
         content={
             "status": snapshot.status,
             "model_load_ms": round(snapshot.model_load_ms, 3),
-            "rerank": RERANK,
-            "local_only": MODEL_LOCAL_ONLY,
+        },
+    )
+
+
+def error_response(status_code: int, detail: str, timings: dict[str, float]) -> JSONResponse:
+    """Return fixed error content with the same privacy-safe timing contract as success."""
+    return JSONResponse(
+        status_code=status_code,
+        content={"detail": detail},
+        headers={
+            "Server-Timing": server_timing_header(timings),
+            "X-ML-Model-Load-Ms": f"{runtime.snapshot().model_load_ms:.3f}",
         },
     )
 
@@ -175,29 +185,37 @@ def search(
     conn = None
     try:
         started_ns = time.perf_counter_ns()
-        models = runtime.wait(MODEL_READY_TIMEOUT_SECONDS)
-        timings["model_wait"] = (time.perf_counter_ns() - started_ns) / 1_000_000.0
+        try:
+            models = runtime.wait(MODEL_READY_TIMEOUT_SECONDS)
+        finally:
+            timings["model_wait"] = (time.perf_counter_ns() - started_ns) / 1_000_000.0
 
         q = strip_region(req.query)   # 지역어 제거 (지역 필터 미지원, 잡음 방지)
         started_ns = time.perf_counter_ns()
-        qvec = models["model"].encode([f"query: {q}"], normalize_embeddings=True)[0]
-        timings["embedding"] = (time.perf_counter_ns() - started_ns) / 1_000_000.0
+        try:
+            qvec = models["model"].encode([f"query: {q}"], normalize_embeddings=True)[0]
+        finally:
+            timings["embedding"] = (time.perf_counter_ns() - started_ns) / 1_000_000.0
         vec = "[" + ",".join(f"{x:.6f}" for x in qvec) + "]"
 
         # Neon 등 서버리스 DB는 유휴 시 잠들어 풀의 커넥션이 죽으므로 요청마다 새 연결.
         started_ns = time.perf_counter_ns()
-        conn = psycopg2.connect(DB)
-        timings["db_connect"] = (time.perf_counter_ns() - started_ns) / 1_000_000.0
-        started_ns = time.perf_counter_ns()
-        cur = conn.cursor()
         try:
-            cur.execute(SQL, {"vec": vec, "age": req.age,
-                              "rp": (f"{req.region}%" if req.region else None),
-                              "n": CANDIDATES})
-            rows = cur.fetchall()
+            conn = psycopg2.connect(DB)
         finally:
-            cur.close()
-        timings["db_query"] = (time.perf_counter_ns() - started_ns) / 1_000_000.0
+            timings["db_connect"] = (time.perf_counter_ns() - started_ns) / 1_000_000.0
+        started_ns = time.perf_counter_ns()
+        try:
+            cur = conn.cursor()
+            try:
+                cur.execute(SQL, {"vec": vec, "age": req.age,
+                                  "rp": (f"{req.region}%" if req.region else None),
+                                  "n": CANDIDATES})
+                rows = cur.fetchall()
+            finally:
+                cur.close()
+        finally:
+            timings["db_query"] = (time.perf_counter_ns() - started_ns) / 1_000_000.0
 
         cols = ["source_id", "title", "org", "support_content", "apply_method",
                 "apply_url", "age_min", "age_max", "income_etc", "score"]
@@ -206,14 +224,16 @@ def search(
 
         if cands and RERANK:
             started_ns = time.perf_counter_ns()
-            # cross-encoder 리랭킹: 질의↔정책을 직접 비교해 관련성 재산정
-            pairs = [[q, ((c["title"] or "") + " "
-                           + (c["support_content"] or ""))[:400]] for c in cands]
-            for cand, logit in zip(cands, models["reranker"].predict(pairs)):
-                cand["score"] = float(logit)
-            cands.sort(key=lambda cand: cand["score"], reverse=True)
-            cands = [cand for cand in cands if cand["score"] >= req.min_score]
-            timings["rerank"] = (time.perf_counter_ns() - started_ns) / 1_000_000.0
+            try:
+                # cross-encoder 리랭킹: 질의↔정책을 직접 비교해 관련성 재산정
+                pairs = [[q, ((c["title"] or "") + " "
+                               + (c["support_content"] or ""))[:400]] for c in cands]
+                for cand, logit in zip(cands, models["reranker"].predict(pairs)):
+                    cand["score"] = float(logit)
+                cands.sort(key=lambda cand: cand["score"], reverse=True)
+                cands = [cand for cand in cands if cand["score"] >= req.min_score]
+            finally:
+                timings["rerank"] = (time.perf_counter_ns() - started_ns) / 1_000_000.0
         elif cands:
             cands = [cand for cand in cands if cand["score"] >= COSINE_MIN]
 
@@ -231,13 +251,28 @@ def search(
         )
         return result
     except (TimeoutError, RuntimeError) as exc:
-        log.error("ml_search request_id=%s outcome=not_ready error_type=%s",
-                  request_id, type(exc).__name__)
-        raise HTTPException(status_code=503, detail="ML models are not ready") from exc
+        timings["ml_total"] = (time.perf_counter_ns() - request_started_ns) / 1_000_000.0
+        log.error(
+            "ml_search request_id=%s outcome=not_ready error_type=%s "
+            "model_wait_ms=%.3f total_ms=%.3f",
+            request_id, type(exc).__name__, timings["model_wait"], timings["ml_total"],
+        )
+        return error_response(503, "ML models are not ready", timings)
     except Exception as exc:
-        log.error("ml_search request_id=%s outcome=error error_type=%s",
-                  request_id, type(exc).__name__)
-        raise
+        timings["ml_total"] = (time.perf_counter_ns() - request_started_ns) / 1_000_000.0
+        log.error(
+            "ml_search request_id=%s outcome=error error_type=%s "
+            "model_wait_ms=%.3f embedding_ms=%.3f db_connect_ms=%.3f "
+            "db_query_ms=%.3f rerank_ms=%.3f total_ms=%.3f",
+            request_id, type(exc).__name__, timings["model_wait"],
+            timings["embedding"], timings["db_connect"], timings["db_query"],
+            timings["rerank"], timings["ml_total"],
+        )
+        return error_response(500, "ML search failed", timings)
     finally:
         if conn is not None:
-            conn.close()
+            try:
+                conn.close()
+            except Exception as exc:
+                log.error("ml_connection_close request_id=%s error_type=%s",
+                          request_id, type(exc).__name__)

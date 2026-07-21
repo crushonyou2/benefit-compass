@@ -13,7 +13,8 @@
 2. background loader는 process health와 분리됐지만 Cloud Run의 요청 기반 CPU 할당 때문에
    유휴 중 거의 진행되지 않았다. 첫 검색이 CPU를 유지하는 동안 모델이 준비됐다.
 3. 온라인 모드는 이미지에 모델이 있어도 HF Hub metadata 경로를 확인했고 warning을 남겼다.
-   local-only는 이 외부 의존을 제거하고 통제된 콜드 쌍에서 모델 로드를 1.99% 줄였다.
+   local-only는 이 외부 의존을 제거했다. 통제된 콜드 쌍의 모델 로드 차이는 1.99%였지만
+   조건별 표본 1개라 성능 개선으로 확정하지 않는다.
 4. warm 경로는 DB 연결 중앙값 약 430ms가 가장 컸다. 이 Lab에서는 연결 수명 변경의
    안정성·Neon 비용 영향을 함께 검증하지 않아 개선 범위에서 제외했다.
 
@@ -24,6 +25,11 @@
 - ML의 별도 logger는 Python 기본 WARNING 수준에 막혀 INFO 관측 이벤트가 Cloud Logging에
   나오지 않았다. HTTP access log와 timing header는 있었지만 계획한 cold log 상관관계가
   완전하지 않았다.
+- 후속 리뷰에서 ML background loader와 배포 기본 TCP startup probe의 계약 불일치를
+  발견했다. process가 포트를 열면 모델 준비 전에도 revision이 준비된 것으로 판정될 수 있었고,
+  `/ready`는 존재하지만 실제 probe에 연결되지 않았다.
+- ML 5xx는 타이밍 header를 만들지 않았고 API도 하위 5xx header를 수집하지 않아, 실패 요청은
+  가장 필요한 구간 증거가 빠졌다.
 
 ## 수정과 검증
 
@@ -33,11 +39,17 @@
   같은 instance의 첫 검색 200을 확인했다.
 - 최종 `pl2-final` ML/API 0% revision에서 health/readiness, 검색, Gemini, timing header,
   INFO 로그를 재검증했다.
+- 2026-07-22 로컬 보완에서 `/ready` startup probe 배포 조건, 성공·실패 공통 timing header,
+  고정 API 오류 응답, reranker local-only 전달을 추가했다. 2차 리뷰에서 MVC 405/415 상태 보존,
+  최대 240초 첫 probe 예산, before/after 배포 인자를 추가했다. Java 테스트 12개와 Python 테스트
+  9개가 통과했지만 새 Cloud Run revision은 아직 만들지 않았으므로 배포 검증 완료로 세지 않는다.
 
 ## 후속 작업
 
-- local-only 1.99%는 콜드 쌍 n=1이므로 반복 측정 전 큰 성과로 확대 해석하지 않는다.
-- 다음 Lab에서는 HTTP readiness startup probe나 모델 로드 방식 변경을 별도 실험하되,
-  최소 인스턴스와 always-on CPU 없이 사용자 요청 지연이 실제로 줄어드는지 검증한다.
+- local-only 1.99%는 콜드 쌍 n=1이므로 성능 개선으로 확정하지 않는다. 검증된 변화는 외부 Hub
+  확인 경로가 사라진 것이며, 성능은 최소 5쌍 pilot 뒤 분산을 보고 추가 표본 수를 정한다.
+- 새 0% revision에서 HTTP `/ready` startup probe가 모델 로딩을 startup CPU 구간 안에서
+  완료시키는지 확인한다. 첫 배포는 최대 240초 예산으로 시작하고 실측 뒤 조인다. 최소
+  인스턴스와 always-on CPU는 사용하지 않는다.
 - DB connection 재사용은 warm 약 430ms 병목 후보지만, stale connection 복구와 Neon 유휴
   정책·비용을 함께 검증하기 전에는 적용하지 않는다.

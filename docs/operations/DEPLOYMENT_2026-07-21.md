@@ -30,3 +30,21 @@ Spring이 주 생성자를 선택하지 못한 것이 원인이었다. `@Autowir
 `Server-Timing`, `X-ML-Model-Load-Ms`를 반환했다. `/api/ask`에는 `gemini` 구간도 있었다.
 
 main 병합, push, 공개 traffic 변경, 외부 공개는 수행하지 않았다.
+
+## 2026-07-22 리뷰 후 상태
+
+후속 코드 리뷰에서 위 최종 ML revision에 `/ready` startup probe가 없고 기본 TCP probe만
+사용된 사실을 확인했다. 따라서 해당 revision의 검색·로그 측정은 유효하지만, 모델 준비 전
+traffic을 차단하는 배포 후보로는 승인하지 않는다. 실패 응답 타이밍 보존, 안전한 API 오류
+응답, `/ready` startup probe 조건을 로컬 코드와
+`scripts/deploy-production-lab-2.ps1`에 보완했다.
+
+이 보완 코드는 아직 Cloud Run에 재배포하지 않았다. 새 ML/API 0% revision, startup probe
+성공, 실패/성공 타이밍 헤더, 동일 조건 콜드·웜 재측정이 확인될 때까지 Production Lab 2의
+배포 검증은 **재검증 대기**다. 공개 traffic과 기존 revision은 변경하지 않았다.
+
+2차 리뷰 뒤 첫 startup probe 예산은 120초에서 Cloud Run 상한인 240초로 넓혔고, 실측 뒤에만
+낮추도록 파라미터화했다. 배포 스크립트는 `MODEL_LOCAL_ONLY=0/1`을 모두 만들 수 있으며
+API/ML의 CPU·메모리·concurrency·timeout·max·port를 기존 실험값으로 명시한다. MVC 405/415가
+500으로 바뀌던 로컬 회귀도 수정했으며 새 revision은 여전히 만들지 않았다. `--port=8080`은
+기존 Cloud Run 기본값과 Dockerfile 기본값을 명시적으로 고정한 no-op 조건으로 추가했다.

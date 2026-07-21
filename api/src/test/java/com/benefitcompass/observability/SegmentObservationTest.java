@@ -32,7 +32,8 @@ class SegmentObservationTest {
         assertThat(response.getHeader(SegmentObservation.MODEL_LOAD_HEADER))
                 .isEqualTo("30123.500");
         assertThat(registry.get("benefitcompass.segment.duration")
-                .tag("segment", "ml_embedding").timer().count()).isEqualTo(1);
+                .tag("segment", "ml_embedding").tag("outcome", "success")
+                .timer().count()).isEqualTo(1);
         assertThat(registry.getMeters()).allSatisfy(meter ->
                 assertThat(meter.getId().getTags()).allSatisfy(tag ->
                         assertThat(tag.getValue())

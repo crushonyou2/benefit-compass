@@ -1,6 +1,6 @@
 # Production Lab 2 — 콜드스타트 구간 관측과 무비용 개선
 
-상태: **완료 — 무트래픽 revision 실측·콜드 로그 검증, 공개 traffic 미변경**
+상태: **리뷰 보완 로컬 완료, 새 무트래픽 revision 재검증 대기 — 공개 traffic 미변경**
 
 ## 결론
 
@@ -9,14 +9,22 @@
 35,328.073ms였고, 가장 큰 구간은 모델 readiness 대기 26,097.431ms(73.87%)였다.
 임베딩 5,168.575ms(14.63%), DB 연결 1,156.977ms(3.27%), DB 쿼리
 984.802ms(2.79%), API↔ML 잔여 1,081.741ms(3.06%), client/API 잔여
-837.850ms(2.37%) 순이었다. 병목은 API나 Gemini가 아니라 **ML 모델 준비**였다.
+837.850ms(2.37%) 순이었다. 이 관측 revision의 검색 경로에서는 **ML 모델 준비**가
+가장 큰 구간이었다. 58.909초 역사 기준선은 동기 startup 구조였고 구간 header도 없어,
+두 숫자가 완전히 같은 시스템의 전후 결과는 아니다.
 
 비용 없는 변경은 이미지에 이미 포함된 모델을 `MODEL_LOCAL_ONLY=1`로만 여는 것이다.
 같은 컨테이너 이미지·리소스, 최소 인스턴스 0, scale-to-zero 후 동시 첫 요청에서
-모델 로드가 25,897.345ms에서 25,381.032ms로 **516.313ms(1.99%) 감소**했다.
+모델 로드 관측값은 25,897.345ms와 25,381.032ms로 **516.313ms(1.99%) 차이**였다.
 콜드 end-to-end도 39,324.449ms에서 37,385.248ms로 1,939.201ms(4.93%)
 감소했지만, 이 중 3,090.269ms는 Cloud Run/API·클라이언트 잔여 차이이므로 전체 감소를
-local-only 효과로 귀속하지 않는다. 검증된 개선 성과는 모델 로드 1.99%뿐이다.
+local-only 효과로 귀속하지 않는다. 조건별 콜드 표본이 1개뿐이므로 1.99%도 성능 개선으로
+확정하지 않는다. 검증된 변화는 동일 이미지에서 런타임 HF Hub 확인 경로와 경고가 사라진 것이다.
+
+후속 리뷰에서 background loader를 도입한 관측 revision에 `/ready` startup probe가 연결되지
+않아 모델 준비 전 traffic을 받을 수 있음을 확인했다. 로컬 코드에는 `/ready` probe 배포 조건,
+실패 응답 구간 header, 안전한 API 오류 응답을 보완했다. 이 보완은 새 0% revision에서
+재검증하기 전까지 Production Lab 2의 검증된 배포 결과로 세지 않는다.
 
 ## 개인정보 경계와 관측 구조
 
@@ -59,9 +67,10 @@ concurrency 160·timeout 300s·max 10이다. 두 서비스 모두 `minScale` 주
 startup CPU boost만 기존대로 켜져 있다. 최소 인스턴스, CPU·메모리 증설, 공개 traffic
 변경은 없었다.
 
-최종 revision은 검색과 `/api/ask` 모두 200/정책 5건을 반환했다. ML 로그에는
+기존 최종 revision은 검색과 `/api/ask` 모두 200/정책 5건을 반환했다. ML 로그에는
 `ml_model_load` start/complete와 `ml_search`의 request ID·결과 건수·고정 구간 시간만
-남았고 질문·나이는 없었다. 상세 revision과 두 번의 API 시작 실패 복구는
+남았고 질문·나이는 없었다. 다만 `/ready` startup probe 누락 때문에 이 revision을 새 배포
+후보로 승인하지 않는다. 상세 revision, 두 번의 API 시작 실패, 리뷰 후 재검증 상태는
 [배포 기록](DEPLOYMENT_2026-07-21.md)에 남겼다.
 
 ## 실측 결과
@@ -100,14 +109,15 @@ background thread CPU를 제한하므로, 짧은 readiness polling 동안 로딩
 | end-to-end | 39,324.449 | 37,385.248 | -1,939.201 (-4.93%) |
 
 after는 외부 Hub 경고 없이 로컬 가중치를 열었고, before에는 unauthenticated HF Hub
-접근 경고가 남았다. 모델 로드·대기는 감소했지만 임베딩·DB와 플랫폼 변동 때문에 ML 전체는
-증가했다. 따라서 local-only를 큰 콜드스타트 해결책으로 과장하지 않고, 외부 의존 제거와
-확인된 1.99% 모델 로드 단축만 개선으로 판정한다.
+접근 경고가 남았다. local-only 쪽 모델 로드·대기 관측값은 더 작았지만 임베딩·DB와 플랫폼
+변동 때문에 ML 전체는
+증가했다. 따라서 local-only의 성능 효과는 미확정으로 두고, 외부 Hub 확인 경로 제거만
+검증된 개선으로 판정한다.
 
 별도 warm 5회의 end-to-end 중앙값은 before 751.040ms, after 776.566ms였다.
-DB 연결 중앙값은 429.972ms/437.835ms, DB 쿼리는 231.693ms/231.267ms로 warm의
+DB 연결 중앙값은 429.969ms/437.835ms, DB 쿼리는 231.693ms/231.267ms로 warm의
 주요 비용은 매 요청 DB 연결이었다. `/api/ask` warm 3회의 Gemini 중앙값은
-874.349ms/987.090ms였다. Gemini는 검색 콜드 비교에서 제외한다.
+874.346ms/987.091ms였다. Gemini는 검색 콜드 비교에서 제외한다.
 
 ## 원본과 재현
 
@@ -133,27 +143,44 @@ DB 연결 중앙값은 429.972ms/437.835ms, DB 쿼리는 231.693ms/231.267ms로 
 
 첫 행은 항상 `cold_candidate/pending_revision_log`로만 생성한다. Cloud Logging에서 같은
 revision·instance의 `AUTOSCALING` 시작과 첫 검색을 확인한 뒤 문서에서 콜드로 확정한다.
+초기 before는 별도 warm CSV를 추가 수집했고 after 초기 CSV에는 콜드 후보 뒤 warm 행이
+함께 있다. 원본은 모두 보존했지만 이 프로토콜 비대칭 때문에 warm 수치는 추세 참고용이다.
 
 ## 테스트와 관측 오버헤드
 
-- `api\gradlew.bat test --no-daemon`: Java 단위·API·전체 Spring context 테스트 9개 통과
-- `python -m unittest -v test_app test_runtime_state`: ML 단위·health/readiness/search API 7개 통과
+- `api\gradlew.bat test --no-daemon`: Java 단위·API·전체 Spring context 테스트 12개 통과
+- `python -m unittest -v test_app test_runtime_state`: ML 단위·health/readiness/search API 9개 통과
 - PowerShell parser: 측정 스크립트 문법 통과
-- 최종 0% revision: recommend/ask 200, 각 정책 5건, 구간 header와 request ID 확인
+- 2026-07-21 0% revision: recommend/ask 200, 각 정책 5건, 성공 구간 header와 request ID 확인
+- 2026-07-22 보완: 배포 스크립트 dry-run과 `gradlew tasks` 통과; 새 revision 검증은 미실행
 
-관측 활성/비활성 경로를 7라운드, 모드당 20,000회 비교한 중앙값은 비활성
-165.455ns/op, 활성 6,908.550ns/op, 증분 **6,743.095ns/op(0.006743ms/op)** 이었다.
-이는 로컬 JVM 마이크로벤치마크다. 원본은
-[observation-overhead-2026-07-21.csv](observation-overhead-2026-07-21.csv)다.
+2차 리뷰 보완 후 50,000회 warmup, 9라운드, 모드당 50,000회로 현재 코드를 다시 측정한
+중앙값은 비활성 144.558ns/op, 활성 6,582.766ns/op, 증분
+**6,438.208ns/op(0.006438ms/op)** 이었다. 활성 라운드 범위는 6,321.526~8,457.882ns/op로
+변동이 남아 있다. JMH가 아닌 로컬 JVM 마이크로벤치마크이며 disabled 경로의 객체가 escape하지
+않으므로 대략적인 상한 수준의 코드 경로 비용으로만 해석한다. 현재 원본은
+[observation-overhead-2026-07-22-post-review.csv](observation-overhead-2026-07-22-post-review.csv)다.
+[1차 리뷰 보완 원본](observation-overhead-2026-07-22.csv)과
+[2026-07-21 원본](observation-overhead-2026-07-21.csv)도 덮어쓰지 않고 보존했다.
 
 ## 한계
 
 - 58,909ms 역사 요청에는 새 header가 없어 정확한 숫자 분해가 아니라 동일 입력 재현으로
-  원인을 확인했다.
-- 검증된 scale-to-zero 콜드 쌍은 각 조건 1개뿐이다. 1.99%는 반복 표본이 없는 작은 효과다.
+  병목 후보를 확인했다. 역사 측정은 동기 startup, 관측 revision은 background loader라
+  정확한 동일 시스템 재현은 아니다.
+- 검증된 scale-to-zero 콜드 쌍은 각 조건 1개뿐이다. 1.99%는 반복 표본이 없어 성능
+  개선으로 확정할 수 없다. 다음 측정은 조건별 최소 5쌍 pilot 뒤 분산으로 표본 수를 정한다.
 - 두 요청을 동시에 보냈어도 Cloud Run의 instance 시작, 이미지 fetch, API queue는 달라진다.
+- `/ready` startup probe가 적용되면 모델 준비는 ML handler 전 Cloud Run startup·queue 구간으로
+  이동하고 `ml_model_wait`는 거의 0이 될 수 있다. API-side `api_to_ml`에는 이 대기가 포함되어
+  `api_ml_transport`가 크게 보이지만 별도 startup segment로 분리되지는 않는다. instance 시작/probe
+  로그와 client end-to-end를 함께 봐야 하며, probe 전후 CSV의 같은 열을 직접 비교하지 않는다.
 - `client_api_residual`과 `api_ml_transport`는 여러 플랫폼·직렬화 요소가 섞인 잔여값이다.
+- client 측 타이머는 응답 본문 파싱과 첫 실행 JIT 비용도 포함한다. 또한 `api_to_ml` 안에
+  `ml_total`이 포함되는 식의 계층형 구간이므로 표의 모든 timer를 서로 더하면 이중 계산된다.
 - DB 연결·쿼리는 분리했지만 Neon 휴면 해제 내부 단계는 보이지 않는다.
 - Gemini는 외부 서비스 변동성이 있어 별도 warm 표본으로만 기록했다.
+- 리뷰 보완 코드는 아직 Cloud Run 0% revision에서 실행하지 않았으므로 validated revision,
+  새 콜드·웜 CSV, startup probe 로그가 남기 전에는 완료 상태가 아니다.
 
 원인, 실패 탐지 누락과 후속 조치는 [포스트모템](POSTMORTEM_2026-07-21.md)에 정리했다.

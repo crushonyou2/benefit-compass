@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -44,8 +45,8 @@ public class SegmentObservation {
             "rerank", "ml_rerank",
             "ml_total", "ml_total");
 
-    private final MeterRegistry metrics;
     private final boolean enabled;
+    private final Map<String, Map<String, Timer>> timers;
     private final ThreadLocal<RequestTimings> requestTimings = new ThreadLocal<>();
 
     @Autowired
@@ -53,8 +54,8 @@ public class SegmentObservation {
             MeterRegistry metrics,
             @Value("${benefitcompass.observability.segments-enabled:true}") boolean enabled
     ) {
-        this.metrics = metrics;
         this.enabled = enabled;
+        this.timers = enabled ? createTimers(metrics) : Map.of();
     }
 
     SegmentObservation(MeterRegistry metrics) {
@@ -86,10 +87,7 @@ public class SegmentObservation {
         }
         String normalizedOutcome = OUTCOMES.contains(outcome) ? outcome : "error";
         long durationNanos = Math.max(0L, TimeUnit.NANOSECONDS.convert(duration, unit));
-        Timer.builder("benefitcompass.segment.duration")
-                .description("Fixed-name request segment latency without user input")
-                .tags("segment", segment, "outcome", normalizedOutcome)
-                .register(metrics)
+        timers.get(segment).get(normalizedOutcome)
                 .record(durationNanos, TimeUnit.NANOSECONDS);
 
         RequestTimings current = requestTimings.get();
@@ -99,9 +97,14 @@ public class SegmentObservation {
     }
 
     public Double captureMlHeaders(HttpHeaders headers) {
+        return captureMlHeaders(headers, "success");
+    }
+
+    public Double captureMlHeaders(HttpHeaders headers, String outcome) {
         if (!enabled) {
             return null;
         }
+        String normalizedOutcome = OUTCOMES.contains(outcome) ? outcome : "error";
         Double mlTotalMs = null;
         for (String rawEntry : headers.getOrEmpty(SERVER_TIMING_HEADER)) {
             for (String entry : rawEntry.split(",")) {
@@ -112,7 +115,7 @@ public class SegmentObservation {
                 String segment = ML_SEGMENTS.get(matcher.group(1));
                 if (segment != null) {
                     double durationMs = Double.parseDouble(matcher.group(2));
-                    recordMillis(segment, durationMs, "success");
+                    recordMillis(segment, durationMs, normalizedOutcome);
                     if ("ml_total".equals(segment)) {
                         mlTotalMs = durationMs;
                     }
@@ -153,6 +156,21 @@ public class SegmentObservation {
 
     boolean isEnabled() {
         return enabled;
+    }
+
+    private static Map<String, Map<String, Timer>> createTimers(MeterRegistry metrics) {
+        Map<String, Map<String, Timer>> result = new HashMap<>();
+        for (String segment : SEGMENTS) {
+            Map<String, Timer> outcomeTimers = new HashMap<>();
+            for (String outcome : OUTCOMES) {
+                outcomeTimers.put(outcome, Timer.builder("benefitcompass.segment.duration")
+                        .description("Fixed-name request segment latency without user input")
+                        .tags("segment", segment, "outcome", outcome)
+                        .register(metrics));
+            }
+            result.put(segment, Map.copyOf(outcomeTimers));
+        }
+        return Map.copyOf(result);
     }
 
     private static final class RequestTimings {

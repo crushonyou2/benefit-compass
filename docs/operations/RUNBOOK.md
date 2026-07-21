@@ -11,7 +11,11 @@
 ### 구간 판별 순서
 
 1. API 응답의 `Server-Timing`에서 `api_to_ml`, `ml_total`, `gemini`를 확인한다.
-2. `api_to_ml`이 크고 `ml_total`이 작으면 `api_ml_transport`와 API/ML revision을 확인한다.
+2. `api_to_ml`이 크고 `ml_total`이 작으면 `api_ml_transport`를 본다. 이 값에는 실제
+   네트워크·프록시뿐 아니라 ML Cloud Run 인스턴스 시작·요청 큐가 포함된다. 같은 revision의
+   `AUTOSCALING` 새 instance와 첫 요청 로그가 이어지면 콜드로 판정하고, 새 instance 증거 없이
+   계속 크면 네트워크·프록시 경로를 조사한다. `X-ML-Model-Load-Ms`는 규모 비교에 쓰되 같은
+   instance의 warm 응답에도 반복되므로 단독 판정자로 쓰지 않는다.
 3. `ml_model_wait`가 크면 ML `/health`와 `/ready`를 각각 확인한다. `/health` 200은
    모델 준비 완료를 뜻하지 않는다.
 4. `ml_db_connect`가 크면 Neon 휴면 해제·TLS 연결, `ml_db_query`가 크면 SQL/벡터 검색을 본다.
@@ -32,6 +36,68 @@ Cloud Run의 요청 기반 CPU에서는 process가 살아 있어도 background �
 거의 진행되지 않을 수 있다. `/health` 200과 경과 wall time만으로 모델이 CPU를 계속 사용했다고
 가정하지 않는다. 확정 측정은 scale-to-zero 후 `AUTOSCALING` 새 instance 시작, 같은 instance의
 첫 검색, 응답의 `ml_model_wait`·`X-ML-Model-Load-Ms`를 함께 확인한다.
+
+ML 배포 후보는 `/ready` HTTP startup probe가 200이 되기 전 traffic을 받지 않아야 한다.
+저장소의 배포 스크립트는 기본이 dry-run이며, 사용자 승인 뒤에만 `-Execute`를 붙인다.
+
+```powershell
+.\scripts\deploy-production-lab-2.ps1 `
+  -Stage Ml `
+  -Image 'asia-northeast3-docker.pkg.dev/PROJECT/REPOSITORY/IMAGE@sha256:DIGEST' `
+  -RevisionSuffix 'pl2r-COMMIT' `
+  -Tag 'pl2-before' `
+  -ModelLocalOnly 0 `
+  -StartupFailureThreshold 120 # dry-run; 실행 승인 전에는 -Execute 금지
+```
+
+이 명령은 최소 인스턴스 0, startup CPU boost, `--no-traffic`, `/ready` startup probe
+(2초 간격 120회, Cloud Run 상한인 최대 240초), 기존과 같은 ML 2 vCPU·2GiB·concurrency
+160·timeout 300초·max 10을 명시한다. 첫 검증에서 실제 `model_load_ms`를 확보한 뒤에만
+threshold를 낮춘다. after 조건은 같은 이미지와 인자를 유지하고 `-ModelLocalOnly 1`만 바꾼다.
+ML tag URL을 확인한 뒤 API 단계에는
+`-Stage Api -MlBaseUrl 'https://ML-TAG-URL'`을 사용한다. 이미지 digest와 실제 명령,
+생성 revision은 배포 기록에 남긴다.
+
+사용자 승인 후 `-Execute`를 붙일 때는 먼저 같은 인자의 dry-run 출력을 배포 기록에 복사하고,
+실행 출력도 다음처럼 별도 원본 로그로 보존한다. 이 명령에는 secret 값이나 전체 환경 조회를
+추가하지 않는다.
+
+```powershell
+$deploymentAttemptLog = '.\docs\operations\deployment-attempt-YYYY-MM-DD.log'
+$approvedDeployParameters = @{
+  Stage = 'Ml'
+  Image = 'asia-northeast3-docker.pkg.dev/PROJECT/REPOSITORY/IMAGE@sha256:DIGEST'
+  RevisionSuffix = 'pl2r-COMMIT'
+  Tag = 'pl2-before'
+  ModelLocalOnly = '0'
+  StartupFailureThreshold = 120
+}
+Start-Transcript -LiteralPath $deploymentAttemptLog
+try {
+  .\scripts\deploy-production-lab-2.ps1 @approvedDeployParameters -Execute
+} finally {
+  Stop-Transcript
+}
+```
+
+probe의 성공 조건과 제한은 [Cloud Run health check 문서](https://docs.cloud.google.com/run/docs/configuring/healthchecks),
+startup CPU 동작은 [Cloud Run CPU 문서](https://docs.cloud.google.com/run/docs/configuring/services/cpu)를 기준으로 한다.
+
+startup probe가 적용되면 정상 첫 요청의 `ml_model_wait`는 거의 0이 되고, 모델 준비 대기는
+ML 애플리케이션에 도달하기 전 Cloud Run 요청 큐에 포함될 수 있다. API의 `api_to_ml`은 이 대기를
+포함하므로 `api_ml_transport`가 크게 보이지만 별도 startup segment로 분리된 것은 아니다.
+instance 시작 로그, startup probe 통과 시각, 클라이언트 end-to-end를 함께 기록한다.
+probe 전후 CSV에서 같은 `api_ml_transport` 열은 구성 요소가 달라질 수 있으므로 직접 성능 비교하지
+않는다. `/health`는 현재 Cloud Run probe 소비자가 아니라 수동·로컬 liveness 진단면이다.
+
+로딩 중 `/ready` 503 반복은 정상이다. probe가 240초 안에 통과하지 못하면 배포 명령이 non-zero로
+끝나며 스크립트가 실패한다. 이때 재실행부터 하지 말고 다음 명령으로 revision ready 상태와 tag
+부여 여부를 확인한 뒤 `ml_model_load event=error` 또는 timeout 증거를 배포 기록에 남긴다.
+
+```powershell
+gcloud run revisions list --service benefit-ml --region asia-northeast3 `
+  --project healthy-clock-465504-t5
+```
 
 ```powershell
 .\scripts\measure-cold-warm.ps1 `

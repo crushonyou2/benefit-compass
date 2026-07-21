@@ -18,9 +18,9 @@ import java.util.Locale;
  */
 public final class ObservationOverheadBenchmark {
 
-    private static final int WARMUP_OPERATIONS = 5_000;
-    private static final int OPERATIONS = 20_000;
-    private static final int ROUNDS = 7;
+    private static final int WARMUP_OPERATIONS = 50_000;
+    private static final int OPERATIONS = 50_000;
+    private static final int ROUNDS = 9;
 
     private ObservationOverheadBenchmark() {
     }

@@ -81,10 +81,13 @@ recall@5/@10이 살짝 내려간 건 60문항 기준 1문항 차이라 사실상
 2026-07-21 Production Lab 2에서는 공개 traffic을 바꾸지 않은 0% revision으로 콜드스타트를
 API↔ML, 모델 준비, 임베딩, DB 연결·쿼리, Gemini로 분리했습니다. 동일 입력 재현 첫 요청
 35.328초의 73.87%가 모델 readiness 대기였습니다. 같은 이미지·리소스의 scale-to-zero
-동시 비교에서 local-only 모델 로딩은 25.897초→25.381초(1.99%) 줄었고, 표본 1쌍의 작은
-효과라는 한계까지 [Production Lab 2 결과](docs/operations/PRODUCTION_LAB_2_2026-07-21.md)에
-원본 CSV·revision·포스트모템과 함께 기록했습니다. 최소 인스턴스와 공개 배포는 적용하지
-않았습니다.
+동시 비교에서 local-only 모델 로딩은 25.897초→25.381초였지만 표본이 조건별 1개라
+성능 개선으로 확정하지 않았습니다. 검증된 변화는 런타임 Hub 확인 경로 제거입니다.
+후속 리뷰에서 모델 준비 전 traffic 허용 가능성을 발견해 `/ready` startup probe와 실패
+응답 관측을 로컬에서 보완했으며, 이 보완은 새 0% revision 재검증 전까지 배포 완료로
+간주하지 않습니다. 상세 원본·revision·한계는
+[Production Lab 2 결과](docs/operations/PRODUCTION_LAB_2_2026-07-21.md)에 기록했습니다.
+최소 인스턴스와 공개 traffic 변경은 적용하지 않았습니다.
 
 ## 실행 방법
 

@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -60,6 +61,12 @@ public class MlClient {
             outcome = "success";
             MlResponse resp = entity.getBody();
             return resp == null ? List.of() : resp.results();
+        } catch (RestClientResponseException exc) {
+            HttpHeaders headers = exc.getResponseHeaders();
+            if (headers != null) {
+                mlTotalMs = observation.captureMlHeaders(headers, "error");
+            }
+            throw exc;
         } finally {
             long roundTripNanos = System.nanoTime() - startedAt;
             observation.recordNanos("api_to_ml", roundTripNanos, outcome);
