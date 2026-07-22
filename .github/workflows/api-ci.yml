@@ -1,9 +1,12 @@
-name: API quality gate
+name: Repository quality gate
 
 on:
   push:
     branches: [main]
   pull_request:
+
+permissions:
+  contents: read
 
 jobs:
   api-test:
@@ -40,3 +43,72 @@ jobs:
         run: python -m pip install -r requirements-test.txt
       - name: Run ML unit and API tests
         run: python -m unittest -v
+
+  web-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install web dependencies
+        run: npm ci
+      - name: Build production web bundle
+        run: npm run build
+
+  python-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile Python sources
+        run: python -m compileall -q ingest ml-service eval
+
+  deployment-script-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify parser and dry-run safety invariants
+        shell: pwsh
+        run: |
+          $ml = & ./scripts/deploy-production-lab-2.ps1 `
+            -Stage Ml `
+            -Image 'example.invalid/benefit-ml@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' `
+            -RevisionSuffix 'ci-verify' `
+            -Tag 'ci-verify' `
+            -ModelLocalOnly 1 | Out-String
+          $api = & ./scripts/deploy-production-lab-2.ps1 `
+            -Stage Api `
+            -Image 'example.invalid/benefit-api@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' `
+            -RevisionSuffix 'ci-verify' `
+            -Tag 'ci-verify' `
+            -MlBaseUrl 'https://example.invalid' | Out-String
+
+          $requiredMl = @(
+            'DRY RUN: no Cloud Run state was changed.',
+            '--no-traffic',
+            '--min=0',
+            '--max-instances=10',
+            '--update-env-vars=MODEL_LOCAL_ONLY=1',
+            '--startup-probe=httpGet.path=/ready'
+          )
+          $requiredApi = @(
+            'DRY RUN: no Cloud Run state was changed.',
+            '--no-traffic',
+            '--min=0',
+            '--max-instances=20',
+            '--update-env-vars=ML_BASE_URL=https://example.invalid'
+          )
+          foreach ($token in $requiredMl) {
+            if (-not $ml.Contains($token)) { throw "ML dry-run missing: $token" }
+          }
+          foreach ($token in $requiredApi) {
+            if (-not $api.Contains($token)) { throw "API dry-run missing: $token" }
+          }

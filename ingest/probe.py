@@ -43,8 +43,8 @@ def show_keys(label: str, items: list) -> None:
 
 
 def probe_gov24() -> None:
-    """행안부 공공서비스(혜택) gov24 — JSON, 일 10,000. 주력 코퍼스."""
-    print("\n[1] 행안부 gov24 (JSON, 일 10,000)")
+    """행안부 공공서비스(혜택) gov24 v3 — JSON, 개발계정 10,000."""
+    print("\n[1] 행안부 gov24 v3 (JSON, 개발계정 10,000)")
     if not DATA_KEY:
         print("   SKIP: DATA_GO_KR_KEY 없음")
         return
@@ -97,8 +97,8 @@ def probe_welfare() -> None:
 
 
 def probe_youth() -> None:
-    """온통청년 청년정책 — JSON, 일 2,219. 선택(청년 세그먼트)."""
-    print("\n[3] 온통청년 청년정책 (JSON, 일 2,219)")
+    """온통청년 청년정책 — JSON. 호출 한도는 기관의 현재 정책을 확인한다."""
+    print("\n[3] 온통청년 청년정책 (JSON, 호출 한도는 공식 문서 확인)")
     if not YOUTH_KEY:
         print("   SKIP: YOUTH_API_KEY 없음")
         return

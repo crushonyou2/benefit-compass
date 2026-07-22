@@ -44,7 +44,7 @@ CREATE INDEX IF NOT EXISTS idx_policy_age     ON policy (age_min, age_max);
 CREATE INDEX IF NOT EXISTS idx_policy_income  ON policy (income_min, income_max);
 CREATE INDEX IF NOT EXISTS idx_policy_region  ON policy USING GIN (region_codes);
 
--- RAG 청크 + 임베딩 (Gemini text-embedding-004 = 768차원)
+-- RAG 청크 + 임베딩 (intfloat/multilingual-e5-base = 768차원)
 CREATE TABLE IF NOT EXISTS policy_chunk (
     id          BIGSERIAL PRIMARY KEY,
     policy_id   BIGINT NOT NULL REFERENCES policy(id) ON DELETE CASCADE,
