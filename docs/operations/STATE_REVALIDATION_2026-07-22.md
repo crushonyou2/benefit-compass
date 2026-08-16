@@ -2,7 +2,7 @@
 
 ## 범위와 안전 경계
 
-- 코딩 정본: `C:\Users\joji\Documents\취준자료\project-repos\benefit-compass`
+- 코딩 정본: `<로컬 저장소 루트>\benefit-compass`
 - 공개 저장소: `crushonyou2/benefit-compass`
 - Cloud Run project/region: `healthy-clock-465504-t5` / `asia-northeast3`
 - GitHub·Pages·Cloud Run은 읽기 전용으로 확인했다.
