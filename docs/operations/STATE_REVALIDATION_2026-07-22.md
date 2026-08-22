@@ -53,7 +53,8 @@ PR #3 자체의 처리 여부를 결정한다.
 
 `latestReadyRevisionName`은 API·ML 모두 PL2 after였지만 공개 traffic은 이전 revision에
 100% 유지됐다. latest ready와 공개 revision은 같은 의미가 아니다. PL2 before/after/final
-tag와 0% revision은 보존돼 있었다.
+tag와 0% revision은 보존돼 있었다. 서비스가 unauthenticated 호출을 허용하므로 tag URL은
+traffic 0%와 무관하게 인터넷에서 직접 접근 가능한 canary이며, 비공개 staging이 아니다.
 
 ### 안전 설정 비교
 

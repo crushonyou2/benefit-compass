@@ -24,6 +24,13 @@ from pydantic import BaseModel
 
 from runtime_state import ModelRuntime, safe_request_id, server_timing_header
 
+# .env는 아래 모듈 상수보다 먼저 로드한다. 이전에는 load_dotenv가 이 상수들 아래에서 돌아
+# RERANK·COSINE_MIN·MODEL_READY_TIMEOUT_SECONDS·MODEL_LOCAL_ONLY 네 값은 .env에 적어도
+# 적용되지 않았다(실제 환경변수로만 동작). Cloud Run에는 .env 파일이 없어 배포 동작은
+# 그대로고, 바뀌는 것은 로컬 개발 환경뿐이다.
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+load_dotenv(ROOT / ".env")
+
 CANDIDATES = 30   # bi-encoder가 뽑는 후보 수 (리랭킹 대상)
 RERANK = os.getenv("RERANK", "1") == "1"             # 0이면 리랭커 끔 (배포: 무료 CPU 속도/메모리)
 COSINE_MIN = float(os.getenv("COSINE_MIN", "0.78"))  # 리랭커 끌 때 bi-encoder 코사인 컷
@@ -63,8 +70,6 @@ def region_filter(cands, region):
             out.append(c)
     return out
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
-load_dotenv(ROOT / ".env")
 DB = os.getenv("DATABASE_URL", "").strip()
 
 SQL = """
@@ -183,6 +188,14 @@ def search(
     timings = {name: 0.0 for name in
                ("model_wait", "embedding", "db_connect", "db_query", "rerank")}
     conn = None
+    if req.region is not None:
+        timings["ml_total"] = (time.perf_counter_ns() - request_started_ns) / 1_000_000.0
+        log.warning(
+            "ml_search request_id=%s outcome=invalid_request reason=region_unavailable "
+            "total_ms=%.3f",
+            request_id, timings["ml_total"],
+        )
+        return error_response(400, "Region filter is currently unavailable", timings)
     try:
         started_ns = time.perf_counter_ns()
         try:

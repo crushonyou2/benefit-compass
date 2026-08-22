@@ -42,7 +42,11 @@ class TimingPrivacyTest(unittest.TestCase):
         self.assertNotIn("user_question", header)
 
     def test_request_id_rejects_arbitrary_content(self):
-        self.assertEqual("abc-123", safe_request_id("abc-123"))
+        request_id = "123e4567-e89b-42d3-a456-426614174000"
+        self.assertEqual(request_id, safe_request_id(request_id))
+        self.assertEqual("none", safe_request_id("abc-123"))
+        self.assertEqual("none", safe_request_id("01012345678"))
+        self.assertEqual("none", safe_request_id("서울-25"))
         self.assertEqual("none", safe_request_id("raw question with spaces"))
 
 

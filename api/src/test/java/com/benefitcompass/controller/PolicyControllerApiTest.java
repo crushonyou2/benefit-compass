@@ -19,6 +19,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -155,5 +156,31 @@ class PolicyControllerApiTest {
                 .mapToLong(timer -> timer.count()).sum();
         org.assertj.core.api.Assertions.assertThat(clientErrorCount).isEqualTo(3.0);
         org.assertj.core.api.Assertions.assertThat(serverErrorCount).isZero();
+    }
+
+    @Test
+    void rejectsRegionBeforeCallingSearchBecauseRegionDataIsUntrusted() throws Exception {
+        SimpleMeterRegistry registry = new SimpleMeterRegistry();
+        SegmentObservation segments = new SegmentObservation(registry, true);
+        RagService rag = mock(RagService.class);
+        PolicyController controller = new PolicyController(rag, registry, segments);
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new ApiExceptionHandler(segments))
+                .addFilters(new RequestObservationFilter(registry, segments))
+                .build();
+
+        mvc.perform(post("/api/policies/recommend")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"query\":\"fixed synthetic query\",\"region\":\"11\",\"k\":5}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+
+        mvc.perform(post("/api/ask")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"query\":\"fixed synthetic query\",\"region\":\"\",\"k\":5}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+
+        verifyNoInteractions(rag);
     }
 }

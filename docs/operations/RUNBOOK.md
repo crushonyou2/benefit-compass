@@ -32,6 +32,11 @@
 `ml_search` 로그가 해당 요청 직전에 같은 인스턴스에서 이어졌는지 확인된 경우에만 콜드로
 판정한다. 기존 URL을 오래 방치했다는 이유만으로도 콜드라고 추정하지 않는다.
 
+`--no-traffic`은 기본 서비스 URL의 traffic 분배만 막는다. tag가 붙은 revision에는 별도 URL이
+생기며, 서비스가 unauthenticated 호출을 허용하면 이 URL도 인터넷에서 접근 가능하다. 따라서
+tag URL을 비공개 staging으로 표현하지 않고 합성 입력만 사용한다. 비공개 검증이 필요하면
+별도 project/service와 IAM 경계를 먼저 설계하고 사용자 승인을 받는다.
+
 Cloud Run의 요청 기반 CPU에서는 process가 살아 있어도 background 모델 loader가 유휴 중
 거의 진행되지 않을 수 있다. `/health` 200과 경과 wall time만으로 모델이 CPU를 계속 사용했다고
 가정하지 않는다. 확정 측정은 scale-to-zero 후 `AUTOSCALING` 새 instance 시작, 같은 instance의

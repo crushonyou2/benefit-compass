@@ -111,7 +111,7 @@ class HealthReadinessApiTest(unittest.TestCase):
                 with TestClient(ml_app.app) as client:
                     response = client.post(
                         "/search",
-                        headers={"X-Request-ID": "request-123"},
+                        headers={"X-Request-ID": "123e4567-e89b-42d3-a456-426614174000"},
                         json={"query": "fixed synthetic query", "age": 345678901, "k": 5},
                     )
 
@@ -131,9 +131,36 @@ class HealthReadinessApiTest(unittest.TestCase):
         )
         self.assertIn("X-ML-Model-Load-Ms", response.headers)
         joined_logs = "\n".join(captured.output)
-        self.assertIn("request_id=request-123", joined_logs)
+        self.assertIn("request_id=123e4567-e89b-42d3-a456-426614174000", joined_logs)
         self.assertNotIn("fixed synthetic query", joined_logs)
         self.assertNotIn("345678901", joined_logs)
+
+    def test_region_is_rejected_before_model_or_database_access(self):
+        region_marker = "private-region-marker"
+        with patch.object(ml_app.runtime, "wait") as wait, \
+                patch.object(ml_app.psycopg2, "connect") as connect:
+            with self.assertLogs(ml_app.log, level="WARNING") as captured:
+                with TestClient(ml_app.app) as client:
+                    response = client.post(
+                        "/search",
+                        headers={
+                            "X-Request-ID": "123e4567-e89b-42d3-a456-426614174000"
+                        },
+                        json={
+                            "query": "fixed synthetic query",
+                            "age": 25,
+                            "region": region_marker,
+                            "k": 5,
+                        },
+                    )
+
+        self.assertEqual(400, response.status_code)
+        self.assertEqual(
+            {"detail": "Region filter is currently unavailable"}, response.json())
+        self.assertIn("ml_total;dur=", response.headers["Server-Timing"])
+        wait.assert_not_called()
+        connect.assert_not_called()
+        self.assertNotIn(region_marker, "\n".join(captured.output))
 
     def test_not_ready_error_keeps_fixed_timings_without_query_or_age(self):
         secret_query = "query-value-that-must-never-be-logged"

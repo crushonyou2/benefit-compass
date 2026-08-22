@@ -61,8 +61,13 @@ recall@5·@10은 각각 1문항씩 줄었고, 표본이 작아 유의성을 판�
 사용자 노출에서 제외했습니다.
 
 **기능을 지우지 않고 노출만 끊었습니다.** 웹 UI에서 지역 입력을 제거해 사용자 경로에서는 지역 검색이 사라졌지만,
-`ml-service/app.py`의 `region_filter`와 검색 SQL의 지역 조건, API·CLI의 `region` 파라미터는 그대로 남아 있습니다.
+`ml-service/app.py`의 `region_filter`와 검색 SQL의 지역 조건은 코드에 그대로 남겨 두었습니다.
 원본 데이터를 정제한 뒤 `ingest/search.py --region`으로 **바로 다시 검증하기 위해서**입니다.
+
+다만 **HTTP API는 `region`을 받지 않습니다.** `POST /api/policies/recommend`·`POST /api/ask`에
+`region`이 들어오면 빈 문자열이라도 `400 INVALID_REQUEST`로 거절합니다.
+신뢰할 수 없다고 판단한 필터가 조용히 무시된 채 통과한 것처럼 보이는 편이 더 위험하기 때문입니다.
+지역 검증은 CLI(`ingest/search.py --region`)로만 합니다.
 질의에 섞인 지역어는 검색 잡음이 되므로 `strip_region`으로 제거합니다.
 
 ### 임베딩은 외부 API 대신 로컬 모델

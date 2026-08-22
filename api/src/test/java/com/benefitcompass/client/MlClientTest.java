@@ -21,6 +21,9 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 class MlClientTest {
 
+    /** The ML service accepts only canonical UUIDv4, so the id under test has to be one. */
+    private static final String REQUEST_ID = "f4c1d0a2-3b6e-4f8a-9c17-2d5e8b0a7c31";
+
     @AfterEach
     void clearMdc() {
         MDC.clear();
@@ -33,7 +36,7 @@ class MlClientTest {
         RestClient.Builder builder = RestClient.builder().baseUrl("http://ml.test");
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         server.expect(once(), requestTo("http://ml.test/search"))
-                .andExpect(header("X-Request-ID", "request-123"))
+                .andExpect(header("X-Request-ID", REQUEST_ID))
                 .andRespond(withSuccess("{\"results\":[]}", MediaType.APPLICATION_JSON)
                         .header("Server-Timing",
                                 "model_wait;dur=2.0, embedding;dur=4.5, db_connect;dur=3.0, "
@@ -42,7 +45,7 @@ class MlClientTest {
         MlClient client = new MlClient(builder.build(), observation);
 
         observation.beginRequest();
-        MDC.put("requestId", "request-123");
+        MDC.put("requestId", REQUEST_ID);
         assertThat(client.search(new RecommendRequest("synthetic", null, null, 5))).isEmpty();
         server.verify();
 

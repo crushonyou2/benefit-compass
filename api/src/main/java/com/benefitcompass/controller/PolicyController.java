@@ -8,6 +8,8 @@ import com.benefitcompass.service.RagService;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -28,6 +30,7 @@ public class PolicyController {
     /** 자격필터 + 의미검색 → 받을 수 있는 정책 목록. */
     @PostMapping("/policies/recommend")
     public List<Policy> recommend(@RequestBody RecommendRequest req, HttpServletResponse response) {
+        rejectUnsupportedRegion(req);
         List<Policy> policies = rag.recommend(req);
         segments.writeResponseHeaders(response);
         return policies;
@@ -36,11 +39,18 @@ public class PolicyController {
     /** 자연어 질문 → 근거 기반 답변 + 근거 정책. */
     @PostMapping("/ask")
     public AskResponse ask(@RequestBody RecommendRequest req, HttpServletResponse httpResponse) {
+        rejectUnsupportedRegion(req);
         AskResponse response = rag.ask(req);
         String outcome = response.sources().isEmpty() ? "no_results" : "results";
         metrics.counter("benefitcompass.search.requests", "outcome", outcome).increment();
         metrics.summary("benefitcompass.search.result_count").record(response.sources().size());
         segments.writeResponseHeaders(httpResponse);
         return response;
+    }
+
+    private void rejectUnsupportedRegion(RecommendRequest req) {
+        if (req.region() != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
     }
 }

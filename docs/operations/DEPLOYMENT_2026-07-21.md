@@ -5,6 +5,7 @@
 - 프로젝트: `healthy-clock-465504-t5`, region: `asia-northeast3`
 - 공개 traffic: API `benefit-api-00002-ndd`, ML `benefit-ml-00001-wvn` 각 100% 유지
 - 새 revision은 모두 `--no-traffic` tag로만 검증
+- 서비스가 unauthenticated 호출을 허용하므로 0% tag URL도 인터넷에서 직접 접근 가능
 - 최소 인스턴스 미설정, CPU·메모리·concurrency·timeout 유지
 - secret 값과 전체 환경 설정은 조회·출력하지 않음
 
@@ -29,7 +30,8 @@ Spring이 주 생성자를 선택하지 못한 것이 원인이었다. `@Autowir
 확인했다. 최종 API의 recommend/ask는 각각 HTTP 200, 정책 5건, request ID,
 `Server-Timing`, `X-ML-Model-Load-Ms`를 반환했다. `/api/ask`에는 `gemini` 구간도 있었다.
 
-main 병합, push, 공개 traffic 변경, 외부 공개는 수행하지 않았다.
+main 병합, push와 공개 traffic 변경은 수행하지 않았다. 다만 검증용 tag URL은 traffic 0%와
+무관하게 외부에서 직접 접근 가능한 canary였으며, 비공개 staging으로 취급하지 않는다.
 
 ## 2026-07-22 리뷰 후 재검증
 
@@ -84,4 +86,5 @@ port·startup probe·tag·traffic의 안전한 필드 원본은
 after의 5개 cold 검색과 후속 warm 검색은 모두 200이어서 local-only의 정상 동작을 확인했다.
 
 재검증 뒤에도 공개 traffic은 API `benefit-api-00002-ndd`, ML `benefit-ml-00001-wvn`에
-각각 100%로 유지됐다. main 병합, push, 공개 traffic 전환과 외부 공개는 수행하지 않았다.
+각각 100%로 유지됐다. main 병합, push와 공개 traffic 전환은 수행하지 않았다. 검증용 tag
+URL은 unauthenticated 서비스의 외부 접근 가능한 canary라는 동일한 경계를 가진다.
