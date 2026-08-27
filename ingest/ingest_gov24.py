@@ -65,10 +65,11 @@ def _dates(value):
     return found
 
 
-def _official_url(source_id, listed_url):
-    url = _text(listed_url)
-    if url and url.startswith(("https://", "http://")):
-        return url
+def _official_url(*candidates):
+    for candidate in candidates:
+        url = _text(candidate)
+        if url and url.startswith(("https://", "http://")):
+            return url
     return None
 
 
@@ -108,9 +109,7 @@ def normalize(list_item, detail=None, condition=None):
         "org": _text(detail.get("소관기관명") or list_item.get("소관기관명")),
         "apply_method": _text(detail.get("신청방법") or list_item.get("신청방법")),
         "screening_method": criteria,
-        "apply_url": _official_url(
-            source_id, online_url or list_item.get("상세조회URL")
-        ),
+        "apply_url": _official_url(online_url, list_item.get("상세조회URL")),
         "submit_docs": _text(detail.get("구비서류")),
         "etc_note": _text(detail.get("문의처") or list_item.get("전화문의")),
         "biz_start": period_dates[0] if len(period_dates) > 1 else None,

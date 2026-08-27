@@ -26,11 +26,25 @@ COLS = ["source", "source_id", "title", "summary", "support_content", "keywords"
         "income_etc", "marriage_status", "region_codes", "add_qualify", "raw"]
 
 
+def validate_chunk_coverage(policies, chunks):
+    policy_keys = {(policy["source"], policy["source_id"]) for policy in policies}
+    chunk_keys = {(chunk["source"], chunk["source_id"]) for chunk in chunks}
+    missing = policy_keys - chunk_keys
+    unknown = chunk_keys - policy_keys
+    if not policy_keys or missing or unknown:
+        raise SystemExit(
+            "정책·청크 코퍼스 불일치: "
+            f"policies={len(policy_keys)}, missing_chunks={len(missing)}, "
+            f"unknown_chunks={len(unknown)}"
+        )
+
+
 def main() -> None:
     if not DB:
         raise SystemExit("DATABASE_URL 없음 — .env 확인")
 
     conn = psycopg2.connect(DB)
+    conn.set_session(readonly=False, autocommit=False)
     cur = conn.cursor()
     cur.execute(SCHEMA.read_text(encoding="utf-8"))
     conn.commit()
@@ -43,24 +57,29 @@ def main() -> None:
         for infile in infiles
         for line in infile.open(encoding="utf-8")
     ]
-    id_map = {}
+    chunks = [json.loads(line) for line in (DATA / "chunks.jsonl").open(encoding="utf-8")]
+    validate_chunk_coverage(policies, chunks)
     updates = ",".join(
         f"{column}=EXCLUDED.{column}"
         for column in COLS if column not in {"source", "source_id"}
     )
-    for p in policies:
-        vals = [Json(p.get("raw")) if c == "raw" else p.get(c) for c in COLS]
-        cur.execute(
-            f"INSERT INTO policy ({','.join(COLS)}) "
-            f"VALUES ({','.join(['%s'] * len(COLS))}) "
-            "ON CONFLICT (source, source_id) DO UPDATE "
-            f"SET {updates}, updated_at = now() RETURNING id",
-            vals,
-        )
-        id_map[(p["source"], p["source_id"])] = cur.fetchone()[0]
+    policy_rows = [
+        tuple(Json(policy.get("raw")) if column == "raw" else policy.get(column)
+              for column in COLS)
+        for policy in policies
+    ]
+    returned = execute_values(
+        cur,
+        f"INSERT INTO policy ({','.join(COLS)}) VALUES %s "
+        "ON CONFLICT (source, source_id) DO UPDATE "
+        f"SET {updates}, updated_at = now() RETURNING source, source_id, id",
+        policy_rows,
+        page_size=500,
+        fetch=True,
+    )
+    id_map = {(source, source_id): policy_id for source, source_id, policy_id in returned}
     print(f"정책 {len(policies)}건 적재")
 
-    chunks = [json.loads(l) for l in (DATA / "chunks.jsonl").open(encoding="utf-8")]
     rows = []
     for c in chunks:
         pid = id_map.get((c["source"], c["source_id"]))

@@ -49,6 +49,20 @@ class Gov24NormalizeTest(unittest.TestCase):
         self.assertEqual("2026-01-02", policy["biz_start"])
         self.assertEqual("2026-12-31", policy["biz_end"])
 
+    def test_falls_back_to_official_detail_when_online_url_has_no_scheme(self):
+        policy = normalize(
+            {
+                "서비스ID": "TEST-4",
+                "서비스명": "공식 링크 정책",
+                "상세조회URL": "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/TEST-4",
+            },
+            {"온라인신청사이트URL": "www.example.go.kr/apply"},
+        )
+
+        self.assertEqual(
+            "https://www.gov.kr/portal/rcvfvrSvc/dtlEx/TEST-4", policy["apply_url"]
+        )
+
     def test_collect_joins_endpoints_and_deduplicates(self):
         service_id = self.sample["serviceList"]["서비스ID"]
 
