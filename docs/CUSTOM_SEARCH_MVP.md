@@ -17,7 +17,7 @@
 - [2025년 v3 상세 필드 변경 공지](https://www.data.go.kr/bbs/ntc/selectNotice.do?originId=NOTICE_0000000004156): `/gov24/v3/serviceDetail` 유지 및 구비서류 필드 추가
 - [정부24 실제 서비스 상세 예시](https://www.gov.kr/portal/rcvfvrSvc/dtlEx/B55190400005): 지원대상·지원내용·신청방법·기관·최종수정일과 공식 신청 경로 확인
 
-현재 접근 검증에서는 무인증 `serviceList?page=1&perPage=1` 요청이 `401`과 `인증키는 필수 항목`을 반환했다. 즉 엔드포인트는 응답하지만 실제 데이터 200 응답은 활용신청된 `DATA_GO_KR_KEY`가 있어야 검증할 수 있다. 저장소와 프로세스 환경에는 키가 없었다.
+초기 접근 검증에서는 무인증 `serviceList?page=1&perPage=1` 요청이 `401`과 `인증키는 필수 항목`을 반환했다. 2026-08-27 재검증에서는 사용자가 설정한 64자 인증키를 공식 Swagger의 헤더(`Authorization: Infuser ...`)와 쿼리(`serviceKey`) 방식으로 각각 확인했지만, 둘 다 `401`, 코드 `-4`, `등록되지 않은 인증키` 응답이었다. 엔드포인트와 인증 방식은 확인됐지만 실제 데이터 200 응답은 해당 API 활용승인이 반영된 키로 다시 검증해야 한다.
 
 ## 정규화 계약
 

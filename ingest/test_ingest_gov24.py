@@ -2,7 +2,7 @@ import json
 import pathlib
 import unittest
 
-from ingest_gov24 import collect, normalize
+from ingest_gov24 import Gov24Client, collect, normalize
 
 
 class Gov24NormalizeTest(unittest.TestCase):
@@ -76,6 +76,23 @@ class Gov24NormalizeTest(unittest.TestCase):
         self.assertEqual(
             self.sample["supportConditions"], policies[0]["raw"]["supportConditions"]
         )
+
+    def test_network_failure_has_safe_error_without_response_object(self):
+        class FakeRequests:
+            class RequestException(Exception):
+                pass
+
+        class FailingSession:
+            def get(inner_self, *_args, **_kwargs):
+                raise FakeRequests.RequestException("private transport detail")
+
+        client = object.__new__(Gov24Client)
+        client.requests = FakeRequests
+        client.session = FailingSession()
+        client.headers = {"Authorization": "hidden"}
+
+        with self.assertRaisesRegex(RuntimeError, r"serviceList 요청 실패\(status=network\)"):
+            client._page("serviceList", {"page": 1})
 
 
 if __name__ == "__main__":

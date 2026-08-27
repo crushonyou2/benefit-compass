@@ -142,14 +142,21 @@ class Gov24Client:
         self.headers = {"Authorization": f"Infuser {api_key}"}
 
     def _page(self, endpoint, params):
-        response = self.session.get(
-            f"{BASE_URL}/{endpoint}", params=params, headers=self.headers, timeout=TIMEOUT
-        )
         try:
+            response = self.session.get(
+                f"{BASE_URL}/{endpoint}", params=params, headers=self.headers, timeout=TIMEOUT
+            )
             response.raise_for_status()
+        except self.requests.RequestException as exc:
+            failed_response = getattr(exc, "response", None)
+            status = getattr(failed_response, "status_code", "network")
+            raise RuntimeError(f"gov24 {endpoint} 요청 실패(status={status})") from exc
+        try:
             body = response.json()
-        except (self.requests.RequestException, ValueError) as exc:
-            raise RuntimeError(f"gov24 {endpoint} 요청 실패(status={response.status_code})") from exc
+        except ValueError as exc:
+            raise RuntimeError(
+                f"gov24 {endpoint} 응답 JSON이 올바르지 않습니다(status={response.status_code})"
+            ) from exc
         if not isinstance(body, dict) or not isinstance(body.get("data"), list):
             raise RuntimeError(f"gov24 {endpoint} 응답 형식이 올바르지 않습니다")
         time.sleep(0.1)
