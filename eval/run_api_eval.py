@@ -19,9 +19,11 @@ def load_items(path):
             raise SystemExit(f"평가셋 {line_number}행 query 누락")
         positive = bool(item.get("gold_source") and item.get("gold_source_id"))
         negative = item.get("expected_no_results") is True
-        if positive == negative:
+        excluded = bool(item.get("excluded_source") and item.get("excluded_source_id"))
+        if sum((positive, negative, excluded)) != 1:
             raise SystemExit(
-                f"평가셋 {line_number}행은 gold key 또는 expected_no_results=true 중 하나만 필요합니다"
+                f"평가셋 {line_number}행은 gold key, excluded key, "
+                "expected_no_results=true 중 하나만 필요합니다"
             )
     return items
 
@@ -62,6 +64,8 @@ def summarize(records):
     by_case_type = {}
     no_answer_total = 0
     no_answer_with_results = 0
+    ineligible_total = 0
+    ineligible_forbidden_results = 0
     answer_without_sources = 0
     missing_ground_links = 0
 
@@ -77,6 +81,13 @@ def summarize(records):
         if item.get("expected_no_results") is True:
             no_answer_total += 1
             no_answer_with_results += bool(sources)
+            continue
+
+        if item.get("excluded_source") and item.get("excluded_source_id"):
+            ineligible_total += 1
+            excluded = (item["excluded_source"], item["excluded_source_id"])
+            keys = [(source.get("source"), source.get("source_id")) for source in sources]
+            ineligible_forbidden_results += excluded in keys
             continue
 
         gold = (item["gold_source"], item["gold_source_id"])
@@ -96,6 +107,10 @@ def summarize(records):
         "no_answer": {
             "n": no_answer_total,
             "unexpected_results": no_answer_with_results,
+        },
+        "ineligible": {
+            "n": ineligible_total,
+            "forbidden_policy_results": ineligible_forbidden_results,
         },
         "missing_ground_links": missing_ground_links,
         "answer_generated_without_sources": answer_without_sources,
