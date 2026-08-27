@@ -6,8 +6,9 @@ run_eval.py(베이스라인)와 같은 평가셋·지표를 쓰고, results.json
 필요: DATABASE_URL
 사용법: python run_eval_rerank.py
 """
-import os
+import argparse
 import json
+import os
 import pathlib
 
 from dotenv import load_dotenv
@@ -18,9 +19,6 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 load_dotenv(ROOT / ".env")
 DB = os.getenv("DATABASE_URL", "").strip()
 HERE = pathlib.Path(__file__).resolve().parent
-EVALFILE = HERE / "evalset.jsonl"
-BASEFILE = HERE / "results.json"
-OUTFILE = HERE / "results_rerank.json"
 
 KS = [1, 5, 10]
 CANDIDATES = 30   # bi-encoder가 뽑는 후보 수 (리랭킹 대상)
@@ -46,10 +44,32 @@ def metrics(ranks, n):
     return out
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="교차 인코더 리랭킹 검색 품질을 평가합니다")
+    parser.add_argument("--eval-file", type=pathlib.Path, default=HERE / "evalset.jsonl")
+    parser.add_argument("--baseline", type=pathlib.Path, default=HERE / "results.json")
+    parser.add_argument("--output", type=pathlib.Path, default=HERE / "results_rerank.json")
+    return parser.parse_args()
+
+
+def load_items(path):
+    if not path.exists():
+        raise SystemExit(f"평가셋 없음: {path}")
+    items = [json.loads(line) for line in path.open(encoding="utf-8") if line.strip()]
+    if not items:
+        raise SystemExit(f"평가셋이 비어 있습니다: {path}")
+    for line_number, item in enumerate(items, 1):
+        missing = [key for key in ("query", "gold_source_id") if not item.get(key)]
+        if missing:
+            raise SystemExit(f"평가셋 {line_number}행 필수값 누락: {', '.join(missing)}")
+    return items
+
+
 def main():
+    args = parse_args()
     if not DB:
         raise SystemExit("DATABASE_URL 없음")
-    items = [json.loads(l) for l in EVALFILE.open(encoding="utf-8")]
+    items = load_items(args.eval_file)
 
     embedder = SentenceTransformer("intfloat/multilingual-e5-base")
     print("리랭커 로드: BAAI/bge-reranker-v2-m3 (첫 실행 시 다운로드)")
@@ -78,7 +98,12 @@ def main():
     ranks = [rank for _, rank in ranked]
     n = len(ranks)
     rer = metrics(ranks, n)
-    rer.update({"n": n, "candidates": CANDIDATES, "reranker": "bge-reranker-v2-m3"})
+    rer.update({
+        "n": n,
+        "eval_file": str(args.eval_file),
+        "candidates": CANDIDATES,
+        "reranker": "bge-reranker-v2-m3",
+    })
     rer["by_source"] = {}
     for source in sorted({source for source, _ in ranked}):
         source_ranks = [rank for item_source, rank in ranked if item_source == source]
@@ -86,7 +111,7 @@ def main():
 
     print(f"\n평가 문항: {n}  (후보 {CANDIDATES} → 리랭킹 → top-{TOPK})")
     print("-" * 52)
-    base = json.loads(BASEFILE.read_text(encoding="utf-8")) if BASEFILE.exists() else {}
+    base = json.loads(args.baseline.read_text(encoding="utf-8")) if args.baseline.exists() else {}
     print(f"{'지표':<12}{'베이스라인':>12}{'리랭킹':>10}{'Δ':>10}")
     for key in ["recall@1", "recall@5", "recall@10", "mrr@10"]:
         b = base.get(key)
@@ -95,8 +120,9 @@ def main():
         bstr = f"{b:.3f}" if isinstance(b, (int, float)) else "-"
         print(f"{key:<12}{bstr:>12}{r:>10.3f}{delta:>10}")
 
-    OUTFILE.write_text(json.dumps(rer, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"\n저장 → {OUTFILE}")
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(rer, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"\n저장 → {args.output}")
 
 
 if __name__ == "__main__":

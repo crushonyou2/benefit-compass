@@ -47,6 +47,7 @@
 
 - ML 검색 결과는 `source`, `source_id`, 공식 링크를 함께 반환한다.
 - Java API와 React 화면은 기존 필드를 유지하면서 출처 배지만 추가한다.
+- `/api/ask`는 기존 `answer`·`sources`에 하위 호환되는 `generated` 불리언을 추가해 실제 LLM 호출 여부를 노출한다.
 - Gemini 프롬프트에는 검색된 정책의 이름·출처·지원내용·공식 링크만 들어간다.
 - 검색 결과가 0건이면 Gemini를 호출하지 않는다.
 - `(source, source_id)`로 평가해 출처 간 ID 충돌을 피한다.
@@ -88,6 +89,18 @@ python eval/run_data_quality.py
 python eval/run_eval.py
 python eval/run_eval_rerank.py
 ```
+
+기존 60문항과 확장 평가셋의 결과를 덮어쓰지 않으려면 파일을 명시한다.
+
+```powershell
+python eval/run_eval.py --eval-file eval/expansion_evalset.jsonl --output eval/results_expansion.json
+python eval/run_eval_rerank.py --eval-file eval/expansion_evalset.jsonl --baseline eval/results_expansion.json --output eval/results_expansion_rerank.json
+python eval/run_api_eval.py --eval-file eval/expansion_evalset.jsonl --output eval/results_expansion_api.json
+```
+
+두 평가기는 빈 파일과 `query`·`gold_source_id` 누락을 실행 전에 거절하고, 결과 JSON에 사용한 평가 파일 경로를 기록한다. 기존 청년정책 라벨은 `gold_source`가 없으면 `youth`로 해석해 이전 평가셋과 호환한다. 확장 평가셋에는 `gold_source`를 반드시 명시한다.
+
+API 통합 평가셋의 검색 정답 문항은 `gold_source`·`gold_source_id`를, 정답 없음 문항은 `expected_no_results: true`를 사용한다. 선택 필드 `case_type`으로 일반 국민·가구/주거·취업/소득·복지/건강·전국·지역·비대상·출처 간 유사 정책을 구분한다. 평가기는 Recall@1/5·MRR·출처별/유형별 성공률과 함께 정답 없음 오탐, 공식 링크 누락, `sources` 없이 LLM이 호출된 건수를 저장한다.
 
 아직 완료되지 않은 항목:
 

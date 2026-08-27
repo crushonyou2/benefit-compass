@@ -2,7 +2,7 @@ import json
 import pathlib
 import unittest
 
-from ingest_gov24 import normalize
+from ingest_gov24 import collect, normalize
 
 
 class Gov24NormalizeTest(unittest.TestCase):
@@ -48,6 +48,34 @@ class Gov24NormalizeTest(unittest.TestCase):
         )
         self.assertEqual("2026-01-02", policy["biz_start"])
         self.assertEqual("2026-12-31", policy["biz_end"])
+
+    def test_collect_joins_endpoints_and_deduplicates(self):
+        service_id = self.sample["serviceList"]["서비스ID"]
+
+        class FakeClient:
+            def fetch_all(inner_self, endpoint, limit=None):
+                records = {
+                    "serviceList": [
+                        self.sample["serviceList"],
+                        self.sample["serviceList"],
+                        {"서비스명": "식별자 없는 정책"},
+                    ],
+                    "serviceDetail": [self.sample["serviceDetail"]],
+                    "supportConditions": [self.sample["supportConditions"]],
+                }
+                return records[endpoint]
+
+        policies, skipped = collect(FakeClient())
+
+        self.assertEqual(1, len(policies))
+        self.assertEqual(2, skipped)
+        self.assertEqual(service_id, policies[0]["source_id"])
+        self.assertEqual(
+            self.sample["serviceDetail"], policies[0]["raw"]["serviceDetail"]
+        )
+        self.assertEqual(
+            self.sample["supportConditions"], policies[0]["raw"]["supportConditions"]
+        )
 
 
 if __name__ == "__main__":

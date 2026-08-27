@@ -32,10 +32,10 @@ public class RagService {
         if (policies.isEmpty()) {
             return new AskResponse(
                     "딱 맞는 정책을 바로 찾지는 못했어요. 검색어를 조금 바꿔 다시 시도해 보세요. "
-                    + "(관련 정책이 있어도 검색이 놓쳤을 수 있어요.)", List.of());
+                    + "(관련 정책이 있어도 검색이 놓쳤을 수 있어요.)", List.of(), false);
         }
         String answer = gemini.generate(buildPrompt(req.query(), policies));
-        return new AskResponse(answer, policies);
+        return new AskResponse(answer, policies, true);
     }
 
     private String buildPrompt(String question, List<Policy> policies) {

@@ -7,8 +7,9 @@
 필요: DATABASE_URL
 사용법: python run_eval.py
 """
-import os
+import argparse
 import json
+import os
 import pathlib
 
 from dotenv import load_dotenv
@@ -18,8 +19,7 @@ from sentence_transformers import SentenceTransformer
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 load_dotenv(ROOT / ".env")
 DB = os.getenv("DATABASE_URL", "").strip()
-EVALFILE = pathlib.Path(__file__).resolve().parent / "evalset.jsonl"
-RESULTFILE = pathlib.Path(__file__).resolve().parent / "results.json"
+HERE = pathlib.Path(__file__).resolve().parent
 
 KS = [1, 5, 10]
 TOPK = 10
@@ -36,13 +36,31 @@ LIMIT %(k)s
 """
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="정답 정책의 검색 순위를 평가합니다")
+    parser.add_argument("--eval-file", type=pathlib.Path, default=HERE / "evalset.jsonl")
+    parser.add_argument("--output", type=pathlib.Path, default=HERE / "results.json")
+    return parser.parse_args()
+
+
+def load_items(path):
+    if not path.exists():
+        raise SystemExit(f"평가셋 없음: {path}")
+    items = [json.loads(line) for line in path.open(encoding="utf-8") if line.strip()]
+    if not items:
+        raise SystemExit(f"평가셋이 비어 있습니다: {path}")
+    for line_number, item in enumerate(items, 1):
+        missing = [key for key in ("query", "gold_source_id") if not item.get(key)]
+        if missing:
+            raise SystemExit(f"평가셋 {line_number}행 필수값 누락: {', '.join(missing)}")
+    return items
+
+
 def main():
+    args = parse_args()
     if not DB:
         raise SystemExit("DATABASE_URL 없음")
-    if not EVALFILE.exists():
-        raise SystemExit("evalset.jsonl 없음 — 먼저 make_evalset.py 실행")
-
-    items = [json.loads(l) for l in EVALFILE.open(encoding="utf-8")]
+    items = load_items(args.eval_file)
     model = SentenceTransformer("intfloat/multilingual-e5-base")
     conn = psycopg2.connect(DB)
     cur = conn.cursor()
@@ -61,7 +79,12 @@ def main():
 
     n = len(ranked)
     ranks = [rank for _, rank in ranked]
-    results = {"n": n, "model": "multilingual-e5-base", "top_k": TOPK}
+    results = {
+        "n": n,
+        "eval_file": str(args.eval_file),
+        "model": "multilingual-e5-base",
+        "top_k": TOPK,
+    }
     print(f"평가 문항: {n}")
     print("-" * 40)
     for k in KS:
@@ -83,8 +106,9 @@ def main():
     print(f"MRR@{TOPK} : {mrr:.3f}")
     print(f"top-{TOPK} 내 정답 포함: {sum(1 for r in ranks if r)}/{n}")
 
-    RESULTFILE.write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"\n저장 → {RESULTFILE}")
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"\n저장 → {args.output}")
 
 
 if __name__ == "__main__":

@@ -29,6 +29,7 @@ class RagServiceTest {
 
         assertThat(response.sources()).isEmpty();
         assertThat(response.answer()).contains("찾지는 못했어요");
+        assertThat(response.generated()).isFalse();
         verifyNoInteractions(gemini);
     }
 
@@ -53,5 +54,6 @@ class RagServiceTest {
                 .contains("생활안정 지원", "청년 생활비 지원", "출처: 정부24", "출처: 온통청년")
                 .contains("https://www.gov.kr/example");
         assertThat(response.sources()).containsExactlyElementsOf(policies);
+        assertThat(response.generated()).isTrue();
     }
 }
