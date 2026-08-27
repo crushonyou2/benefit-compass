@@ -1,17 +1,19 @@
 # 혜택나침반 (BenefitCompass)
 
-**흩어져 있는 청년정책을 질문 한 줄로 찾아주는 RAG 검색 서비스 — 검색 품질을 직접 만든 평가셋으로 측정했습니다**
+**공식 정책을 여러 출처에서 질문 한 줄로 찾는 RAG 검색 서비스 — 검색 품질을 직접 만든 평가셋으로 측정합니다**
 
 [![Live](https://img.shields.io/badge/live-demo-success)](https://crushonyou2.github.io/benefit-compass)
 [![recall@1](https://img.shields.io/badge/recall%401-0.40%20%E2%86%92%200.52-blue)](#검색-품질을-직접-측정했습니다)
 [![Stack](https://img.shields.io/badge/stack-Spring%20Boot%20%2B%20FastAPI%20%2B%20pgvector-informational)](#아키텍처)
 [![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)](.github/workflows)
 
-청년정책은 부처와 지자체에 수천 개씩 흩어져 있어 **정작 내가 받을 수 있는 게 뭔지 찾기가 어렵습니다.**
+정책과 혜택은 여러 공식 출처에 흩어져 있어 **정작 내가 받을 수 있는 게 뭔지 찾기가 어렵습니다.**
 나이와 "월세 지원 받고 싶어" 같은 질문을 넣으면 관련 정책을 찾아 **근거와 함께** 답합니다.
 
 데이터 수집·정제부터 임베딩·벡터검색·리랭킹·답변 생성, 배포와 운영 관측까지 혼자 만들었습니다.
-그리고 **잘 되는지 직접 만든 60문항 평가셋으로 쟀습니다.**
+기존 청년정책 검색은 **직접 만든 60문항 평가셋으로 쟀고**, 행정안전부 정부24 공공서비스를 같은 경로에 합치는 중입니다.
+
+> Custom Search 확장의 구현 범위와 아직 측정하지 못한 항목은 [검증 기록](docs/CUSTOM_SEARCH_MVP.md)에 구분해 적었습니다. 공개 라이브 데모는 아직 기존 청년정책 데이터입니다.
 
 **[라이브 데모](https://crushonyou2.github.io/benefit-compass)** — Cloud Run scale-to-zero 구성이라 첫 요청은 인스턴스와 모델을 올리는 시간이 걸립니다.
 
@@ -108,7 +110,7 @@ ML 라이브러리는 Python 생태계가 편하고 비즈니스 로직은 Sprin
 | 생성 | Google Gemini |
 | 저장소 | PostgreSQL + pgvector (Neon) |
 | 인프라 | Cloud Run, GitHub Actions, GitHub Pages |
-| 데이터 | data.go.kr 온통청년 청년정책 OpenAPI |
+| 데이터 | 공공데이터포털 온통청년 청년정책 + 행정안전부 정부24 공공서비스(혜택) OpenAPI |
 
 ## 운영과 관측
 
@@ -137,13 +139,16 @@ ML 라이브러리는 Python 생태계가 편하고 비즈니스 로직은 Sprin
 
 ## 실행 방법
 
-`.env`에 `DATABASE_URL`(Neon), `YOUTH_API_KEY`(data.go.kr), `GEMINI_API_KEY`(Google AI Studio)가 필요합니다.
+`.env`에 `DATABASE_URL`(Neon), `YOUTH_API_KEY`, `DATA_GO_KR_KEY`, `GEMINI_API_KEY`가 필요합니다.
 
 ```bash
 # 1) 데이터 수집 + 임베딩 + 적재 (pgvector 지원 Postgres 필요)
 cd ingest && python -m venv .venv && .venv\Scripts\activate
 pip install -r requirements.txt -r ../ml-service/requirements.txt
-python ingest_youth.py && python embed.py && python load_db.py
+python ingest_youth.py
+python ingest_gov24.py --limit 5  # 먼저 공식 API 연결·필드 소량 확인
+python ingest_gov24.py
+python embed.py && python load_db.py
 
 # 2) ML 서비스
 cd ../ml-service && uvicorn app:app --port 8000
@@ -158,6 +163,7 @@ cd ../web && npm install && npm run dev   # http://localhost:5173
 평가 재현:
 
 ```bash
+python eval/run_data_quality.py
 python eval/run_eval.py && python eval/run_eval_rerank.py
 ```
 
@@ -166,7 +172,7 @@ python eval/run_eval.py && python eval/run_eval_rerank.py
 - 평가 수치는 **직접 라벨링한 60문항 평가셋** 기준입니다. 표본이 작아 recall@5·@10의 1문항 변화는 유의성을 판단하지 않았습니다.
 - 공개 경로는 무료 인스턴스의 CPU·메모리 조건에 맞춰 **리랭킹을 끈 구성(`RERANK=0`)으로 배포**했습니다. 위 리랭킹 수치는 평가·로컬 경로 측정값입니다.
 - **지역 검색은 제공하지 않습니다.** 원본 지역코드 품질 문제로 노출을 끊은 상태이며, 데이터 정제나 신뢰할 수 있는 출처 확보가 선행 과제입니다.
-- 현재 범위는 **청년정책**입니다. 전국민 대상 gov24 적재는 응답 스키마를 직접 확인하기 전에는 파서를 추측해 넣지 않기로 했습니다.
+- 코드 경로는 **온통청년 + 정부24** 복수 출처를 지원합니다. 다만 gov24 인증키와 DB가 없는 현재 환경에서는 실제 전체 적재 규모와 확장 검색 품질을 아직 측정하지 못했습니다.
 - SLO 문서의 목표값은 **목표이며 달성 성과가 아닙니다.**
 
 ## 만든 사람
@@ -176,4 +182,4 @@ python eval/run_eval.py && python eval/run_eval_rerank.py
 - GitHub: [@crushonyou2](https://github.com/crushonyou2)
 - Email: jigwan.joe@gmail.com
 
-비영리 학습·포트폴리오 프로젝트입니다. 데이터 출처는 온통청년(공공데이터포털)입니다.
+비영리 학습·포트폴리오 프로젝트입니다. 데이터 출처는 온통청년과 행정안전부 정부24 공공서비스(공공데이터포털)입니다.

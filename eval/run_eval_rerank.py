@@ -27,8 +27,8 @@ CANDIDATES = 30   # bi-encoder가 뽑는 후보 수 (리랭킹 대상)
 TOPK = 10
 
 CAND_SQL = """
-SELECT t.source_id, t.content FROM (
-  SELECT DISTINCT ON (p.id) p.source_id, c.content,
+SELECT t.source, t.source_id, t.content FROM (
+  SELECT DISTINCT ON (p.id) p.source, p.source_id, c.content,
          (c.embedding <=> %(vec)s::vector) AS dist
   FROM policy_chunk c JOIN policy p ON p.id = c.policy_id
   ORDER BY p.id, c.embedding <=> %(vec)s::vector
@@ -57,27 +57,32 @@ def main():
 
     conn = psycopg2.connect(DB)
     cur = conn.cursor()
-    ranks = []
+    ranked = []
     for it in items:
+        gold = (it.get("gold_source", "youth"), it["gold_source_id"])
         qvec = embedder.encode([f"query: {it['query']}"], normalize_embeddings=True)[0]
         vec = "[" + ",".join(f"{x:.6f}" for x in qvec) + "]"
         cur.execute(CAND_SQL, {"vec": vec, "n": CANDIDATES})
-        cand = cur.fetchall()  # [(source_id, content), ...]
+        cand = cur.fetchall()  # [(source, source_id, content), ...]
         if not cand:
-            ranks.append(0)
+            ranked.append((gold[0], 0))
             continue
-        scores = reranker.predict([(it["query"], content) for _, content in cand],
+        scores = reranker.predict([(it["query"], content) for _, _, content in cand],
                                   show_progress_bar=True)
-        ordered = [sid for sid, _ in sorted(zip([c[0] for c in cand], scores),
-                                            key=lambda x: x[1], reverse=True)]
-        gold = it["gold_source_id"]
-        ranks.append(ordered.index(gold) + 1 if gold in ordered[:TOPK] else 0)
+        ordered = [key for key, _ in sorted(
+            zip([(c[0], c[1]) for c in cand], scores), key=lambda x: x[1], reverse=True)]
+        ranked.append((gold[0], ordered.index(gold) + 1 if gold in ordered[:TOPK] else 0))
     cur.close()
     conn.close()
 
+    ranks = [rank for _, rank in ranked]
     n = len(ranks)
     rer = metrics(ranks, n)
     rer.update({"n": n, "candidates": CANDIDATES, "reranker": "bge-reranker-v2-m3"})
+    rer["by_source"] = {}
+    for source in sorted({source for source, _ in ranked}):
+        source_ranks = [rank for item_source, rank in ranked if item_source == source]
+        rer["by_source"][source] = {"n": len(source_ranks), **metrics(source_ranks, len(source_ranks))}
 
     print(f"\n평가 문항: {n}  (후보 {CANDIDATES} → 리랭킹 → top-{TOPK})")
     print("-" * 52)

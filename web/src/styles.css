@@ -114,6 +114,14 @@ header p { margin: 0 0 24px; color: var(--muted); }
   gap: 10px;
 }
 .policy-head h3 { margin: 0; font-size: 16px; }
+.source-badge {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #eef4ff;
+  color: #315caa;
+  font-size: 12px;
+}
 .score { font-size: 12px; color: var(--primary); white-space: nowrap; }
 .meta { color: var(--muted); font-size: 13px; margin: 4px 0 10px; }
 .support {

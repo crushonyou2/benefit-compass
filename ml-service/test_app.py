@@ -86,7 +86,7 @@ class HealthReadinessApiTest(unittest.TestCase):
 
             def fetchall(self):
                 return [[
-                    "policy-1", "청년 주거 지원", "테스트 기관", "지원 내용",
+                    "youth", "policy-1", "청년 주거 지원", "테스트 기관", "지원 내용",
                     "온라인", "https://example.test", 19, 34, None, 0.9,
                 ]]
 
@@ -117,6 +117,7 @@ class HealthReadinessApiTest(unittest.TestCase):
 
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, len(response.json()["results"]))
+        self.assertEqual("youth", response.json()["results"][0]["source"])
         server_timing = response.headers["Server-Timing"]
         self.assertIn("model_wait;dur=", server_timing)
         self.assertIn("embedding;dur=", server_timing)

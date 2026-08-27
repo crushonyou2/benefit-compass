@@ -21,10 +21,10 @@ DB = os.getenv("DATABASE_URL", "").strip()
 GEN_MODEL = "gemini-3.5-flash"  # 현행 stable flash (답변 생성)
 
 RETRIEVE = """
-SELECT t.title, t.org, t.support_content, t.apply_method, t.apply_url,
+SELECT t.source, t.title, t.org, t.support_content, t.apply_method, t.apply_url,
        t.age_min, t.age_max, t.income_etc, 1 - t.dist AS score
 FROM (
-  SELECT DISTINCT ON (p.id) p.id, p.title, p.org, p.support_content,
+  SELECT DISTINCT ON (p.id) p.id, p.source, p.title, p.org, p.support_content,
          p.apply_method, p.apply_url, p.age_min, p.age_max, p.income_etc,
          (c.embedding <=> %(vec)s::vector) AS dist
   FROM policy_chunk c
@@ -68,10 +68,10 @@ def retrieve(query, age, region, k=5):
 
 def build_context(rows):
     blocks = []
-    for title, org, support, apply_m, url, amin, amax, income, score in rows:
+    for source, title, org, support, apply_m, url, amin, amax, income, score in rows:
         age = f"{amin}~{amax}세" if amin is not None else "연령무관"
         blocks.append(
-            f"- 정책명: {title} ({org})\n"
+            f"- 정책명: {title} (출처: {source}, 기관: {org})\n"
             f"  지원대상 연령: {age} / 소득조건: {income or '명시 없음'}\n"
             f"  지원내용: {support or '명시 없음'}\n"
             f"  신청방법: {apply_m or '명시 없음'}\n"
@@ -104,7 +104,7 @@ def main():
     print(f'질문: {args.query}\n' + "=" * 70)
     print(resp.text)
     print("=" * 70)
-    print("근거 정책:", ", ".join(r[0] for r in rows))
+    print("근거 정책:", ", ".join(r[1] for r in rows))
 
 
 if __name__ == "__main__":

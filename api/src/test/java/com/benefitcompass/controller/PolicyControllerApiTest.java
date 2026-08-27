@@ -39,7 +39,7 @@ class PolicyControllerApiTest {
             segments.recordMillis("ml_db_query", 7.25, "success");
             segments.recordMillis("api_to_ml", 12.0, "success");
             return List.of(new Policy(
-                    "policy-1", "청년 주거 지원", "테스트 기관", "지원 내용",
+                    "youth", "policy-1", "청년 주거 지원", "테스트 기관", "지원 내용",
                     "온라인", "https://example.test", 19, 34, null, 0.9));
         });
         PolicyController controller = new PolicyController(rag, registry, segments);
@@ -57,6 +57,7 @@ class PolicyControllerApiTest {
                                 org.hamcrest.Matchers.containsString("ml_embedding;dur=3.500"),
                                 org.hamcrest.Matchers.containsString("ml_db_query;dur=7.250"),
                                 org.hamcrest.Matchers.containsString("api_to_ml;dur=12.000"))))
+                .andExpect(jsonPath("$[0].source").value("youth"))
                 .andExpect(jsonPath("$[0].source_id").value("policy-1"));
     }
 

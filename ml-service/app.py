@@ -73,10 +73,10 @@ def region_filter(cands, region):
 DB = os.getenv("DATABASE_URL", "").strip()
 
 SQL = """
-SELECT t.source_id, t.title, t.org, t.support_content, t.apply_method,
+SELECT t.source, t.source_id, t.title, t.org, t.support_content, t.apply_method,
        t.apply_url, t.age_min, t.age_max, t.income_etc, 1 - t.dist AS score
 FROM (
-  SELECT DISTINCT ON (p.id) p.source_id, p.title, p.org, p.support_content,
+  SELECT DISTINCT ON (p.id) p.source, p.source_id, p.title, p.org, p.support_content,
          p.apply_method, p.apply_url, p.age_min, p.age_max, p.income_etc,
          (c.embedding <=> %(vec)s::vector) AS dist
   FROM policy_chunk c
@@ -230,7 +230,7 @@ def search(
         finally:
             timings["db_query"] = (time.perf_counter_ns() - started_ns) / 1_000_000.0
 
-        cols = ["source_id", "title", "org", "support_content", "apply_method",
+        cols = ["source", "source_id", "title", "org", "support_content", "apply_method",
                 "apply_url", "age_min", "age_max", "income_etc", "score"]
         cands = [dict(zip(cols, row)) for row in rows]
         cands = region_filter(cands, req.region)   # 기관명 기반 지역 보강 필터

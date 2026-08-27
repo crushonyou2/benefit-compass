@@ -25,8 +25,9 @@ KS = [1, 5, 10]
 TOPK = 10
 
 SQL = """
-SELECT t.source_id FROM (
-  SELECT DISTINCT ON (p.id) p.source_id, (c.embedding <=> %(vec)s::vector) AS dist
+SELECT t.source, t.source_id FROM (
+  SELECT DISTINCT ON (p.id) p.source, p.source_id,
+         (c.embedding <=> %(vec)s::vector) AS dist
   FROM policy_chunk c JOIN policy p ON p.id = c.policy_id
   ORDER BY p.id, c.embedding <=> %(vec)s::vector
 ) t
@@ -46,18 +47,20 @@ def main():
     conn = psycopg2.connect(DB)
     cur = conn.cursor()
 
-    ranks = []
+    ranked = []
     for it in items:
         qvec = model.encode([f"query: {it['query']}"], normalize_embeddings=True)[0]
         vec = "[" + ",".join(f"{x:.6f}" for x in qvec) + "]"
         cur.execute(SQL, {"vec": vec, "k": TOPK})
-        ids = [r[0] for r in cur.fetchall()]
-        rank = ids.index(it["gold_source_id"]) + 1 if it["gold_source_id"] in ids else 0
-        ranks.append(rank)
+        ids = cur.fetchall()
+        gold = (it.get("gold_source", "youth"), it["gold_source_id"])
+        rank = ids.index(gold) + 1 if gold in ids else 0
+        ranked.append((gold[0], rank))
     cur.close()
     conn.close()
 
-    n = len(ranks)
+    n = len(ranked)
+    ranks = [rank for _, rank in ranked]
     results = {"n": n, "model": "multilingual-e5-base", "top_k": TOPK}
     print(f"평가 문항: {n}")
     print("-" * 40)
@@ -67,6 +70,16 @@ def main():
         print(f"recall@{k:<2}: {recall:.3f}")
     mrr = sum((1 / r if r else 0) for r in ranks) / n
     results["mrr@10"] = round(mrr, 4)
+    results["by_source"] = {}
+    for source in sorted({source for source, _ in ranked}):
+        source_ranks = [rank for item_source, rank in ranked if item_source == source]
+        results["by_source"][source] = {
+            "n": len(source_ranks),
+            "recall@1": round(sum(1 for rank in source_ranks if rank == 1) / len(source_ranks), 4),
+            "recall@5": round(sum(1 for rank in source_ranks if 1 <= rank <= 5) / len(source_ranks), 4),
+            "mrr@10": round(sum((1 / rank if rank else 0) for rank in source_ranks)
+                            / len(source_ranks), 4),
+        }
     print(f"MRR@{TOPK} : {mrr:.3f}")
     print(f"top-{TOPK} 내 정답 포함: {sum(1 for r in ranks if r)}/{n}")
 

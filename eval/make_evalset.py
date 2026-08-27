@@ -68,8 +68,9 @@ def main():
     done = set()
     if OUTFILE.exists():
         for l in OUTFILE.open(encoding="utf-8"):
-            done.add(json.loads(l)["gold_source_id"])
-    todo = [p for p in sample if p["source_id"] not in done]
+            item = json.loads(l)
+            done.add((item.get("gold_source", "youth"), item["gold_source_id"]))
+    todo = [p for p in sample if (p["source"], p["source_id"]) not in done]
     print(f"전체 {len(sample)} / 완료 {len(done)} / 남은 {len(todo)}")
 
     consecutive_fail = 0
@@ -85,7 +86,8 @@ def main():
                     break
                 continue
             consecutive_fail = 0
-            f.write(json.dumps({"query": q, "gold_source_id": p["source_id"],
+            f.write(json.dumps({"query": q, "gold_source": p["source"],
+                                "gold_source_id": p["source_id"],
                                 "gold_title": p["title"]}, ensure_ascii=False) + "\n")
             f.flush()
             print(f"  {i}/{len(todo)}: {q}")

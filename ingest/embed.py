@@ -1,5 +1,5 @@
 """
-youth_policies.jsonl → RAG 텍스트 구성 → 청킹 → 로컬 임베딩 → data/chunks.jsonl
+*_policies.jsonl → RAG 텍스트 구성 → 청킹 → 로컬 임베딩 → data/chunks.jsonl
 
 임베딩: intfloat/multilingual-e5-base (768차원, schema.sql 의 VECTOR(768) 와 일치).
   - 온디바이스(무료, API 한도 없음). 한국어 포함 다국어 검색에 강함.
@@ -18,7 +18,6 @@ MODEL_NAME = "intfloat/multilingual-e5-base"
 DIMS = 768
 
 DATA = pathlib.Path(__file__).resolve().parent / "data"
-INFILE = DATA / "youth_policies.jsonl"
 OUTFILE = DATA / "chunks.jsonl"
 
 CHUNK_SIZE = 800   # 글자 수 기준 (정책 본문 대부분 1~2 청크)
@@ -38,6 +37,7 @@ def build_doc(p: dict) -> str:
         ("지원대상 연령", age),
         ("소득조건", p.get("income_etc")),
         ("추가자격", p.get("add_qualify")),
+        ("신청기간", p.get("apply_period")),
         ("신청방법", p.get("apply_method")),
         ("제출서류", p.get("submit_docs")),
         ("심사방법", p.get("screening_method")),
@@ -59,10 +59,15 @@ def split(text: str) -> list:
 
 
 def main() -> None:
-    if not INFILE.exists():
-        raise SystemExit(f"{INFILE} 없음 — 먼저 ingest_youth.py 실행")
+    infiles = sorted(DATA.glob("*_policies.jsonl"))
+    if not infiles:
+        raise SystemExit(f"{DATA}에 정책 파일 없음 — 수집 스크립트를 먼저 실행")
 
-    policies = [json.loads(line) for line in INFILE.open(encoding="utf-8")]
+    policies = [
+        json.loads(line)
+        for infile in infiles
+        for line in infile.open(encoding="utf-8")
+    ]
     chunks = []
     for p in policies:
         for idx, c in enumerate(split(build_doc(p))):

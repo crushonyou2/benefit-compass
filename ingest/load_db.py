@@ -1,5 +1,5 @@
 """
-youth_policies.jsonl + chunks.jsonl → Postgres(pgvector) 적재.
+*_policies.jsonl + chunks.jsonl → Postgres(pgvector) 적재.
 schema.sql 자동 적용(멱등). 재실행 시 UPSERT.
 
 필요: DATABASE_URL (Neon 등 무료 Postgres, pgvector 지원)
@@ -35,19 +35,29 @@ def main() -> None:
     cur.execute(SCHEMA.read_text(encoding="utf-8"))
     conn.commit()
 
-    policies = [json.loads(l) for l in (DATA / "youth_policies.jsonl").open(encoding="utf-8")]
+    infiles = sorted(DATA.glob("*_policies.jsonl"))
+    if not infiles:
+        raise SystemExit(f"{DATA}에 정책 파일 없음 — 수집 스크립트를 먼저 실행")
+    policies = [
+        json.loads(line)
+        for infile in infiles
+        for line in infile.open(encoding="utf-8")
+    ]
     id_map = {}
+    updates = ",".join(
+        f"{column}=EXCLUDED.{column}"
+        for column in COLS if column not in {"source", "source_id"}
+    )
     for p in policies:
         vals = [Json(p.get("raw")) if c == "raw" else p.get(c) for c in COLS]
         cur.execute(
             f"INSERT INTO policy ({','.join(COLS)}) "
             f"VALUES ({','.join(['%s'] * len(COLS))}) "
             "ON CONFLICT (source, source_id) DO UPDATE "
-            "SET title = EXCLUDED.title, updated_at = now() RETURNING id",
+            f"SET {updates}, updated_at = now() RETURNING id",
             vals,
         )
         id_map[(p["source"], p["source_id"])] = cur.fetchone()[0]
-    conn.commit()
     print(f"정책 {len(policies)}건 적재")
 
     chunks = [json.loads(l) for l in (DATA / "chunks.jsonl").open(encoding="utf-8")]
@@ -58,14 +68,17 @@ def main() -> None:
             continue
         vec = "[" + ",".join(str(x) for x in c["embedding"]) + "]"
         rows.append((pid, c["chunk_index"], c["content"], vec))
-    execute_values(
-        cur,
-        "INSERT INTO policy_chunk (policy_id, chunk_index, content, embedding) VALUES %s "
-        "ON CONFLICT (policy_id, chunk_index) DO UPDATE "
-        "SET content = EXCLUDED.content, embedding = EXCLUDED.embedding",
-        rows,
-        template="(%s,%s,%s,%s::vector)",
-    )
+    # 이번 코퍼스의 정책 청크를 한 트랜잭션에서 교체해 짧아진 문서의 낡은 청크도 남기지 않는다.
+    if id_map:
+        cur.execute("DELETE FROM policy_chunk WHERE policy_id = ANY(%s)",
+                    (list(id_map.values()),))
+    if rows:
+        execute_values(
+            cur,
+            "INSERT INTO policy_chunk (policy_id, chunk_index, content, embedding) VALUES %s",
+            rows,
+            template="(%s,%s,%s,%s::vector)",
+        )
     conn.commit()
     print(f"청크 {len(rows)}건 적재 완료")
     cur.close()

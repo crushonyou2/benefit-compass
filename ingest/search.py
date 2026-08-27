@@ -20,8 +20,8 @@ load_dotenv(ROOT / ".env")
 DB = os.getenv("DATABASE_URL", "").strip()
 
 SQL = """
-SELECT p.title, p.org, p.summary, p.age_min, p.age_max,
-       1 - (c.embedding <=> %(vec)s::vector) AS score, c.content
+SELECT p.source, p.title, p.org, p.summary, p.age_min, p.age_max,
+       1 - (c.embedding <=> %(vec)s::vector) AS score, c.content, p.apply_url
 FROM policy_chunk c
 JOIN policy p ON p.id = c.policy_id
 WHERE ( %(age)s IS NULL OR p.age_limit_yn IS NOT TRUE
@@ -63,11 +63,13 @@ def main() -> None:
         flt.append(f"지역 {args.region}*")
     print(f'질의: "{args.query}"' + (f"  [필터: {', '.join(flt)}]" if flt else ""))
     print("-" * 70)
-    for i, (title, org, summary, amin, amax, score, content) in enumerate(rows, 1):
+    for i, (source, title, org, summary, amin, amax, score, content, url) in enumerate(rows, 1):
         age = f"{amin}~{amax}세" if amin is not None else "연령무관"
-        print(f"{i}. [{score:.3f}] {title}  ({org}, {age})")
+        print(f"{i}. [{score:.3f}] {title}  ({source} / {org}, {age})")
         if summary:
             print(f"   {summary}")
+        if url:
+            print(f"   공식 링크: {url}")
 
 
 if __name__ == "__main__":
