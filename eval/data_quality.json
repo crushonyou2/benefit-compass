@@ -1,0 +1,17 @@
+{
+  "by_source": {
+    "gov24": {
+      "policies": 10958,
+      "missing_links": 0,
+      "region_coded": 0
+    },
+    "youth": {
+      "policies": 2631,
+      "missing_links": 615,
+      "region_coded": 2631
+    }
+  },
+  "missing_embeddings": 0,
+  "cross_source_same_title": 93,
+  "region_filter_exposed": false
+}

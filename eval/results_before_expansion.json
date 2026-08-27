@@ -1,0 +1,18 @@
+{
+  "n": 60,
+  "eval_file": "eval\\evalset.jsonl",
+  "model": "multilingual-e5-base",
+  "top_k": 10,
+  "recall@1": 0.4,
+  "recall@5": 0.7333,
+  "recall@10": 0.8,
+  "mrr@10": 0.5346,
+  "by_source": {
+    "youth": {
+      "n": 60,
+      "recall@1": 0.4,
+      "recall@5": 0.7333,
+      "mrr@10": 0.5346
+    }
+  }
+}

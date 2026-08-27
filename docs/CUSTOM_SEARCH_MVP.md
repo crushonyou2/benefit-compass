@@ -1,6 +1,6 @@
 # Custom Search MVP 검증 기록
 
-기준일: 2026-08-27
+기준일: 2026-08-28
 
 ## 데이터 소스 게이트
 
@@ -17,7 +17,9 @@
 - [2025년 v3 상세 필드 변경 공지](https://www.data.go.kr/bbs/ntc/selectNotice.do?originId=NOTICE_0000000004156): `/gov24/v3/serviceDetail` 유지 및 구비서류 필드 추가
 - [정부24 실제 서비스 상세 예시](https://www.gov.kr/portal/rcvfvrSvc/dtlEx/B55190400005): 지원대상·지원내용·신청방법·기관·최종수정일과 공식 신청 경로 확인
 
-초기 접근 검증에서는 무인증 요청이 `401`을 반환했고, 첫 인증키도 활용등록 전이라 `401`, 코드 `-4`를 반환했다. 활용등록을 수정한 2026-08-27 재검증에서는 공식 Swagger의 헤더 인증으로 세 엔드포인트의 실제 응답을 받아 정책 5건을 저장했다. 표본은 필수 ID·정책명·공식 HTTP 링크가 모두 있었고, 목록·상세·지원조건 원본도 5건 모두 결합됐다. 목록의 `totalCount`는 10,958건이었다. 전체 세 엔드포인트 수집은 대량 외부 호출 승인 후 실행한다.
+초기 접근 검증에서는 무인증 요청이 `401`을 반환했고, 첫 인증키도 활용등록 전이라 `401`, 코드 `-4`를 반환했다. 활용등록을 수정한 뒤 공식 Swagger의 헤더 인증으로 세 엔드포인트의 실제 응답을 받았고, 2026-08-27 전체 10,958건 수집을 완료했다. 필수 ID·정책명과 세 원본 결합은 10,958건 모두 정상이고 `(source, source_id)`도 전부 유일하다. 연령 필터가 활성화된 정책은 9,914건이며 비정상 연령 범위와 임의 지역코드는 0건이다.
+
+첫 전체 수집에서는 스킴 없는 `온라인신청사이트URL`이 유효한 정부24 상세 URL보다 먼저 선택돼 공식 링크가 349건 누락됐다. 첫 번째 유효한 HTTP(S) 후보를 선택하도록 수정하고 전체 재수집한 결과 공식 링크 누락은 0건이 됐다.
 
 ## 정규화 계약
 
@@ -59,55 +61,80 @@ gov24 v3 공식 Swagger에는 서비스의 행정 지역코드가 없다. `소�
 
 따라서 이번 변경은 gov24 정책의 `region_codes`를 빈 배열로 저장하고 지역 필터를 노출하지 않는다. `run_data_quality.py`는 출처별 지역코드 보유 건수를 기록하지만, 이것은 지역 정확도 증거가 아니다.
 
-## 평가 상태
+## 평가 결과
 
-측정된 기존 기준값은 청년정책 60문항의 저장된 결과다.
+2026-08-28 적재 직전 Neon은 기존 `youth` 정책 2,631건과 청크 3,083건만 보유했고 임베딩 누락은 0건이었다. 이 상태에서 기존 청년정책 60문항을 다시 실행해 `eval/results_before_expansion.json`에 기준선을 먼저 보존했다.
 
-| 지표 | bi-encoder | 리랭킹 |
-|---|---:|---:|
-| Recall@1 | 0.4000 | 0.5167 |
-| Recall@5 | 0.7333 | 0.7167 |
-| MRR@10 | 0.5346 | 0.6135 |
+Gov24 정책 10,958건과 768차원 청크 14,526건을 적재한 뒤 정책은 총 13,589건, 청크는 총 17,609건이 됐다.
 
-이번 환경에서 Gov24·Gemini 인증과 Neon 읽기 전용 연결은 확인했다. Neon에는 기존 `youth` 정책 2,631건과 청크 3,083건이 있고 임베딩 누락은 0건이었다. 기존 데이터가 있는 DB이므로 승인 없이 적재하지 않았고, 전체 Gov24 수집·임베딩도 아직 실행하지 않았다. 따라서 위 숫자는 **기존 청년정책 기준값**일 뿐, 복수 출처 개선 수치가 아니다.
+| 출처 | 정책 | 청크 | 공식 링크 누락 | 지역코드 보유 |
+|---|---:|---:|---:|---:|
+| `youth` | 2,631 | 3,083 | 615 | 2,631 |
+| `gov24` | 10,958 | 14,526 | 0 | 0 |
 
-확장 평가 라벨은 실제 gov24 전체 코퍼스를 받은 뒤 다음 유형을 포함해 먼저 고정해야 한다: 일반 국민, 가구·주거, 취업·소득, 복지·건강, 전국, 지역, 비대상 조건, 정답 없음, 출처 간 유사 정책. 실제 코퍼스에 존재하는 서비스 ID를 확인하기 전에 정답을 추측해 넣지 않는다.
+`(source, source_id)` 중복 정책, `(policy_id, chunk_index)` 중복 청크, 고아 청크, 청크 없는 정책, 누락 임베딩, 768차원이 아닌 임베딩은 모두 0건이다. 같은 파일을 반복 적재한 뒤에도 출처별 수와 무결성 결과가 같았다. 출처 간 제목이 같은 정책은 93개다. 지역 필터는 계속 노출하지 않는다.
 
-평가 도구는 출처를 포함한 gold key와 출처별 Recall/MRR를 기록하도록 바뀌었다. `run_data_quality.py`는 출처별 정책 수, 공식 링크 누락, 지역코드 보유, 임베딩 누락, 출처 간 동일 제목 수를 저장한다.
+기존 60문항의 bi-encoder 결과는 다음과 같다.
+
+| 지표 | 적재 전 | 적재 후 | 변화 |
+|---|---:|---:|---:|
+| Recall@1 | 0.4000 | 0.3167 | -0.0833 |
+| Recall@5 | 0.7333 | 0.6667 | -0.0666 |
+| Recall@10 | 0.8000 | 0.7333 | -0.0667 |
+| MRR@10 | 0.5346 | 0.4560 | -0.0786 |
+
+Gov24 추가 뒤 기존 청년정책 검색은 네 지표 모두 회귀했다. 복수 출처 통합이 검색 품질을 개선했다는 주장은 하지 않는다. 결과 원본은 `eval/results_before_expansion.json`과 `eval/results_after_expansion.json`에 보존했다.
+
+실제 Gov24 코퍼스의 서비스 ID·정책명을 대조해 고정한 신규 검색 정답 21문항 결과는 다음과 같다.
+
+| 지표 | 결과 |
+|---|---:|
+| Recall@1 | 0.2857 |
+| Recall@5 | 0.4762 |
+| Recall@10 | 0.7143 |
+| MRR@10 | 0.3901 |
+
+결과 원본은 `eval/results_expansion.json`에 보존했다. `expansion_api_evalset.jsonl`은 같은 검색 문항에 비대상 3문항과 정답 없음 3문항을 더한 27문항이며, 9개 유형을 각각 3문항씩 포함한다. 오프라인 코퍼스·라벨 검증과 API 평가기 단위 테스트는 통과했다.
+
+실제 27문항 API 통합 평가는 실행하지 않았다. 검색 결과가 있는 문항은 Gemini 외부 호출을 발생시키지만 이번 승인 범위는 Gov24 전체 수집과 현재 Neon 적재까지였기 때문이다. 따라서 Gemini 생성 품질, 무근거 생성, 비대상 정책 노출의 실제 API 수치는 아직 없다.
+
+평가 도구는 출처를 포함한 gold key와 출처별 Recall/MRR를 기록한다. `run_data_quality.py`는 출처별 정책 수, 공식 링크 누락, 지역코드 보유, 임베딩 누락, 출처 간 동일 제목 수를 `eval/data_quality.json`에 저장한다.
 
 ## 재현 절차와 남은 게이트
 
-```powershell
-cd ingest
-python ingest_gov24.py --limit 5
-python ingest_gov24.py
-python embed.py
-python load_db.py
+이번 적재에서는 이미 완성된 `gov24_policies.jsonl`과 `chunks.jsonl`을 사용했다. 수집과 임베딩은 다시 실행하지 않았다.
 
-cd ..
+```powershell
+# 적재 전 — 이 순서를 바꾸지 않는다.
+python scripts/check_db.py
+python eval/run_eval.py --output eval/results_before_expansion.json
+
+# Gov24 적재와 무결성·품질 확인
+python ingest/load_db.py
+python scripts/check_db.py
 python eval/run_data_quality.py
-python eval/run_eval.py
-python eval/run_eval_rerank.py
+
+# 적재 후 회귀와 확장 검색 평가
+python eval/run_eval.py --output eval/results_after_expansion.json
+python eval/run_eval.py --eval-file eval/expansion_evalset.jsonl --output eval/results_expansion.json
+
+# 확장 라벨과 API 평가기 오프라인 검증
+python eval/validate_expansion_evalset.py
+python eval/test_run_api_eval.py
 ```
 
-기존 60문항과 확장 평가셋의 결과를 덮어쓰지 않으려면 파일을 명시한다.
+27문항 API 통합 평가는 ML 서비스와 Spring API를 실행하고 Gemini 외부 호출 승인을 받은 환경에서만 다음 명령으로 수행한다.
 
 ```powershell
-python eval/run_eval.py --eval-file eval/expansion_evalset.jsonl --output eval/results_expansion.json
-python eval/run_eval_rerank.py --eval-file eval/expansion_evalset.jsonl --baseline eval/results_expansion.json --output eval/results_expansion_rerank.json
-python eval/run_api_eval.py --eval-file eval/expansion_evalset.jsonl --output eval/results_expansion_api.json
+python eval/run_api_eval.py `
+  --eval-file eval/expansion_api_evalset.jsonl `
+  --output eval/results_expansion_api.json
 ```
 
-두 평가기는 빈 파일과 `query`·`gold_source_id` 누락을 실행 전에 거절하고, 결과 JSON에 사용한 평가 파일 경로를 기록한다. 기존 청년정책 라벨은 `gold_source`가 없으면 `youth`로 해석해 이전 평가셋과 호환한다. 확장 평가셋에는 `gold_source`를 반드시 명시한다.
+남은 품질 게이트:
 
-API 통합 평가셋의 검색 정답 문항은 `gold_source`·`gold_source_id`를, 정답 없음 문항은 `expected_no_results: true`를 사용한다. 선택 필드 `case_type`으로 일반 국민·가구/주거·취업/소득·복지/건강·전국·지역·비대상·출처 간 유사 정책을 구분한다. 평가기는 Recall@1/5·MRR·출처별/유형별 성공률과 함께 정답 없음 오탐, 공식 링크 누락, `sources` 없이 LLM이 호출된 건수를 저장한다.
+- Gov24 추가 뒤 발생한 기존 60문항 회귀의 원인 분석과 검색 품질 회복
+- 승인된 환경에서 27문항 API 통합 평가 실행
+- API 평가로 공식 링크 누락, 무근거 생성, 비대상 정책 노출의 실제 건수 측정
 
-아직 완료되지 않은 항목:
-
-- 활용신청된 키로 v3 세 엔드포인트의 200 응답과 원본 필드 표본 검증
-- 전체 gov24 수집·임베딩·DB 적재 및 반복 적재 수치
-- 실제 코퍼스 기준 확장 평가셋 라벨 확정
-- 기존 60문항 회귀와 신규 Recall@1/5·MRR 실측
-- 공식 링크 누락, 무근거 답변, 지역 오탐의 실제 건수
-
-이 항목이 끝나기 전에는 Custom Search MVP 완료나 검색 품질 향상을 주장하지 않는다.
+Gov24 전체 수집·임베딩·Neon 적재와 검색 평가는 완료했다. 다만 위 회귀가 남아 있으므로 복수 출처 검색 품질 향상을 주장하지 않는다.

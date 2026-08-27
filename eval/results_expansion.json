@@ -1,0 +1,18 @@
+{
+  "n": 21,
+  "eval_file": "eval\\expansion_evalset.jsonl",
+  "model": "multilingual-e5-base",
+  "top_k": 10,
+  "recall@1": 0.2857,
+  "recall@5": 0.4762,
+  "recall@10": 0.7143,
+  "mrr@10": 0.3901,
+  "by_source": {
+    "gov24": {
+      "n": 21,
+      "recall@1": 0.2857,
+      "recall@5": 0.4762,
+      "mrr@10": 0.3901
+    }
+  }
+}
