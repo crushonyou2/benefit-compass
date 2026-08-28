@@ -11,12 +11,15 @@ import argparse
 import json
 import os
 import pathlib
+import sys
 
 from dotenv import load_dotenv
 import psycopg2
 from sentence_transformers import SentenceTransformer
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "ml-service"))
+from source_ranking import ranking_metadata, youth_source_bias
 load_dotenv(ROOT / ".env")
 DB = os.getenv("DATABASE_URL", "").strip()
 HERE = pathlib.Path(__file__).resolve().parent
@@ -31,7 +34,8 @@ SELECT t.source, t.source_id FROM (
   FROM policy_chunk c JOIN policy p ON p.id = c.policy_id
   ORDER BY p.id, c.embedding <=> %(vec)s::vector
 ) t
-ORDER BY t.dist
+ORDER BY t.dist - CASE WHEN t.source = 'youth' THEN %(youth_bias)s ELSE 0 END,
+         t.dist, t.source, t.source_id
 LIMIT %(k)s
 """
 
@@ -69,7 +73,11 @@ def main():
     for it in items:
         qvec = model.encode([f"query: {it['query']}"], normalize_embeddings=True)[0]
         vec = "[" + ",".join(f"{x:.6f}" for x in qvec) + "]"
-        cur.execute(SQL, {"vec": vec, "k": TOPK})
+        cur.execute(SQL, {
+            "vec": vec,
+            "youth_bias": youth_source_bias(it["query"]),
+            "k": TOPK,
+        })
         ids = cur.fetchall()
         gold = (it.get("gold_source", "youth"), it["gold_source_id"])
         rank = ids.index(gold) + 1 if gold in ids else 0
@@ -79,11 +87,17 @@ def main():
 
     n = len(ranked)
     ranks = [rank for _, rank in ranked]
+    eval_file = args.eval_file.resolve()
+    try:
+        eval_file = eval_file.relative_to(ROOT)
+    except ValueError:
+        pass
     results = {
         "n": n,
-        "eval_file": str(args.eval_file),
+        "eval_file": str(eval_file),
         "model": "multilingual-e5-base",
         "top_k": TOPK,
+        "source_ranking": ranking_metadata(),
     }
     print(f"평가 문항: {n}")
     print("-" * 40)

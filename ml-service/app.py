@@ -23,6 +23,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from runtime_state import ModelRuntime, safe_request_id, server_timing_header
+from source_ranking import youth_source_bias
 
 # .env는 아래 모듈 상수보다 먼저 로드한다. 이전에는 load_dotenv가 이 상수들 아래에서 돌아
 # RERANK·COSINE_MIN·MODEL_READY_TIMEOUT_SECONDS·MODEL_LOCAL_ONLY 네 값은 .env에 적어도
@@ -88,7 +89,8 @@ FROM (
     AND ( p.biz_end IS NULL OR p.biz_end >= CURRENT_DATE )   -- 만료 정책 제외
   ORDER BY p.id, c.embedding <=> %(vec)s::vector
 ) t
-ORDER BY t.dist
+ORDER BY t.dist - CASE WHEN t.source = 'youth' THEN %(youth_bias)s ELSE 0 END,
+         t.dist, t.source, t.source_id
 LIMIT %(n)s
 """
 
@@ -221,9 +223,13 @@ def search(
         try:
             cur = conn.cursor()
             try:
-                cur.execute(SQL, {"vec": vec, "age": req.age,
-                                  "rp": (f"{req.region}%" if req.region else None),
-                                  "n": CANDIDATES})
+                cur.execute(SQL, {
+                    "vec": vec,
+                    "age": req.age,
+                    "rp": (f"{req.region}%" if req.region else None),
+                    "youth_bias": youth_source_bias(q),
+                    "n": CANDIDATES,
+                })
                 rows = cur.fetchall()
             finally:
                 cur.close()

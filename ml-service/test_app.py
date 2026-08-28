@@ -80,9 +80,12 @@ class HealthReadinessApiTest(unittest.TestCase):
             def encode(self, texts, normalize_embeddings):
                 return [[0.1, 0.2]]
 
+        executed_params = []
+
         class FakeCursor:
             def execute(self, sql, params):
                 self.params = params
+                executed_params.append(params)
 
             def fetchall(self):
                 return [[
@@ -112,12 +115,13 @@ class HealthReadinessApiTest(unittest.TestCase):
                     response = client.post(
                         "/search",
                         headers={"X-Request-ID": "123e4567-e89b-42d3-a456-426614174000"},
-                        json={"query": "fixed synthetic query", "age": 345678901, "k": 5},
+                        json={"query": "청년 fixed synthetic query", "age": 345678901, "k": 5},
                     )
 
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, len(response.json()["results"]))
         self.assertEqual("youth", response.json()["results"][0]["source"])
+        self.assertEqual(0.015, executed_params[0]["youth_bias"])
         server_timing = response.headers["Server-Timing"]
         self.assertIn("model_wait;dur=", server_timing)
         self.assertIn("embedding;dur=", server_timing)

@@ -9,6 +9,7 @@ RAG 완성 — 검색(R) + 근거 기반 답변 생성(G).
 import os
 import argparse
 import pathlib
+import sys
 
 from dotenv import load_dotenv
 import psycopg2
@@ -16,6 +17,8 @@ from sentence_transformers import SentenceTransformer
 from google import genai
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "ml-service"))
+from source_ranking import youth_source_bias
 load_dotenv(ROOT / ".env")
 DB = os.getenv("DATABASE_URL", "").strip()
 GEN_MODEL = "gemini-3.5-flash"  # 현행 stable flash (답변 생성)
@@ -24,18 +27,20 @@ RETRIEVE = """
 SELECT t.source, t.title, t.org, t.support_content, t.apply_method, t.apply_url,
        t.age_min, t.age_max, t.income_etc, 1 - t.dist AS score
 FROM (
-  SELECT DISTINCT ON (p.id) p.id, p.source, p.title, p.org, p.support_content,
-         p.apply_method, p.apply_url, p.age_min, p.age_max, p.income_etc,
-         (c.embedding <=> %(vec)s::vector) AS dist
+  SELECT DISTINCT ON (p.id) p.id, p.source, p.source_id, p.title, p.org,
+         p.support_content, p.apply_method, p.apply_url, p.age_min, p.age_max,
+         p.income_etc, (c.embedding <=> %(vec)s::vector) AS dist
   FROM policy_chunk c
   JOIN policy p ON p.id = c.policy_id
   WHERE ( %(age)s IS NULL OR p.age_limit_yn IS NOT TRUE
           OR %(age)s BETWEEN p.age_min AND p.age_max )
     AND ( %(rp)s IS NULL OR cardinality(p.region_codes) = 0
           OR EXISTS (SELECT 1 FROM unnest(p.region_codes) rc WHERE rc LIKE %(rp)s) )
+    AND ( p.biz_end IS NULL OR p.biz_end >= CURRENT_DATE )
   ORDER BY p.id, c.embedding <=> %(vec)s::vector
 ) t
-ORDER BY t.dist
+ORDER BY t.dist - CASE WHEN t.source = 'youth' THEN %(youth_bias)s ELSE 0 END,
+         t.dist, t.source, t.source_id
 LIMIT %(k)s
 """
 
@@ -58,8 +63,13 @@ def retrieve(query, age, region, k=5):
     vec = "[" + ",".join(f"{x:.6f}" for x in qvec) + "]"
     conn = psycopg2.connect(DB)
     cur = conn.cursor()
-    cur.execute(RETRIEVE, {"vec": vec, "age": age,
-                           "rp": (f"{region}%" if region else None), "k": k})
+    cur.execute(RETRIEVE, {
+        "vec": vec,
+        "age": age,
+        "rp": (f"{region}%" if region else None),
+        "youth_bias": youth_source_bias(query),
+        "k": k,
+    })
     rows = cur.fetchall()
     cur.close()
     conn.close()

@@ -10,12 +10,15 @@ import argparse
 import json
 import os
 import pathlib
+import sys
 
 from dotenv import load_dotenv
 import psycopg2
 from sentence_transformers import SentenceTransformer, CrossEncoder
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "ml-service"))
+from source_ranking import ranking_metadata, youth_source_bias
 load_dotenv(ROOT / ".env")
 DB = os.getenv("DATABASE_URL", "").strip()
 HERE = pathlib.Path(__file__).resolve().parent
@@ -31,7 +34,8 @@ SELECT t.source, t.source_id, t.content FROM (
   FROM policy_chunk c JOIN policy p ON p.id = c.policy_id
   ORDER BY p.id, c.embedding <=> %(vec)s::vector
 ) t
-ORDER BY t.dist
+ORDER BY t.dist - CASE WHEN t.source = 'youth' THEN %(youth_bias)s ELSE 0 END,
+         t.dist, t.source, t.source_id
 LIMIT %(n)s
 """
 
@@ -82,7 +86,11 @@ def main():
         gold = (it.get("gold_source", "youth"), it["gold_source_id"])
         qvec = embedder.encode([f"query: {it['query']}"], normalize_embeddings=True)[0]
         vec = "[" + ",".join(f"{x:.6f}" for x in qvec) + "]"
-        cur.execute(CAND_SQL, {"vec": vec, "n": CANDIDATES})
+        cur.execute(CAND_SQL, {
+            "vec": vec,
+            "youth_bias": youth_source_bias(it["query"]),
+            "n": CANDIDATES,
+        })
         cand = cur.fetchall()  # [(source, source_id, content), ...]
         if not cand:
             ranked.append((gold[0], 0))
@@ -98,11 +106,17 @@ def main():
     ranks = [rank for _, rank in ranked]
     n = len(ranks)
     rer = metrics(ranks, n)
+    eval_file = args.eval_file.resolve()
+    try:
+        eval_file = eval_file.relative_to(ROOT)
+    except ValueError:
+        pass
     rer.update({
         "n": n,
-        "eval_file": str(args.eval_file),
+        "eval_file": str(eval_file),
         "candidates": CANDIDATES,
         "reranker": "bge-reranker-v2-m3",
+        "source_ranking": ranking_metadata(),
     })
     rer["by_source"] = {}
     for source in sorted({source for source, _ in ranked}):

@@ -76,27 +76,38 @@ Gov24 정책 10,958건과 768차원 청크 14,526건을 적재한 뒤 정책은 
 
 기존 60문항의 bi-encoder 결과는 다음과 같다.
 
-| 지표 | 적재 전 | 적재 후 | 변화 |
+| 지표 | 적재 전 | 적재 후(무보정) | 변화 |
 |---|---:|---:|---:|
 | Recall@1 | 0.4000 | 0.3167 | -0.0833 |
 | Recall@5 | 0.7333 | 0.6667 | -0.0666 |
 | Recall@10 | 0.8000 | 0.7333 | -0.0667 |
 | MRR@10 | 0.5346 | 0.4560 | -0.0786 |
 
-Gov24 추가 뒤 기존 청년정책 검색은 네 지표 모두 회귀했다. 복수 출처 통합이 검색 품질을 개선했다는 주장은 하지 않는다. 결과 원본은 `eval/results_before_expansion.json`과 `eval/results_after_expansion.json`에 보존했다.
+Gov24 추가 뒤 기존 청년정책 검색은 네 지표 모두 회귀했다. 복수 출처 통합만으로 검색 품질이 개선됐다는 주장은 하지 않는다. 무보정 결과 원본은 `eval/results_after_expansion.json`에 보존했다.
+
+이 회귀를 완화하기 위해 검색 후보 정렬에만 최소 보정을 적용했다. 질의에 `청년`·`대학생`·`사회초년생`이 명시되고 알려진 Gov24 기관명이 없을 때만 `youth` 출처의 거리에서 `0.015`를 뺀다. 기관명이 명시되면 보정을 적용하지 않는다. 스키마·FTS·재임베딩·데이터 재수집은 변경하지 않았고, 평가 결과에는 규칙 metadata를 함께 기록한다.
+
+| 지표 | 적재 후(무보정) | 최소 보정 후 | 변화 |
+|---|---:|---:|---:|
+| Recall@1 | 0.3167 | 0.3333 | +0.0167 |
+| Recall@5 | 0.6667 | 0.6667 | +0.0000 |
+| Recall@10 | 0.7333 | 0.7833 | +0.0500 |
+| MRR@10 | 0.4560 | 0.4693 | +0.0133 |
+
+현재 평가에서 `0.005`, `0.010`, `0.015`, `0.020`, `0.025`를 비교했다. `0.015`는 Recall@1과 MRR@10을 함께 개선한 가장 작은 후보였고, `0.020`·`0.025`는 추가 개선이 없었다. 따라서 이 값은 현재 평가셋에 대한 최소 선택값이지 일반화된 production 최적값으로 간주하지 않는다. 최종 결과 원본은 `eval/results_after_source_bias.json`에 보존했다.
 
 실제 Gov24 코퍼스의 서비스 ID·정책명을 대조해 고정한 신규 검색 정답 21문항 결과는 다음과 같다.
 
-| 지표 | 결과 |
-|---|---:|
-| Recall@1 | 0.2857 |
-| Recall@5 | 0.4762 |
-| Recall@10 | 0.7143 |
-| MRR@10 | 0.3901 |
+| 지표 | 무보정 | 최소 보정 후 | 변화 |
+|---|---:|---:|---:|
+| Recall@1 | 0.2857 | 0.2857 | +0.0000 |
+| Recall@5 | 0.4762 | 0.4762 | +0.0000 |
+| Recall@10 | 0.7143 | 0.7143 | +0.0000 |
+| MRR@10 | 0.3901 | 0.3901 | +0.0000 |
 
-결과 원본은 `eval/results_expansion.json`에 보존했다. `expansion_api_evalset.jsonl`은 같은 검색 문항에 비대상 3문항과 정답 없음 3문항을 더한 27문항이며, 9개 유형을 각각 3문항씩 포함한다. 오프라인 코퍼스·라벨 검증과 API 평가기 단위 테스트는 통과했다.
+신규 21문항의 Gov24 검색 범위는 이 보정으로 감소하지 않았다. 최종 결과 원본은 `eval/results_expansion_source_bias.json`에 보존했다. `expansion_api_evalset.jsonl`은 같은 검색 문항에 비대상 3문항과 정답 없음 3문항을 더한 27문항이며, 9개 유형을 각각 3문항씩 포함한다. 오프라인 코퍼스·라벨 검증과 API 평가기 단위 테스트는 통과했다.
 
-실제 27문항 API 통합 평가는 실행하지 않았다. 검색 결과가 있는 문항은 Gemini 외부 호출을 발생시키지만 이번 승인 범위는 Gov24 전체 수집과 현재 Neon 적재까지였기 때문이다. 따라서 Gemini 생성 품질, 무근거 생성, 비대상 정책 노출의 실제 API 수치는 아직 없다.
+실제 27문항 API 통합 평가는 실행하지 않았다. 검색 결과가 있는 문항은 Gemini 외부 호출을 발생시키지만 이번 작업은 검색 회귀 보정까지를 승인 범위로 했기 때문이다. 따라서 Gemini 생성 품질, 무근거 생성, 비대상 정책 노출의 실제 API 수치는 아직 없다.
 
 평가 도구는 출처를 포함한 gold key와 출처별 Recall/MRR를 기록한다. `run_data_quality.py`는 출처별 정책 수, 공식 링크 누락, 지역코드 보유, 임베딩 누락, 출처 간 동일 제목 수를 `eval/data_quality.json`에 저장한다.
 
@@ -105,18 +116,17 @@ Gov24 추가 뒤 기존 청년정책 검색은 네 지표 모두 회귀했다. �
 이번 적재에서는 이미 완성된 `gov24_policies.jsonl`과 `chunks.jsonl`을 사용했다. 수집과 임베딩은 다시 실행하지 않았다.
 
 ```powershell
-# 적재 전 — 이 순서를 바꾸지 않는다.
-python scripts/check_db.py
-python eval/run_eval.py --output eval/results_before_expansion.json
+# 적재 전 기준선
+# 당시 source ranking 보정이 없는 코드로 실행한 결과를 `eval/results_before_expansion.json`에 보존했다.
 
 # Gov24 적재와 무결성·품질 확인
 python ingest/load_db.py
 python scripts/check_db.py
 python eval/run_data_quality.py
 
-# 적재 후 회귀와 확장 검색 평가
-python eval/run_eval.py --output eval/results_after_expansion.json
-python eval/run_eval.py --eval-file eval/expansion_evalset.jsonl --output eval/results_expansion.json
+# 적재 후 source-aware 회귀와 확장 검색 평가
+python eval/run_eval.py --output eval/results_after_source_bias.json
+python eval/run_eval.py --eval-file eval/expansion_evalset.jsonl --output eval/results_expansion_source_bias.json
 
 # 확장 라벨과 API 평가기 오프라인 검증
 python eval/validate_expansion_evalset.py
@@ -133,8 +143,7 @@ python eval/run_api_eval.py `
 
 남은 품질 게이트:
 
-- Gov24 추가 뒤 발생한 기존 60문항 회귀의 원인 분석과 검색 품질 회복
 - 승인된 환경에서 27문항 API 통합 평가 실행
 - API 평가로 공식 링크 누락, 무근거 생성, 비대상 정책 노출의 실제 건수 측정
 
-Gov24 전체 수집·임베딩·Neon 적재와 검색 평가는 완료했다. 다만 위 회귀가 남아 있으므로 복수 출처 검색 품질 향상을 주장하지 않는다.
+Gov24 전체 수집·임베딩·Neon 적재와 검색 회귀 보정 평가는 완료했다. 최소 보정으로 기존 60문항 회귀는 일부 완화됐지만 적재 전 기준선까지 회복된 것은 아니며, 복수 출처 검색 품질의 전반적 향상을 주장하지 않는다. 27문항 API 통합 평가와 Gemini 생성 품질 측정은 승인된 외부 호출 환경에서만 남아 있다.
