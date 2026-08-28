@@ -91,6 +91,24 @@ class Gov24NormalizeTest(unittest.TestCase):
             self.sample["supportConditions"], policies[0]["raw"]["supportConditions"]
         )
 
+    def test_collect_deduplicates_ids_after_normalization(self):
+        class FakeClient:
+            def fetch_all(inner_self, endpoint, limit=None):
+                records = {
+                    "serviceList": [
+                        {"서비스ID": " X ", "서비스명": "공백 포함 정책"},
+                        {"서비스ID": "X", "서비스명": "정규화 후 중복 정책"},
+                    ],
+                    "serviceDetail": [],
+                    "supportConditions": [],
+                }
+                return records[endpoint]
+
+        policies, skipped = collect(FakeClient())
+
+        self.assertEqual(["X"], [policy["source_id"] for policy in policies])
+        self.assertEqual(1, skipped)
+
     def test_network_failure_has_safe_error_without_response_object(self):
         class FakeRequests:
             class RequestException(Exception):

@@ -205,14 +205,16 @@ def collect(client, limit=None):
     policies, skipped, seen = [], 0, set()
     for item in listed:
         source_id = item.get("서비스ID")
-        if source_id in seen:
-            skipped += 1
-            continue
         try:
-            policies.append(normalize(item, details.get(source_id), conditions.get(source_id)))
-            seen.add(source_id)
+            policy = normalize(item, details.get(source_id), conditions.get(source_id))
         except ValueError:
             skipped += 1
+            continue
+        if policy["source_id"] in seen:
+            skipped += 1
+            continue
+        policies.append(policy)
+        seen.add(policy["source_id"])
     return policies, skipped
 
 
