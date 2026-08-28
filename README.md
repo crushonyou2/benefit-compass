@@ -3,7 +3,7 @@
 **공식 정책을 여러 출처에서 질문 한 줄로 찾는 RAG 검색 서비스 — 검색 품질을 직접 만든 평가셋으로 측정합니다**
 
 [![Live](https://img.shields.io/badge/live-demo-success)](https://crushonyou2.github.io/benefit-compass)
-[![recall@1](https://img.shields.io/badge/recall%401-0.317%20%E2%86%92%200.333-blue)](#검색-품질을-직접-측정했습니다)
+[![prod-parity recall@1](https://img.shields.io/badge/prod--parity_recall%401-0.200-orange)](#검색-품질을-직접-측정했습니다)
 [![Stack](https://img.shields.io/badge/stack-Spring%20Boot%20%2B%20FastAPI%20%2B%20pgvector-informational)](#아키텍처)
 [![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)](.github/workflows)
 
@@ -26,22 +26,11 @@
 RAG는 "그럴듯한 답"이 나오면 잘 되는 것처럼 보입니다. 그래서 **질문 60개에 정답 정책을 라벨링한 평가셋**을
 만들고, 정답이 실제로 상위에 오는지 수치로 확인했습니다.
 
-### 기존 청년정책 코퍼스의 리랭킹 비교
+### 후보 랭킹 보정
 
-| 지표 | bi-encoder | + 리랭킹 |
-|---|---|---|
-| **recall@1** | 0.400 | **0.517** |
-| recall@5 | 0.733 | 0.717 |
-| recall@10 | 0.800 | 0.783 |
-| **MRR@10** | 0.535 | **0.614** |
-
-기존 청년정책 코퍼스에서 리랭커(`bge-reranker-v2-m3`)를 붙여 1순위 정답률을 40% → 52%로 올린 과거 측정이다.
-recall@5·@10은 각각 1문항씩 줄었고, 표본이 작아 유의성을 판단하지 않았으므로 이 회귀도 함께 기록했다.
-
-### Gov24 확장 후 source-aware 보정
-
-Gov24 10,958건을 추가한 뒤 기존 60문항은 Recall@1 `0.3167`로 하락했다. 질의에 `청년`·`대학생`·`사회초년생`이
-명시되고 알려진 Gov24 기관명이 없을 때만 `youth` 출처에 거리 `0.015`를 보정하는 최소 규칙을 적용했다.
+Gov24 10,958건을 추가한 뒤 기존 60문항의 후보 검색 Recall@1은 `0.3167`로 하락했다. 질의에
+`청년`·`대학생`·`사회초년생`이 명시되고 알려진 Gov24 기관명이 없을 때만 `youth` 출처의 거리에
+`0.015`를 보정했다.
 
 | 평가셋·지표 | 확장 후 무보정 | 최소 보정 후 |
 |---|---:|---:|
@@ -54,9 +43,29 @@ Gov24 10,958건을 추가한 뒤 기존 60문항은 Recall@1 `0.3167`로 하락�
 | 신규 Gov24 21문항 Recall@10 | 0.7143 | 0.7143 |
 | 신규 Gov24 21문항 MRR@10 | 0.3901 | 0.3901 |
 
-보정은 현재 평가셋에서 기존 회귀를 일부 완화했지만 적재 전 기준선까지 회복한 것은 아니다. `0.015`는 현재 평가에서 비교한
-후보 중 Recall@1과 MRR@10을 함께 개선한 가장 작은 값이며, 일반화된 production 최적값으로 간주하지 않는다.
-평가셋·결과 JSON·확장 범위와 한계는 [검증 기록](docs/CUSTOM_SEARCH_MVP.md)에 남겼다.
+이 표는 source competition만 분리한 후보 랭킹 진단이다. production의 만료 정책 제외,
+지역어 전처리와 score cut을 적용한 배포 정확도로 해석하지 않는다.
+
+### Production-parity 리랭커 평가: No-Go
+
+실제 `/search`와 같은 SQL·질의 전처리·후보 30개·score cut을 공유해 `RERANK=0`과
+`bge-reranker-v2-m3`를 다시 비교했다.
+
+| 평가셋·지표 | `RERANK=0` | `RERANK=1` |
+|---|---:|---:|
+| 기존 60문항 Recall@1 | 0.2000 | **0.2500** |
+| 기존 60문항 Recall@5 | **0.4000** | 0.3333 |
+| 기존 60문항 Recall@10 | **0.4667** | 0.3333 |
+| 기존 60문항 MRR@10 | **0.2881** | 0.2817 |
+| 신규 Gov24 21문항 Recall@1 | 0.2857 | 0.2857 |
+| 신규 Gov24 21문항 Recall@5 | 0.4762 | **0.6190** |
+| 신규 Gov24 21문항 Recall@10 | 0.6190 | 0.6190 |
+| 신규 Gov24 21문항 MRR@10 | 0.3798 | **0.4222** |
+
+리랭커는 Gov24 21문항 일부 지표를 높였지만 기존 youth 60문항의 Recall@5·@10과 MRR을 악화시켰다.
+따라서 전체 검색에는 채택하지 않았고 배포 구성은 `RERANK=0`을 유지한다. `0.015`도 현재 평가에서
+선택한 최소값일 뿐 일반화된 production 최적값으로 간주하지 않는다. 평가셋·결과 JSON·한계는
+[검증 기록](docs/CUSTOM_SEARCH_MVP.md)에 남겼다.
 
 평가셋 생성(`eval/make_evalset.py`)과 측정(`eval/run_eval.py`, `eval/run_eval_rerank.py`) 스크립트,
 평가셋 원본과 측정 결과 JSON을 저장소에 공개했다. 같은 명령으로 다시 잴 수 있다.
@@ -186,15 +195,17 @@ cd ../web && npm install && npm run dev   # http://localhost:5173
 
 ```bash
 python eval/run_data_quality.py
-python eval/run_eval.py && python eval/run_eval_rerank.py
+python eval/run_eval.py --output eval/results_after_source_bias.json
+python eval/run_eval_rerank.py --output eval/results_after_source_bias_rerank.json
+python eval/run_eval_rerank.py --eval-file eval/expansion_evalset.jsonl --output eval/results_expansion_source_bias_rerank.json
 ```
 
 ## 측정 조건과 범위
 
-- 평가 수치는 **직접 라벨링한 60문항 평가셋** 기준입니다. 표본이 작아 recall@5·@10의 1문항 변화는 유의성을 판단하지 않았습니다.
-- 공개 경로는 무료 인스턴스의 CPU·메모리 조건에 맞춰 **리랭킹을 끈 구성(`RERANK=0`)으로 배포**했습니다. 위 리랭킹 수치는 평가·로컬 경로 측정값입니다.
+- 평가 수치는 직접 라벨링한 기존 60문항과 Gov24 21문항 기준입니다. 표본이 작아 1문항 변화의 유의성을 판단하지 않았습니다.
+- 공개 경로는 무료 인스턴스의 CPU·메모리 조건에 맞춰 **리랭킹을 끈 구성(`RERANK=0`)으로 배포**했습니다. production-parity 평가에서도 전체 채택 기준을 충족하지 못해 이 구성을 유지합니다.
 - **지역 검색은 제공하지 않습니다.** 원본 지역코드 품질 문제로 노출을 끊은 상태이며, 데이터 정제나 신뢰할 수 있는 출처 확보가 선행 과제입니다.
-- **코드와 로컬 검증 경로는 온통청년 + 정부24 복수 출처를 지원합니다.** 로컬 Neon에는 정책 13,589건과 청크 17,609건을 적재했습니다. Gov24 추가 뒤 source-aware 최소 보정으로 기존 60문항 회귀를 일부 완화했지만, 신규 21문항 지표는 변하지 않았고 전반적 품질 향상은 주장하지 않습니다. 공개 라이브 데모는 아직 기존 청년정책 데이터입니다.
+- **코드와 로컬 검증 경로는 온통청년 + 정부24 복수 출처를 지원합니다.** 로컬 Neon에는 정책 13,589건과 청크 17,609건을 적재했습니다. Gov24 확장은 공개 배포하지 않았고 전반적 검색 품질 향상을 주장하지 않습니다. 공개 라이브 데모는 아직 기존 청년정책 데이터입니다.
 - SLO 문서의 목표값은 **목표이며 달성 성과가 아닙니다.**
 
 ## 만든 사람

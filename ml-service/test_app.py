@@ -42,6 +42,37 @@ class HealthReadinessApiTest(unittest.TestCase):
         self.assertEqual("BAAI/bge-reranker-v2-m3", captured["reranker"]["model_name"])
         self.assertEqual({"local_files_only": True}, captured["reranker"]["kwargs"])
 
+    def test_rerank_candidates_uses_production_text_order_and_threshold(self):
+        captured_pairs = []
+
+        class FakeReranker:
+            def predict(self, pairs):
+                captured_pairs.extend(pairs)
+                return [0.11, 0.9]
+
+        candidates = [
+            {
+                "source_id": "filtered",
+                "title": "첫 정책",
+                "support_content": "가" * 500,
+                "score": 0.8,
+            },
+            {
+                "source_id": "kept",
+                "title": "둘째 정책",
+                "support_content": "지원 내용",
+                "score": 0.7,
+            },
+        ]
+
+        result = ml_app.rerank_candidates(
+            "청년 지원", candidates, FakeReranker(), 0.12)
+
+        self.assertEqual(["kept"], [candidate["source_id"] for candidate in result])
+        self.assertEqual("청년 지원", captured_pairs[0][0])
+        self.assertTrue(captured_pairs[0][1].startswith("첫 정책 "))
+        self.assertEqual(ml_app.RERANK_TEXT_LIMIT, len(captured_pairs[0][1]))
+
     def test_liveness_responds_while_readiness_waits_for_model_loader(self):
         loader_started = threading.Event()
         release_loader = threading.Event()

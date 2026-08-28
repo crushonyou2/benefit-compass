@@ -1,6 +1,6 @@
 """
-리랭킹 적용 평가 — bi-encoder로 top-N 후보를 뽑고, cross-encoder 리랭커로 재정렬해 재측정.
-run_eval.py(베이스라인)와 같은 평가셋·지표를 쓰고, results.json 이 있으면 개선폭을 함께 출력.
+Production `/search`와 같은 후보 SQL·질의 전처리·score cut으로 bi-encoder와
+cross-encoder를 함께 평가한다.
 
 리랭커: BAAI/bge-reranker-v2-m3 (다국어, 로컬·무료). 첫 실행 시 모델 다운로드.
 필요: DATABASE_URL
@@ -14,45 +14,39 @@ import sys
 
 from dotenv import load_dotenv
 import psycopg2
-from sentence_transformers import SentenceTransformer, CrossEncoder
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "ml-service"))
+import app as ml_app
 from source_ranking import ranking_metadata, youth_source_bias
+
 load_dotenv(ROOT / ".env")
 DB = os.getenv("DATABASE_URL", "").strip()
 HERE = pathlib.Path(__file__).resolve().parent
 
 KS = [1, 5, 10]
-CANDIDATES = 30   # bi-encoder가 뽑는 후보 수 (리랭킹 대상)
 TOPK = 10
 
-CAND_SQL = """
-SELECT t.source, t.source_id, t.content FROM (
-  SELECT DISTINCT ON (p.id) p.source, p.source_id, c.content,
-         (c.embedding <=> %(vec)s::vector) AS dist
-  FROM policy_chunk c JOIN policy p ON p.id = c.policy_id
-  ORDER BY p.id, c.embedding <=> %(vec)s::vector
-) t
-ORDER BY t.dist - CASE WHEN t.source = 'youth' THEN %(youth_bias)s ELSE 0 END,
-         t.dist, t.source, t.source_id
-LIMIT %(n)s
-"""
 
-
-def metrics(ranks, n):
+def metrics(ranks):
+    n = len(ranks)
     out = {}
     for k in KS:
-        out[f"recall@{k}"] = round(sum(1 for r in ranks if 1 <= r <= k) / n, 4)
-    out["mrr@10"] = round(sum((1 / r if r else 0) for r in ranks) / n, 4)
+        out[f"recall@{k}"] = round(sum(1 for rank in ranks if 1 <= rank <= k) / n, 4)
+    out["mrr@10"] = round(sum((1 / rank if rank else 0) for rank in ranks) / n, 4)
     return out
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="교차 인코더 리랭킹 검색 품질을 평가합니다")
+    parser = argparse.ArgumentParser(
+        description="production 검색 계약으로 bi-encoder와 cross-encoder를 평가합니다"
+    )
     parser.add_argument("--eval-file", type=pathlib.Path, default=HERE / "evalset.jsonl")
-    parser.add_argument("--baseline", type=pathlib.Path, default=HERE / "results.json")
-    parser.add_argument("--output", type=pathlib.Path, default=HERE / "results_rerank.json")
+    parser.add_argument(
+        "--output",
+        type=pathlib.Path,
+        default=HERE / "results_after_source_bias_rerank.json",
+    )
     return parser.parse_args()
 
 
@@ -69,73 +63,122 @@ def load_items(path):
     return items
 
 
+def rank_of(candidates, gold):
+    keys = [(candidate["source"], candidate["source_id"]) for candidate in candidates[:TOPK]]
+    return keys.index(gold) + 1 if gold in keys else 0
+
+
+def evaluate_items(items, embedder, reranker, cursor):
+    ranked = []
+    for index, item in enumerate(items, 1):
+        gold = (item.get("gold_source", "youth"), item["gold_source_id"])
+        query = ml_app.strip_region(item["query"])
+        query_vector = embedder.encode(
+            [f"query: {query}"], normalize_embeddings=True)[0]
+        vector = "[" + ",".join(f"{value:.6f}" for value in query_vector) + "]"
+        cursor.execute(ml_app.SQL, {
+            "vec": vector,
+            "age": item.get("age"),
+            "rp": None,
+            "youth_bias": youth_source_bias(query),
+            "n": ml_app.CANDIDATES,
+        })
+        candidates = [
+            dict(zip(ml_app.SEARCH_RESULT_COLUMNS, row))
+            for row in cursor.fetchall()
+        ]
+        candidates = ml_app.region_filter(candidates, None)
+
+        bi_encoder = [
+            candidate for candidate in candidates
+            if candidate["score"] >= ml_app.COSINE_MIN
+        ]
+        reranked = ml_app.rerank_candidates(
+            query,
+            [candidate.copy() for candidate in candidates],
+            reranker,
+            ml_app.DEFAULT_RERANK_MIN_SCORE,
+        ) if candidates else []
+        ranked.append({
+            "source": gold[0],
+            "bi_encoder": rank_of(bi_encoder, gold),
+            "rerank": rank_of(reranked, gold),
+        })
+        print(f"\r리랭킹 {index}/{len(items)}", end="", flush=True)
+    if items:
+        print()
+    return ranked
+
+
+def metric_block(ranked, rank_key):
+    block = metrics([item[rank_key] for item in ranked])
+    block["by_source"] = {}
+    for source in sorted({item["source"] for item in ranked}):
+        source_ranks = [
+            item[rank_key] for item in ranked if item["source"] == source
+        ]
+        block["by_source"][source] = {"n": len(source_ranks), **metrics(source_ranks)}
+    return block
+
+
 def main():
     args = parse_args()
     if not DB:
         raise SystemExit("DATABASE_URL 없음")
     items = load_items(args.eval_file)
-
-    embedder = SentenceTransformer("intfloat/multilingual-e5-base")
-    print("리랭커 로드: BAAI/bge-reranker-v2-m3 (첫 실행 시 다운로드)")
-    reranker = CrossEncoder("BAAI/bge-reranker-v2-m3")
+    from sentence_transformers import CrossEncoder, SentenceTransformer
+    kwargs = {"local_files_only": True} if ml_app.MODEL_LOCAL_ONLY else {}
+    embedder = SentenceTransformer(ml_app.EMBED_MODEL_NAME, **kwargs)
+    print(f"리랭커 로드: {ml_app.RERANK_MODEL_NAME}")
+    reranker = CrossEncoder(ml_app.RERANK_MODEL_NAME, **kwargs)
 
     conn = psycopg2.connect(DB)
     cur = conn.cursor()
-    ranked = []
-    for it in items:
-        gold = (it.get("gold_source", "youth"), it["gold_source_id"])
-        qvec = embedder.encode([f"query: {it['query']}"], normalize_embeddings=True)[0]
-        vec = "[" + ",".join(f"{x:.6f}" for x in qvec) + "]"
-        cur.execute(CAND_SQL, {
-            "vec": vec,
-            "youth_bias": youth_source_bias(it["query"]),
-            "n": CANDIDATES,
-        })
-        cand = cur.fetchall()  # [(source, source_id, content), ...]
-        if not cand:
-            ranked.append((gold[0], 0))
-            continue
-        scores = reranker.predict([(it["query"], content) for _, _, content in cand],
-                                  show_progress_bar=True)
-        ordered = [key for key, _ in sorted(
-            zip([(c[0], c[1]) for c in cand], scores), key=lambda x: x[1], reverse=True)]
-        ranked.append((gold[0], ordered.index(gold) + 1 if gold in ordered[:TOPK] else 0))
-    cur.close()
-    conn.close()
+    try:
+        ranked = evaluate_items(items, embedder, reranker, cur)
+    finally:
+        cur.close()
+        conn.close()
 
-    ranks = [rank for _, rank in ranked]
-    n = len(ranks)
-    rer = metrics(ranks, n)
     eval_file = args.eval_file.resolve()
     try:
         eval_file = eval_file.relative_to(ROOT)
     except ValueError:
         pass
-    rer.update({
-        "n": n,
-        "eval_file": str(eval_file),
-        "candidates": CANDIDATES,
-        "reranker": "bge-reranker-v2-m3",
-        "source_ranking": ranking_metadata(),
-    })
-    rer["by_source"] = {}
-    for source in sorted({source for source, _ in ranked}):
-        source_ranks = [rank for item_source, rank in ranked if item_source == source]
-        rer["by_source"][source] = {"n": len(source_ranks), **metrics(source_ranks, len(source_ranks))}
 
-    print(f"\n평가 문항: {n}  (후보 {CANDIDATES} → 리랭킹 → top-{TOPK})")
-    print("-" * 52)
-    base = json.loads(args.baseline.read_text(encoding="utf-8")) if args.baseline.exists() else {}
-    print(f"{'지표':<12}{'베이스라인':>12}{'리랭킹':>10}{'Δ':>10}")
+    results = {
+        "n": len(ranked),
+        "eval_file": str(eval_file),
+        "embedder": ml_app.EMBED_MODEL_NAME,
+        "reranker": ml_app.RERANK_MODEL_NAME,
+        "candidates": ml_app.CANDIDATES,
+        "top_k": TOPK,
+        "source_ranking": ranking_metadata(),
+        "production_contract": {
+            "candidate_sql": "ml-service/app.py:SQL",
+            "request_region": None,
+            "query_preprocessing": "strip_region",
+            "expired_policies_excluded": True,
+            "bi_encoder_min_score": ml_app.COSINE_MIN,
+            "rerank_text": "title + support_content",
+            "rerank_text_limit": ml_app.RERANK_TEXT_LIMIT,
+            "rerank_min_score": ml_app.DEFAULT_RERANK_MIN_SCORE,
+        },
+        "bi_encoder": metric_block(ranked, "bi_encoder"),
+        "rerank": metric_block(ranked, "rerank"),
+    }
+
+    print(f"\n평가 문항: {len(ranked)}  (production 후보 {ml_app.CANDIDATES} → top-{TOPK})")
+    print("-" * 54)
+    print(f"{'지표':<12}{'bi-encoder':>14}{'리랭킹':>10}{'Δ':>10}")
     for key in ["recall@1", "recall@5", "recall@10", "mrr@10"]:
-        b = base.get(key)
-        r = rer[key]
-        delta = f"{(r - b):+.3f}" if isinstance(b, (int, float)) else "-"
-        bstr = f"{b:.3f}" if isinstance(b, (int, float)) else "-"
-        print(f"{key:<12}{bstr:>12}{r:>10.3f}{delta:>10}")
+        baseline = results["bi_encoder"][key]
+        reranked = results["rerank"][key]
+        print(f"{key:<12}{baseline:>14.3f}{reranked:>10.3f}{reranked - baseline:>+10.3f}")
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(rer, ensure_ascii=False, indent=2), encoding="utf-8")
+    args.output.write_text(
+        json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\n저장 → {args.output}")
 
 

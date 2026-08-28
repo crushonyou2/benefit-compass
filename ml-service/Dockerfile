@@ -15,4 +15,4 @@ COPY app.py runtime_state.py source_ranking.py ./
 
 ENV RERANK=0
 # Cloud Run은 PORT 환경변수를 주입한다.
-CMD uvicorn app:app --host 0.0.0.0 --port ${PORT:-8080}
+CMD ["sh", "-c", "exec uvicorn app:app --host 0.0.0.0 --port ${PORT:-8080}"]

@@ -43,6 +43,9 @@ jobs:
         run: python -m pip install -r requirements-test.txt
       - name: Run ML unit and API tests
         run: python -m unittest -v
+      - name: Run evaluation contract tests
+        working-directory: eval
+        run: python -m unittest -v
 
   web-build:
     runs-on: ubuntu-latest

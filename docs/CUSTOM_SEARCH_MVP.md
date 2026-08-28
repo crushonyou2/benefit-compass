@@ -107,7 +107,28 @@ Gov24 추가 뒤 기존 청년정책 검색은 네 지표 모두 회귀했다. �
 
 신규 21문항의 Gov24 검색 범위는 이 보정으로 감소하지 않았다. 최종 결과 원본은 `eval/results_expansion_source_bias.json`에 보존했다. `expansion_api_evalset.jsonl`은 같은 검색 문항에 비대상 3문항과 정답 없음 3문항을 더한 27문항이며, 9개 유형을 각각 3문항씩 포함한다. 오프라인 코퍼스·라벨 검증과 API 평가기 단위 테스트는 통과했다.
 
-실제 27문항 API 통합 평가는 실행하지 않았다. 검색 결과가 있는 문항은 Gemini 외부 호출을 발생시키지만 이번 작업은 검색 회귀 보정까지를 승인 범위로 했기 때문이다. 따라서 Gemini 생성 품질, 무근거 생성, 비대상 정책 노출의 실제 API 수치는 아직 없다.
+### Production-parity 리랭커 판정
+
+2026-08-29 한 차례 실측에서 후보 랭킹 진단과 실제 `/search` 사이의 차이를 없애기 위해 `run_eval_rerank.py`가 production 코드를 직접 공유하도록 바꿨다. 같은 `strip_region`, 후보 SQL과 만료 정책 제외, `CANDIDATES=30`, source bias, 결과 column mapping을 사용한다. `RERANK=0`은 cosine `0.78` cut, `RERANK=1`은 `title + support_content` 400자와 raw logit `0.12` cut을 적용한다.
+
+평가 명령 한 번이 같은 후보에 대해 `bi_encoder`(`RERANK=0`)와 `rerank`(`RERANK=1`) 결과 block을 함께 기록한다.
+
+| 평가셋·지표 | `RERANK=0` | `RERANK=1` | 변화 |
+|---|---:|---:|---:|
+| 기존 60 Recall@1 | 0.2000 | 0.2500 | +0.0500 |
+| 기존 60 Recall@5 | 0.4000 | 0.3333 | -0.0667 |
+| 기존 60 Recall@10 | 0.4667 | 0.3333 | -0.1334 |
+| 기존 60 MRR@10 | 0.2881 | 0.2817 | -0.0064 |
+| Gov24 21 Recall@1 | 0.2857 | 0.2857 | +0.0000 |
+| Gov24 21 Recall@5 | 0.4762 | 0.6190 | +0.1428 |
+| Gov24 21 Recall@10 | 0.6190 | 0.6190 | +0.0000 |
+| Gov24 21 MRR@10 | 0.3798 | 0.4222 | +0.0424 |
+
+리랭커는 Gov24 평가의 Recall@5와 MRR을 높였지만 기존 youth 평가의 Recall@5·@10과 MRR을 악화시켰다. 두 검색 범위를 함께 유지한다는 채택 기준을 만족하지 못하므로 **No-Go**로 판정하고 배포의 `RERANK=0`을 유지한다. 결과 원본은 `eval/results_after_source_bias_rerank.json`과 `eval/results_expansion_source_bias_rerank.json`이다.
+
+후보 랭킹 진단의 수치가 production-parity 수치보다 높은 이유는 평가 계약이 다르기 때문이다. 전자는 source competition을 분리하기 위해 만료 정책 제외·지역어 전처리·score cut을 적용하지 않는다. 두 표를 같은 배포 정확도 시계열로 연결하지 않는다. 기존 `results_rerank.json`은 이 계약 이전 산출물이므로 제거했다.
+
+실제 27문항 API 통합 평가는 실행하지 않았다. 검색 결과가 있는 문항은 Gemini 외부 호출을 발생시키며 이번 승인 범위에는 해당 생성 호출이 포함되지 않았다. 따라서 Gemini 생성 품질, 무근거 생성, 비대상 정책 노출의 실제 API 수치는 아직 없다.
 
 평가 도구는 출처를 포함한 gold key와 출처별 Recall/MRR를 기록한다. `run_data_quality.py`는 출처별 정책 수, 공식 링크 누락, 지역코드 보유, 임베딩 누락, 출처 간 동일 제목 수를 `eval/data_quality.json`에 저장한다.
 
@@ -128,10 +149,16 @@ python eval/run_data_quality.py
 python eval/run_eval.py --output eval/results_after_source_bias.json
 python eval/run_eval.py --eval-file eval/expansion_evalset.jsonl --output eval/results_expansion_source_bias.json
 
+# production `/search` 계약의 bi-encoder ↔ reranker 비교
+python eval/run_eval_rerank.py --output eval/results_after_source_bias_rerank.json
+python eval/run_eval_rerank.py --eval-file eval/expansion_evalset.jsonl --output eval/results_expansion_source_bias_rerank.json
+
 # 확장 라벨과 API 평가기 오프라인 검증
 python eval/validate_expansion_evalset.py
 python eval/test_run_api_eval.py
 ```
+
+`ml-service` context에서 Docker 이미지를 빌드했고, 최종 이미지를 `MODEL_LOCAL_ONLY=1`로 두 번 실행했다. e5 모델 로딩은 각각 `11,458.596ms`, `13,780.656ms`였고 두 번째 실행에서 `/ready`가 로딩 중 `503`을 반환한 뒤 `200 {"status":"ready"}`로 전환되는 것을 확인했다. 런타임 Hub 접근 없이 baked model이 준비되는 경로까지 검증했다.
 
 27문항 API 통합 평가는 ML 서비스와 Spring API를 실행하고 Gemini 외부 호출 승인을 받은 환경에서만 다음 명령으로 수행한다.
 
@@ -143,7 +170,8 @@ python eval/run_api_eval.py `
 
 남은 품질 게이트:
 
+- production-parity 기존 60문항 Recall@1 `0.2000`과 Recall@10 `0.4667`을 개선할 경량 hybrid/재정렬 후보 평가
 - 승인된 환경에서 27문항 API 통합 평가 실행
 - API 평가로 공식 링크 누락, 무근거 생성, 비대상 정책 노출의 실제 건수 측정
 
-Gov24 전체 수집·임베딩·Neon 적재와 검색 회귀 보정 평가는 완료했다. 최소 보정으로 기존 60문항 회귀는 일부 완화됐지만 적재 전 기준선까지 회복된 것은 아니며, 복수 출처 검색 품질의 전반적 향상을 주장하지 않는다. 27문항 API 통합 평가와 Gemini 생성 품질 측정은 승인된 외부 호출 환경에서만 남아 있다.
+Gov24 전체 수집·임베딩·Neon 적재, 최소 source 보정, production-parity 리랭커 판정과 Docker local-only 실행 검증을 완료했다. 현재 cross-encoder는 두 검색 범위를 함께 지키지 못해 No-Go이며 `RERANK=0`을 유지한다. 복수 출처 검색 품질의 전반적 향상을 주장하지 않는다.
