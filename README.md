@@ -13,7 +13,7 @@
 데이터 수집·정제부터 임베딩·벡터검색·리랭킹·답변 생성, 배포와 운영 관측까지 혼자 만들었습니다.
 기존 청년정책 검색은 **직접 만든 60문항 평가셋으로 쟀고**, 행정안전부 정부24 공공서비스 10,958건을 같은 경로에 합쳐 로컬 Neon 적재와 확장 검색 평가까지 완료했습니다.
 
-> Custom Search 확장의 구현 범위와 아직 측정하지 못한 항목은 [검증 기록](docs/CUSTOM_SEARCH_MVP.md)에 구분해 적었습니다. 공개 라이브 데모는 아직 기존 청년정책 데이터입니다.
+> Custom Search 확장의 구현·평가 기록은 [검증 기록](docs/CUSTOM_SEARCH_MVP.md)에서 확인할 수 있습니다. 현재 공개 라이브 데모는 온통청년 + 정부24 통합 코퍼스를 사용하는 production 경로이며, 실제 public rollout 및 운영 topology는 [Public Rollout 기록](docs/P3_PUBLIC_ROLLOUT.md)에 기록되어 있습니다.
 
 **[라이브 데모](https://crushonyou2.github.io/benefit-compass)** — Cloud Run scale-to-zero 구성이라 첫 요청은 인스턴스와 모델을 올리는 시간이 걸립니다.
 
@@ -229,7 +229,7 @@ historical 실험 파일(`eval/results_before_expansion.json`, `eval/results_aft
 - 평가 수치는 직접 라벨링한 기존 60문항과 Gov24 21문항 기준입니다. 표본이 작아 1문항 변화의 유의성을 판단하지 않았습니다. canonical 결과는 `eval/canonical_youth_production_parity.json` 등에서 `generated_at`·`git_commit`·`corpus`와 함께 재현된다.
 - 공개 경로는 무료 인스턴스의 CPU·메모리 조건에 맞춰 **리랭킹을 끈 구성(`RERANK=0`)으로 배포**했습니다. production-parity 평가에서도 전체 채택 기준을 충족하지 못해 이 구성을 유지한다. canonical baseline은 `RERANK=0`, `CANDIDATES=30`, `COSINE_MIN=0.78`, `LEXICAL 0.01`이다.
 - **지역 검색은 제공하지 않습니다.** 원본 지역코드 품질 문제로 노출을 끊은 상태이며, 데이터 정제나 신뢰할 수 있는 출처 확보가 선행 과제입니다.
-- **코드와 로컬 검증 경로는 온통청년 + 정부24 복수 출처를 지원합니다.** 로컬 Neon에는 정책 13,589건과 청크 17,609건을 적재했습니다. Gov24 확장은 공개 배포하지 않았고 전반적 검색 품질 향상을 주장하지 않습니다. 공개 라이브 데모는 아직 기존 청년정책 데이터입니다.
+- **코드와 현재 공개 경로는 온통청년 + 정부24 복수 출처를 지원합니다.** production DB에는 정책 13,589건과 청크 17,609건이 있으며, P3 rollout에서 public API의 youth/Gov24 검색 경로를 검증했습니다. 다만 Gov24 21문항 평가는 작은 표본이므로 전반적인 검색 품질 향상을 일반화하지 않습니다. 현재 public rollout 근거는 [Public Rollout 기록](docs/P3_PUBLIC_ROLLOUT.md)을 따릅니다.
 - SLO 문서의 목표값은 **목표이며 달성 성과가 아닙니다.**
 ## 만든 사람
 
