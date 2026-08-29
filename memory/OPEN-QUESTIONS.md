@@ -4,7 +4,9 @@ Rule: anything unresolved gets a row here the moment it surfaces. A question is 
 
 | ID | Question | Opened | Status |
 |---|---|---|---|
-| Q-001 | <example: which license do we use?> | <YYYY-MM-DD> | open |
+| Q-001 | Retrieval v2 evaluation contract — What primary metric, regression floors, development/final-holdout split, latency budget, and adoption gate should govern Retrieval v2? | 2026-08-30 | open |
+| Q-002 | Public cold-start impact — Does real public traffic show that cold starts materially cause user-visible latency, timeout, or abandonment problems? | 2026-08-30 | open |
+| Q-003 | Generic ML normalization — When should generic ML routing be normalized after Retrieval v2 and the final ML revision are settled? | 2026-08-30 | open |
 
 ## Readings in force — assumed, not decided
 
@@ -12,4 +14,3 @@ Rule: when work proceeds on a reading the user never confirmed (silence, a subje
 
 | ID | User's words (verbatim) | Our reading (`assumed`) | Breaks if wrong | Ends when | Relied on in |
 |---|---|---|---|---|---|
-| A-001 | <example: "fine, whatever works" — <YYYY-MM-DD>, re: report format> | <example: plain markdown, no slides> | <example: a deck is expected instead> | <example: first draft shown, or next time the report comes up> | <example: draft-report.md> |
