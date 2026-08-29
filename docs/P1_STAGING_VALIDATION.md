@@ -21,11 +21,11 @@
 - 최종: staging에서 전체 복제 후 16건 fix 검증, production에는 동일 targeted UPDATE만 적용
 
 ## 실행
-1. `python ingest/fix_youth_urls.py --dry-run` — prod 615, 16 recoverable 확인
+1. `python ingest/fix_youth_urls.py --dry-run` — prod 615, 16 recoverable 확인 (P0 baseline)
 2. `python scripts/staging_copy.py` — prod → staging 13589/17609 복제
 3. `python ingest/fix_youth_urls.py --dry-run --staging-url postgresql://postgres:postgres@localhost:5433/benefit` — staging 615
 4. `python ingest/fix_youth_urls.py --execute --staging-url ...` — staging 615→599, validation dup 0 등
-5. `python ingest/fix_youth_urls.py --execute` — production 615→599 (16건, 1건 사전 수동 확인 후 15건 배치)
+5. `python ingest/fix_youth_urls.py --execute` — production 615→599 total; final batch 614→599 (15 rows, 1 row already corrected via manual check before batch — see `eval/fix_youth_urls_report.json` `initial_missing_before_any_fix`/`before_missing`)
 6. `python eval/run_data_quality.py` — youth 599 확인
 7. `python eval/run_eval.py --lexical-bias 0.01` smoke — youth 60 recall@1 0.2333 유지 (P0 canonical 불변)
 

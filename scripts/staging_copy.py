@@ -25,8 +25,15 @@ if not PROD_URL:
     raise SystemExit("DATABASE_URL 없음")
 
 def copy():
-    print(f"prod -> staging copy")
-    print(f"prod: {PROD_URL[:40]}...")
+    # safety: production and staging must not be the same DSN
+    if PROD_URL == STAGING_URL:
+        raise SystemExit("refusing to copy: PROD_URL and STAGING_URL are identical — check STAGING_DATABASE_URL")
+    # minimal guard: staging should not point to Neon production host
+    if "neon.tech" in STAGING_URL and "localhost" not in STAGING_URL and "127.0.0.1" not in STAGING_URL:
+        # allow explicit override but warn — require localhost for this project
+        raise SystemExit("refusing to copy: STAGING_URL looks like production Neon host — use local pgvector staging")
+    print("prod -> staging copy")
+    print("prod: [masked] (Neon)")
     print(f"staging: {STAGING_URL}")
     prod = psycopg2.connect(PROD_URL)
     staging = psycopg2.connect(STAGING_URL)
@@ -37,11 +44,10 @@ def copy():
     scur = staging.cursor()
     scur.execute(SCHEMA.read_text(encoding="utf-8"))
     staging.commit()
-    # truncate staging
+    # truncate staging — destructive only on staging
     scur.execute("TRUNCATE policy_chunk, policy RESTART IDENTITY CASCADE")
     staging.commit()
     print("staging truncated")
-
     # copy policy
     pcur = prod.cursor()
     pcur.execute("""

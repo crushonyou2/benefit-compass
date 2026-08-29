@@ -165,5 +165,9 @@
     "duplicate_policies": 0,
     "policies_without_chunks": 0,
     "orphan_chunks": 0
-  }
+  },
+  "initial_missing_before_any_fix": 615,
+  "already_corrected_before_this_execution": 1,
+  "total_corrected": 16,
+  "note": "P0 baseline 615 -> final 599 via 16 policies total; 1 already corrected via manual single-row check, so this final batch saw 614->599 (15 rows). P0 615->599 is total effect, 614->599 is this execution's effect."
 }
