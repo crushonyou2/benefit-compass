@@ -82,3 +82,50 @@ The agreed work order is:
 4. Generic ML normalization — defer until the final ML revision is settled.
 
 Retrieval v2 does not automatically reopen cross-encoder reranking, a global threshold, or region search. Materially new evidence requires a new decision.
+
+## D-007 · Adopt the Retrieval v2 evaluation contract — 2026-08-30 (AI-proposed, user-confirmed)
+
+Retrieval v2 uses source-macro Recall@5 as the primary quality metric, with Recall@1, Recall@10, MRR@10, per-source Recall@5, and category slices as secondary or diagnostic measures.
+
+The frozen P0 canonical sets remain historical regression gates, not tuning data:
+
+- Youth Recall@5: `>= 28/60` PASS, `27/60` HOLD, `<= 26/60` NO-GO.
+- Gov24 Recall@5: `>= 15/21` PASS, `14/21` HOLD, `<= 13/21` NO-GO.
+
+Retrieval v2 uses a separate source-balanced development set of 30–40 new queries and a source-balanced final holdout of at least 40 new queries. The final holdout is frozen before tuning and is never used during development. P0 canonical artifacts remain frozen and the `canonical_*` namespace is not reused for Retrieval v2 artifacts.
+
+On the final holdout, the current D-003 production retrieval baseline and the Retrieval v2 candidate are evaluated on the same queries. A quality PASS requires:
+
+- candidate source-macro Recall@5 greater than the same-set baseline;
+- at least `+2` net hit@5 cases;
+- no Youth hit@5 regression;
+- no Gov24 hit@5 regression.
+
+Hard-negative evaluation is a paired safety check. Blocking conditions are only:
+
+- candidate pure-positive gold hit@5 count lower than baseline; or
+- candidate ineligible/excluded-policy top-5 intrusion count higher than baseline.
+
+Absolute score distributions, score gaps, lexical overlap, and no-answer score separation remain diagnostics only and must not reintroduce a global abstention threshold.
+
+Latency is judged by warm paired non-regression. Baseline and candidate are measured with the same environment, database/corpus, benchmark queries, and timed sample count, interleaved in the same run/window after warm-up. Cold/model-load samples are excluded. The primary latency gate is:
+
+`candidate retrieval/search p95 <= paired D-003 baseline p95`.
+
+The timed sample count must be fixed before results are inspected. p50 and sample count are recorded as diagnostics.
+
+Final Retrieval v2 adoption is GO only when all mandatory checks pass:
+
+1. final-holdout quality improvement;
+2. `>= +2` net hit@5;
+3. no Youth or Gov24 hit@5 regression;
+4. both P0 regression gates PASS;
+5. hard-negative paired safety PASS;
+6. warm paired retrieval latency non-regression;
+7. final holdout integrity preserved.
+
+A fixable mandatory failure is HOLD. Clear quality regression or failure to improve on the final holdout is NO-GO.
+
+A Retrieval v2 evaluation GO does not itself authorize production rollout. A passing candidate still proceeds through staging / no-traffic verification and a separate rollout decision.
+
+This decision does not reopen cross-encoder reranking, a global similarity/abstention threshold, or public region search. Those remain governed by D-004.
