@@ -1,0 +1,2334 @@
+{
+  "generated_at": "2026-08-29T12:53:05.607300+00:00",
+  "git_commit": "58dff80d41be9f60b60b8ea7858a839f90d8563b",
+  "git_dirty": false,
+  "evaluator": "eval/run_hard_negative_eval.py",
+  "eval_file": "eval\\expansion_api_evalset.jsonl",
+  "n": 36,
+  "lexical_bias_used": 0.01,
+  "lexical_bias_param": 0.01,
+  "production_contract": {
+    "candidate_sql": "ml-service/app.py:SQL",
+    "request_region": null,
+    "query_preprocessing": "strip_region",
+    "expired_policies_excluded": true,
+    "candidates": 30,
+    "rerank": 0,
+    "bi_encoder_min_score": 0.78
+  },
+  "source_ranking": {
+    "youth_intent_bias": 0.015,
+    "youth_intent_terms": [
+      "청년",
+      "대학생",
+      "사회초년생"
+    ],
+    "gov24_intent_terms": [
+      "국토교통부",
+      "중소벤처기업부",
+      "고용노동부",
+      "보건복지부",
+      "교육부",
+      "행정안전부",
+      "문화체육관광부",
+      "농림축산식품부",
+      "산업통상자원부",
+      "과학기술정보통신부",
+      "국가보훈부",
+      "해양수산부",
+      "통일부",
+      "법무부",
+      "국방부",
+      "기획재정부",
+      "여성가족부",
+      "환경부",
+      "국세청",
+      "산림청",
+      "국민연금공단",
+      "한국장학재단",
+      "한국주택금융공사",
+      "주택도시보증공사",
+      "근로복지공단",
+      "소상공인시장진흥공단"
+    ],
+    "lexical_overlap_bias": 0.01,
+    "lexical_stopwords": [
+      "가능",
+      "것",
+      "게",
+      "궁금한데",
+      "궁금해요",
+      "도와주는",
+      "도움",
+      "도움받을",
+      "받을",
+      "방법",
+      "수",
+      "싶어요",
+      "알려주세요",
+      "어디",
+      "어디서",
+      "어디에",
+      "어떤",
+      "어떻게",
+      "있나요",
+      "있는",
+      "있다",
+      "있습니까",
+      "있으면",
+      "있을까",
+      "있을까요",
+      "정책",
+      "지원",
+      "지원받을",
+      "지원하는",
+      "지원해주는",
+      "프로그램",
+      "하는",
+      "하는데",
+      "하려면",
+      "해주세요"
+    ]
+  },
+  "embedder": "intfloat/multilingual-e5-base",
+  "corpus": {
+    "total_policies": 13589,
+    "total_chunks": 17609,
+    "by_source": {
+      "gov24": {
+        "policies": 10958,
+        "chunks": 14526
+      },
+      "youth": {
+        "policies": 2631,
+        "chunks": 3083
+      }
+    }
+  },
+  "cases": [
+    {
+      "index": 1,
+      "case_type": "general",
+      "query": "소득이 적은 근로자인데 세금 환급처럼 받을 수 있는 지원금이 있나요?",
+      "query_stripped": "소득이 적은 근로자인데 세금 환급처럼 받을 수 있는 지원금이 있나요?",
+      "age": null,
+      "expected_no_results": false,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": "gov24",
+      "gold_source_id": "105100000001",
+      "gold_rank_top5": 1,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "소득이",
+        "적은",
+        "근로자인데",
+        "세금",
+        "환급처럼",
+        "지원금이"
+      ],
+      "lexical_terms_count": 6,
+      "top1": {
+        "source": "gov24",
+        "source_id": "105100000001",
+        "score": 0.8480616989062734,
+        "lexical_overlap": 2
+      },
+      "top2_score": 0.8497051775807474,
+      "gap_top1_top2": -0.0016434786744740082,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "105100000001",
+          0.8481
+        ],
+        [
+          "gov24",
+          "149200005027",
+          0.8497
+        ],
+        [
+          "youth",
+          "20250514005400110811",
+          0.839
+        ],
+        [
+          "gov24",
+          "O00074000009",
+          0.8588
+        ],
+        [
+          "gov24",
+          "149200000009",
+          0.8483
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 2,
+      "case_type": "general",
+      "query": "만 65세가 넘고 소득이 많지 않은데 매달 받을 수 있는 연금이 있나요?",
+      "query_stripped": "만 65세가 넘고 소득이 많지 않은데 매달 받을 수 있는 연금이 있나요?",
+      "age": null,
+      "expected_no_results": false,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": "gov24",
+      "gold_source_id": "SSE000000170",
+      "gold_rank_top5": 4,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "65세가",
+        "넘고",
+        "소득이",
+        "많지",
+        "않은데",
+        "매달",
+        "연금이"
+      ],
+      "lexical_terms_count": 7,
+      "top1": {
+        "source": "gov24",
+        "source_id": "B55201500201",
+        "score": 0.8657365317126865,
+        "lexical_overlap": 1
+      },
+      "top2_score": 0.855016153318005,
+      "gap_top1_top2": 0.01072037839468154,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "B55201500201",
+          0.8657
+        ],
+        [
+          "gov24",
+          "316000000121",
+          0.855
+        ],
+        [
+          "gov24",
+          "SD0000003173",
+          0.8647
+        ],
+        [
+          "gov24",
+          "SSE000000170",
+          0.8646
+        ],
+        [
+          "gov24",
+          "453000000169",
+          0.8633
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 3,
+      "case_type": "general",
+      "query": "저소득 가구의 겨울 난방비와 여름 냉방비를 지원하는 바우처가 있나요?",
+      "query_stripped": "저소득 가구의 겨울 난방비와 여름 냉방비를 지원하는 바우처가 있나요?",
+      "age": null,
+      "expected_no_results": false,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": "gov24",
+      "gold_source_id": "B55353000001",
+      "gold_rank_top5": 2,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "저소득",
+        "가구의",
+        "겨울",
+        "난방비와",
+        "여름",
+        "냉방비를",
+        "바우처가"
+      ],
+      "lexical_terms_count": 7,
+      "top1": {
+        "source": "gov24",
+        "source_id": "378000000182",
+        "score": 0.8889603812978936,
+        "lexical_overlap": 1
+      },
+      "top2_score": 0.8858338330437784,
+      "gap_top1_top2": 0.00312654825411518,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "378000000182",
+          0.889
+        ],
+        [
+          "gov24",
+          "B55353000001",
+          0.8858
+        ],
+        [
+          "gov24",
+          "394000000125",
+          0.882
+        ],
+        [
+          "gov24",
+          "487000000118",
+          0.8812
+        ],
+        [
+          "gov24",
+          "526000000104",
+          0.8811
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 4,
+      "case_type": "household_housing",
+      "query": "아이를 키우는 가정이 매달 받을 수 있는 아동 지원금이 궁금해요.",
+      "query_stripped": "아이를 키우는 가정이 매달 받을 수 있는 아동 지원금이 궁금해요.",
+      "age": null,
+      "expected_no_results": false,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": "gov24",
+      "gold_source_id": "135200000120",
+      "gold_rank_top5": 3,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "아이를",
+        "키우는",
+        "가정이",
+        "매달",
+        "아동",
+        "지원금이"
+      ],
+      "lexical_terms_count": 6,
+      "top1": {
+        "source": "gov24",
+        "source_id": "423000000362",
+        "score": 0.8782198937214254,
+        "lexical_overlap": 2
+      },
+      "top2_score": 0.8865119759979615,
+      "gap_top1_top2": -0.008292082276536106,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "423000000362",
+          0.8782
+        ],
+        [
+          "youth",
+          "20260313005400212154",
+          0.8865
+        ],
+        [
+          "gov24",
+          "135200000120",
+          0.874
+        ],
+        [
+          "gov24",
+          "533000000107",
+          0.8837
+        ],
+        [
+          "gov24",
+          "SCY000000080",
+          0.8827
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 5,
+      "case_type": "household_housing",
+      "query": "형편이 어려운 임차가구가 월세나 집수리 비용을 지원받을 수 있나요?",
+      "query_stripped": "형편이 어려운 임차가구가 월세나 집수리 비용을 지원받을 수 있나요?",
+      "age": null,
+      "expected_no_results": false,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": "gov24",
+      "gold_source_id": "336000000096",
+      "gold_rank_top5": 0,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "형편이",
+        "어려운",
+        "임차가구가",
+        "월세나",
+        "집수리",
+        "비용을"
+      ],
+      "lexical_terms_count": 6,
+      "top1": {
+        "source": "gov24",
+        "source_id": "145000000107",
+        "score": 0.8714730952600316,
+        "lexical_overlap": 1
+      },
+      "top2_score": 0.8808643008824699,
+      "gap_top1_top2": -0.009391205622438337,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "145000000107",
+          0.8715
+        ],
+        [
+          "gov24",
+          "999000000025",
+          0.8809
+        ],
+        [
+          "gov24",
+          "161300000099",
+          0.8802
+        ],
+        [
+          "gov24",
+          "627000000116",
+          0.8556
+        ],
+        [
+          "gov24",
+          "SD0000002447",
+          0.8648
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 6,
+      "case_type": "household_housing",
+      "query": "월세 보증금이 부족해서 은행 대출을 받으려는데 보증 지원을 받을 수 있나요?",
+      "query_stripped": "월세 보증금이 부족해서 은행 대출을 받으려는데 보증 지원을 받을 수 있나요?",
+      "age": null,
+      "expected_no_results": false,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": "gov24",
+      "gold_source_id": "116010000001",
+      "gold_rank_top5": 0,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "월세",
+        "보증금이",
+        "부족해서",
+        "은행",
+        "대출을",
+        "받으려는데",
+        "보증",
+        "지원을"
+      ],
+      "lexical_terms_count": 8,
+      "top1": {
+        "source": "youth",
+        "source_id": "20260406005400212462",
+        "score": 0.8592857890683486,
+        "lexical_overlap": 4
+      },
+      "top2_score": 0.853321518103039,
+      "gap_top1_top2": 0.005964270965309604,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "youth",
+          "20260406005400212462",
+          0.8593
+        ],
+        [
+          "gov24",
+          "630000000668",
+          0.8533
+        ],
+        [
+          "youth",
+          "20250514005400110811",
+          0.8533
+        ],
+        [
+          "gov24",
+          "569000000379",
+          0.8527
+        ],
+        [
+          "gov24",
+          "451000000237",
+          0.8612
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 7,
+      "case_type": "employment_income",
+      "query": "취업 상담과 직업훈련을 함께 받고 구직촉진수당도 신청하고 싶어요.",
+      "query_stripped": "취업 상담과 직업훈련을 함께 받고 구직촉진수당도 신청하고 싶어요.",
+      "age": null,
+      "expected_no_results": false,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": "gov24",
+      "gold_source_id": "149200005007",
+      "gold_rank_top5": 0,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "취업",
+        "상담과",
+        "직업훈련을",
+        "함께",
+        "받고",
+        "구직촉진수당도",
+        "신청하고"
+      ],
+      "lexical_terms_count": 7,
+      "top1": {
+        "source": "youth",
+        "source_id": "20250716005400111315",
+        "score": 0.8908610089016256,
+        "lexical_overlap": 2
+      },
+      "top2_score": 0.8781700527591421,
+      "gap_top1_top2": 0.0126909561424835,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "youth",
+          "20250716005400111315",
+          0.8909
+        ],
+        [
+          "youth",
+          "20250212005400110427",
+          0.8782
+        ],
+        [
+          "gov24",
+          "174100000088",
+          0.8644
+        ],
+        [
+          "gov24",
+          "149200000026",
+          0.8715
+        ],
+        [
+          "gov24",
+          "149200000147",
+          0.8804
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 8,
+      "case_type": "employment_income",
+      "query": "직업을 바꾸려고 훈련을 받는데 국민 누구나 쓸 수 있는 훈련비 카드가 있나요?",
+      "query_stripped": "직업을 바꾸려고 훈련을 받는데 국민 누구나 쓸 수 있는 훈련비 카드가 있나요?",
+      "age": null,
+      "expected_no_results": false,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": "gov24",
+      "gold_source_id": "149200000026",
+      "gold_rank_top5": 1,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "직업을",
+        "바꾸려고",
+        "훈련을",
+        "받는데",
+        "국민",
+        "누구나",
+        "훈련비",
+        "카드가"
+      ],
+      "lexical_terms_count": 8,
+      "top1": {
+        "source": "gov24",
+        "source_id": "149200000026",
+        "score": 0.878088392869549,
+        "lexical_overlap": 4
+      },
+      "top2_score": 0.8757559322046337,
+      "gap_top1_top2": 0.0023324606649153257,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "149200000026",
+          0.8781
+        ],
+        [
+          "youth",
+          "20250123005400110393",
+          0.8758
+        ],
+        [
+          "youth",
+          "20250211005400110413",
+          0.8665
+        ],
+        [
+          "gov24",
+          "149200000037",
+          0.8683
+        ],
+        [
+          "gov24",
+          "149200005032",
+          0.8665
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 9,
+      "case_type": "employment_income",
+      "query": "가게를 비자발적으로 폐업한 자영업자도 실업급여를 받을 수 있나요?",
+      "query_stripped": "가게를 비자발적으로 폐업한 자영업자도 실업급여를 받을 수 있나요?",
+      "age": null,
+      "expected_no_results": false,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": "gov24",
+      "gold_source_id": "149200005008",
+      "gold_rank_top5": 1,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "가게를",
+        "비자발적으로",
+        "폐업한",
+        "자영업자도",
+        "실업급여를"
+      ],
+      "lexical_terms_count": 5,
+      "top1": {
+        "source": "gov24",
+        "source_id": "149200005008",
+        "score": 0.8873444148984535,
+        "lexical_overlap": 2
+      },
+      "top2_score": 0.8613790016959111,
+      "gap_top1_top2": 0.02596541320254242,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "149200005008",
+          0.8873
+        ],
+        [
+          "gov24",
+          "149200000063",
+          0.8614
+        ],
+        [
+          "youth",
+          "20260416005400212754",
+          0.8492
+        ],
+        [
+          "youth",
+          "20260422005400212858",
+          0.8492
+        ],
+        [
+          "gov24",
+          "360000000256",
+          0.8481
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 10,
+      "case_type": "welfare_health",
+      "query": "부모님의 치매가 걱정되는데 가까운 곳에서 검사와 상담을 받을 수 있나요?",
+      "query_stripped": "부모님의 치매가 걱정되는데 가까운 곳에서 검사와 상담을 받을 수 있나요?",
+      "age": null,
+      "expected_no_results": false,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": "gov24",
+      "gold_source_id": "135200000080",
+      "gold_rank_top5": 0,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "부모님의",
+        "치매가",
+        "걱정되는데",
+        "가까운",
+        "곳에서",
+        "검사와",
+        "상담을"
+      ],
+      "lexical_terms_count": 7,
+      "top1": {
+        "source": "gov24",
+        "source_id": "135200000124",
+        "score": 0.8753956331623709,
+        "lexical_overlap": 0
+      },
+      "top2_score": 0.8706448694969093,
+      "gap_top1_top2": 0.004750763665461566,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "135200000124",
+          0.8754
+        ],
+        [
+          "gov24",
+          "135200005053",
+          0.8706
+        ],
+        [
+          "gov24",
+          "464000000130",
+          0.8653
+        ],
+        [
+          "gov24",
+          "432000000230",
+          0.8644
+        ],
+        [
+          "gov24",
+          "135200005043",
+          0.8628
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 11,
+      "case_type": "welfare_health",
+      "query": "치매 약값과 진료비 본인부담금을 매달 지원받을 수 있나요?",
+      "query_stripped": "치매 약값과 진료비 본인부담금을 매달 지원받을 수 있나요?",
+      "age": null,
+      "expected_no_results": false,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": "gov24",
+      "gold_source_id": "135200000125",
+      "gold_rank_top5": 3,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "치매",
+        "약값과",
+        "진료비",
+        "본인부담금을",
+        "매달"
+      ],
+      "lexical_terms_count": 5,
+      "top1": {
+        "source": "gov24",
+        "source_id": "135200000080",
+        "score": 0.9009445309639553,
+        "lexical_overlap": 3
+      },
+      "top2_score": 0.8867235110391859,
+      "gap_top1_top2": 0.014221019924769429,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "135200000080",
+          0.9009
+        ],
+        [
+          "gov24",
+          "408000000551",
+          0.8867
+        ],
+        [
+          "gov24",
+          "135200000125",
+          0.8953
+        ],
+        [
+          "gov24",
+          "548000000114",
+          0.8935
+        ],
+        [
+          "gov24",
+          "473000000130",
+          0.8868
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 12,
+      "case_type": "welfare_health",
+      "query": "성인 중증장애인이 생활 안정을 위해 받을 수 있는 연금이 있나요?",
+      "query_stripped": "성인 중증장애인이 생활 안정을 위해 받을 수 있는 연금이 있나요?",
+      "age": null,
+      "expected_no_results": false,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": "gov24",
+      "gold_source_id": "SD0000016119",
+      "gold_rank_top5": 0,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "성인",
+        "중증장애인이",
+        "생활",
+        "안정을",
+        "위해",
+        "연금이"
+      ],
+      "lexical_terms_count": 6,
+      "top1": {
+        "source": "gov24",
+        "source_id": "453000000169",
+        "score": 0.8986920386164161,
+        "lexical_overlap": 1
+      },
+      "top2_score": 0.8913855287020641,
+      "gap_top1_top2": 0.007306509914352,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "453000000169",
+          0.8987
+        ],
+        [
+          "gov24",
+          "535000000171",
+          0.8914
+        ],
+        [
+          "gov24",
+          "641000000173",
+          0.8793
+        ],
+        [
+          "gov24",
+          "502000000204",
+          0.8863
+        ],
+        [
+          "gov24",
+          "SPE000000010",
+          0.8836
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 13,
+      "case_type": "nationwide",
+      "query": "갑자기 생계가 어려워진 가구가 전국 어디서나 긴급 생활비를 신청할 수 있나요?",
+      "query_stripped": "갑자기 생계가 어려워진 가구가 전국 어디서나 긴급 생활비를 신청할 수 있나요?",
+      "age": null,
+      "expected_no_results": false,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": "gov24",
+      "gold_source_id": "135200005003",
+      "gold_rank_top5": 4,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "갑자기",
+        "생계가",
+        "어려워진",
+        "가구가",
+        "전국",
+        "어디서나",
+        "긴급",
+        "생활비를",
+        "신청할"
+      ],
+      "lexical_terms_count": 9,
+      "top1": {
+        "source": "gov24",
+        "source_id": "B55284200007",
+        "score": 0.8870911665505248,
+        "lexical_overlap": 1
+      },
+      "top2_score": 0.875324353614528,
+      "gap_top1_top2": 0.011766812935996795,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "B55284200007",
+          0.8871
+        ],
+        [
+          "gov24",
+          "304000000130",
+          0.8753
+        ],
+        [
+          "gov24",
+          "B46001400003",
+          0.8736
+        ],
+        [
+          "gov24",
+          "135200005003",
+          0.8735
+        ],
+        [
+          "gov24",
+          "135200005001",
+          0.8712
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 14,
+      "case_type": "nationwide",
+      "query": "대학이 등록금 부담을 줄이기 위해 자체 기준으로 지급하는 국가장학금이 있나요?",
+      "query_stripped": "대학이 등록금 부담을 줄이기 위해 자체 기준으로 지급하는 국가장학금이 있나요?",
+      "age": null,
+      "expected_no_results": false,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": "gov24",
+      "gold_source_id": "134200005002",
+      "gold_rank_top5": 0,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "대학이",
+        "등록금",
+        "부담을",
+        "줄이기",
+        "위해",
+        "자체",
+        "기준으로",
+        "지급하는",
+        "국가장학금이"
+      ],
+      "lexical_terms_count": 9,
+      "top1": {
+        "source": "gov24",
+        "source_id": "B55252900229",
+        "score": 0.8560027737612913,
+        "lexical_overlap": 3
+      },
+      "top2_score": 0.8473872633346303,
+      "gap_top1_top2": 0.008615510426660977,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "B55252900229",
+          0.856
+        ],
+        [
+          "gov24",
+          "O00089500007",
+          0.8474
+        ],
+        [
+          "gov24",
+          "O00089500004",
+          0.8365
+        ],
+        [
+          "gov24",
+          "B55371400002",
+          0.8464
+        ],
+        [
+          "gov24",
+          "134200000011",
+          0.8541
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 15,
+      "case_type": "nationwide",
+      "query": "학교를 그만둔 청소년도 무료로 국가 건강검진을 받을 수 있나요?",
+      "query_stripped": "학교를 그만둔 청소년도 무료로 국가 건강검진을 받을 수 있나요?",
+      "age": null,
+      "expected_no_results": false,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": "gov24",
+      "gold_source_id": "138300000033",
+      "gold_rank_top5": 1,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "학교를",
+        "그만둔",
+        "청소년도",
+        "무료로",
+        "국가",
+        "건강검진을"
+      ],
+      "lexical_terms_count": 6,
+      "top1": {
+        "source": "gov24",
+        "source_id": "138300000033",
+        "score": 0.8985324735161823,
+        "lexical_overlap": 3
+      },
+      "top2_score": 0.855224055274297,
+      "gap_top1_top2": 0.04330841824188525,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "138300000033",
+          0.8985
+        ],
+        [
+          "gov24",
+          "179038700008",
+          0.8552
+        ],
+        [
+          "gov24",
+          "467100000004",
+          0.8722
+        ],
+        [
+          "gov24",
+          "849000000009",
+          0.8709
+        ],
+        [
+          "gov24",
+          "O00075000002",
+          0.8607
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 16,
+      "case_type": "regional",
+      "query": "성남시에 사는 8세 미만 아이가 추가 아동수당 포인트를 받을 수 있나요?",
+      "query_stripped": "성남시에 사는 8세 미만 아이가 추가 아동수당 포인트를 받을 수 있나요?",
+      "age": null,
+      "expected_no_results": false,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": "gov24",
+      "gold_source_id": "378000000145",
+      "gold_rank_top5": 1,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "성남시에",
+        "사는",
+        "8세",
+        "미만",
+        "아이가",
+        "추가",
+        "아동수당",
+        "포인트를"
+      ],
+      "lexical_terms_count": 8,
+      "top1": {
+        "source": "gov24",
+        "source_id": "378000000145",
+        "score": 0.9241731898475097,
+        "lexical_overlap": 4
+      },
+      "top2_score": 0.8747883961487564,
+      "gap_top1_top2": 0.04938479369875337,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "378000000145",
+          0.9242
+        ],
+        [
+          "gov24",
+          "135200000120",
+          0.8748
+        ],
+        [
+          "gov24",
+          "378000000159",
+          0.8795
+        ],
+        [
+          "gov24",
+          "378000000137",
+          0.8648
+        ],
+        [
+          "gov24",
+          "135200000006",
+          0.8535
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 17,
+      "case_type": "regional",
+      "query": "사천시에 사는 100세 이상 기초연금 수급자가 사망하면 장제비 지원이 있나요?",
+      "query_stripped": "사천시에 사는 100세 이상 기초연금 수급자가 사망하면 장제비 지원이 있나요?",
+      "age": null,
+      "expected_no_results": false,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": "gov24",
+      "gold_source_id": "534000000106",
+      "gold_rank_top5": 1,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "사천시에",
+        "사는",
+        "100세",
+        "이상",
+        "기초연금",
+        "수급자가",
+        "사망하면",
+        "장제비",
+        "지원이"
+      ],
+      "lexical_terms_count": 9,
+      "top1": {
+        "source": "gov24",
+        "source_id": "534000000106",
+        "score": 0.9197392655040846,
+        "lexical_overlap": 4
+      },
+      "top2_score": 0.8959372987599993,
+      "gap_top1_top2": 0.0238019667440853,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "534000000106",
+          0.9197
+        ],
+        [
+          "gov24",
+          "O00062400001",
+          0.8959
+        ],
+        [
+          "gov24",
+          "487000000104",
+          0.8918
+        ],
+        [
+          "gov24",
+          "534000000134",
+          0.8811
+        ],
+        [
+          "gov24",
+          "534000000108",
+          0.881
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 18,
+      "case_type": "regional",
+      "query": "서울 중구 난임부부가 시술 뒤 원외 약제비를 지원받을 수 있나요?",
+      "query_stripped": "중구 난임부부가 시술 뒤 원외 약제비를 지원받을 수 있나요?",
+      "age": null,
+      "expected_no_results": false,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": "gov24",
+      "gold_source_id": "301000000142",
+      "gold_rank_top5": 5,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "중구",
+        "난임부부가",
+        "시술",
+        "원외",
+        "약제비를"
+      ],
+      "lexical_terms_count": 5,
+      "top1": {
+        "source": "gov24",
+        "source_id": "306000000210",
+        "score": 0.9154923323182478,
+        "lexical_overlap": 2
+      },
+      "top2_score": 0.9109292667421174,
+      "gap_top1_top2": 0.004563065576130398,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "306000000210",
+          0.9155
+        ],
+        [
+          "gov24",
+          "303000000311",
+          0.9109
+        ],
+        [
+          "gov24",
+          "405000000685",
+          0.9083
+        ],
+        [
+          "gov24",
+          "405000000687",
+          0.9076
+        ],
+        [
+          "gov24",
+          "301000000142",
+          0.8945
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 19,
+      "case_type": "cross_source_similar",
+      "query": "청년 월세 지원과 이름이 비슷한 정책이 여러 출처에 있는데 국토교통부 사업을 찾고 싶어요.",
+      "query_stripped": "청년 월세 지원과 이름이 비슷한 정책이 여러 출처에 있는데 국토교통부 사업을 찾고 싶어요.",
+      "age": null,
+      "expected_no_results": false,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": "gov24",
+      "gold_source_id": "161300000099",
+      "gold_rank_top5": 4,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "청년",
+        "월세",
+        "지원과",
+        "이름이",
+        "비슷한",
+        "정책이",
+        "여러",
+        "출처에",
+        "있는데",
+        "국토교통부",
+        "사업을",
+        "찾고"
+      ],
+      "lexical_terms_count": 12,
+      "top1": {
+        "source": "youth",
+        "source_id": "20250714005400111222",
+        "score": 0.8684572138241337,
+        "lexical_overlap": 3
+      },
+      "top2_score": 0.8613460659981019,
+      "gap_top1_top2": 0.007111147826031727,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "youth",
+          "20250714005400111222",
+          0.8685
+        ],
+        [
+          "gov24",
+          "315000000269",
+          0.8613
+        ],
+        [
+          "youth",
+          "20260313005400212124",
+          0.8607
+        ],
+        [
+          "gov24",
+          "161300000099",
+          0.8704
+        ],
+        [
+          "gov24",
+          "999000000022",
+          0.8495
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 20,
+      "case_type": "cross_source_similar",
+      "query": "전세보증금 반환보증 보증료 지원 중 국토교통부가 담당하는 전국 사업은 무엇인가요?",
+      "query_stripped": "전세보증금 반환보증 보증료 지원 중 국토교통부가 담당하는 전국 사업은 무엇인가요?",
+      "age": null,
+      "expected_no_results": false,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": "gov24",
+      "gold_source_id": "161300000103",
+      "gold_rank_top5": 4,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "전세보증금",
+        "반환보증",
+        "보증료",
+        "국토교통부가",
+        "담당하는",
+        "전국",
+        "사업은",
+        "무엇인가요"
+      ],
+      "lexical_terms_count": 8,
+      "top1": {
+        "source": "youth",
+        "source_id": "20260410005400212668",
+        "score": 0.8791351672121175,
+        "lexical_overlap": 3
+      },
+      "top2_score": 0.8791351672121175,
+      "gap_top1_top2": 0.0,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "youth",
+          "20260410005400212668",
+          0.8791
+        ],
+        [
+          "youth",
+          "20260413005400212694",
+          0.8791
+        ],
+        [
+          "youth",
+          "20250714005400111223",
+          0.8783
+        ],
+        [
+          "gov24",
+          "161300000103",
+          0.8675
+        ],
+        [
+          "youth",
+          "20260527005400113223",
+          0.8659
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 21,
+      "case_type": "cross_source_similar",
+      "query": "여러 청년 창업자금 정책 중 중소벤처기업부의 청년 전용 융자사업을 찾고 있어요.",
+      "query_stripped": "여러 청년 창업자금 정책 중 중소벤처기업부의 청년 전용 융자사업을 찾고 있어요.",
+      "age": null,
+      "expected_no_results": false,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": "gov24",
+      "gold_source_id": "142000000099",
+      "gold_rank_top5": 3,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "여러",
+        "청년",
+        "창업자금",
+        "중소벤처기업부의",
+        "전용",
+        "융자사업을",
+        "찾고",
+        "있어요"
+      ],
+      "lexical_terms_count": 8,
+      "top1": {
+        "source": "youth",
+        "source_id": "20250624005400111129",
+        "score": 0.8977719799643737,
+        "lexical_overlap": 3
+      },
+      "top2_score": 0.8965417352121515,
+      "gap_top1_top2": 0.0012302447522222204,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "youth",
+          "20250624005400111129",
+          0.8978
+        ],
+        [
+          "gov24",
+          "B55400900031",
+          0.8965
+        ],
+        [
+          "gov24",
+          "142000000099",
+          0.8927
+        ],
+        [
+          "youth",
+          "20250902005400211589",
+          0.908
+        ],
+        [
+          "youth",
+          "20260330005400212318",
+          0.8962
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 22,
+      "case_type": "ineligible",
+      "query": "스무 살인데 기초연금을 받을 수 있나요?",
+      "query_stripped": "스무 살인데 기초연금을 받을 수 있나요?",
+      "age": 20,
+      "expected_no_results": false,
+      "excluded_source": "gov24",
+      "excluded_source_id": "SSE000000170",
+      "gold_source": null,
+      "gold_source_id": null,
+      "gold_rank_top5": 0,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "스무",
+        "살인데",
+        "기초연금을"
+      ],
+      "lexical_terms_count": 3,
+      "top1": {
+        "source": "gov24",
+        "source_id": "999000000061",
+        "score": 0.8596775364491448,
+        "lexical_overlap": 0
+      },
+      "top2_score": 0.8547580665061614,
+      "gap_top1_top2": 0.004919469942983423,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "999000000061",
+          0.8597
+        ],
+        [
+          "gov24",
+          "WII000000310",
+          0.8548
+        ],
+        [
+          "gov24",
+          "B55201500201",
+          0.8515
+        ],
+        [
+          "gov24",
+          "B55263500016",
+          0.8482
+        ],
+        [
+          "gov24",
+          "B27000100013",
+          0.8478
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 23,
+      "case_type": "ineligible",
+      "query": "서른 살 성인도 아동수당을 신청할 수 있나요?",
+      "query_stripped": "서른 살 성인도 아동수당을 신청할 수 있나요?",
+      "age": 30,
+      "expected_no_results": false,
+      "excluded_source": "gov24",
+      "excluded_source_id": "135200000120",
+      "gold_source": null,
+      "gold_source_id": null,
+      "gold_rank_top5": 0,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "서른",
+        "성인도",
+        "아동수당을",
+        "신청할"
+      ],
+      "lexical_terms_count": 4,
+      "top1": {
+        "source": "youth",
+        "source_id": "20250609005400110892",
+        "score": 0.8548356640732223,
+        "lexical_overlap": 0
+      },
+      "top2_score": 0.8531749565452321,
+      "gap_top1_top2": 0.0016607075279901906,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "youth",
+          "20250609005400110892",
+          0.8548
+        ],
+        [
+          "youth",
+          "20260410005400212678",
+          0.8532
+        ],
+        [
+          "gov24",
+          "127000000025",
+          0.8511
+        ],
+        [
+          "youth",
+          "20260406005400212489",
+          0.8504
+        ],
+        [
+          "youth",
+          "20260313005400212155",
+          0.85
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 24,
+      "case_type": "ineligible",
+      "query": "열 살 초등학생이 국민내일배움카드로 직업훈련비를 받을 수 있나요?",
+      "query_stripped": "열 살 초등학생이 국민내일배움카드로 직업훈련비를 받을 수 있나요?",
+      "age": 10,
+      "expected_no_results": false,
+      "excluded_source": "gov24",
+      "excluded_source_id": "149200000026",
+      "gold_source": null,
+      "gold_source_id": null,
+      "gold_rank_top5": 0,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "초등학생이",
+        "국민내일배움카드로",
+        "직업훈련비를"
+      ],
+      "lexical_terms_count": 3,
+      "top1": {
+        "source": "youth",
+        "source_id": "20250123005400110393",
+        "score": 0.8936106372376214,
+        "lexical_overlap": 0
+      },
+      "top2_score": 0.8840529529956337,
+      "gap_top1_top2": 0.009557684241987663,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "youth",
+          "20250123005400110393",
+          0.8936
+        ],
+        [
+          "youth",
+          "20250211005400110413",
+          0.8841
+        ],
+        [
+          "gov24",
+          "493000000125",
+          0.8616
+        ],
+        [
+          "youth",
+          "20250113005400210177",
+          0.8598
+        ],
+        [
+          "gov24",
+          "630000000112",
+          0.857
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 25,
+      "case_type": "no_answer",
+      "query": "개인 주식 투자 손실을 정부가 전액 보전해주는 정책이 있나요?",
+      "query_stripped": "개인 주식 투자 손실을 정부가 전액 보전해주는 정책이 있나요?",
+      "age": null,
+      "expected_no_results": true,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": null,
+      "gold_source_id": null,
+      "gold_rank_top5": null,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "개인",
+        "주식",
+        "투자",
+        "손실을",
+        "정부가",
+        "전액",
+        "보전해주는",
+        "정책이"
+      ],
+      "lexical_terms_count": 8,
+      "top1": {
+        "source": "gov24",
+        "source_id": "135200000088",
+        "score": 0.8413958898807766,
+        "lexical_overlap": 1
+      },
+      "top2_score": 0.8339256741119798,
+      "gap_top1_top2": 0.007470215768796806,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "135200000088",
+          0.8414
+        ],
+        [
+          "youth",
+          "20260416005400212754",
+          0.8339
+        ],
+        [
+          "youth",
+          "20260422005400212858",
+          0.8339
+        ],
+        [
+          "gov24",
+          "303000000326",
+          0.8435
+        ],
+        [
+          "gov24",
+          "304000000186",
+          0.8425
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 26,
+      "case_type": "no_answer",
+      "query": "명품 가방 구매비를 국민 누구에게나 지급하는 지원금이 있나요?",
+      "query_stripped": "명품 가방 구매비를 국민 누구에게나 지급하는 지원금이 있나요?",
+      "age": null,
+      "expected_no_results": true,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": null,
+      "gold_source_id": null,
+      "gold_rank_top5": null,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "명품",
+        "가방",
+        "구매비를",
+        "국민",
+        "누구에게나",
+        "지급하는",
+        "지원금이"
+      ],
+      "lexical_terms_count": 7,
+      "top1": {
+        "source": "gov24",
+        "source_id": "496000000123",
+        "score": 0.8376188583884716,
+        "lexical_overlap": 1
+      },
+      "top2_score": 0.8436319958067302,
+      "gap_top1_top2": -0.006013137418258596,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "496000000123",
+          0.8376
+        ],
+        [
+          "gov24",
+          "545000000115",
+          0.8436
+        ],
+        [
+          "gov24",
+          "999000000027",
+          0.8226
+        ],
+        [
+          "gov24",
+          "523000000151",
+          0.8323
+        ],
+        [
+          "gov24",
+          "539000000103",
+          0.8389
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 27,
+      "case_type": "no_answer",
+      "query": "온라인 게임 아이템 구매 비용을 정부 예산으로 환급받을 수 있나요?",
+      "query_stripped": "온라인 게임 아이템 구매 비용을 정부 예산으로 환급받을 수 있나요?",
+      "age": null,
+      "expected_no_results": true,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": null,
+      "gold_source_id": null,
+      "gold_rank_top5": null,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "온라인",
+        "게임",
+        "아이템",
+        "구매",
+        "비용을",
+        "정부",
+        "예산으로",
+        "환급받을"
+      ],
+      "lexical_terms_count": 8,
+      "top1": {
+        "source": "gov24",
+        "source_id": "142100000024",
+        "score": 0.8303408936817753,
+        "lexical_overlap": 1
+      },
+      "top2_score": 0.8265675926563341,
+      "gap_top1_top2": 0.003773301025441267,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "142100000024",
+          0.8303
+        ],
+        [
+          "gov24",
+          "302000000106",
+          0.8266
+        ],
+        [
+          "gov24",
+          "461000000106",
+          0.8252
+        ],
+        [
+          "gov24",
+          "519000000115",
+          0.8238
+        ],
+        [
+          "gov24",
+          "B55145700016",
+          0.8016
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 28,
+      "case_type": "no_answer",
+      "query": "비트코인 등 가상자산 투자 손실을 정부가 보장해주는 지원금이 있나요?",
+      "query_stripped": "비트코인 등 가상자산 투자 손실을 정부가 보장해주는 지원금이 있나요?",
+      "age": null,
+      "expected_no_results": true,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": null,
+      "gold_source_id": null,
+      "gold_rank_top5": null,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "비트코인",
+        "가상자산",
+        "투자",
+        "손실을",
+        "정부가",
+        "보장해주는",
+        "지원금이"
+      ],
+      "lexical_terms_count": 7,
+      "top1": {
+        "source": "gov24",
+        "source_id": "142100000042",
+        "score": 0.8536400649737848,
+        "lexical_overlap": 0
+      },
+      "top2_score": 0.840943471935548,
+      "gap_top1_top2": 0.012696593038236781,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "142100000042",
+          0.8536
+        ],
+        [
+          "gov24",
+          "B55369400017",
+          0.8409
+        ],
+        [
+          "gov24",
+          "145000000090",
+          0.8396
+        ],
+        [
+          "gov24",
+          "304000000186",
+          0.8472
+        ],
+        [
+          "gov24",
+          "142100000008",
+          0.837
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 29,
+      "case_type": "no_answer",
+      "query": "해외 고가 명품 시계 구매 비용을 정부가 지원해주는 제도가 있나요?",
+      "query_stripped": "해외 고가 명품 시계 구매 비용을 정부가 지원해주는 제도가 있나요?",
+      "age": null,
+      "expected_no_results": true,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": null,
+      "gold_source_id": null,
+      "gold_rank_top5": null,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "해외",
+        "고가",
+        "명품",
+        "시계",
+        "구매",
+        "비용을",
+        "정부가",
+        "제도가"
+      ],
+      "lexical_terms_count": 8,
+      "top1": {
+        "source": "gov24",
+        "source_id": "378000000169",
+        "score": 0.8355619409345557,
+        "lexical_overlap": 2
+      },
+      "top2_score": 0.8343829015265299,
+      "gap_top1_top2": 0.0011790394080257727,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "378000000169",
+          0.8356
+        ],
+        [
+          "gov24",
+          "B55400900007",
+          0.8344
+        ],
+        [
+          "gov24",
+          "539000000103",
+          0.8443
+        ],
+        [
+          "gov24",
+          "SD0000002709",
+          0.8326
+        ],
+        [
+          "gov24",
+          "142100000011",
+          0.8397
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 30,
+      "case_type": "no_answer",
+      "query": "e스포츠 프로게이머 장비 구매비를 정부가 지원해주는 청년 정책이 있나요?",
+      "query_stripped": "e스포츠 프로게이머 장비 구매비를 정부가 지원해주는 청년 정책이 있나요?",
+      "age": null,
+      "expected_no_results": true,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": null,
+      "gold_source_id": null,
+      "gold_rank_top5": null,
+      "youth_bias": 0.015,
+      "lexical_terms": [
+        "e스포츠",
+        "프로게이머",
+        "장비",
+        "구매비를",
+        "정부가",
+        "청년",
+        "정책이"
+      ],
+      "lexical_terms_count": 7,
+      "top1": {
+        "source": "youth",
+        "source_id": "20251214005400212000",
+        "score": 0.8636057783348045,
+        "lexical_overlap": 2
+      },
+      "top2_score": 0.8483925227183049,
+      "gap_top1_top2": 0.015213255616499555,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "youth",
+          "20251214005400212000",
+          0.8636
+        ],
+        [
+          "youth",
+          "20250718005400211393",
+          0.8484
+        ],
+        [
+          "youth",
+          "20251217005400212012",
+          0.8468
+        ],
+        [
+          "youth",
+          "20260330005400212348",
+          0.8448
+        ],
+        [
+          "youth",
+          "20250117005400210321",
+          0.8543
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 31,
+      "case_type": "no_answer",
+      "query": "강남 아파트 매매 대금 10억원을 정부가 무이자로 빌려주는 청년 주택 정책이 있나요?",
+      "query_stripped": "강남 아파트 매매 대금 10억원을 정부가 무이자로 빌려주는 청년 주택 정책이 있나요?",
+      "age": null,
+      "expected_no_results": true,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": null,
+      "gold_source_id": null,
+      "gold_rank_top5": null,
+      "youth_bias": 0.015,
+      "lexical_terms": [
+        "강남",
+        "아파트",
+        "매매",
+        "대금",
+        "10억원을",
+        "정부가",
+        "무이자로",
+        "빌려주는",
+        "청년",
+        "주택",
+        "정책이"
+      ],
+      "lexical_terms_count": 11,
+      "top1": {
+        "source": "youth",
+        "source_id": "20260407005400212550",
+        "score": 0.8460461680000113,
+        "lexical_overlap": 2
+      },
+      "top2_score": 0.8355044534227686,
+      "gap_top1_top2": 0.010541714577242733,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "youth",
+          "20260407005400212550",
+          0.846
+        ],
+        [
+          "youth",
+          "20250514005400110811",
+          0.8355
+        ],
+        [
+          "youth",
+          "20250226005400110565",
+          0.8443
+        ],
+        [
+          "youth",
+          "20250106005400210053",
+          0.824
+        ],
+        [
+          "youth",
+          "20260318005400212188",
+          0.8435
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 32,
+      "case_type": "no_answer",
+      "query": "서울 고급 오피스텔 월세 300만원을 정부가 전액 지원해주는 주거 정책이 있나요?",
+      "query_stripped": "고급 오피스텔 월세 300만원을 정부가 전액 지원해주는 주거 정책이 있나요?",
+      "age": null,
+      "expected_no_results": true,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": null,
+      "gold_source_id": null,
+      "gold_rank_top5": null,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "고급",
+        "오피스텔",
+        "월세",
+        "300만원을",
+        "정부가",
+        "전액",
+        "주거",
+        "정책이"
+      ],
+      "lexical_terms_count": 8,
+      "top1": {
+        "source": "gov24",
+        "source_id": "391000000152",
+        "score": 0.8590512267733478,
+        "lexical_overlap": 3
+      },
+      "top2_score": 0.8649255810612856,
+      "gap_top1_top2": -0.005874354287937811,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "391000000152",
+          0.8591
+        ],
+        [
+          "youth",
+          "20260325005400212266",
+          0.8649
+        ],
+        [
+          "gov24",
+          "545000000192",
+          0.8523
+        ],
+        [
+          "gov24",
+          "569000000379",
+          0.8523
+        ],
+        [
+          "youth",
+          "20250903005400211618",
+          0.861
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 33,
+      "case_type": "no_answer",
+      "query": "대기업 임원 연봉을 정부가 보조해주는 고용 지원 제도가 있나요?",
+      "query_stripped": "대기업 임원 연봉을 정부가 보조해주는 고용 지원 제도가 있나요?",
+      "age": null,
+      "expected_no_results": true,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": null,
+      "gold_source_id": null,
+      "gold_rank_top5": null,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "대기업",
+        "임원",
+        "연봉을",
+        "정부가",
+        "보조해주는",
+        "고용",
+        "제도가"
+      ],
+      "lexical_terms_count": 7,
+      "top1": {
+        "source": "gov24",
+        "source_id": "SD0000003276",
+        "score": 0.8658321554207256,
+        "lexical_overlap": 2
+      },
+      "top2_score": 0.8595275366593427,
+      "gap_top1_top2": 0.006304618761382885,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "SD0000003276",
+          0.8658
+        ],
+        [
+          "gov24",
+          "451000000148",
+          0.8595
+        ],
+        [
+          "gov24",
+          "B55400900001",
+          0.8667
+        ],
+        [
+          "gov24",
+          "SD0000003857",
+          0.8646
+        ],
+        [
+          "gov24",
+          "149200000093",
+          0.8617
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 34,
+      "case_type": "no_answer",
+      "query": "해외 아이비리그 대학 등록금 1억원을 정부가 전액 지원해주는 장학금 있나요?",
+      "query_stripped": "해외 아이비리그 대학 등록금 1억원을 정부가 전액 지원해주는 장학금 있나요?",
+      "age": null,
+      "expected_no_results": true,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": null,
+      "gold_source_id": null,
+      "gold_rank_top5": null,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "해외",
+        "아이비리그",
+        "대학",
+        "등록금",
+        "1억원을",
+        "정부가",
+        "전액",
+        "장학금"
+      ],
+      "lexical_terms_count": 8,
+      "top1": {
+        "source": "gov24",
+        "source_id": "134200000046",
+        "score": 0.8640705413630017,
+        "lexical_overlap": 4
+      },
+      "top2_score": 0.8630430792336288,
+      "gap_top1_top2": 0.0010274621293728803,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "134200000046",
+          0.8641
+        ],
+        [
+          "gov24",
+          "B55252900229",
+          0.863
+        ],
+        [
+          "gov24",
+          "B55252900005",
+          0.8526
+        ],
+        [
+          "gov24",
+          "B55252900018",
+          0.8579
+        ],
+        [
+          "gov24",
+          "134200000011",
+          0.855
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 35,
+      "case_type": "no_answer",
+      "query": "성형수술이나 미용 시술 비용을 건강보험으로 전액 지원받을 수 있나요?",
+      "query_stripped": "성형수술이나 미용 시술 비용을 건강보험으로 전액 지원받을 수 있나요?",
+      "age": null,
+      "expected_no_results": true,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": null,
+      "gold_source_id": null,
+      "gold_rank_top5": null,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "성형수술이나",
+        "미용",
+        "시술",
+        "비용을",
+        "건강보험으로",
+        "전액"
+      ],
+      "lexical_terms_count": 6,
+      "top1": {
+        "source": "gov24",
+        "source_id": "316000000124",
+        "score": 0.8657610834454833,
+        "lexical_overlap": 2
+      },
+      "top2_score": 0.8621489652129015,
+      "gap_top1_top2": 0.0036121182325817847,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "316000000124",
+          0.8658
+        ],
+        [
+          "gov24",
+          "631000000723",
+          0.8621
+        ],
+        [
+          "gov24",
+          "647000000171",
+          0.862
+        ],
+        [
+          "gov24",
+          "643000000736",
+          0.862
+        ],
+        [
+          "gov24",
+          "611000000159",
+          0.8616
+        ]
+      ],
+      "has_results": true
+    },
+    {
+      "index": 36,
+      "case_type": "no_answer",
+      "query": "반려견 사료와 병원비를 매달 정부가 지급하는 반려동물 수당이 있나요?",
+      "query_stripped": "반려견 사료와 병원비를 매달 정부가 지급하는 반려동물 수당이 있나요?",
+      "age": null,
+      "expected_no_results": true,
+      "excluded_source": null,
+      "excluded_source_id": null,
+      "gold_source": null,
+      "gold_source_id": null,
+      "gold_rank_top5": null,
+      "youth_bias": 0.0,
+      "lexical_terms": [
+        "반려견",
+        "사료와",
+        "병원비를",
+        "매달",
+        "정부가",
+        "지급하는",
+        "반려동물",
+        "수당이"
+      ],
+      "lexical_terms_count": 8,
+      "top1": {
+        "source": "gov24",
+        "source_id": "305000000130",
+        "score": 0.8572764567087927,
+        "lexical_overlap": 2
+      },
+      "top2_score": 0.8643351328959363,
+      "gap_top1_top2": -0.00705867618714362,
+      "retrieved_count": 30,
+      "top_k_ids": [
+        [
+          "gov24",
+          "305000000130",
+          0.8573
+        ],
+        [
+          "gov24",
+          "427000000225",
+          0.8643
+        ],
+        [
+          "gov24",
+          "374000000596",
+          0.8614
+        ],
+        [
+          "gov24",
+          "316000000151",
+          0.8512
+        ],
+        [
+          "gov24",
+          "338000000427",
+          0.8553
+        ]
+      ],
+      "has_results": true
+    }
+  ],
+  "aggregates": {
+    "total_cases": 36,
+    "pure_positive_n": 21,
+    "ineligible_n": 3,
+    "no_answer_n": 12,
+    "positive_top1_score_range": {
+      "min": 0.8480616989062734,
+      "max": 0.9241731898475097
+    },
+    "no_answer_top1_score_range": {
+      "min": 0.8303408936817753,
+      "max": 0.8658321554207256
+    },
+    "thresholds": {
+      "top1_score_lt_0.8481": {
+        "no_answer_detected": 5,
+        "positive_false": 1
+      },
+      "top1_score_lt_0.842_and_lex_lt_2": {
+        "no_answer_detected": 3,
+        "positive_false": 0
+      }
+    },
+    "observation": "Positive and no-answer top1 score ranges overlap, so a single score threshold does not separate them reliably; reproduces the threshold No-Go conclusion."
+  }
+}

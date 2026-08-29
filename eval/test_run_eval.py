@@ -40,12 +40,22 @@ class RunEvalProductionParityTest(unittest.TestCase):
             def __init__(self, rows):
                 self._rows = rows
 
-            def execute(self, sql, params):
+            def execute(self, sql, params=None):
+                if "FROM policy" in sql and "count(*)" in sql:
+                    captured["corpus_sql"] = sql
+                    return
                 captured["sql"] = sql
                 captured["params"] = params
 
             def fetchall(self):
+                if "corpus_sql" in captured and captured.get("sql") is None:
+                    return []
                 return self._rows
+
+            def fetchone(self):
+                if "corpus_sql" in captured:
+                    return [0]
+                return self._rows[0] if self._rows else [0]
 
             def close(self):
                 pass
@@ -72,7 +82,7 @@ class RunEvalProductionParityTest(unittest.TestCase):
         fake_output.write_text = MagicMock()
 
         with patch.object(run_eval, "parse_args", return_value=MagicMock(
-            eval_file=pathlib.Path("dummy.jsonl"), output=fake_output)):
+            eval_file=pathlib.Path("dummy.jsonl"), output=fake_output, lexical_bias=None)):
             with patch.object(run_eval, "load_items", return_value=[{
                 "query": "서울 청년 지원",
                 "age": 25,
@@ -102,16 +112,16 @@ class RunEvalProductionParityTest(unittest.TestCase):
         # Verify COSINE_MIN filtering: gold below threshold must be excluded
         captured.clear()
         rows_below = [
-            ("gov24", "other", "일반 지원", "기관", "다른 내용", "방문",
-             "https://example.test/gov24", None, None, None, 0.85),
             ("youth", "gold", "청년 지원", "기관", "지원 내용", "온라인",
-             "https://example.test/youth", 19, 34, None, 0.70),
+             "https://example.test/youth", 19, 34, None, 0.5),
+            ("gov24", "other", "일반 지원", "기관", "다른 내용", "방문",
+             "https://example.test/gov24", None, None, None, 0.4),
         ]
         fake_output2 = MagicMock()
         fake_output2.parent.mkdir = MagicMock()
         fake_output2.write_text = MagicMock()
         with patch.object(run_eval, "parse_args", return_value=MagicMock(
-            eval_file=pathlib.Path("dummy.jsonl"), output=fake_output2)):
+            eval_file=pathlib.Path("dummy.jsonl"), output=fake_output2, lexical_bias=None)):
             with patch.object(run_eval, "load_items", return_value=[{
                 "query": "서울 청년 지원",
                 "age": 25,
@@ -126,6 +136,7 @@ class RunEvalProductionParityTest(unittest.TestCase):
         written2 = json.loads(fake_output2.write_text.call_args[0][0])
         self.assertEqual(0.0, written2["recall@1"])
         self.assertEqual(0.0, written2["recall@5"])
+
 
 if __name__ == "__main__":
     unittest.main()

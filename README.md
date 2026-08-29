@@ -3,7 +3,7 @@
 **공식 정책을 여러 출처에서 질문 한 줄로 찾는 RAG 검색 서비스 — 검색 품질을 직접 만든 평가셋으로 측정합니다**
 
 [![Live](https://img.shields.io/badge/live-demo-success)](https://crushonyou2.github.io/benefit-compass)
-[![prod-parity recall@1](https://img.shields.io/badge/prod--parity_recall%401-0.200-orange)](#검색-품질을-직접-측정했습니다)
+[![prod-parity recall@1](https://img.shields.io/badge/prod--parity_recall%401-0.233-orange)](#검색-품질을-직접-측정했습니다)
 [![Stack](https://img.shields.io/badge/stack-Spring%20Boot%20%2B%20FastAPI%20%2B%20pgvector-informational)](#아키텍처)
 [![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)](.github/workflows)
 
@@ -61,11 +61,27 @@ Gov24 10,958건을 추가한 뒤 기존 60문항의 후보 검색 Recall@1은 `0
 | 신규 Gov24 21문항 Recall@5 | 0.4762 | **0.6190** |
 | 신규 Gov24 21문항 Recall@10 | 0.6190 | 0.6190 |
 | 신규 Gov24 21문항 MRR@10 | 0.3798 | **0.4222** |
-
 리랭커는 Gov24 21문항 일부 지표를 높였지만 기존 youth 60문항의 Recall@5·@10과 MRR을 악화시켰다.
 따라서 전체 검색에는 채택하지 않았고 배포 구성은 `RERANK=0`을 유지한다. `0.015`도 현재 평가에서
 선택한 최소값일 뿐 일반화된 production 최적값으로 간주하지 않는다. 평가셋·결과 JSON·한계는
 [검증 기록](docs/CUSTOM_SEARCH_MVP.md)에 남겼다.
+
+### Canonical production-parity baseline — P0 동결 (2026-08-29)
+
+현재 production과 동일한 검색 계약(`RERANK=0`, `CANDIDATES=30`, `COSINE_MIN=0.78`, `LEXICAL 0.01`, `strip_region`, 만료 제외)으로 재현한 **현재 기준선**이다. lexical `0 → 0.01` 비교는 `eval/run_eval.py --lexical-bias`로 같은 계약에서 재현했다.
+
+| 평가셋·지표 | lexical `0` | lexical `0.01` (production) |
+|---|---:|---:|
+| 기존 60문항 Recall@1 | 0.2000 | **0.2333** |
+| 기존 60문항 Recall@5 | 0.4000 | **0.4667** |
+| 기존 60문항 Recall@10 | 0.4667 | **0.5167** |
+| 기존 60문항 MRR@10 | 0.2881 | **0.3281** |
+| 신규 Gov24 21문항 Recall@1 | 0.2857 | 0.2857 |
+| 신규 Gov24 21문항 Recall@5 | 0.4762 | **0.7143** |
+| 신규 Gov24 21문항 Recall@10 | 0.6190 | **0.7619** |
+| 신규 Gov24 21문항 MRR@10 | 0.3798 | **0.4222** |
+
+위 수치는 `eval/canonical_youth_production_parity.json`, `eval/canonical_gov24_production_parity.json`에서 재현된다. historical 실험 파일(`results_after_*`, `results_expansion_*`)은 보존했고, 현재 기준선은 `eval/canonical_manifest.json`에서 한 번에 추적한다. `Recall@1 0.40 → 0.52` 같은 과거 수치는 만료/지역어/score cut 없는 후보 진단이므로 production 정확도로 해석하지 않는다.
 
 평가셋 생성(`eval/make_evalset.py`)과 측정(`eval/run_eval.py`, `eval/run_eval_rerank.py`) 스크립트,
 평가셋 원본과 측정 결과 JSON을 저장소에 공개했다. 같은 명령으로 다시 잴 수 있다.
@@ -190,23 +206,31 @@ cd ../api && set GEMINI_API_KEY=... && gradlew bootRun
 cd ../web && npm install && npm run dev   # http://localhost:5173
 ```
 
-평가 재현:
+평가 재현 (canonical — 현재 production 계약):
 
 ```bash
 python eval/run_data_quality.py
-python eval/run_eval.py --output eval/results_after_source_bias.json
-python eval/run_eval_rerank.py --output eval/results_after_source_bias_rerank.json
-python eval/run_eval_rerank.py --eval-file eval/expansion_evalset.jsonl --output eval/results_expansion_source_bias_rerank.json
+# Youth 60 — production parity (lexical 0.01) 및 lexical ablation 비교
+python eval/run_eval.py --eval-file eval/evalset.jsonl --output eval/canonical_youth_production_parity.json --lexical-bias 0.01
+python eval/run_eval.py --eval-file eval/evalset.jsonl --output eval/canonical_youth_production_lexical_0.json --lexical-bias 0
+# Gov24 21 — 동일 계약
+python eval/run_eval.py --eval-file eval/expansion_evalset.jsonl --output eval/canonical_gov24_production_parity.json --lexical-bias 0.01
+python eval/run_eval.py --eval-file eval/expansion_evalset.jsonl --output eval/canonical_gov24_production_lexical_0.json --lexical-bias 0
+# 36-case hard-negative 진단 (retrieval-level, Gemini 없이)
+python eval/run_hard_negative_eval.py --eval-file eval/expansion_api_evalset.jsonl --output eval/canonical_hard_negative_36_production_parity.json --lexical-bias 0.01
 ```
+
+historical 실험 파일(`eval/results_before_expansion.json`, `eval/results_after_*` 등)은 보존했다. 상세 계약과 결과 해석은 [검증 기록](docs/CUSTOM_SEARCH_MVP.md)과 `eval/canonical_manifest.json`을 따른다.
+
+저장소에 커밋된 canonical artifact는 clean evaluator commit `58dff80`에서 저장소 밖 임시 디렉터리로 생성해 `git_dirty=false`를 확인한 뒤 `eval/`에 복사했다. 아래 명령을 tracked canonical 경로에 직접 순차 실행하면 지표는 재현되지만, 첫 출력으로 working tree가 변경된 뒤 실행되는 artifact에는 `git_dirty=true`가 기록될 수 있다.
 
 ## 측정 조건과 범위
 
-- 평가 수치는 직접 라벨링한 기존 60문항과 Gov24 21문항 기준입니다. 표본이 작아 1문항 변화의 유의성을 판단하지 않았습니다.
-- 공개 경로는 무료 인스턴스의 CPU·메모리 조건에 맞춰 **리랭킹을 끈 구성(`RERANK=0`)으로 배포**했습니다. production-parity 평가에서도 전체 채택 기준을 충족하지 못해 이 구성을 유지합니다.
+- 평가 수치는 직접 라벨링한 기존 60문항과 Gov24 21문항 기준입니다. 표본이 작아 1문항 변화의 유의성을 판단하지 않았습니다. canonical 결과는 `eval/canonical_youth_production_parity.json` 등에서 `generated_at`·`git_commit`·`corpus`와 함께 재현된다.
+- 공개 경로는 무료 인스턴스의 CPU·메모리 조건에 맞춰 **리랭킹을 끈 구성(`RERANK=0`)으로 배포**했습니다. production-parity 평가에서도 전체 채택 기준을 충족하지 못해 이 구성을 유지한다. canonical baseline은 `RERANK=0`, `CANDIDATES=30`, `COSINE_MIN=0.78`, `LEXICAL 0.01`이다.
 - **지역 검색은 제공하지 않습니다.** 원본 지역코드 품질 문제로 노출을 끊은 상태이며, 데이터 정제나 신뢰할 수 있는 출처 확보가 선행 과제입니다.
 - **코드와 로컬 검증 경로는 온통청년 + 정부24 복수 출처를 지원합니다.** 로컬 Neon에는 정책 13,589건과 청크 17,609건을 적재했습니다. Gov24 확장은 공개 배포하지 않았고 전반적 검색 품질 향상을 주장하지 않습니다. 공개 라이브 데모는 아직 기존 청년정책 데이터입니다.
 - SLO 문서의 목표값은 **목표이며 달성 성과가 아닙니다.**
-
 ## 만든 사람
 
 **Jigwan Joe** — Backend · Data
