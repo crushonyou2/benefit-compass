@@ -1,0 +1,74 @@
+{
+  "eval_file": "eval\\expansion_api_evalset.jsonl",
+  "url": "http://localhost:8080/api/ask",
+  "top_k": 5,
+  "total_cases": 27,
+  "retrieval": {
+    "n": 21,
+    "recall@1": 0.2857,
+    "recall@5": 0.7143,
+    "mrr": 0.4143
+  },
+  "by_source": {
+    "gov24": {
+      "n": 21,
+      "recall@1": 0.2857,
+      "recall@5": 0.7143,
+      "mrr": 0.4143
+    }
+  },
+  "by_case_type": {
+    "cross_source_similar": {
+      "n": 3,
+      "recall@1": 0.0,
+      "recall@5": 1.0,
+      "mrr": 0.2778
+    },
+    "employment_income": {
+      "n": 3,
+      "recall@1": 0.6667,
+      "recall@5": 0.6667,
+      "mrr": 0.6667
+    },
+    "general": {
+      "n": 3,
+      "recall@1": 0.3333,
+      "recall@5": 1.0,
+      "mrr": 0.5833
+    },
+    "household_housing": {
+      "n": 3,
+      "recall@1": 0.0,
+      "recall@5": 0.3333,
+      "mrr": 0.1111
+    },
+    "nationwide": {
+      "n": 3,
+      "recall@1": 0.3333,
+      "recall@5": 0.6667,
+      "mrr": 0.4167
+    },
+    "regional": {
+      "n": 3,
+      "recall@1": 0.6667,
+      "recall@5": 1.0,
+      "mrr": 0.7333
+    },
+    "welfare_health": {
+      "n": 3,
+      "recall@1": 0.0,
+      "recall@5": 0.3333,
+      "mrr": 0.1111
+    }
+  },
+  "no_answer": {
+    "n": 3,
+    "unexpected_results": 3
+  },
+  "ineligible": {
+    "n": 3,
+    "forbidden_policy_results": 0
+  },
+  "missing_ground_links": 3,
+  "answer_generated_without_sources": 0
+}

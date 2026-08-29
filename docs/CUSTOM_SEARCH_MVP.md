@@ -67,10 +67,10 @@ gov24 v3 공식 Swagger에는 서비스의 행정 지역코드가 없다. `소�
 
 Gov24 정책 10,958건과 768차원 청크 14,526건을 적재한 뒤 정책은 총 13,589건, 청크는 총 17,609건이 됐다.
 
-| 출처 | 정책 | 청크 | 공식 링크 누락 | 지역코드 보유 |
-|---|---:|---:|---:|---:|
-| `youth` | 2,631 | 3,083 | 615 | 2,631 |
+| `youth` | 2,631 | 3,083 | 615 (DB) / 599 (projected after fix) | 2,631 |
 | `gov24` | 10,958 | 14,526 | 0 | 0 |
+
+현재 DB `youth missing_links 615(NULL 564+non-http 51)`는 `eval/run_data_quality.py:17` `apply_url IS NULL OR !~ '^https?://'` 기준 실측치다. 그 중 `16`건은 `raw.aplyUrlAddr`가 `www.`·`-`·`추후 공지` 등 non-http이면서 `raw.refUrlAddr1`에 `https://`가 있으나 `ingest_youth:61`이 앞의 truthy non-http를 선택한 ingestion bug이며, `12dbaca fix: prefer valid youth policy URLs` 패치(`_official_url`)로 동일 raw 2631건에 대해 `projected 599`로 복구된다. `refUrlAddr2`는 youth 2631건 중 `https` 328건이나 missing 615 중 추가 복구는 1건에 불과해 이번 production URL source로 미채택. 남은 `599`는 양 필드 모두에 유효 `http(s)`가 없는 source limitation이다.
 
 `(source, source_id)` 중복 정책, `(policy_id, chunk_index)` 중복 청크, 고아 청크, 청크 없는 정책, 누락 임베딩, 768차원이 아닌 임베딩은 모두 0건이다. 같은 파일을 반복 적재한 뒤에도 출처별 수와 무결성 결과가 같았다. 출처 간 제목이 같은 정책은 93개다. 지역 필터는 계속 노출하지 않는다.
 
@@ -105,8 +105,7 @@ Gov24 추가 뒤 기존 청년정책 검색은 네 지표 모두 회귀했다. �
 | Recall@10 | 0.7143 | 0.7143 | +0.0000 |
 | MRR@10 | 0.3901 | 0.3901 | +0.0000 |
 
-신규 21문항의 Gov24 검색 범위는 이 보정으로 감소하지 않았다. 최종 결과 원본은 `eval/results_expansion_source_bias.json`에 보존했다. `expansion_api_evalset.jsonl`은 같은 검색 문항에 비대상 3문항과 정답 없음 3문항을 더한 27문항이며, 9개 유형을 각각 3문항씩 포함한다. 오프라인 코퍼스·라벨 검증과 API 평가기 단위 테스트는 통과했다.
-
+신규 21문항의 Gov24 검색 범위는 이 보정으로 감소하지 않았다. 최종 결과 원본은 `eval/results_expansion_source_bias.json`에 보존했다. `expansion_api_evalset.jsonl`은 기존 27문항(21+3+3)에서 hard-negative 9건을 추가해 36문항(21+3+12)으로 확장했으며, 신규 no_answer의 목적은 abstention 일반화 검증으로 retrieval-level에서 달성됐다. 36-case Gemini E2E는 MVP 필수 gate가 아니므로 실행하지 않았다. 27문항 API E2E는 `eval/results_expansion_api_27.json`(기존 `results_expansion_api.json`)에 기록된 바와 같이 실행 완료됐다. 오프라인 코퍼스·라벨 검증과 API 평가기 단위 테스트는 통과했다.
 ### Production-parity 리랭커 판정
 
 2026-08-29 한 차례 실측에서 후보 랭킹 진단과 실제 `/search` 사이의 차이를 없애기 위해 `run_eval_rerank.py`가 production 코드를 직접 공유하도록 바꿨다. 같은 `strip_region`, 후보 SQL과 만료 정책 제외, `CANDIDATES=30`, source bias, 결과 column mapping을 사용한다. `RERANK=0`은 cosine `0.78` cut, `RERANK=1`은 `title + support_content` 400자와 raw logit `0.12` cut을 적용한다.
@@ -128,7 +127,7 @@ Gov24 추가 뒤 기존 청년정책 검색은 네 지표 모두 회귀했다. �
 
 후보 랭킹 진단의 수치가 production-parity 수치보다 높은 이유는 평가 계약이 다르기 때문이다. 전자는 source competition을 분리하기 위해 만료 정책 제외·지역어 전처리·score cut을 적용하지 않는다. 두 표를 같은 배포 정확도 시계열로 연결하지 않는다. 기존 `results_rerank.json`은 이 계약 이전 산출물이므로 제거했다.
 
-실제 27문항 API 통합 평가는 실행하지 않았다. 검색 결과가 있는 문항은 Gemini 외부 호출을 발생시키며 이번 승인 범위에는 해당 생성 호출이 포함되지 않았다. 따라서 Gemini 생성 품질, 무근거 생성, 비대상 정책 노출의 실제 API 수치는 아직 없다.
+27문항 API 통합 평가는 실행 완료됐으며 결과는 `eval/results_expansion_api_27.json`(기존 `results_expansion_api.json`)에 `positive n=21 Recall@1 0.2857 Recall@5 0.7143 MRR 0.4143, ineligible forbidden 0/3, answer_without_sources 0, missing_ground_links 3`으로 기록됐다. 36-case Gemini E2E는 MVP 필수 gate가 아니므로 실행하지 않았다.
 
 평가 도구는 출처를 포함한 gold key와 출처별 Recall/MRR를 기록한다. `run_data_quality.py`는 출처별 정책 수, 공식 링크 누락, 지역코드 보유, 임베딩 누락, 출처 간 동일 제목 수를 `eval/data_quality.json`에 저장한다.
 
@@ -160,12 +159,12 @@ python eval/test_run_api_eval.py
 
 `ml-service` context에서 Docker 이미지를 빌드했고, 최종 이미지를 `MODEL_LOCAL_ONLY=1`로 두 번 실행했다. e5 모델 로딩은 각각 `11,458.596ms`, `13,780.656ms`였고 두 번째 실행에서 `/ready`가 로딩 중 `503`을 반환한 뒤 `200 {"status":"ready"}`로 전환되는 것을 확인했다. 런타임 Hub 접근 없이 baked model이 준비되는 경로까지 검증했다.
 
-27문항 API 통합 평가는 ML 서비스와 Spring API를 실행하고 Gemini 외부 호출 승인을 받은 환경에서만 다음 명령으로 수행한다.
+27문항 API 통합 평가는 ML 서비스와 Spring API를 실행하고 Gemini 외부 호출 승인을 받은 환경에서만 다음 명령으로 수행했으며, 결과는 `eval/results_expansion_api_27.json`(기존 `results_expansion_api.json` 27-case)으로 보존됐다.
 
 ```powershell
 python eval/run_api_eval.py `
   --eval-file eval/expansion_api_evalset.jsonl `
-  --output eval/results_expansion_api.json
+  --output eval/results_expansion_api_27.json
 ```
 
 ### 경량 어휘 보정 실험
@@ -183,9 +182,14 @@ production-parity 후보 진단에서 기존 youth 60문항의 gold가 `CANDIDAT
 
 어휘 보정은 두 평가 범위 모두 개선되어 유지한다. production parity evaluator와 ML 서비스가 같은 SQL·어휘 추출기를 공유하며, cross-encoder 결과는 기존과 같이 youth top-10을 악화시키므로 배포 결정은 `RERANK=0`으로 유지한다.
 
-남은 품질 게이트:
+### Abstention 판정: No-Go
 
-- 승인된 환경에서 27문항 API 통합 평가 실행
-- API 평가로 공식 링크 누락, 무근거 생성, 비대상 정책 노출의 실제 건수 측정
+36문항 evalset(positive 21+no_answer 12)으로 production retrieval(`CANDIDATES=30`·`COSINE_MIN=0.78`·`lexical 0.01`) 조건에서 hard-negative 확장 검증을 수행했다. 신규 no-answer 9건의 `top1 0.8356~0.8658`이 positive `0.8481~0.9242`와 겹쳐 `0.840~0.846` score separation은 붕괴됐다. `top1_score<0.8481`→`5/12`, `score<0.842 & lex<2`→`3/12`, gap/lex/tlex 등 저비용 신호 모두 `0` positive 조건에서 의미 있는 분리에 실패. cross-encoder top1 gate는 `ce<0.05 10/12 vs 8/21`, `ce<0.10 12/12 vs 8/21`, `ce<0.12 12/12 vs 10/21`로 positive false가 크고 `+1GB`·`+0.3s` 비용이 추가돼 No-Go로 종결. global threshold·`ABSTAIN_MIN_SCORE`·score/gap 조합 재튜닝·cross-encoder gate 재실험을 하지 않으며, learned classifier/LLM relevance judge는 future work로 둔다.
 
-Gov24 전체 수집·임베딩·Neon 적재, 최소 source 보정, production-parity 리랭커 판정과 Docker local-only 실행, 그리고 경량 어휘 보정 평가를 완료했다. 복수 출처 검색 품질의 전반적 향상을 주장하지 않는다.
+### Youth URL 품질
+
+현재 DB `missing_links 615` 중 `16`건은 ingestion bug, `599`건은 source limitation으로 확정됐다. 코드는 `12dbaca`에서 `_official_url`로 수정됐으나 DB는 아직 reload하지 않아 현재 실측치는 `615`, 다음 정상 refresh 시 `projected 599`가 된다. `599`는 youth 원천 자체에 유효 URL이 없는 accepted limitation이며, `refUrlAddr2`는 추가 복구 1건에 불과해 이번 scope에서 제외했다. `policy.apply_url`만 수정하면 `policy_chunk`·embedding에 영향이 없어 targeted UPDATE 16건 또는 다음 `load_db` refresh로 반영 가능하다.
+
+### MVP exit state: Complete
+
+**Custom Search MVP: Complete** — 실제 코드와 결과가 일치한다. `RERANK=0`·`CANDIDATES=30`·`COSINE_MIN=0.78`·`LEXICAL_OVERLAP_BIAS=0.01`·`strip_region`·lexical correction·Gov24 10958건·`run_eval.py` production-parity·cross-encoder No-Go·abstention No-Go·27-case API E2E(`Recall@1 0.2857` 등)·36-case hard-negative 확장·youth `615→599` 분석이 모두 반영됐다. 남은 것은 `no-answer` 별도 gate 없음, `household_housing/welfare_health` 등 일부 recall 취약, youth `599` source limitation, learned relevance는 future work로, production load/performance test는 별도 backend-depth 작업이다.
