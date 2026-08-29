@@ -71,10 +71,26 @@ class DevBaselineRunnerTest(unittest.TestCase):
         self.assertEqual(64, len(data["dev_set_sha256"]))
         self.assertIn("dev_set_freeze_commit", data)
         self.assertEqual(36, data["n"])
-        self.assertEqual(hashlib.sha256(DEVSET_PATH.read_bytes()).hexdigest(), data["dev_set_sha256"])
+        from retrieval_v2.provenance import canonical_text_sha256
+        self.assertEqual(canonical_text_sha256(DEVSET_PATH), data["dev_set_sha256"])
+
+    def test_canonical_hash_is_lf_normalized(self):
+        from retrieval_v2.provenance import canonical_text_bytes, canonical_text_sha256
+        import tempfile
+        content_lf = "a\nb\nc\n"
+        content_crlf = "a\r\nb\r\nc\r\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            p_lf = pathlib.Path(tmp) / "lf.jsonl"
+            p_crlf = pathlib.Path(tmp) / "crlf.jsonl"
+            p_lf.write_text(content_lf, encoding="utf-8", newline="\n")
+            # Write CRLF explicitly via bytes
+            p_crlf.write_bytes(content_crlf.encode("utf-8"))
+            self.assertEqual(canonical_text_sha256(p_lf), canonical_text_sha256(p_crlf))
+            self.assertEqual(canonical_text_bytes(p_lf), canonical_text_bytes(p_crlf))
+            # raw bytes differ, but canonical hash same
+            self.assertNotEqual(p_lf.read_bytes(), p_crlf.read_bytes())
 
     def test_schema_still_valid(self):
-        # DEVSET_PATH is __file__ anchored, not CWD-relative
         self.assertTrue(DEVSET_PATH.is_file(), "dev evalset must be found via __file__ anchored path")
         load_and_validate(DEVSET_PATH, "dev")
 

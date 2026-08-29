@@ -11,7 +11,6 @@ It does NOT implement any Retrieval v2 candidate algorithm.
 """
 import argparse
 import datetime
-import hashlib
 import json
 import os
 import pathlib
@@ -29,7 +28,7 @@ from source_ranking import lexical_overlap_terms, ranking_metadata, youth_source
 from retrieval_v2.schema import load_and_validate
 from retrieval_v2.metrics import compute_metrics
 from retrieval_v2.guard import ensure_retrieval_v2_path
-
+from retrieval_v2.provenance import canonical_text_sha256
 load_dotenv(ROOT / ".env")
 DB = os.getenv("DATABASE_URL", "").strip()
 HERE = pathlib.Path(__file__).resolve().parent
@@ -95,7 +94,7 @@ def main():
     if dirty_at_start:
         raise SystemExit("git status --porcelain is not clean — baseline must be run on clean tree")
     items = load_and_validate(args.eval_file, "dev")
-    dev_sha = hashlib.sha256(args.eval_file.read_bytes()).hexdigest()
+    dev_sha = canonical_text_sha256(args.eval_file)
     try:
         dev_freeze_commit = subprocess.check_output(["git", "log", "-1", "--format=%H", "--", str(args.eval_file)], cwd=str(ROOT), stderr=subprocess.DEVNULL).decode().strip()
     except Exception:
