@@ -19,25 +19,14 @@ from sentence_transformers import SentenceTransformer
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "ml-service"))
-from source_ranking import ranking_metadata, youth_source_bias
+import app as ml_app
+from source_ranking import lexical_overlap_terms, ranking_metadata, youth_source_bias
 load_dotenv(ROOT / ".env")
 DB = os.getenv("DATABASE_URL", "").strip()
 HERE = pathlib.Path(__file__).resolve().parent
 
 KS = [1, 5, 10]
 TOPK = 10
-
-SQL = """
-SELECT t.source, t.source_id FROM (
-  SELECT DISTINCT ON (p.id) p.source, p.source_id,
-         (c.embedding <=> %(vec)s::vector) AS dist
-  FROM policy_chunk c JOIN policy p ON p.id = c.policy_id
-  ORDER BY p.id, c.embedding <=> %(vec)s::vector
-) t
-ORDER BY t.dist - CASE WHEN t.source = 'youth' THEN %(youth_bias)s ELSE 0 END,
-         t.dist, t.source, t.source_id
-LIMIT %(k)s
-"""
 
 
 def parse_args():
@@ -60,30 +49,50 @@ def load_items(path):
     return items
 
 
+def rank_of(candidates, gold):
+    keys = [(candidate["source"], candidate["source_id"]) for candidate in candidates[:TOPK]]
+    return keys.index(gold) + 1 if gold in keys else 0
+
+
 def main():
     args = parse_args()
     if not DB:
         raise SystemExit("DATABASE_URL 없음")
     items = load_items(args.eval_file)
-    model = SentenceTransformer("intfloat/multilingual-e5-base")
+    kwargs = {"local_files_only": True} if ml_app.MODEL_LOCAL_ONLY else {}
+    model = SentenceTransformer(ml_app.EMBED_MODEL_NAME, **kwargs)
     conn = psycopg2.connect(DB)
     cur = conn.cursor()
 
     ranked = []
     for it in items:
-        qvec = model.encode([f"query: {it['query']}"], normalize_embeddings=True)[0]
+        query = ml_app.strip_region(it["query"])
+        qvec = model.encode([f"query: {query}"], normalize_embeddings=True)[0]
         vec = "[" + ",".join(f"{x:.6f}" for x in qvec) + "]"
-        cur.execute(SQL, {
+        cur.execute(ml_app.SQL, {
             "vec": vec,
-            "youth_bias": youth_source_bias(it["query"]),
-            "k": TOPK,
+            "age": it.get("age"),
+            "rp": None,
+            "youth_bias": youth_source_bias(query),
+            "lexical_terms": lexical_overlap_terms(query),
+            "lexical_bias": ml_app.LEXICAL_OVERLAP_BIAS,
+            "n": ml_app.CANDIDATES,
         })
-        ids = cur.fetchall()
+        candidates = [
+            dict(zip(ml_app.SEARCH_RESULT_COLUMNS, row))
+            for row in cur.fetchall()
+        ]
+        candidates = ml_app.region_filter(candidates, None)
+        bi_encoder = [
+            candidate for candidate in candidates
+            if candidate["score"] >= ml_app.COSINE_MIN
+        ]
         gold = (it.get("gold_source", "youth"), it["gold_source_id"])
-        rank = ids.index(gold) + 1 if gold in ids else 0
+        rank = rank_of(bi_encoder, gold)
         ranked.append((gold[0], rank))
     cur.close()
     conn.close()
+
 
     n = len(ranked)
     ranks = [rank for _, rank in ranked]
