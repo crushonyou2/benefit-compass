@@ -1,0 +1,116 @@
+{
+  "role": "candidate",
+  "name": "lexical-rewrite-v1",
+  "contract": "D-007",
+  "base_commit": "9048347caed1074619763c51bcbc4e35e7e60363",
+  "dev_eval_file": "eval/retrieval-v2/dev/evalset.jsonl",
+  "dev_sha256": "e9510203cb26bb9db5598b1cd284398ba226460437a396e72906aa6505aff56e",
+  "sha256_basis": "utf8_text_lf_normalized",
+  "dev_result": "eval/retrieval-v2/experiments/lexical-rewrite-v1.json",
+  "candidate_module": "eval/retrieval_v2/candidate_lexical_rewrite.py",
+  "runner": "eval/retrieval_v2/run_candidate_lexical_rewrite.py",
+  "unit_test": "eval/test_candidate_lexical_rewrite.py",
+  "candidate_config": {
+    "name": "lexical-rewrite-v1",
+    "normalization_rule": "lexical rewrite replacement: original term replaced by particle-stripped stem (particles 에게서/으로부터/에게/한테/께/에서/으로/로/은/는/이/가/을/를/의/에/와/과/도/만/부터/까지, MIN_STEM_LEN 2, deduped); residue tokens (pure josa/admin-unit/admin+particle without proper noun) dropped; stopword stems dropped; verb expansion none",
+    "min_stem_len": 2,
+    "particles": [
+      "에게서",
+      "으로부터",
+      "에게",
+      "한테",
+      "께",
+      "에서",
+      "으로",
+      "로",
+      "은",
+      "는",
+      "이",
+      "가",
+      "을",
+      "를",
+      "의",
+      "에",
+      "와",
+      "과",
+      "도",
+      "만",
+      "부터",
+      "까지"
+    ],
+    "residue_pure": [
+      "과",
+      "까지",
+      "께",
+      "도",
+      "로",
+      "만",
+      "부터",
+      "에",
+      "에게",
+      "에게서",
+      "에서",
+      "와",
+      "으로",
+      "으로부터",
+      "의",
+      "한테"
+    ],
+    "admin_units": [
+      "특별자치도",
+      "특별자치시",
+      "특별시",
+      "광역시",
+      "자치도",
+      "도",
+      "시",
+      "군",
+      "구"
+    ],
+    "verb_expansion": false,
+    "lexical_terms": "lexical_overlap_terms_rewrite",
+    "strip_region": "unchanged"
+  },
+  "dev_metrics": {
+    "n": 36,
+    "R@1": 0.75,
+    "R@5": 0.9722,
+    "hit@5": "35/36",
+    "R@10": 1.0,
+    "MRR@10": 0.8452,
+    "source_macro_recall@5": 0.9722,
+    "Youth": "17/18",
+    "Gov24": "18/18",
+    "net_hit@5": 2,
+    "losses": 0,
+    "baseline_R@5": 0.9167,
+    "baseline_hit@5": "33/36",
+    "baseline_source_macro": 0.9167
+  },
+  "corpus": {
+    "total_policies": 13589,
+    "total_chunks": 17609,
+    "by_source": {
+      "gov24": {
+        "policies": 10958,
+        "chunks": 14526
+      },
+      "youth": {
+        "policies": 2631,
+        "chunks": 3083
+      }
+    }
+  },
+  "candidate_frozen": true,
+  "holdout_observed": false,
+  "p0_used_for_tuning": false,
+  "challenge_used_for_tuning": false,
+  "production_modified": false,
+  "sha256": {
+    "candidate_module": "c41205abf9bceb1b18182bb4dfac405de54601eda30e0890f606ffc1eee065a2",
+    "runner": "c35dc944adcc6a37faf4c1b1807a73a9832e8c5e3826c86aaed48e728bc1163d",
+    "unit_test": "63f6a719efa824e3fc43b56baee38632b5495042da804366f31cce386cb1735a",
+    "dev_result": "bdb610a3c571c35a6764ea8ef44caeb6546af8195176d7c2538a85a40707c860"
+  },
+  "created_at": "2026-08-29T20:55:32.664250+00:00"
+}
