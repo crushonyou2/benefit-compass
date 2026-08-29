@@ -13,7 +13,6 @@ import json
 import os
 import pathlib
 
-from sentence_transformers import SentenceTransformer
 
 MODEL_NAME = "intfloat/multilingual-e5-base"
 DIMS = 768
@@ -105,6 +104,8 @@ def main() -> None:
     print(f"{len(policies)}개 정책 → {len(chunks)}개 청크")
 
     print(f"모델 로드: {MODEL_NAME} (첫 실행 시 다운로드)")
+    from sentence_transformers import SentenceTransformer
+
     model = SentenceTransformer(MODEL_NAME)
 
     start = completed_chunks(chunks)

@@ -15,7 +15,6 @@ import sys
 
 from dotenv import load_dotenv
 import psycopg2
-from sentence_transformers import SentenceTransformer
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "ml-service"))
@@ -27,6 +26,12 @@ HERE = pathlib.Path(__file__).resolve().parent
 
 KS = [1, 5, 10]
 TOPK = 10
+
+def load_embedder():
+    from sentence_transformers import SentenceTransformer
+
+    kwargs = {"local_files_only": True} if ml_app.MODEL_LOCAL_ONLY else {}
+    return SentenceTransformer(ml_app.EMBED_MODEL_NAME, **kwargs)
 
 
 def parse_args():
@@ -59,8 +64,7 @@ def main():
     if not DB:
         raise SystemExit("DATABASE_URL 없음")
     items = load_items(args.eval_file)
-    kwargs = {"local_files_only": True} if ml_app.MODEL_LOCAL_ONLY else {}
-    model = SentenceTransformer(ml_app.EMBED_MODEL_NAME, **kwargs)
+    model = load_embedder()
     conn = psycopg2.connect(DB)
     cur = conn.cursor()
 

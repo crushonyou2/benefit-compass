@@ -79,7 +79,7 @@ class RunEvalProductionParityTest(unittest.TestCase):
                 "gold_source": "youth",
                 "gold_source_id": "gold",
             }]):
-                with patch.object(run_eval, "SentenceTransformer", return_value=FakeEmbedder()):
+                with patch.object(run_eval, "load_embedder", return_value=FakeEmbedder()):
                     with patch.object(run_eval.psycopg2, "connect", return_value=FakeConn(rows_pass)):
                         with patch.object(run_eval, "DB", "dummy"):
                             run_eval.main()
@@ -118,7 +118,7 @@ class RunEvalProductionParityTest(unittest.TestCase):
                 "gold_source": "youth",
                 "gold_source_id": "gold",
             }]):
-                with patch.object(run_eval, "SentenceTransformer", return_value=FakeEmbedder()):
+                with patch.object(run_eval, "load_embedder", return_value=FakeEmbedder()):
                     with patch.object(run_eval.psycopg2, "connect", return_value=FakeConn(rows_below)):
                         with patch.object(run_eval, "DB", "dummy"):
                             run_eval.main()
