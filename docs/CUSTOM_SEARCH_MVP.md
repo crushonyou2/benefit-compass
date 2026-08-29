@@ -1,7 +1,6 @@
 # Custom Search MVP 검증 기록
 
-기준일: 2026-08-28
-
+기준일: 2026-08-29 — P0 Canonical Evaluation Freeze
 ## 데이터 소스 게이트
 
 | 후보 | 공식 범위·이용 조건 | 필요한 검색 필드 | MVP 판정 |
@@ -123,16 +122,12 @@ Gov24 추가 뒤 기존 청년정책 검색은 네 지표 모두 회귀했다. �
 | Gov24 21 Recall@10 | 0.6190 | 0.6190 | +0.0000 |
 | Gov24 21 MRR@10 | 0.3798 | 0.4222 | +0.0424 |
 
-리랭커는 Gov24 평가의 Recall@5와 MRR을 높였지만 기존 youth 평가의 Recall@5·@10과 MRR을 악화시켰다. 두 검색 범위를 함께 유지한다는 채택 기준을 만족하지 못하므로 **No-Go**로 판정하고 배포의 `RERANK=0`을 유지한다. 결과 원본은 `eval/results_after_source_bias_rerank.json`과 `eval/results_expansion_source_bias_rerank.json`이다.
-
-후보 랭킹 진단의 수치가 production-parity 수치보다 높은 이유는 평가 계약이 다르기 때문이다. 전자는 source competition을 분리하기 위해 만료 정책 제외·지역어 전처리·score cut을 적용하지 않는다. 두 표를 같은 배포 정확도 시계열로 연결하지 않는다. 기존 `results_rerank.json`은 이 계약 이전 산출물이므로 제거했다.
+리랭커는 Gov24 평가의 Recall@5와 MRR을 높였지만 기존 youth 평가의 Recall@5·@10과 MRR을 악화시켰다. 두 검색 범위를 함께 유지한다는 채택 기준을 만족하지 못하므로 **No-Go**로 판정하고 배포의 `RERANK=0`을 유지한다. 결과 원본은 `eval/results_after_source_bias_rerank.json`과 `eval/results_expansion_source_bias_rerank.json`이다. **P0 이전 historical 결과 파일(`results_before_expansion.json`, `results_after_expansion.json`, `results_after_source_bias.json`, `results_expansion_source_bias.json`, `results_after_source_bias_rerank.json`, `results_expansion_source_bias_rerank.json`)은 모두 보존했다. 이후 수치는 현재 production 계약으로 재현한 canonical artifact(`eval/canonical_*.json`, `eval/canonical_manifest.json`)를 기준으로 한다.**
 
 27문항 API 통합 평가는 실행 완료됐으며 결과는 `eval/results_expansion_api_27.json`(기존 `results_expansion_api.json`)에 `positive n=21 Recall@1 0.2857 Recall@5 0.7143 MRR 0.4143, ineligible forbidden 0/3, answer_without_sources 0, missing_ground_links 3`으로 기록됐다. 36-case Gemini E2E는 MVP 필수 gate가 아니므로 실행하지 않았다.
 
-평가 도구는 출처를 포함한 gold key와 출처별 Recall/MRR를 기록한다. `run_data_quality.py`는 출처별 정책 수, 공식 링크 누락, 지역코드 보유, 임베딩 누락, 출처 간 동일 제목 수를 `eval/data_quality.json`에 저장한다.
-
-## 재현 절차와 남은 게이트
-
+평가 도구는 출처를 포함한 gold key와 출처별 Recall/MRR를 기록한다. `run_data_quality.py`는 출처별 정책 수, 공식 링크 누락, 지역코드 보유, 임베딩 누락, 출처 간 동일 제목 수를 `eval/data_quality.json`에 저장한다. **P0의 `run_eval.py`는 `generated_at`·`git_commit`·`corpus`·`production_contract`·`lexical_bias_used`를 함께 기록하며, `--lexical-bias` override로 lexical 0 vs production 0.01을 동일 SQL·전처리에서 비교한다.**
+Canonical artifact는 clean evaluator commit `58dff80`에서 저장소 밖 임시 디렉터리로 생성해 `git_dirty=false`를 확인한 뒤 `eval/`에 복사했다. 따라서 tracked canonical 파일을 직접 덮어쓰며 순차 재실행하는 절차는 지표 재현에는 사용할 수 있지만 clean provenance 생성 절차와는 구분한다.
 이번 적재에서는 이미 완성된 `gov24_policies.jsonl`과 `chunks.jsonl`을 사용했다. 수집과 임베딩은 다시 실행하지 않았다.
 
 ```powershell
@@ -144,19 +139,25 @@ python ingest/load_db.py
 python scripts/check_db.py
 python eval/run_data_quality.py
 
-# 적재 후 source-aware 회귀와 확장 검색 평가
+# 적재 후 source-aware 회귀와 확장 검색 평가 (historical)
 python eval/run_eval.py --output eval/results_after_source_bias.json
 python eval/run_eval.py --eval-file eval/expansion_evalset.jsonl --output eval/results_expansion_source_bias.json
 
-# production `/search` 계약의 bi-encoder ↔ reranker 비교
+# production `/search` 계약의 bi-encoder ↔ reranker 비교 (historical, lexical 0)
 python eval/run_eval_rerank.py --output eval/results_after_source_bias_rerank.json
 python eval/run_eval_rerank.py --eval-file eval/expansion_evalset.jsonl --output eval/results_expansion_source_bias_rerank.json
+
+# P0 canonical — 현재 production 계약(RERANK=0, CANDIDATES=30, COSINE_MIN=0.78, lexical 0.01) 재현
+python eval/run_eval.py --eval-file eval/evalset.jsonl --output eval/canonical_youth_production_parity.json --lexical-bias 0.01
+python eval/run_eval.py --eval-file eval/evalset.jsonl --output eval/canonical_youth_production_lexical_0.json --lexical-bias 0
+python eval/run_eval.py --eval-file eval/expansion_evalset.jsonl --output eval/canonical_gov24_production_parity.json --lexical-bias 0.01
+python eval/run_eval.py --eval-file eval/expansion_evalset.jsonl --output eval/canonical_gov24_production_lexical_0.json --lexical-bias 0
+python eval/run_hard_negative_eval.py --eval-file eval/expansion_api_evalset.jsonl --output eval/canonical_hard_negative_36_production_parity.json --lexical-bias 0.01
 
 # 확장 라벨과 API 평가기 오프라인 검증
 python eval/validate_expansion_evalset.py
 python eval/test_run_api_eval.py
 ```
-
 `ml-service` context에서 Docker 이미지를 빌드했고, 최종 이미지를 `MODEL_LOCAL_ONLY=1`로 두 번 실행했다. e5 모델 로딩은 각각 `11,458.596ms`, `13,780.656ms`였고 두 번째 실행에서 `/ready`가 로딩 중 `503`을 반환한 뒤 `200 {"status":"ready"}`로 전환되는 것을 확인했다. 런타임 Hub 접근 없이 baked model이 준비되는 경로까지 검증했다.
 
 27문항 API 통합 평가는 ML 서비스와 Spring API를 실행하고 Gemini 외부 호출 승인을 받은 환경에서만 다음 명령으로 수행했으며, 결과는 `eval/results_expansion_api_27.json`(기존 `results_expansion_api.json` 27-case)으로 보존됐다.
@@ -171,7 +172,7 @@ python eval/run_api_eval.py `
 
 production-parity 후보 진단에서 기존 youth 60문항의 gold가 `CANDIDATES=30` 밖으로 밀린 사례가 대부분이었지만, gold 정책의 직접 코사인 점수는 모두 `0.78` 이상이었다. 따라서 재임베딩·리랭커 대신 후보 정렬에만 질의 핵심어가 정책 본문(`title`, `summary`, `support_content`, `add_qualify`, `keywords`)에 나타난 서로 다른 개수를 반영하는 보정을 실험했다. 질문 상투어는 제외하고, 어휘 보정값은 `0.01`로 고정했다. `RERANK=0`, `CANDIDATES=30`, `COSINE_MIN=0.78`, `strip_region`, 만료 제외, 결과 컬럼과 지역 요청 400 계약은 유지했다.
 
-| 평가셋·지표 | 기존 bi-encoder | 어휘 보정 bi-encoder | 변화 |
+| 평가셋·지표 | 기존 bi-encoder (`--lexical-bias 0`) | 어휘 보정 bi-encoder (`--lexical-bias 0.01`, production) | 변화 |
 |---|---:|---:|---:|
 | 기존 youth 60 Recall@1 | 0.2000 | 0.2333 | +0.0333 |
 | 기존 youth 60 Recall@10 | 0.4667 | 0.5167 | +0.0500 |
@@ -180,16 +181,17 @@ production-parity 후보 진단에서 기존 youth 60문항의 gold가 `CANDIDAT
 | Gov24 21 Recall@10 | 0.6190 | 0.7619 | +0.1429 |
 | Gov24 21 MRR@10 | 0.3798 | 0.4222 | +0.0424 |
 
-어휘 보정은 두 평가 범위 모두 개선되어 유지한다. production parity evaluator와 ML 서비스가 같은 SQL·어휘 추출기를 공유하며, cross-encoder 결과는 기존과 같이 youth top-10을 악화시키므로 배포 결정은 `RERANK=0`으로 유지한다.
+위 표는 P0에서 동일 production 계약으로 `eval/canonical_youth_production_lexical_0.json` ↔ `eval/canonical_youth_production_parity.json`, `eval/canonical_gov24_production_lexical_0.json` ↔ `eval/canonical_gov24_production_parity.json`을 비교해 재현한 결과다. historical 파일은 각각 lexical 0 이전 수치에 해당한다. 어휘 보정은 두 평가 범위 모두 개선되어 유지한다. production parity evaluator와 ML 서비스가 같은 SQL·어휘 추출기를 공유하며, cross-encoder 결과는 기존과 같이 youth top-10을 악화시키므로 배포 결정은 `RERANK=0`으로 유지한다. provenance는 각 JSON의 `generated_at`·`git_commit`·`corpus`·`lexical_bias_used`에 기록된다.
+### Abstention 판정: No-Go (P0 재현)
 
-### Abstention 판정: No-Go
+36문항 evalset(positive 21+ineligible 3+no_answer 12)으로 production retrieval(`CANDIDATES=30`·`COSINE_MIN=0.78`·`lexical 0.01`) 조건에서 hard-negative 확장 검증을 P0 canonical으로 재현했다. 결과는 `eval/canonical_hard_negative_36_production_parity.json`에 보존했다. per-case `top1 score`·`gap`·`lexical_overlap`과 aggregate가 함께 기록된다.
 
-36문항 evalset(positive 21+no_answer 12)으로 production retrieval(`CANDIDATES=30`·`COSINE_MIN=0.78`·`lexical 0.01`) 조건에서 hard-negative 확장 검증을 수행했다. 신규 no-answer 9건의 `top1 0.8356~0.8658`이 positive `0.8481~0.9242`와 겹쳐 `0.840~0.846` score separation은 붕괴됐다. `top1_score<0.8481`→`5/12`, `score<0.842 & lex<2`→`3/12`, gap/lex/tlex 등 저비용 신호 모두 `0` positive 조건에서 의미 있는 분리에 실패. cross-encoder top1 gate는 `ce<0.05 10/12 vs 8/21`, `ce<0.10 12/12 vs 8/21`, `ce<0.12 12/12 vs 10/21`로 positive false가 크고 `+1GB`·`+0.3s` 비용이 추가돼 No-Go로 종결. global threshold·`ABSTAIN_MIN_SCORE`·score/gap 조합 재튜닝·cross-encoder gate 재실험을 하지 않으며, learned classifier/LLM relevance judge는 future work로 둔다.
+no-answer 12건(기존 3 + 신규 9) 중 `top1 0.8303~0.8658`이 positive 21건의 `0.8481~0.9242`와 겹쳐 `0.84`대 score separation은 붕괴됐다. canonical aggregate: `top1_score<0.8481`→`no_answer 5/12, positive false 1/21`, `score<0.842 & lex<2`→`3/12 vs 0/21` — 첫 기준은 positive false 1/21이 발생했고, 두 번째는 positive false 0/21이지만 no-answer 3/12만 탐지해 충분한 분리가 되지 않았다. gap/lex/tlex 등 저비용 신호도 동일하게 분리 불가. cross-encoder top1 gate는 기존과 같이 `ce<0.05 10/12 vs 8/21`, `ce<0.10 12/12 vs 8/21`, `ce<0.12 12/12 vs 10/21`로 positive false가 크고 `+1GB`·`+0.3s` 비용이 추가돼 재검증 없이 No-Go를 유지. 문서 `0.8356`은 이전 실측치이며 P0 canonical에서는 `0.8303`으로 재현됐다. global threshold·`ABSTAIN_MIN_SCORE`·score/gap 조합 재튜닝·cross-encoder gate 재실험을 하지 않으며, learned classifier/LLM relevance judge는 future work로 둔다.
 
 ### Youth URL 품질
 
 현재 DB `missing_links 615` 중 `16`건은 ingestion bug, `599`건은 source limitation으로 확정됐다. 코드는 `12dbaca`에서 `_official_url`로 수정됐으나 DB는 아직 reload하지 않아 현재 실측치는 `615`, 다음 정상 refresh 시 `projected 599`가 된다. `599`는 youth 원천 자체에 유효 URL이 없는 accepted limitation이며, `refUrlAddr2`는 추가 복구 1건에 불과해 이번 scope에서 제외했다. `policy.apply_url`만 수정하면 `policy_chunk`·embedding에 영향이 없어 targeted UPDATE 16건 또는 다음 `load_db` refresh로 반영 가능하다.
 
-### MVP exit state: Complete
+### MVP exit state: Complete — P0 동결
 
-**Custom Search MVP: Complete** — 실제 코드와 결과가 일치한다. `RERANK=0`·`CANDIDATES=30`·`COSINE_MIN=0.78`·`LEXICAL_OVERLAP_BIAS=0.01`·`strip_region`·lexical correction·Gov24 10958건·`run_eval.py` production-parity·cross-encoder No-Go·abstention No-Go·27-case API E2E(`Recall@1 0.2857` 등)·36-case hard-negative 확장·youth `615→599` 분석이 모두 반영됐다. 남은 것은 `no-answer` 별도 gate 없음, `household_housing/welfare_health` 등 일부 recall 취약, youth `599` source limitation, learned relevance는 future work로, production load/performance test는 별도 backend-depth 작업이다.
+**Custom Search MVP: Complete — P0 Canonical Freeze** — 현재 production-parity retrieval과 36-case abstention No-Go 수치는 `eval/canonical_*.json`과 `eval/canonical_manifest.json`에서 재현된다. cross-encoder No-Go는 P0 이전 historical reranker artifact에, 27-case API E2E(`Recall@1 0.2857` 등)는 `eval/results_expansion_api_27.json`에 보존돼 있다. Gov24 10,958건 확장과 youth `615→599` URL 분석은 본 문서의 데이터 품질·URL 근거에 기록돼 있다. production 계약은 `RERANK=0`·`CANDIDATES=30`·`COSINE_MIN=0.78`·`LEXICAL_OVERLAP_BIAS=0.01`·`strip_region`이다. historical 파일은 보존했고 이후 retrieval 변경은 canonical을 기준으로 한다. 남은 것은 `no-answer` 별도 gate 없음, `household_housing/welfare_health` 등 일부 recall 취약, youth `599` source limitation, learned relevance는 future work로, production load/performance test는 별도 backend-depth 작업이다.

@@ -1,0 +1,73 @@
+{
+  "generated_at": "2026-08-29T13:03:54.121437+00:00",
+  "purpose": "P0 canonical production-parity evaluation freeze",
+  "evaluator_commit": "58dff80d41be9f60b60b8ea7858a839f90d8563b",
+  "evaluator_git_dirty": false,
+  "production_baselines": {
+    "youth": "canonical_youth_production_parity.json",
+    "gov24": "canonical_gov24_production_parity.json",
+    "hard_negative": "canonical_hard_negative_36_production_parity.json"
+  },
+  "ablations": {
+    "youth_lexical_0": "canonical_youth_production_lexical_0.json",
+    "gov24_lexical_0": "canonical_gov24_production_lexical_0.json"
+  },
+  "artifacts": {
+    "canonical_youth_production_lexical_0.json": {
+      "role": "Youth 60 production-parity lexical ablation (bias=0)",
+      "sha256": "34bf4b498eead5941ec90a48ec140a02caf0cea0b186bd096fbc5a92c766d197",
+      "generated_at": "2026-08-29T12:48:42.792184+00:00",
+      "git_commit": "58dff80d41be9f60b60b8ea7858a839f90d8563b",
+      "git_dirty": false,
+      "evaluator": "eval/run_eval.py",
+      "eval_file": "eval\\evalset.jsonl",
+      "cases": 60,
+      "lexical_bias_used": 0.0
+    },
+    "canonical_youth_production_parity.json": {
+      "role": "Youth 60 current production-parity baseline (bias=0.01)",
+      "sha256": "a689e6d3d20de9ac6ba0c4e3f344104d81364161c27649735366ea5d9b27f91d",
+      "generated_at": "2026-08-29T12:49:29.491898+00:00",
+      "git_commit": "58dff80d41be9f60b60b8ea7858a839f90d8563b",
+      "git_dirty": false,
+      "evaluator": "eval/run_eval.py",
+      "eval_file": "eval\\evalset.jsonl",
+      "cases": 60,
+      "lexical_bias_used": 0.01
+    },
+    "canonical_gov24_production_lexical_0.json": {
+      "role": "Gov24 21 production-parity lexical ablation (bias=0)",
+      "sha256": "7c911fed33c585ea0279577d8ab7a7ab39115dd0a08c1142a3d1fe7700d0364e",
+      "generated_at": "2026-08-29T12:49:56.189547+00:00",
+      "git_commit": "58dff80d41be9f60b60b8ea7858a839f90d8563b",
+      "git_dirty": false,
+      "evaluator": "eval/run_eval.py",
+      "eval_file": "eval\\expansion_evalset.jsonl",
+      "cases": 21,
+      "lexical_bias_used": 0.0
+    },
+    "canonical_gov24_production_parity.json": {
+      "role": "Gov24 21 current production-parity baseline (bias=0.01)",
+      "sha256": "bfa8055d91e123f3e545de37d64e51ecd317f0248fe93ec2e07dae9e2b9fb65e",
+      "generated_at": "2026-08-29T12:50:25.197180+00:00",
+      "git_commit": "58dff80d41be9f60b60b8ea7858a839f90d8563b",
+      "git_dirty": false,
+      "evaluator": "eval/run_eval.py",
+      "eval_file": "eval\\expansion_evalset.jsonl",
+      "cases": 21,
+      "lexical_bias_used": 0.01
+    },
+    "canonical_hard_negative_36_production_parity.json": {
+      "role": "36-case production retrieval hard-negative diagnostic",
+      "sha256": "e9f826c8356ef88b3b09c0f17a88c104a05a37ae9a8716e838e66fbfeceb263d",
+      "generated_at": "2026-08-29T12:53:05.607300+00:00",
+      "git_commit": "58dff80d41be9f60b60b8ea7858a839f90d8563b",
+      "git_dirty": false,
+      "evaluator": "eval/run_hard_negative_eval.py",
+      "eval_file": "eval\\expansion_api_evalset.jsonl",
+      "cases": 36,
+      "lexical_bias_used": 0.01
+    }
+  },
+  "historical_artifacts_preserved": true
+}
