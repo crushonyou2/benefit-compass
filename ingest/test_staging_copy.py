@@ -23,11 +23,21 @@ class StagingGuardTest(unittest.TestCase):
         self.assertFalse(staging_copy.is_allowed_staging_dsn("postgresql://user:pass@192.168.1.10:5432/db"))
 
     def test_identical_dsn_rejected_by_copy(self):
-        # copy() checks PROD_URL == STAGING_URL, but helper also should be testable
+        with self.assertRaises(ValueError):
+            staging_copy.validate_copy_targets("postgresql://a@host/db", "postgresql://a@host/db")
+        # different hosts but staging not allowed still rejected
+        with self.assertRaises(ValueError):
+            staging_copy.validate_copy_targets("postgresql://postgres:postgres@localhost:5433/benefit", "postgresql://neondb_owner:npg_xxx@ep-xxx.neon.tech/neondb")
+
+    def test_validate_copy_targets_allows_localhost(self):
+        # should not raise for allowed hosts
+        staging_copy.validate_copy_targets("postgresql://neondb_owner:npg_xxx@ep-xxx.neon.tech/neondb", "postgresql://postgres:postgres@localhost:5433/benefit")
+        staging_copy.validate_copy_targets("postgresql://neondb_owner:npg_xxx@ep-xxx.neon.tech/neondb", "postgresql://postgres:postgres@127.0.0.1:5433/benefit")
+        staging_copy.validate_copy_targets("postgresql://neondb_owner:npg_xxx@ep-xxx.neon.tech/neondb", "postgresql://postgres:postgres@[::1]:5433/benefit")
+
+    def test_parse_host(self):
         self.assertEqual(staging_copy.parse_dsn_host("postgresql://postgres:postgres@localhost:5433/benefit"), "localhost")
         self.assertEqual(staging_copy.parse_dsn_host("postgresql://user:pass@ep-xxx.neon.tech/db"), "ep-xxx.neon.tech")
-
-    def test_mask_dsn_hides_credentials(self):
         masked = staging_copy.mask_dsn("postgresql://myuser:mypass@ep-xxx.neon.tech:5432/neondb")
         self.assertNotIn("myuser", masked)
         self.assertNotIn("mypass", masked)

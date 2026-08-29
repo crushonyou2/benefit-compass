@@ -149,8 +149,9 @@ def main():
             updated_rows = 0
             for new_url, pid in updates:
                 cur.execute("UPDATE policy SET apply_url=%s, updated_at=now() WHERE id=%s", (new_url, pid))
-                # psycopg2 rowcount may be -1 for some cases, treat 1 as success
-                updated_rows += cur.rowcount if cur.rowcount != -1 else 1
+                if cur.rowcount != 1:
+                    print(f"rowcount unexpected for id {pid}: {cur.rowcount} (expected 1)")
+                updated_rows += cur.rowcount if cur.rowcount is not None else 0
             # 검증 — commit gate
             cur.execute("SELECT count(*) FROM policy WHERE source='youth' AND (apply_url IS NULL OR apply_url !~ '^https?://')")
             after_missing = cur.fetchone()[0]
