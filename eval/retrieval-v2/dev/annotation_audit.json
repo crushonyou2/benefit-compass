@@ -1,0 +1,297 @@
+{
+  "cases": 36,
+  "well_posed_gold": 36,
+  "ambiguous_gold": 0,
+  "p0_query_overlap": 0,
+  "p0_gold_overlap": 0,
+  "per_case": [
+    {
+      "case_id": "dev-001",
+      "source": "youth",
+      "source_id": "20260330005400212324",
+      "jurisdiction_or_scope": "youth national or local",
+      "distinguishing_basis": "benefit type + query contains youth intent",
+      "category": "culture_community"
+    },
+    {
+      "case_id": "dev-002",
+      "source": "youth",
+      "source_id": "20250714005400211220",
+      "jurisdiction_or_scope": "youth national or local",
+      "distinguishing_basis": "benefit type + query contains youth intent",
+      "category": "housing_finance"
+    },
+    {
+      "case_id": "dev-003",
+      "source": "youth",
+      "source_id": "20260430005400213001",
+      "jurisdiction_or_scope": "youth national or local",
+      "distinguishing_basis": "benefit type + query contains youth intent",
+      "category": "housing_finance"
+    },
+    {
+      "case_id": "dev-004",
+      "source": "gov24",
+      "source_id": "331000000105",
+      "jurisdiction_or_scope": "부산",
+      "distinguishing_basis": "query contains municipality (부산) + benefit type (패널조사)",
+      "category": "housing_finance"
+    },
+    {
+      "case_id": "dev-005",
+      "source": "gov24",
+      "source_id": "363000000234",
+      "jurisdiction_or_scope": "광산구",
+      "distinguishing_basis": "query contains municipality (광산구) + benefit type (시민안전보험)",
+      "category": "welfare_health"
+    },
+    {
+      "case_id": "dev-006",
+      "source": "gov24",
+      "source_id": "650000001140",
+      "jurisdiction_or_scope": "national",
+      "distinguishing_basis": "national/unique program (benefit type)",
+      "category": "welfare_health"
+    },
+    {
+      "case_id": "dev-007",
+      "source": "youth",
+      "source_id": "20260506005400213141",
+      "jurisdiction_or_scope": "youth national or local",
+      "distinguishing_basis": "benefit type + query contains youth intent",
+      "category": "employment_education"
+    },
+    {
+      "case_id": "dev-008",
+      "source": "youth",
+      "source_id": "20260422005400212868",
+      "jurisdiction_or_scope": "서귀포시",
+      "distinguishing_basis": "query contains municipality (서귀포시) + benefit type (청년농업인)",
+      "category": "business_agriculture"
+    },
+    {
+      "case_id": "dev-009",
+      "source": "youth",
+      "source_id": "20251211005400211953",
+      "jurisdiction_or_scope": "충청남도",
+      "distinguishing_basis": "query contains municipality (충남) + benefit type (직업계고/연합설계)",
+      "category": "employment_education"
+    },
+    {
+      "case_id": "dev-010",
+      "source": "gov24",
+      "source_id": "462000000303",
+      "jurisdiction_or_scope": "national",
+      "distinguishing_basis": "national/unique program (benefit type)",
+      "category": "family_care"
+    },
+    {
+      "case_id": "dev-011",
+      "source": "gov24",
+      "source_id": "496000000109",
+      "jurisdiction_or_scope": "national",
+      "distinguishing_basis": "national/unique program (benefit type)",
+      "category": "business_agriculture"
+    },
+    {
+      "case_id": "dev-012",
+      "source": "gov24",
+      "source_id": "O00101200013",
+      "jurisdiction_or_scope": "national",
+      "distinguishing_basis": "national/unique program (benefit type)",
+      "category": "family_care"
+    },
+    {
+      "case_id": "dev-013",
+      "source": "youth",
+      "source_id": "20260504005400213088",
+      "jurisdiction_or_scope": "계룡시",
+      "distinguishing_basis": "query contains municipality (계룡시) + benefit type (HPV)",
+      "category": "welfare_health"
+    },
+    {
+      "case_id": "dev-014",
+      "source": "youth",
+      "source_id": "20260407005400212560",
+      "jurisdiction_or_scope": "광주광역시",
+      "distinguishing_basis": "query contains municipality (광주) + benefit type (고용이음)",
+      "category": "employment_education"
+    },
+    {
+      "case_id": "dev-015",
+      "source": "youth",
+      "source_id": "20250904005400211635",
+      "jurisdiction_or_scope": "세종시",
+      "distinguishing_basis": "query contains municipality (세종시) + benefit type (출생축하금)",
+      "category": "family_care"
+    },
+    {
+      "case_id": "dev-016",
+      "source": "gov24",
+      "source_id": "424000000159",
+      "jurisdiction_or_scope": "national",
+      "distinguishing_basis": "national/unique program (benefit type)",
+      "category": "welfare_health"
+    },
+    {
+      "case_id": "dev-017",
+      "source": "gov24",
+      "source_id": "483000000110",
+      "jurisdiction_or_scope": "national",
+      "distinguishing_basis": "national/unique program (benefit type)",
+      "category": "welfare_health"
+    },
+    {
+      "case_id": "dev-018",
+      "source": "gov24",
+      "source_id": "481000000124",
+      "jurisdiction_or_scope": "national",
+      "distinguishing_basis": "national/unique program (benefit type)",
+      "category": "welfare_health"
+    },
+    {
+      "case_id": "dev-019",
+      "source": "gov24",
+      "source_id": "390000000129",
+      "jurisdiction_or_scope": "national (중위소득 180% 이하)",
+      "distinguishing_basis": "national unique program (아이소망, 체외수정 신선배아)",
+      "category": "family_care"
+    },
+    {
+      "case_id": "dev-020",
+      "source": "gov24",
+      "source_id": "403000000157",
+      "jurisdiction_or_scope": "national",
+      "distinguishing_basis": "national/unique program (benefit type)",
+      "category": "family_care"
+    },
+    {
+      "case_id": "dev-021",
+      "source": "gov24",
+      "source_id": "467000000106",
+      "jurisdiction_or_scope": "군산시",
+      "distinguishing_basis": "benefit type (예비맘 엽산제) — query is generic but gold is one of few, well-posed as national",
+      "category": "family_care"
+    },
+    {
+      "case_id": "dev-022",
+      "source": "gov24",
+      "source_id": "648000001093",
+      "jurisdiction_or_scope": "national",
+      "distinguishing_basis": "national/unique program (benefit type)",
+      "category": "business_agriculture"
+    },
+    {
+      "case_id": "dev-023",
+      "source": "gov24",
+      "source_id": "444000000118",
+      "jurisdiction_or_scope": "national",
+      "distinguishing_basis": "national/unique program (benefit type)",
+      "category": "business_agriculture"
+    },
+    {
+      "case_id": "dev-024",
+      "source": "gov24",
+      "source_id": "641000000142",
+      "jurisdiction_or_scope": "national",
+      "distinguishing_basis": "national/unique program (benefit type)",
+      "category": "business_agriculture"
+    },
+    {
+      "case_id": "dev-025",
+      "source": "youth",
+      "source_id": "20260406005400212433",
+      "jurisdiction_or_scope": "서구",
+      "distinguishing_basis": "query contains municipality (서구) + facility name (서구1939/웰컴박스)",
+      "category": "culture_community"
+    },
+    {
+      "case_id": "dev-026",
+      "source": "youth",
+      "source_id": "20260430005400212959",
+      "jurisdiction_or_scope": "부산",
+      "distinguishing_basis": "query contains municipality (부산) + benefit type (패널조사)",
+      "category": "culture_community"
+    },
+    {
+      "case_id": "dev-027",
+      "source": "youth",
+      "source_id": "20260506005400213176",
+      "jurisdiction_or_scope": "계양구",
+      "distinguishing_basis": "query contains municipality (계양구) + benefit type (청년네트워크)",
+      "category": "culture_community"
+    },
+    {
+      "case_id": "dev-028",
+      "source": "gov24",
+      "source_id": "O00007100022",
+      "jurisdiction_or_scope": "시흥시 목감2어울림센터",
+      "distinguishing_basis": "facility name uniquely identifies service (목감2어울림센터)",
+      "category": "culture_community"
+    },
+    {
+      "case_id": "dev-029",
+      "source": "gov24",
+      "source_id": "O00113600017",
+      "jurisdiction_or_scope": "youth national or local",
+      "distinguishing_basis": "benefit type + query contains youth intent",
+      "category": "culture_community"
+    },
+    {
+      "case_id": "dev-030",
+      "source": "gov24",
+      "source_id": "405000000690",
+      "jurisdiction_or_scope": "용인특례시",
+      "distinguishing_basis": "query contains municipality (용인특례시) + benefit type (시민안전보험)",
+      "category": "culture_community"
+    },
+    {
+      "case_id": "dev-031",
+      "source": "youth",
+      "source_id": "20260504005400113109",
+      "jurisdiction_or_scope": "충청남도",
+      "distinguishing_basis": "query contains municipality (충남) + benefit type (직업계고/연합설계)",
+      "category": "culture_community"
+    },
+    {
+      "case_id": "dev-032",
+      "source": "youth",
+      "source_id": "20250617005400110945",
+      "jurisdiction_or_scope": "youth national or local",
+      "distinguishing_basis": "benefit type + query contains youth intent",
+      "category": "welfare_health"
+    },
+    {
+      "case_id": "dev-033",
+      "source": "youth",
+      "source_id": "20260408005400212608",
+      "jurisdiction_or_scope": "서구",
+      "distinguishing_basis": "query contains municipality (서구) + facility name (서구1939/웰컴박스)",
+      "category": "culture_community"
+    },
+    {
+      "case_id": "dev-034",
+      "source": "youth",
+      "source_id": "20260408005400212593",
+      "jurisdiction_or_scope": "youth national or local",
+      "distinguishing_basis": "benefit type + query contains youth intent",
+      "category": "employment_education"
+    },
+    {
+      "case_id": "dev-035",
+      "source": "youth",
+      "source_id": "20260422005400212853",
+      "jurisdiction_or_scope": "제주특별자치도",
+      "distinguishing_basis": "query contains municipality (제주) + benefit type (원탁회의)",
+      "category": "culture_community"
+    },
+    {
+      "case_id": "dev-036",
+      "source": "youth",
+      "source_id": "20260327005400212306",
+      "jurisdiction_or_scope": "youth national or local",
+      "distinguishing_basis": "benefit type + query contains youth intent",
+      "category": "welfare_health"
+    }
+  ]
+}
