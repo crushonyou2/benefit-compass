@@ -38,10 +38,16 @@ def _date(v):
     s = (v or "").strip()
     return f"{s[:4]}-{s[4:6]}-{s[6:8]}" if len(s) == 8 and s.isdigit() else None
 
-
 def _regions(v):
     s = (v or "").strip()
     return [c for c in (x.strip() for x in s.split(",")) if c] if s else []
+def _official_url(*candidates: str | None) -> str | None:
+    """후보 중 https:// 또는 http://로 시작하는 첫 유효 URL만 반환한다."""
+    for candidate in candidates:
+        url = (candidate or "").strip()
+        if url.startswith(("https://", "http://")):
+            return url
+    return None
 
 
 def normalize(p: dict) -> dict:
@@ -58,7 +64,7 @@ def normalize(p: dict) -> dict:
         "org": p.get("sprvsnInstCdNm"),
         "apply_method": p.get("plcyAplyMthdCn"),
         "screening_method": p.get("srngMthdCn"),
-        "apply_url": (p.get("aplyUrlAddr") or p.get("refUrlAddr1") or "").strip() or None,
+        "apply_url": _official_url(p.get("aplyUrlAddr"), p.get("refUrlAddr1")),
         "submit_docs": p.get("sbmsnDcmntCn"),
         "etc_note": p.get("etcMttrCn"),
         "biz_start": _date(p.get("bizPrdBgngYmd")),
