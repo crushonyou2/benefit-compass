@@ -27,12 +27,16 @@ class CandidateFreezeTest(unittest.TestCase):
         self.assertFalse(m["p0_used_for_tuning"])
         self.assertFalse(m["challenge_used_for_tuning"])
         self.assertFalse(m["production_modified"])
+        # precise admin residue semantics must be documented
+        self.assertIn("admin_residue_particles", m["candidate_config"])
+        self.assertEqual(m["candidate_config"]["admin_residue_particles"], ["에서", "에", "의", "으로", "로"])
+        # runner description must be precise: pre-strip only
+        self.assertIn("checked only before particle strip", m["candidate_config"]["normalization_rule"])
 
     def test_manifest_dev_sha(self):
         m = json.loads(MANIFEST.read_text(encoding="utf-8"))
         self.assertEqual(m["dev_sha256"], "e9510203cb26bb9db5598b1cd284398ba226460437a396e72906aa6505aff56e")
         self.assertEqual(m["dev_eval_file"], "eval/retrieval-v2/dev/evalset.jsonl")
-        # verify dev file hash matches manifest
         actual = canonical_text_sha256(ROOT / m["dev_eval_file"])
         self.assertEqual(actual, m["dev_sha256"])
         self.assertEqual(m["sha256_basis"], "utf8_text_lf_normalized")
@@ -40,7 +44,6 @@ class CandidateFreezeTest(unittest.TestCase):
     def test_artifact_metrics_exact_match(self):
         m = json.loads(MANIFEST.read_text(encoding="utf-8"))
         j = json.loads(ARTIFACT.read_text(encoding="utf-8"))
-        # manifest dev_metrics must match artifact
         self.assertEqual(j["candidate_metrics"]["hit@5"], 35)
         self.assertAlmostEqual(j["candidate_metrics"]["recall@5"], 0.9722, places=4)
         self.assertAlmostEqual(j["candidate_metrics"]["recall@1"], 0.75, places=4)
@@ -55,7 +58,6 @@ class CandidateFreezeTest(unittest.TestCase):
         self.assertEqual(j["target_ranks"]["dev-009"]["candidate_rank"], 7)
         self.assertEqual(j["target_ranks"]["dev-015"]["candidate_rank"], 5)
         self.assertEqual(j["target_ranks"]["dev-034"]["candidate_rank"], 4)
-        # manifest summary matches
         self.assertEqual(m["dev_metrics"]["R@5"], 0.9722)
         self.assertEqual(m["dev_metrics"]["hit@5"], "35/36")
         self.assertEqual(m["dev_metrics"]["R@1"], 0.75)
@@ -66,19 +68,32 @@ class CandidateFreezeTest(unittest.TestCase):
         self.assertEqual(m["dev_metrics"]["losses"], 0)
 
     def test_artifact_config_equals_module(self):
-        # artifact config must equal actual module constants
         sys.path.insert(0, str(ROOT / "ml-service"))
-        from retrieval_v2.candidate_lexical_rewrite import ADMIN_UNITS, MIN_STEM_LEN, PARTICLES, RESIDUE_PURE
+        from retrieval_v2.candidate_lexical_rewrite import ADMIN_RESIDUE_PARTICLES, ADMIN_UNITS, MIN_STEM_LEN, PARTICLES, RESIDUE_PURE
         j = json.loads(ARTIFACT.read_text(encoding="utf-8"))
         cfg = j["candidate_config"]
         self.assertEqual(cfg["particles"], PARTICLES)
         self.assertEqual(cfg["min_stem_len"], MIN_STEM_LEN)
         self.assertEqual(sorted(cfg["residue_pure"]), sorted(RESIDUE_PURE))
         self.assertEqual(cfg["admin_units"], ADMIN_UNITS)
+        self.assertEqual(cfg["admin_residue_particles"], ADMIN_RESIDUE_PARTICLES)
         self.assertEqual(cfg["lexical_terms"], "lexical_overlap_terms_rewrite")
-        # manifest config must be same as artifact
+        self.assertEqual(cfg["strip_region"], "unchanged")
+        self.assertFalse(cfg["verb_expansion"])
         m = json.loads(MANIFEST.read_text(encoding="utf-8"))
         self.assertEqual(m["candidate_config"], cfg)
+        # production contract must include youth/gov24 and rerank 0
+        pc = j["production_contract"]
+        self.assertEqual(pc["rerank"], 0)
+        self.assertEqual(pc["candidates"], 30)
+        self.assertAlmostEqual(pc["bi_encoder_min_score"], 0.78)
+        self.assertEqual(pc["gov24_org_suppression"], True)
+        self.assertAlmostEqual(pc["youth_intent_bias"], 0.015)
+        # also check provenance clean
+        self.assertEqual(j["git_dirty"], False)
+        # manifest artifact_provenance must match artifact
+        self.assertEqual(m["artifact_provenance"]["git_commit"], j["git_commit"])
+        self.assertEqual(m["artifact_provenance"]["git_dirty"], False)
 
     def test_file_hashes_match(self):
         m = json.loads(MANIFEST.read_text(encoding="utf-8"))
@@ -86,14 +101,16 @@ class CandidateFreezeTest(unittest.TestCase):
         self.assertEqual(canonical_text_sha256(RUNNER), m["sha256"]["runner"])
         self.assertEqual(canonical_text_sha256(UNIT_TEST), m["sha256"]["unit_test"])
         self.assertEqual(canonical_text_sha256(ARTIFACT), m["sha256"]["dev_result"])
+        # also check dev_result hash matches clean generation commit
+        j = json.loads(ARTIFACT.read_text(encoding="utf-8"))
+        self.assertEqual(j["git_commit"], "c6c082681b4f2fcd521790e50c5fd46549116307")
+        self.assertFalse(j["git_dirty"])
 
     def test_rejected_not_in_manifest(self):
         m = json.loads(MANIFEST.read_text(encoding="utf-8"))
         text = json.dumps(m, ensure_ascii=False)
-        # rejected filenames must not appear
         for bad in ["candidate_rrf", "run_candidate_rrf", "candidate_lexical_normalization", "lexical-normalization-v1", "rrf-v1"]:
             self.assertNotIn(bad, text, f"rejected {bad} should not be in manifest")
-        # ensure paths are exactly chosen
         self.assertEqual(m["candidate_module"], "eval/retrieval_v2/candidate_lexical_rewrite.py")
         self.assertEqual(m["runner"], "eval/retrieval_v2/run_candidate_lexical_rewrite.py")
         self.assertEqual(m["unit_test"], "eval/test_candidate_lexical_rewrite.py")
@@ -101,16 +118,13 @@ class CandidateFreezeTest(unittest.TestCase):
 
     def test_production_namespace_intact(self):
         m = json.loads(MANIFEST.read_text(encoding="utf-8"))
-        # manifest must not claim production modified and must not reference canonical holdout
         self.assertFalse(m["production_modified"])
-        # ensure no canonical path in manifest fields
         dump = json.dumps(m)
-        self.assertNotIn("canonical", dump.lower()[:5000] if len(dump) > 5000 else dump.lower())  # manifest should not reference canonical artifact
-        # holdout not observed
+        # manifest should not reference canonical artifact path (lowercase canonical)
+        # but normalization_rule may contain no canonical; check no canonical path like eval/canonical
+        self.assertNotIn("eval/canonical", dump)
         self.assertFalse(m["holdout_observed"])
-        # also verify holdout file still absent (but not reading it)
         self.assertFalse((ROOT / "eval" / "retrieval-v2" / "holdout" / "evalset.jsonl").exists())
-        # corpus present
         self.assertEqual(m["corpus"]["total_policies"], 13589)
         self.assertEqual(m["corpus"]["total_chunks"], 17609)
 

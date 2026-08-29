@@ -12,7 +12,7 @@
   "unit_test": "eval/test_candidate_lexical_rewrite.py",
   "candidate_config": {
     "name": "lexical-rewrite-v1",
-    "normalization_rule": "lexical rewrite replacement: original term replaced by particle-stripped stem (particles 에게서/으로부터/에게/한테/께/에서/으로/로/은/는/이/가/을/를/의/에/와/과/도/만/부터/까지, MIN_STEM_LEN 2, deduped); residue tokens (pure josa/admin-unit/admin+particle without proper noun) dropped; stopword stems dropped; verb expansion none",
+    "normalization_rule": "lexical rewrite replacement: original term replaced by particle-stripped stem (particles 에게서/으로부터/에게/한테/께/에서/으로/로/은/는/이/가/을/를/의/에/와/과/도/만/부터/까지, MIN_STEM_LEN 2, deduped); residue dropped: pure josa + bare admin_units ['특별자치도', '특별자치시', '특별시', '광역시', '자치도', '도', '시', '군', '구'] + admin+['에서', '에', '의', '으로', '로'] only (no proper-noun prefix), checked only before particle strip (no post-strip re-check); stopword stems dropped; verb expansion none",
     "min_stem_len": 2,
     "particles": [
       "에게서",
@@ -67,6 +67,13 @@
       "군",
       "구"
     ],
+    "admin_residue_particles": [
+      "에서",
+      "에",
+      "의",
+      "으로",
+      "로"
+    ],
     "verb_expansion": false,
     "lexical_terms": "lexical_overlap_terms_rewrite",
     "strip_region": "unchanged"
@@ -107,10 +114,16 @@
   "challenge_used_for_tuning": false,
   "production_modified": false,
   "sha256": {
-    "candidate_module": "c41205abf9bceb1b18182bb4dfac405de54601eda30e0890f606ffc1eee065a2",
-    "runner": "c35dc944adcc6a37faf4c1b1807a73a9832e8c5e3826c86aaed48e728bc1163d",
+    "candidate_module": "ed598aeafcda6969d877f476394cf8a36c72581326ef70eed3bcfc3327834577",
+    "runner": "5c24325c36e768a97db47f2ed341e0e63edd89eb67027db189c466a2102d4c5a",
     "unit_test": "63f6a719efa824e3fc43b56baee38632b5495042da804366f31cce386cb1735a",
-    "dev_result": "bdb610a3c571c35a6764ea8ef44caeb6546af8195176d7c2538a85a40707c860"
+    "dev_result": "416dddede4337ffa20791cc7fbad9e666402514721e7c1d08950d312c98cddb7"
   },
-  "created_at": "2026-08-29T20:55:32.664250+00:00"
+  "created_at": "2026-08-29T22:06:01.086019+00:00",
+  "artifact_provenance": {
+    "git_commit": "c6c082681b4f2fcd521790e50c5fd46549116307",
+    "git_dirty": false,
+    "evaluator": "eval/retrieval_v2/run_candidate_lexical_rewrite.py",
+    "model": "intfloat/multilingual-e5-base"
+  }
 }

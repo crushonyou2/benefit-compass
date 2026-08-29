@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-08-29T20:46:35.828489+00:00",
-  "git_commit": "9048347caed1074619763c51bcbc4e35e7e60363",
-  "git_dirty": true,
+  "generated_at": "2026-08-29T22:05:38.431727+00:00",
+  "git_commit": "c6c082681b4f2fcd521790e50c5fd46549116307",
+  "git_dirty": false,
   "dev_set_sha256": "e9510203cb26bb9db5598b1cd284398ba226460437a396e72906aa6505aff56e",
   "dev_set_freeze_commit": "078434d09a4e0b1c22738dea280e4c1a008fdd45",
   "evaluator": "eval/retrieval_v2/run_candidate_lexical_rewrite.py",
@@ -14,11 +14,47 @@
     "candidates": 30,
     "rerank": 0,
     "bi_encoder_min_score": 0.78,
-    "lexical_bias": 0.01
+    "lexical_bias": 0.01,
+    "youth_intent_bias": 0.015,
+    "youth_intent_terms": [
+      "청년",
+      "대학생",
+      "사회초년생"
+    ],
+    "gov24_org_suppression": true,
+    "gov24_intent_terms": [
+      "국토교통부",
+      "중소벤처기업부",
+      "고용노동부",
+      "보건복지부",
+      "교육부",
+      "행정안전부",
+      "문화체육관광부",
+      "농림축산식품부",
+      "산업통상자원부",
+      "과학기술정보통신부",
+      "국가보훈부",
+      "해양수산부",
+      "통일부",
+      "법무부",
+      "국방부",
+      "기획재정부",
+      "여성가족부",
+      "환경부",
+      "국세청",
+      "산림청",
+      "국민연금공단",
+      "한국장학재단",
+      "한국주택금융공사",
+      "주택도시보증공사",
+      "근로복지공단",
+      "소상공인시장진흥공단"
+    ],
+    "note": "youth bias applied via youth_source_bias(q) with Gov24 org suppression (region_filter + bias suppression for Gov24 org queries); RERANK=0 bi-encoder only per D-003"
   },
   "candidate_config": {
     "name": "lexical-rewrite-v1",
-    "normalization_rule": "lexical rewrite replacement: original term replaced by particle-stripped stem (particles 에게서/으로부터/에게/한테/께/에서/으로/로/은/는/이/가/을/를/의/에/와/과/도/만/부터/까지, MIN_STEM_LEN 2, deduped); residue tokens (pure josa/admin-unit/admin+particle without proper noun) dropped; stopword stems dropped; verb expansion none",
+    "normalization_rule": "lexical rewrite replacement: original term replaced by particle-stripped stem (particles 에게서/으로부터/에게/한테/께/에서/으로/로/은/는/이/가/을/를/의/에/와/과/도/만/부터/까지, MIN_STEM_LEN 2, deduped); residue dropped: pure josa + bare admin_units ['특별자치도', '특별자치시', '특별시', '광역시', '자치도', '도', '시', '군', '구'] + admin+['에서', '에', '의', '으로', '로'] only (no proper-noun prefix), checked only before particle strip (no post-strip re-check); stopword stems dropped; verb expansion none",
     "min_stem_len": 2,
     "particles": [
       "에게서",
@@ -72,6 +108,13 @@
       "시",
       "군",
       "구"
+    ],
+    "admin_residue_particles": [
+      "에서",
+      "에",
+      "의",
+      "으로",
+      "로"
     ],
     "verb_expansion": false,
     "lexical_terms": "lexical_overlap_terms_rewrite",
