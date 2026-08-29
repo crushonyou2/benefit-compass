@@ -240,7 +240,7 @@ def get_git_commit() -> dict:
 def parse_args():
     p = argparse.ArgumentParser(description="Warm paired latency gate — candidate-v2 D-007")
     p.add_argument("--authorized-latency-gate", action="store_true", help="explicit authorization for latency gate (required before DB/model load)")
-    p.add_argument("--output", type=pathlib.Path, default=FIXED_OUTPUT, help="output under eval/retrieval-v2/latency/")
+    p.add_argument("--output", type=pathlib.Path, default=pathlib.Path(FIXED_OUTPUT_POSIX), help="output under eval/retrieval-v2/latency/")
     p.add_argument("--expected-candidate-commit", type=str, default=EXPECTED_CANDIDATE_COMMIT)
     p.add_argument("--expected-candidate-tag", type=str, default=EXPECTED_CANDIDATE_TAG)
     return p.parse_args()
@@ -492,7 +492,7 @@ def main() -> None:
             "harness_sha256": harness_sha,
             "commit": git_info["commit"],
             "dirty": git_info["dirty"],
-            "tag": "retrieval-v2-latency-evaluator-v1",
+            "tag": "retrieval-v2-latency-evaluator-v2",
         },
         "corpus": corpus,
         "timed_scope": "lexical term generation (lexical_overlap_terms vs lexical_overlap_terms_rewrite) through same SQL execute+fetch, region_filter(None), COSINE_MIN post-filter; model load and embedding encode excluded; qvec precomputed; youth_bias/lexical_bias=.01/CANDIDATES=30/SQL/post-filter identical",

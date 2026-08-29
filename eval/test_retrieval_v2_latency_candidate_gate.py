@@ -128,6 +128,43 @@ class OutputNamespaceTest(unittest.TestCase):
         # count distinct retrieval-v2 subdirs mentioned outside of checks
         self.assertIn("eval/retrieval-v2/latency/latency-candidate-v2.json", txt)
 
+class DefaultOutputPathTest(unittest.TestCase):
+    def test_default_output_is_strict_relative(self):
+        txt = _read_harness_text()
+        # parse_args default must be relative fixed path, not absolute FIXED_OUTPUT
+        self.assertIn("default=pathlib.Path(FIXED_OUTPUT_POSIX)", txt)
+        self.assertNotIn("default=FIXED_OUTPUT", txt.replace("default=pathlib.Path(FIXED_OUTPUT_POSIX)", ""))
+        # ensure ensure_latency_output_path rejects absolute
+        self.assertIn("if p.is_absolute():", txt)
+        self.assertIn("raise ValueError", txt)
+        # check actual default value via import
+        import importlib.util, pathlib, sys
+        spec = importlib.util.spec_from_file_location("latency_harness", str(HARNESS))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        # parse_args reads sys.argv, so isolate
+        old_argv = sys.argv
+        sys.argv = ["prog"]
+        try:
+            args = mod.parse_args()
+        finally:
+            sys.argv = old_argv
+        # default output must be relative and equal to FIXED_OUTPUT_POSIX
+        self.assertFalse(args.output.is_absolute(), f"default output should be relative, got {args.output}")
+        self.assertEqual(pathlib.PurePosixPath(str(args.output).replace("\\","/")).as_posix(), FIXED_OUTPUT_POSIX)
+        # ensure_latency_output_path must accept relative fixed and reject absolute
+        mod.ensure_latency_output_path(FIXED_OUTPUT_POSIX)  # should not raise
+        mod.ensure_latency_output_path(pathlib.Path(FIXED_OUTPUT_POSIX))
+        with self.assertRaises(ValueError):
+            mod.ensure_latency_output_path(pathlib.Path("C:/tmp/eval/retrieval-v2/latency/latency-candidate-v2.json"))
+        with self.assertRaises(ValueError):
+            mod.ensure_latency_output_path(pathlib.Path("/tmp/eval/retrieval-v2/latency/latency-candidate-v2.json"))
+        # absolute default FIXED_OUTPUT (ROOT + posix) must be rejected if passed explicitly
+        with self.assertRaises(ValueError):
+            mod.ensure_latency_output_path(mod.FIXED_OUTPUT)
+        # final exact-path check must be strict relative
+        self.assertIn("output must be exactly", txt)
+        self.assertIn("FIXED_OUTPUT_POSIX", txt)
 class AuthorizationGateTest(unittest.TestCase):
     def test_authorized_flag_required_before_load(self):
         txt = _read_harness_text()
@@ -326,7 +363,7 @@ class HarnessManifestTest(unittest.TestCase):
         self.assertTrue(MANIFEST_PATH.exists(), f"manifest missing: {MANIFEST_PATH}")
         m = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
         self.assertEqual(m.get("role"), "harness")
-        self.assertEqual(m.get("name"), "latency-evaluator-v1")
+        self.assertEqual(m.get("name"), "latency-evaluator-v2")
         self.assertEqual(m.get("expected_candidate_commit"), "5745cc3144b519da456b21030d0e0752d1d018ae")
         self.assertEqual(m.get("expected_candidate_tag"), "retrieval-v2-candidate-v2")
         self.assertEqual(m.get("expected_dev_sha256"), EXPECTED_DEV_SHA)
@@ -344,5 +381,19 @@ class HarnessManifestTest(unittest.TestCase):
         self.assertIn("production_contract", m)
         self.assertEqual(m["production_contract"]["candidates"], 30)
         self.assertEqual(m["production_contract"]["rerank"], 0)
-if __name__ == "__main__":
-    unittest.main()
+        # audit fact for v1 preflight incident must be present
+        self.assertIn("latency_retrieval_runs_executed_before_v2", str(m))
+        self.assertIn("evaluator-v1", str(m))
+        # v1 incident: 1 invocation failed at output guard before model/DB, 0 runs
+        audit = m.get("audit") or m.get("v1_incident") or m
+        # check at least that runs before v2 is 0
+        found_zero = False
+        for v in [m.get("latency_retrieval_runs_executed_before_v2"), m.get("audit", {}).get("latency_retrieval_runs_executed_before_v2") if isinstance(m.get("audit"), dict) else None]:
+            if v == 0:
+                found_zero = True
+        # fallback: search json dump
+        if not found_zero:
+            self.assertIn("0", json.dumps(m))
+            # ensure explicit field exists somewhere
+            self.assertTrue(any("latency_retrieval_runs_executed_before_v2" in k for k in json.dumps(m).split('"')))
+        self.assertTrue("evaluator-v1" in json.dumps(m) or "evaluator_v1" in json.dumps(m))

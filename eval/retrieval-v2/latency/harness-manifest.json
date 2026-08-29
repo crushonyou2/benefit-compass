@@ -1,6 +1,6 @@
 {
   "role": "harness",
-  "name": "latency-evaluator-v1",
+  "name": "latency-evaluator-v2",
   "expected_candidate_commit": "5745cc3144b519da456b21030d0e0752d1d018ae",
   "expected_candidate_tag": "retrieval-v2-candidate-v2",
   "expected_artifact_commit": "c6c082681b4f2fcd521790e50c5fd46549116307",
@@ -21,14 +21,14 @@
   "test": "eval/test_retrieval_v2_latency_candidate_gate.py",
   "output": "eval/retrieval-v2/latency/latency-candidate-v2.json",
   "sha256": {
-    "run_latency_candidate_gate": "d75c4d10073bf97434464e34f46868b96fe8511d63cb1e7d0749c9d71d4692ce",
-    "test_latency_candidate_gate": "1326fcd3c3073eec81e4f4ecaf0da31ed9b17a3b66335ab9ad4f6f8afdc269c4",
+    "run_latency_candidate_gate": "66a4e48e9c71ecd03aa389ac93ac651817d3147355cb40d64511044357ac26e0",
+    "test_latency_candidate_gate": "f60496d08285fdd7a3772b3b8a7bb8c793afd7dd54adb34888e9c40db1040ab4",
     "latency": "47181e90ee9de142275d31a4082095fe0998500370fdb3886793302a8e1d6874",
     "candidate_manifest": "86f80ff6389ede4673e3c8d819cfab2ceefc79b8979a68b7b2bb5d64cc8eccff",
     "dev_manifest": "1a1cfcee1c03ef0af6ea9423b5737417eea47e9229322f665873d902db4e0bbe"
   },
   "sha256_basis": "utf8_text_lf_normalized",
-  "created_at": "2026-08-30T08:45:00+09:00",
+  "created_at": "2026-08-30T09:15:00+09:00",
   "contract": "D-007",
   "timed_scope": "lexical term generation (lexical_overlap_terms vs lexical_overlap_terms_rewrite) through same SQL execute+fetch, region_filter(None), COSINE_MIN post-filter; model load and embedding encode excluded; qvec precomputed; youth_bias/lexical_bias=.01/CANDIDATES=30/SQL/post-filter identical",
   "warmup": 36,
@@ -66,5 +66,18 @@
     "age": null,
     "rp": null
   },
-  "notes": "Warm paired same-environment retrieval/search p95 gate; same process/DB connection/corpus/query set/precomputed qvec; warm-up excluded; timed via perf_counter_ns and latency.summarize with 180 per variant interleaved"
+  "latency_retrieval_runs_executed_before_v2": 0,
+  "evaluator_v1_incident": "retrieval-v2-latency-evaluator-v1 frozen/pushed at 08280c8; first CLI invocation RERANK=0 --authorized-latency-gate failed at strict output guard (absolute default FIXED_OUTPUT vs relative guard) before model/DB load; no timed samples; no result file; not counted as retrieval run",
+  "audit": {
+    "prior_evaluator_tag": "retrieval-v2-latency-evaluator-v1",
+    "prior_evaluator_commit": "08280c825c621a796ae99b90b7d889dad4edd3ee",
+    "prior_invocations": 1,
+    "prior_failure_phase": "output guard before model/DB load",
+    "prior_failure_reason": "parse_args default was absolute FIXED_OUTPUT (ROOT + posix) but ensure_latency_output_path and final exact-path guard require strict relative FIXED_OUTPUT_POSIX; guard rejected before any retrieval execution",
+    "latency_retrieval_runs_executed_before_v2": 0,
+    "result_created_before_v2": false,
+    "count_as_retrieval_run": false,
+    "fix_in_v2": "change parse_args --output default from absolute FIXED_OUTPUT to relative pathlib.Path(FIXED_OUTPUT_POSIX); keep strict relative guard semantics; update evaluator tag to retrieval-v2-latency-evaluator-v2"
+  },
+  "notes": "Warm paired same-environment retrieval/search p95 gate; same process/DB connection/corpus/query set/precomputed qvec; warm-up excluded; timed via perf_counter_ns and latency.summarize with 180 per variant interleaved; v1 had 1 pre-timed guard failure, not counted"
 }
