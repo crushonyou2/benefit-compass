@@ -166,19 +166,20 @@ def _validate_holdout_manifest(holdout_manifest_path: pathlib.Path, eval_file: p
     hm = json.loads(holdout_manifest_path.read_text(encoding="utf-8"))
     if hm.get("role") != expected_role:
         raise SystemExit(f"holdout manifest role must be '{expected_role}', got {hm.get('role')!r}")
-    # contract D-007 where fields exist
-    if "contract" in hm and hm["contract"] != "D-007":
-        raise SystemExit(f"holdout manifest contract must be D-007, got {hm['contract']!r}")
-    # cases 40, Youth 20 Gov24 20 where fields exist
-    # Check multiple possible field names
-    cases = hm.get("cases") or hm.get("n") or hm.get("holdout_cases")
-    if cases is not None and cases != 40:
+    # contract D-007 is REQUIRED (fix #1)
+    if hm.get("contract") != "D-007":
+        raise SystemExit(f"holdout manifest contract must be D-007, got {hm.get('contract')!r}")
+    # cases 40, Youth 20 Gov24 20 are REQUIRED (fix #1) — synthetic manifests must include them
+    cases = hm.get("cases")
+    if cases is None:
+        cases = hm.get("n") or hm.get("holdout_cases")
+    if cases != 40:
         raise SystemExit(f"holdout manifest cases must be 40, got {cases!r}")
     youth = hm.get("youth")
-    gov24 = hm.get("gov24")
-    if youth is not None and youth != 20:
+    if youth != 20:
         raise SystemExit(f"holdout manifest youth must be 20, got {youth!r}")
-    if gov24 is not None and gov24 != 20:
+    gov24 = hm.get("gov24")
+    if gov24 != 20:
         raise SystemExit(f"holdout manifest gov24 must be 20, got {gov24!r}")
     # sha256 must be exactly expected
     # try multiple keys

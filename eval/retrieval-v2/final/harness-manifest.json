@@ -9,11 +9,13 @@
   "harness": "eval/retrieval_v2/run_final_holdout.py",
   "test": "eval/test_final_holdout_harness.py",
   "sha256": {
-    "run_final_holdout": "58ed0e8f6a74e79e139ea8e4f13cbf9f8a88f605a9489dac0a5ff67510399762",
+    "run_final_holdout": "227582b00354b43823093845dd42a2731db419b16a0cf59fcbbdae9d9d82b0cb",
     "test_final_holdout_harness": "30a202e19ed6847d8a8be1bb526d1748f32f394caa64ed27461c7da1e714c9ea",
     "candidate_manifest": "86f80ff6389ede4673e3c8d819cfab2ceefc79b8979a68b7b2bb5d64cc8eccff"
   },
   "sha256_basis": "utf8_text_lf_normalized",
-  "created_at": "2026-08-29T22:12:20.312589+00:00",
-  "note": "harness frozen before final holdout; actual holdout plaintext never opened"
+  "created_at": "2026-08-29T22:14:22.372012+00:00",
+  "holdout_plaintext_accessed_in_this_harness_task": false,
+  "known_prior_reviewer_seal_incident": true,
+  "audit_note": "Prior independent reviewer self-reported accidental annotation_audit viewing; that reviewer is excluded from the next independent approval review. This harness task itself has not opened holdout plaintext (no holdout evalset/annotation/SEALED read, no git show on holdout branch/tag)."
 }
