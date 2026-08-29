@@ -1,0 +1,67 @@
+{
+  "role": "harness",
+  "name": "hard-negative-evaluator-v1",
+  "expected_candidate_commit": "5745cc3144b519da456b21030d0e0752d1d018ae",
+  "expected_candidate_tag": "retrieval-v2-candidate-v2",
+  "expected_artifact_commit": "c6c082681b4f2fcd521790e50c5fd46549116307",
+  "expected_input": {
+    "path": "eval/expansion_api_evalset.jsonl",
+    "lf_sha256": "2b56dcfd79b14b91f719a65e3eef836cee5dff9a242277fa4148ada215521da5",
+    "sha256_basis": "utf8_text_lf_normalized",
+    "n": 36,
+    "slices": {
+      "pure_positive": 21,
+      "ineligible": 3,
+      "no_answer": 12
+    }
+  },
+  "expected_canonical": {
+    "manifest": "eval/canonical_manifest.json",
+    "manifest_sha256": "6c902b31a6179e32e9559216c03549d5b4ede8674088bdb6bb64399bb0899c88",
+    "manifest_sha256_basis": "utf8_text_lf_normalized",
+    "artifact": "eval/canonical_hard_negative_36_production_parity.json",
+    "artifact_sha256": "e9f826c8356ef88b3b09c0f17a88c104a05a37ae9a8716e838e66fbfeceb263d",
+    "sha256_basis": "utf8_text_lf_normalized",
+    "historical_blocking": {
+      "pure_hit@5": "15/21",
+      "intrusion_top5": "0/3"
+    }
+  },
+  "expected_corpus": {
+    "total_policies": 13589,
+    "total_chunks": 17609,
+    "by_source": {
+      "gov24": {
+        "policies": 10958,
+        "chunks": 14526
+      },
+      "youth": {
+        "policies": 2631,
+        "chunks": 3083
+      }
+    }
+  },
+  "candidate_manifest": "eval/retrieval-v2/candidate/manifest.json",
+  "candidate_manifest_sha256": "86f80ff6389ede4673e3c8d819cfab2ceefc79b8979a68b7b2bb5d64cc8eccff",
+  "harness": "eval/retrieval_v2/run_hard_negative_candidate_gate.py",
+  "test": "eval/test_retrieval_v2_hard_negative_candidate_gate.py",
+  "output": "eval/retrieval-v2/hard-negative/paired-candidate-v2.json",
+  "sha256": {
+    "run_hard_negative_candidate_gate": "8298edac086f3c48b171ee049117c91cb6870d0ab4b9a877df979b5bd75edadd",
+    "test_hard_negative_candidate_gate": "403bd3adb8ce409c4b0f248de94f88bdfee3427cb7fd578384532912c4eb9fda",
+    "candidate_manifest": "86f80ff6389ede4673e3c8d819cfab2ceefc79b8979a68b7b2bb5d64cc8eccff",
+    "candidate_module": "ed598aeafcda6969d877f476394cf8a36c72581326ef70eed3bcfc3327834577"
+  },
+  "sha256_basis": "utf8_text_lf_normalized",
+  "created_at": "2026-08-30T08:30:00+09:00",
+  "production_contract": {
+    "candidates": 30,
+    "cosine_min": 0.78,
+    "lexical_bias": 0.01,
+    "rerank": 0,
+    "embed_model": "intfloat/multilingual-e5-base",
+    "lexical_terms_baseline": "lexical_overlap_terms",
+    "lexical_terms_candidate": "lexical_overlap_terms_rewrite"
+  },
+  "notes": "Paired hard-negative gate pinned to 36-case set, same vector reuse, exact excluded intrusion semantics, no-answer nonblocking, output gated to hard-negative namespace"
+}
