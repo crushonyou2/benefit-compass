@@ -2,22 +2,22 @@
 
 ## 검증일 / Commit
 - 검증일: 2026-08-29
-- git commit: `fe95ac4` (P1 merge) — P2 branch `codex/p2-no-traffic-verification` HEAD `fe95ac4` (no code change, verification only)
-- base: `main == origin/main == fe95ac4`, working tree clean
-
+- verification code revision: `fe95ac4` (P1 merge; ML/API images rebuilt from this revision)
+- initial P2 evidence commit: `c15d1ae` (`docs: record P2 no-traffic production validation`)
+- base: `fe95ac4` (`main == origin/main`)
+- no application code changes in P2; only validation evidence was committed
 ## Service / Revision / Tag
-
 | Service | Old serving (100%) | P2 revision | Tag | Traffic |
 |---------|---|---|---|---|
 | benefit-ml | `benefit-ml-00001-wvn` (`db3d6c5...` old serving) | `benefit-ml-p2-fe95ac4` (`c1972048...:fe95ac4` new build) | `p2-ml-fe95ac4` | 0% |
-| benefit-ml (interim) | — | `benefit-ml-p2-fe95ac2` (`1070274...` pl2) | `p2-ml-fe95ac2` | 0% (failed `p2-fe95ac` removed) |
+| benefit-ml (interim) | — | `benefit-ml-p2-fe95ac2` (`1070274...` pl2) | `p2-ml-fe95ac2` | 0% |
 | benefit-api | `benefit-api-00002-ndd` (`ccc7129...` old) | `benefit-api-p2-fe95ac4-api` (`3ad69e85...:fe95ac4` new build) | `p2-api-fe95ac4` | 0% |
 | benefit-api (interim) | — | `benefit-api-p2-fe95ac2` (`f0e88ec...` pl2) | `p2-api-fe95ac2` | 0% |
 | benefit-api (interim, fixed) | — | `benefit-api-p2-fe95ac3` (`3ad69e85...:fe95ac4`) | `p2-api-fe95ac3` | 0% |
 
 - region: `asia-northeast3`, project: `healthy-clock-465504-t5`
 - image digests:
-  - ML serving old: `db3d6c57a376f3ea0f95b52144f1bee450566e4fd939a52e2f8051317498e45d` (no `/ready` — failed probe, not used for P2)
+  - ML serving old: `db3d6c57a376f3ea0f95b52144f1bee450566e4fd939a52e2f8051317498e45d` — remains the existing 100% serving revision under its original TCP startup probe; when that same old image was redeployed as the P2 candidate `benefit-ml-p2-fe95ac` under the new `/ready` HTTP startup probe, the candidate revision failed with 404 because the image did not contain `/ready`
   - ML P2 final: `c1972048e30c5e5b4c8ed72f6d2b7f90d6a599184ffdcf7a915b22de437d586c` (`:fe95ac4`, built from `fe95ac4`)
   - API serving old: `ccc7129750517ef7669c4b35dab2ef7a00910780849c64f3720f96a6930dcde9`
   - API P2 final: `3ad69e85b1ff7ee0322fc565c770bc9f06306d653200577725a67c665865b09f` (`:fe95ac4`)
@@ -136,9 +136,13 @@
 
 ## Commits
 
-- P2 branch `codex/p2-no-traffic-verification` HEAD `fe95ac4` (no new commit yet — docs only, will commit as `docs: record P2 no-traffic production validation`)
-
-## Issues Found
+- `c15d1ae docs: record P2 no-traffic production validation`
+  - records verification performed against application revision `fe95ac4`
+  - documentation/evidence only; no application code change
+- `docs: correct P2 validation provenance` (this commit)
+  - corrects stale `HEAD fe95ac4` wording to distinguish `verification code revision: fe95ac4` vs `initial P2 evidence commit: c15d1ae`
+  - unifies `failed p2-fe95ac` status to `remains at 0% and is not serving production traffic`
+  - clarifies old serving image `db3d6c57` remains 100% serving under TCP probe; candidate failed only when redeployed under `/ready` HTTP probe
 
 - **BLOCKER fixed**: Initial P2 ML `p2-fe95ac` with image `db3d6c57` (old serving image) failed startup probe (`/ready` 404) — image lacked `/ready` (pre-`0ba0aa4`). Fixed by rebuilding ML from `fe95ac4` (`c1972048...:fe95ac4`, `source` column present) as `p2-fe95ac4`.
 - **BLOCKER fixed**: Initial P2 API `p2-api-fe95ac2` with image `f0e88ec2` (0ba0aa4) lacked `region` 400 rejection (PolicyController without `rejectUnsupportedRegion`). Fixed by rebuilding API from `fe95ac4` (`3ad69e85...:fe95ac4`) as `p2-fe95ac4-api` — now `region` correctly 400.
