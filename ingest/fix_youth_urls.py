@@ -47,6 +47,17 @@ def get_db_url(staging_url):
     return os.getenv("DATABASE_URL", "").strip()
 
 
+def is_commit_allowed(after_missing, expected_after, missing_embeddings, duplicate_policies, policies_without_chunks, orphan_chunks, updated_rows, expected_rows) -> bool:
+    return (
+        after_missing == expected_after
+        and missing_embeddings == 0
+        and duplicate_policies == 0
+        and policies_without_chunks == 0
+        and orphan_chunks == 0
+        and updated_rows == expected_rows
+    )
+
+
 def find_bug_rows(cur):
     cur.execute("""
         SELECT id, source_id, apply_url,
@@ -60,7 +71,6 @@ def find_bug_rows(cur):
         ORDER BY source_id
     """)
     return cur.fetchall()
-
 
 def main():
     args = parse_args()
@@ -127,17 +137,27 @@ def main():
 
     if do_execute:
         if not updates:
-            print("실행할 업데이트 없음")
+            print("실행할 업데이트 없음 — idempotent, 변경 없음")
+            # still report current state for provenance
+            cur.execute("SELECT count(*) FROM policy WHERE source='youth' AND (apply_url IS NULL OR apply_url !~ '^https?://')")
+            after_missing = cur.fetchone()[0]
+            report["after_missing"] = after_missing
+            report["updated_rows"] = 0
+            report["commit_allowed"] = (after_missing == expected_after)
+            conn.rollback()
         else:
+            updated_rows = 0
             for new_url, pid in updates:
                 cur.execute("UPDATE policy SET apply_url=%s, updated_at=now() WHERE id=%s", (new_url, pid))
-            # 검증
+                # psycopg2 rowcount may be -1 for some cases, treat 1 as success
+                updated_rows += cur.rowcount if cur.rowcount != -1 else 1
+            # 검증 — commit gate
             cur.execute("SELECT count(*) FROM policy WHERE source='youth' AND (apply_url IS NULL OR apply_url !~ '^https?://')")
             after_missing = cur.fetchone()[0]
             print(f"after missing_links (youth)={after_missing}")
             report["after_missing"] = after_missing
+            report["updated_rows"] = updated_rows
             report["executed"] = True
-            # coverage / duplicate / embedding 검증 (read-only)
             cur.execute("SELECT count(*) FROM policy_chunk WHERE embedding IS NULL")
             missing_embeddings = cur.fetchone()[0]
             cur.execute("SELECT count(*) FROM (SELECT source, source_id FROM policy GROUP BY source, source_id HAVING count(*)>1) d")
@@ -158,14 +178,27 @@ def main():
                 "policies_without_chunks": orphan_policies,
                 "orphan_chunks": orphan_chunks,
             }
-            print(f"validation: missing_embeddings={missing_embeddings} dup={dup_policies} no_chunk={orphan_policies} orphan_chunk={orphan_chunks}")
+            report["commit_allowed"] = is_commit_allowed(
+                after_missing, expected_after, missing_embeddings, dup_policies, orphan_policies, orphan_chunks, updated_rows, len(updates)
+            )
+            print(f"validation: missing_embeddings={missing_embeddings} dup={dup_policies} no_chunk={orphan_policies} orphan_chunk={orphan_chunks} updated_rows={updated_rows}/{len(updates)} commit_allowed={report['commit_allowed']}")
+            if not report["commit_allowed"]:
+                conn.rollback()
+                report["error"] = "validation gate failed — rollback, no commit"
+                print("VALIDATION FAILED — rollback, no commit")
+                # report still written below, then exit with error
+                cur.close()
+                conn.close()
+                args.output.parent.mkdir(parents=True, exist_ok=True)
+                args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+                print(f"report → {args.output}")
+                raise SystemExit(1)
             conn.commit()
             print(f"COMMIT: {len(updates)}건 UPDATE 적용")
     else:
         # dry-run: rollback
         conn.rollback()
         print("DRY-RUN: 변경 없음 (rollback)")
-
     cur.close()
     conn.close()
 

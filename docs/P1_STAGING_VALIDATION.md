@@ -13,8 +13,7 @@
 - missing_embeddings 0, duplicate 0, orphan 0
 
 ## Refresh 전략 결정
-**Targeted 16-row UPDATE + staging 전체 복제 검증** 선택.
-
+**16-policy targeted URL correction + staging full-copy validation** 선택.
 - 전체 재수집/재임베딩: 불필요 (URL은 chunk/embedding 미포함), youth 원천 변동 위험
 - 기존 파일 기반 full reload: `ingest/data`에 youth 파일 없음 (gitignored), gov24만 있어 youth 유실 위험
 - Staging DB full reload: local pgvector `benefit-staging:5433`에 production 13589/17609 복제 후 fix 검증 → 안전성 확보, 재현성 유지
