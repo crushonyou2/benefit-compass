@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 // 배포 시 VITE_API_BASE에 Cloud Run api URL 주입. 로컬은 빈 값 → vite 프록시 사용.
 const API_BASE = import.meta.env.VITE_API_BASE || ''
+const SOURCE_NAMES = { youth: '온통청년', gov24: '정부24' }
 
 export default function App() {
   const [query, setQuery] = useState('')
@@ -58,7 +59,7 @@ export default function App() {
     <div className="container">
       <header>
         <h1>🧭 혜택나침반</h1>
-        <p>궁금한 걸 물어보면, 받을 수 있는 청년 정책을 근거와 함께 찾아드려요.</p>
+        <p>궁금한 걸 물어보면, 공식 정책과 혜택을 여러 출처에서 근거와 함께 찾아드려요.</p>
       </header>
 
       <form className="card form" onSubmit={ask}>
@@ -82,7 +83,7 @@ export default function App() {
           />
         </label>
         <button type="submit" disabled={loading}>
-          {loading ? (elapsed < 8 ? '관련 정책을 찾는 중…' : '검색 서버를 준비하는 중…') : '청년 정책 찾기'}
+          {loading ? (elapsed < 8 ? '관련 정책을 찾는 중…' : '검색 서버를 준비하는 중…') : '정책 찾기'}
         </button>
         {loading ? (
           <div className="loading-note" role="status" aria-live="polite">
@@ -110,9 +111,10 @@ export default function App() {
             <section className="sources">
               <h2>근거 정책 {result.sources.length}건</h2>
               {result.sources.map((p) => (
-                <article className="card policy" key={p.source_id}>
+                <article className="card policy" key={`${p.source}:${p.source_id}`}>
                   <div className="policy-head">
                     <h3>{p.title}</h3>
+                    <span className="source-badge">{SOURCE_NAMES[p.source] || p.source}</span>
                   </div>
                   <div className="meta">
                     <span>{p.org}</span>
@@ -122,7 +124,7 @@ export default function App() {
                   {p.support_content && <p className="support">{p.support_content}</p>}
                   {p.apply_url && (
                     <a className="apply" href={p.apply_url} target="_blank" rel="noreferrer">
-                      신청 페이지 →
+                      공식 안내·신청 페이지 →
                     </a>
                   )}
                 </article>
@@ -132,7 +134,7 @@ export default function App() {
         </>
       )}
 
-      <footer>데이터 출처: 온통청년 (공공데이터포털)</footer>
+      <footer>데이터 출처: 온통청년 · 행정안전부 정부24 공공서비스(공공데이터포털)</footer>
     </div>
   )
 }

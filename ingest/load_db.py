@@ -1,5 +1,5 @@
 """
-youth_policies.jsonl + chunks.jsonl → Postgres(pgvector) 적재.
+*_policies.jsonl + chunks.jsonl → Postgres(pgvector) 적재.
 schema.sql 자동 적용(멱등). 재실행 시 UPSERT.
 
 필요: DATABASE_URL (Neon 등 무료 Postgres, pgvector 지원)
@@ -26,31 +26,60 @@ COLS = ["source", "source_id", "title", "summary", "support_content", "keywords"
         "income_etc", "marriage_status", "region_codes", "add_qualify", "raw"]
 
 
+def validate_chunk_coverage(policies, chunks):
+    policy_keys = {(policy["source"], policy["source_id"]) for policy in policies}
+    chunk_keys = {(chunk["source"], chunk["source_id"]) for chunk in chunks}
+    missing = policy_keys - chunk_keys
+    unknown = chunk_keys - policy_keys
+    if not policy_keys or missing or unknown:
+        raise SystemExit(
+            "정책·청크 코퍼스 불일치: "
+            f"policies={len(policy_keys)}, missing_chunks={len(missing)}, "
+            f"unknown_chunks={len(unknown)}"
+        )
+
+
 def main() -> None:
     if not DB:
         raise SystemExit("DATABASE_URL 없음 — .env 확인")
 
     conn = psycopg2.connect(DB)
+    conn.set_session(readonly=False, autocommit=False)
     cur = conn.cursor()
     cur.execute(SCHEMA.read_text(encoding="utf-8"))
     conn.commit()
 
-    policies = [json.loads(l) for l in (DATA / "youth_policies.jsonl").open(encoding="utf-8")]
-    id_map = {}
-    for p in policies:
-        vals = [Json(p.get("raw")) if c == "raw" else p.get(c) for c in COLS]
-        cur.execute(
-            f"INSERT INTO policy ({','.join(COLS)}) "
-            f"VALUES ({','.join(['%s'] * len(COLS))}) "
-            "ON CONFLICT (source, source_id) DO UPDATE "
-            "SET title = EXCLUDED.title, updated_at = now() RETURNING id",
-            vals,
-        )
-        id_map[(p["source"], p["source_id"])] = cur.fetchone()[0]
-    conn.commit()
+    infiles = sorted(DATA.glob("*_policies.jsonl"))
+    if not infiles:
+        raise SystemExit(f"{DATA}에 정책 파일 없음 — 수집 스크립트를 먼저 실행")
+    policies = [
+        json.loads(line)
+        for infile in infiles
+        for line in infile.open(encoding="utf-8")
+    ]
+    chunks = [json.loads(line) for line in (DATA / "chunks.jsonl").open(encoding="utf-8")]
+    validate_chunk_coverage(policies, chunks)
+    updates = ",".join(
+        f"{column}=EXCLUDED.{column}"
+        for column in COLS if column not in {"source", "source_id"}
+    )
+    policy_rows = [
+        tuple(Json(policy.get("raw")) if column == "raw" else policy.get(column)
+              for column in COLS)
+        for policy in policies
+    ]
+    returned = execute_values(
+        cur,
+        f"INSERT INTO policy ({','.join(COLS)}) VALUES %s "
+        "ON CONFLICT (source, source_id) DO UPDATE "
+        f"SET {updates}, updated_at = now() RETURNING source, source_id, id",
+        policy_rows,
+        page_size=500,
+        fetch=True,
+    )
+    id_map = {(source, source_id): policy_id for source, source_id, policy_id in returned}
     print(f"정책 {len(policies)}건 적재")
 
-    chunks = [json.loads(l) for l in (DATA / "chunks.jsonl").open(encoding="utf-8")]
     rows = []
     for c in chunks:
         pid = id_map.get((c["source"], c["source_id"]))
@@ -58,14 +87,17 @@ def main() -> None:
             continue
         vec = "[" + ",".join(str(x) for x in c["embedding"]) + "]"
         rows.append((pid, c["chunk_index"], c["content"], vec))
-    execute_values(
-        cur,
-        "INSERT INTO policy_chunk (policy_id, chunk_index, content, embedding) VALUES %s "
-        "ON CONFLICT (policy_id, chunk_index) DO UPDATE "
-        "SET content = EXCLUDED.content, embedding = EXCLUDED.embedding",
-        rows,
-        template="(%s,%s,%s,%s::vector)",
-    )
+    # 이번 코퍼스의 정책 청크를 한 트랜잭션에서 교체해 짧아진 문서의 낡은 청크도 남기지 않는다.
+    if id_map:
+        cur.execute("DELETE FROM policy_chunk WHERE policy_id = ANY(%s)",
+                    (list(id_map.values()),))
+    if rows:
+        execute_values(
+            cur,
+            "INSERT INTO policy_chunk (policy_id, chunk_index, content, embedding) VALUES %s",
+            rows,
+            template="(%s,%s,%s,%s::vector)",
+        )
     conn.commit()
     print(f"청크 {len(rows)}건 적재 완료")
     cur.close()

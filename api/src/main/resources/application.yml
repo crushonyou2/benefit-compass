@@ -6,7 +6,7 @@ ml:
 
 gemini:
   api-key: ${GEMINI_API_KEY:}
-  model: gemini-3.1-flash-lite   # 답변 짧고 빠르게 (3.5-flash는 thinking으로 느림)
+  model: ${GEMINI_MODEL:gemini-3.5-flash-lite}
 
 benefitcompass:
   observability:

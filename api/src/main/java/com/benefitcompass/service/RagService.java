@@ -32,10 +32,10 @@ public class RagService {
         if (policies.isEmpty()) {
             return new AskResponse(
                     "딱 맞는 정책을 바로 찾지는 못했어요. 검색어를 조금 바꿔 다시 시도해 보세요. "
-                    + "(관련 정책이 있어도 검색이 놓쳤을 수 있어요.)", List.of());
+                    + "(관련 정책이 있어도 검색이 놓쳤을 수 있어요.)", List.of(), false);
         }
         String answer = gemini.generate(buildPrompt(req.query(), policies));
-        return new AskResponse(answer, policies);
+        return new AskResponse(answer, policies, true);
     }
 
     private String buildPrompt(String question, List<Policy> policies) {
@@ -45,10 +45,13 @@ public class RagService {
             String support = p.supportContent() == null ? ""
                     : p.supportContent().replaceAll("\\s+", " ").trim();
             if (support.length() > 120) support = support.substring(0, 120) + "…";
-            ctx.append("- ").append(p.title()).append(" (").append(p.org())
+            ctx.append("- ").append(p.title()).append(" [출처: ").append(sourceName(p.source()))
+               .append("] (").append(p.org())
                .append(", ").append(age)
                .append(p.incomeEtc() != null ? ", " + p.incomeEtc() : "").append("): ")
-               .append(support).append("\n");
+               .append(support)
+               .append(p.applyUrl() != null ? " / 공식 링크: " + p.applyUrl() : "")
+               .append("\n");
         }
         return """
                 너는 정부 지원금 안내 도우미다. 아래 [정책 목록]만 근거로 답해라.
@@ -67,5 +70,11 @@ public class RagService {
                 %s
 
                 [답변]""".formatted(question, ctx.toString());
+    }
+
+    private String sourceName(String source) {
+        if ("gov24".equals(source)) return "정부24";
+        if ("youth".equals(source)) return "온통청년";
+        return source == null ? "출처 미상" : source;
     }
 }

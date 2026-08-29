@@ -42,6 +42,37 @@ class HealthReadinessApiTest(unittest.TestCase):
         self.assertEqual("BAAI/bge-reranker-v2-m3", captured["reranker"]["model_name"])
         self.assertEqual({"local_files_only": True}, captured["reranker"]["kwargs"])
 
+    def test_rerank_candidates_uses_production_text_order_and_threshold(self):
+        captured_pairs = []
+
+        class FakeReranker:
+            def predict(self, pairs):
+                captured_pairs.extend(pairs)
+                return [0.11, 0.9]
+
+        candidates = [
+            {
+                "source_id": "filtered",
+                "title": "첫 정책",
+                "support_content": "가" * 500,
+                "score": 0.8,
+            },
+            {
+                "source_id": "kept",
+                "title": "둘째 정책",
+                "support_content": "지원 내용",
+                "score": 0.7,
+            },
+        ]
+
+        result = ml_app.rerank_candidates(
+            "청년 지원", candidates, FakeReranker(), 0.12)
+
+        self.assertEqual(["kept"], [candidate["source_id"] for candidate in result])
+        self.assertEqual("청년 지원", captured_pairs[0][0])
+        self.assertTrue(captured_pairs[0][1].startswith("첫 정책 "))
+        self.assertEqual(ml_app.RERANK_TEXT_LIMIT, len(captured_pairs[0][1]))
+
     def test_liveness_responds_while_readiness_waits_for_model_loader(self):
         loader_started = threading.Event()
         release_loader = threading.Event()
@@ -80,13 +111,16 @@ class HealthReadinessApiTest(unittest.TestCase):
             def encode(self, texts, normalize_embeddings):
                 return [[0.1, 0.2]]
 
+        executed_params = []
+
         class FakeCursor:
             def execute(self, sql, params):
                 self.params = params
+                executed_params.append(params)
 
             def fetchall(self):
                 return [[
-                    "policy-1", "청년 주거 지원", "테스트 기관", "지원 내용",
+                    "youth", "policy-1", "청년 주거 지원", "테스트 기관", "지원 내용",
                     "온라인", "https://example.test", 19, 34, None, 0.9,
                 ]]
 
@@ -112,11 +146,13 @@ class HealthReadinessApiTest(unittest.TestCase):
                     response = client.post(
                         "/search",
                         headers={"X-Request-ID": "123e4567-e89b-42d3-a456-426614174000"},
-                        json={"query": "fixed synthetic query", "age": 345678901, "k": 5},
+                        json={"query": "청년 fixed synthetic query", "age": 345678901, "k": 5},
                     )
 
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, len(response.json()["results"]))
+        self.assertEqual("youth", response.json()["results"][0]["source"])
+        self.assertEqual(0.015, executed_params[0]["youth_bias"])
         server_timing = response.headers["Server-Timing"]
         self.assertIn("model_wait;dur=", server_timing)
         self.assertIn("embedding;dur=", server_timing)

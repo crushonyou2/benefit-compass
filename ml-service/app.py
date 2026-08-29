@@ -23,7 +23,11 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from runtime_state import ModelRuntime, safe_request_id, server_timing_header
-
+from source_ranking import (
+    LEXICAL_OVERLAP_BIAS,
+    lexical_overlap_terms,
+    youth_source_bias,
+)
 # .env는 아래 모듈 상수보다 먼저 로드한다. 이전에는 load_dotenv가 이 상수들 아래에서 돌아
 # RERANK·COSINE_MIN·MODEL_READY_TIMEOUT_SECONDS·MODEL_LOCAL_ONLY 네 값은 .env에 적어도
 # 적용되지 않았다(실제 환경변수로만 동작). Cloud Run에는 .env 파일이 없어 배포 동작은
@@ -36,6 +40,14 @@ RERANK = os.getenv("RERANK", "1") == "1"             # 0이면 리랭커 끔 (�
 COSINE_MIN = float(os.getenv("COSINE_MIN", "0.78"))  # 리랭커 끌 때 bi-encoder 코사인 컷
 MODEL_READY_TIMEOUT_SECONDS = float(os.getenv("MODEL_READY_TIMEOUT_SECONDS", "120"))
 MODEL_LOCAL_ONLY = os.getenv("MODEL_LOCAL_ONLY", "0") == "1"
+EMBED_MODEL_NAME = "intfloat/multilingual-e5-base"
+RERANK_MODEL_NAME = "BAAI/bge-reranker-v2-m3"
+DEFAULT_RERANK_MIN_SCORE = 0.12
+RERANK_TEXT_LIMIT = 400
+SEARCH_RESULT_COLUMNS = (
+    "source", "source_id", "title", "org", "support_content", "apply_method",
+    "apply_url", "age_min", "age_max", "income_etc", "score",
+)
 
 # 지역코드(zipCd)가 부정확해 기관명으로 보강 필터링. region 코드 앞2자리 → 시도 키워드.
 SIDO = {
@@ -70,15 +82,26 @@ def region_filter(cands, region):
             out.append(c)
     return out
 
+
+def rerank_candidates(query, candidates, reranker, min_score):
+    """Production cross-encoder input, ordering, and threshold contract."""
+    pairs = [
+        [query, ((candidate["title"] or "") + " "
+                 + (candidate["support_content"] or ""))[:RERANK_TEXT_LIMIT]]
+        for candidate in candidates
+    ]
+    for candidate, logit in zip(candidates, reranker.predict(pairs)):
+        candidate["score"] = float(logit)
+    candidates.sort(key=lambda candidate: candidate["score"], reverse=True)
+    return [candidate for candidate in candidates if candidate["score"] >= min_score]
+
 DB = os.getenv("DATABASE_URL", "").strip()
 
 SQL = """
-SELECT t.source_id, t.title, t.org, t.support_content, t.apply_method,
-       t.apply_url, t.age_min, t.age_max, t.income_etc, 1 - t.dist AS score
-FROM (
-  SELECT DISTINCT ON (p.id) p.source_id, p.title, p.org, p.support_content,
-         p.apply_method, p.apply_url, p.age_min, p.age_max, p.income_etc,
-         (c.embedding <=> %(vec)s::vector) AS dist
+WITH nearest AS (
+  SELECT DISTINCT ON (p.id) p.id, p.source, p.source_id, p.title, p.org,
+         p.support_content, p.apply_method, p.apply_url, p.age_min, p.age_max,
+         p.income_etc, (c.embedding <=> %(vec)s::vector) AS dist
   FROM policy_chunk c
   JOIN policy p ON p.id = c.policy_id
   WHERE ( %(age)s IS NULL OR p.age_limit_yn IS NOT TRUE
@@ -87,8 +110,28 @@ FROM (
           OR EXISTS (SELECT 1 FROM unnest(p.region_codes) rc WHERE rc LIKE %(rp)s) )
     AND ( p.biz_end IS NULL OR p.biz_end >= CURRENT_DATE )   -- 만료 정책 제외
   ORDER BY p.id, c.embedding <=> %(vec)s::vector
-) t
-ORDER BY t.dist
+),
+lexical AS (
+  SELECT p.id, count(DISTINCT term) AS lexical_overlap
+  FROM policy p
+  CROSS JOIN LATERAL unnest(%(lexical_terms)s::text[]) AS term
+  WHERE ( %(age)s IS NULL OR p.age_limit_yn IS NOT TRUE
+          OR %(age)s BETWEEN p.age_min AND p.age_max )
+    AND ( %(rp)s IS NULL
+          OR EXISTS (SELECT 1 FROM unnest(p.region_codes) rc WHERE rc LIKE %(rp)s) )
+    AND ( p.biz_end IS NULL OR p.biz_end >= CURRENT_DATE )
+    AND concat_ws(' ', p.title, p.summary, p.support_content,
+                  p.add_qualify, p.keywords)
+        ILIKE '%%' || term || '%%'
+  GROUP BY p.id
+)
+SELECT t.source, t.source_id, t.title, t.org, t.support_content, t.apply_method,
+       t.apply_url, t.age_min, t.age_max, t.income_etc, 1 - t.dist AS score
+FROM nearest t
+LEFT JOIN lexical l ON l.id = t.id
+ORDER BY t.dist - CASE WHEN t.source = 'youth' THEN %(youth_bias)s ELSE 0 END
+             - %(lexical_bias)s * coalesce(l.lexical_overlap, 0),
+         t.dist, t.source, t.source_id
 LIMIT %(n)s
 """
 
@@ -107,10 +150,10 @@ def load_models():
     from sentence_transformers import SentenceTransformer
 
     kwargs = {"local_files_only": True} if MODEL_LOCAL_ONLY else {}
-    models = {"model": SentenceTransformer("intfloat/multilingual-e5-base", **kwargs)}
+    models = {"model": SentenceTransformer(EMBED_MODEL_NAME, **kwargs)}
     if RERANK:
         from sentence_transformers import CrossEncoder
-        models["reranker"] = CrossEncoder("BAAI/bge-reranker-v2-m3", **kwargs)
+        models["reranker"] = CrossEncoder(RERANK_MODEL_NAME, **kwargs)
     return models
 
 
@@ -142,7 +185,7 @@ class SearchReq(BaseModel):
     age: Optional[int] = None
     region: Optional[str] = None   # 법정동코드 앞자리 (서울=11)
     k: int = 5
-    min_score: float = 0.12        # 리랭커 원시점수 임계값 — 미만은 관련 없음(한 개 knob, 튜닝 가능)
+    min_score: float = DEFAULT_RERANK_MIN_SCORE  # 리랭커 원시점수 임계값 — 미만은 관련 없음
 
 
 @app.get("/health")
@@ -221,30 +264,30 @@ def search(
         try:
             cur = conn.cursor()
             try:
-                cur.execute(SQL, {"vec": vec, "age": req.age,
-                                  "rp": (f"{req.region}%" if req.region else None),
-                                  "n": CANDIDATES})
+                cur.execute(SQL, {
+                    "vec": vec,
+                    "age": req.age,
+                    "rp": (f"{req.region}%" if req.region else None),
+                    "youth_bias": youth_source_bias(q),
+                    "lexical_terms": lexical_overlap_terms(q),
+                    "lexical_bias": LEXICAL_OVERLAP_BIAS,
+                    "n": CANDIDATES,
+                })
                 rows = cur.fetchall()
             finally:
                 cur.close()
         finally:
             timings["db_query"] = (time.perf_counter_ns() - started_ns) / 1_000_000.0
 
-        cols = ["source_id", "title", "org", "support_content", "apply_method",
-                "apply_url", "age_min", "age_max", "income_etc", "score"]
-        cands = [dict(zip(cols, row)) for row in rows]
+        cands = [dict(zip(SEARCH_RESULT_COLUMNS, row)) for row in rows]
         cands = region_filter(cands, req.region)   # 기관명 기반 지역 보강 필터
 
         if cands and RERANK:
             started_ns = time.perf_counter_ns()
             try:
                 # cross-encoder 리랭킹: 질의↔정책을 직접 비교해 관련성 재산정
-                pairs = [[q, ((c["title"] or "") + " "
-                               + (c["support_content"] or ""))[:400]] for c in cands]
-                for cand, logit in zip(cands, models["reranker"].predict(pairs)):
-                    cand["score"] = float(logit)
-                cands.sort(key=lambda cand: cand["score"], reverse=True)
-                cands = [cand for cand in cands if cand["score"] >= req.min_score]
+                cands = rerank_candidates(
+                    q, cands, models["reranker"], req.min_score)
             finally:
                 timings["rerank"] = (time.perf_counter_ns() - started_ns) / 1_000_000.0
         elif cands:

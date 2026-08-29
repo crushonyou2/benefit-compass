@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /** 정책 한 건. ML 서비스(snake_case) 역직렬화 + API 응답 직렬화 공용. */
 public record Policy(
+        String source,
         @JsonProperty("source_id") String sourceId,
         String title,
         String org,

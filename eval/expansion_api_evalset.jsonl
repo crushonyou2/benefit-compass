@@ -1,0 +1,36 @@
+{"query":"소득이 적은 근로자인데 세금 환급처럼 받을 수 있는 지원금이 있나요?","gold_source":"gov24","gold_source_id":"105100000001","gold_title":"근로·자녀장려금","case_type":"general"}
+{"query":"만 65세가 넘고 소득이 많지 않은데 매달 받을 수 있는 연금이 있나요?","gold_source":"gov24","gold_source_id":"SSE000000170","gold_title":"기초연금","case_type":"general"}
+{"query":"저소득 가구의 겨울 난방비와 여름 냉방비를 지원하는 바우처가 있나요?","gold_source":"gov24","gold_source_id":"B55353000001","gold_title":"에너지바우처","case_type":"general"}
+{"query":"아이를 키우는 가정이 매달 받을 수 있는 아동 지원금이 궁금해요.","gold_source":"gov24","gold_source_id":"135200000120","gold_title":"아동수당","case_type":"household_housing"}
+{"query":"형편이 어려운 임차가구가 월세나 집수리 비용을 지원받을 수 있나요?","gold_source":"gov24","gold_source_id":"336000000096","gold_title":"주거급여 (맞춤형 급여)","case_type":"household_housing"}
+{"query":"월세 보증금이 부족해서 은행 대출을 받으려는데 보증 지원을 받을 수 있나요?","gold_source":"gov24","gold_source_id":"116010000001","gold_title":"주택금융공사 월세자금보증","case_type":"household_housing"}
+{"query":"취업 상담과 직업훈련을 함께 받고 구직촉진수당도 신청하고 싶어요.","gold_source":"gov24","gold_source_id":"149200005007","gold_title":"국민취업지원제도","case_type":"employment_income"}
+{"query":"직업을 바꾸려고 훈련을 받는데 국민 누구나 쓸 수 있는 훈련비 카드가 있나요?","gold_source":"gov24","gold_source_id":"149200000026","gold_title":"국민내일배움카드","case_type":"employment_income"}
+{"query":"가게를 비자발적으로 폐업한 자영업자도 실업급여를 받을 수 있나요?","gold_source":"gov24","gold_source_id":"149200005008","gold_title":"자영업자 실업급여","case_type":"employment_income"}
+{"query":"부모님의 치매가 걱정되는데 가까운 곳에서 검사와 상담을 받을 수 있나요?","gold_source":"gov24","gold_source_id":"135200000080","gold_title":"치매관리 서비스 (치매안심센터)","case_type":"welfare_health"}
+{"query":"치매 약값과 진료비 본인부담금을 매달 지원받을 수 있나요?","gold_source":"gov24","gold_source_id":"135200000125","gold_title":"치매 치료관리비 지원","case_type":"welfare_health"}
+{"query":"성인 중증장애인이 생활 안정을 위해 받을 수 있는 연금이 있나요?","gold_source":"gov24","gold_source_id":"SD0000016119","gold_title":"장애인연금","case_type":"welfare_health"}
+{"query":"갑자기 생계가 어려워진 가구가 전국 어디서나 긴급 생활비를 신청할 수 있나요?","gold_source":"gov24","gold_source_id":"135200005003","gold_title":"긴급복지 생계지원","case_type":"nationwide"}
+{"query":"대학이 등록금 부담을 줄이기 위해 자체 기준으로 지급하는 국가장학금이 있나요?","gold_source":"gov24","gold_source_id":"134200005002","gold_title":"국가장학금 Ⅱ유형 (대학자체노력연계형)","case_type":"nationwide"}
+{"query":"학교를 그만둔 청소년도 무료로 국가 건강검진을 받을 수 있나요?","gold_source":"gov24","gold_source_id":"138300000033","gold_title":"학교 밖 청소년 건강검진 지원","case_type":"nationwide"}
+{"query":"성남시에 사는 8세 미만 아이가 추가 아동수당 포인트를 받을 수 있나요?","gold_source":"gov24","gold_source_id":"378000000145","gold_title":"아동수당플러스 지원","case_type":"regional"}
+{"query":"사천시에 사는 100세 이상 기초연금 수급자가 사망하면 장제비 지원이 있나요?","gold_source":"gov24","gold_source_id":"534000000106","gold_title":"(경상남도 사천시)100세이상 기초연금 어르신 장제비 지원","case_type":"regional"}
+{"query":"서울 중구 난임부부가 시술 뒤 원외 약제비를 지원받을 수 있나요?","gold_source":"gov24","gold_source_id":"301000000142","gold_title":"(서울 중구) 난임부부 시술 약제비 지원","case_type":"regional"}
+{"query":"청년 월세 지원과 이름이 비슷한 정책이 여러 출처에 있는데 국토교통부 사업을 찾고 싶어요.","gold_source":"gov24","gold_source_id":"161300000099","gold_title":"청년월세 지원","case_type":"cross_source_similar"}
+{"query":"전세보증금 반환보증 보증료 지원 중 국토교통부가 담당하는 전국 사업은 무엇인가요?","gold_source":"gov24","gold_source_id":"161300000103","gold_title":"국토교통부 전세보증금반환보증 보증료 지원","case_type":"cross_source_similar"}
+{"query":"여러 청년 창업자금 정책 중 중소벤처기업부의 청년 전용 융자사업을 찾고 있어요.","gold_source":"gov24","gold_source_id":"142000000099","gold_title":"청년전용창업자금","case_type":"cross_source_similar"}
+{"query":"스무 살인데 기초연금을 받을 수 있나요?","age":20,"excluded_source":"gov24","excluded_source_id":"SSE000000170","excluded_title":"기초연금","case_type":"ineligible"}
+{"query":"서른 살 성인도 아동수당을 신청할 수 있나요?","age":30,"excluded_source":"gov24","excluded_source_id":"135200000120","excluded_title":"아동수당","case_type":"ineligible"}
+{"query":"열 살 초등학생이 국민내일배움카드로 직업훈련비를 받을 수 있나요?","age":10,"excluded_source":"gov24","excluded_source_id":"149200000026","excluded_title":"국민내일배움카드","case_type":"ineligible"}
+{"query":"개인 주식 투자 손실을 정부가 전액 보전해주는 정책이 있나요?","expected_no_results":true,"case_type":"no_answer"}
+{"query":"명품 가방 구매비를 국민 누구에게나 지급하는 지원금이 있나요?","expected_no_results":true,"case_type":"no_answer"}
+{"query":"온라인 게임 아이템 구매 비용을 정부 예산으로 환급받을 수 있나요?","expected_no_results":true,"case_type":"no_answer"}
+{"query": "비트코인 등 가상자산 투자 손실을 정부가 보장해주는 지원금이 있나요?", "expected_no_results": true, "case_type": "no_answer"}
+{"query": "해외 고가 명품 시계 구매 비용을 정부가 지원해주는 제도가 있나요?", "expected_no_results": true, "case_type": "no_answer"}
+{"query": "e스포츠 프로게이머 장비 구매비를 정부가 지원해주는 청년 정책이 있나요?", "expected_no_results": true, "case_type": "no_answer"}
+{"query": "강남 아파트 매매 대금 10억원을 정부가 무이자로 빌려주는 청년 주택 정책이 있나요?", "expected_no_results": true, "case_type": "no_answer"}
+{"query": "서울 고급 오피스텔 월세 300만원을 정부가 전액 지원해주는 주거 정책이 있나요?", "expected_no_results": true, "case_type": "no_answer"}
+{"query": "대기업 임원 연봉을 정부가 보조해주는 고용 지원 제도가 있나요?", "expected_no_results": true, "case_type": "no_answer"}
+{"query": "해외 아이비리그 대학 등록금 1억원을 정부가 전액 지원해주는 장학금 있나요?", "expected_no_results": true, "case_type": "no_answer"}
+{"query": "성형수술이나 미용 시술 비용을 건강보험으로 전액 지원받을 수 있나요?", "expected_no_results": true, "case_type": "no_answer"}
+{"query": "반려견 사료와 병원비를 매달 정부가 지급하는 반려동물 수당이 있나요?", "expected_no_results": true, "case_type": "no_answer"}

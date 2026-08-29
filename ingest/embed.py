@@ -1,5 +1,5 @@
 """
-youth_policies.jsonl → RAG 텍스트 구성 → 청킹 → 로컬 임베딩 → data/chunks.jsonl
+*_policies.jsonl → RAG 텍스트 구성 → 청킹 → 로컬 임베딩 → data/chunks.jsonl
 
 임베딩: intfloat/multilingual-e5-base (768차원, schema.sql 의 VECTOR(768) 와 일치).
   - 온디바이스(무료, API 한도 없음). 한국어 포함 다국어 검색에 강함.
@@ -10,19 +10,21 @@ youth_policies.jsonl → RAG 텍스트 구성 → 청킹 → 로컬 임베딩 �
 사용법: python embed.py
 """
 import json
+import os
 import pathlib
 
-from sentence_transformers import SentenceTransformer
 
 MODEL_NAME = "intfloat/multilingual-e5-base"
 DIMS = 768
 
 DATA = pathlib.Path(__file__).resolve().parent / "data"
-INFILE = DATA / "youth_policies.jsonl"
 OUTFILE = DATA / "chunks.jsonl"
+TEMPFILE = OUTFILE.with_suffix(OUTFILE.suffix + ".tmp")
 
 CHUNK_SIZE = 800   # 글자 수 기준 (정책 본문 대부분 1~2 청크)
 OVERLAP = 100
+INFERENCE_BATCH_SIZE = 32
+CHECKPOINT_SIZE = 320
 
 
 def build_doc(p: dict) -> str:
@@ -38,6 +40,7 @@ def build_doc(p: dict) -> str:
         ("지원대상 연령", age),
         ("소득조건", p.get("income_etc")),
         ("추가자격", p.get("add_qualify")),
+        ("신청기간", p.get("apply_period")),
         ("신청방법", p.get("apply_method")),
         ("제출서류", p.get("submit_docs")),
         ("심사방법", p.get("screening_method")),
@@ -58,11 +61,41 @@ def split(text: str) -> list:
     return out
 
 
-def main() -> None:
-    if not INFILE.exists():
-        raise SystemExit(f"{INFILE} 없음 — 먼저 ingest_youth.py 실행")
+def completed_chunks(chunks: list) -> int:
+    """체크포인트가 현재 코퍼스의 앞부분과 일치하는지 검증하고 재개 위치를 반환한다."""
+    if not TEMPFILE.exists():
+        return 0
+    completed = 0
+    with TEMPFILE.open(encoding="utf-8") as stream:
+        for line_number, line in enumerate(stream, 1):
+            try:
+                saved = json.loads(line)
+            except json.JSONDecodeError as exc:
+                raise SystemExit(
+                    f"임베딩 체크포인트 {line_number}행 손상 — {TEMPFILE}을 삭제 후 재실행"
+                ) from exc
+            if completed >= len(chunks):
+                raise SystemExit(f"임베딩 체크포인트가 현재 코퍼스보다 큽니다 — {TEMPFILE} 삭제 필요")
+            expected = chunks[completed]
+            key = (saved.get("source"), saved.get("source_id"), saved.get("chunk_index"))
+            expected_key = (expected["source"], expected["source_id"], expected["chunk_index"])
+            if (key != expected_key or saved.get("content") != expected["content"]
+                    or len(saved.get("embedding", [])) != DIMS):
+                raise SystemExit(f"임베딩 체크포인트가 현재 코퍼스와 다릅니다 — {TEMPFILE} 삭제 필요")
+            completed += 1
+    return completed
 
-    policies = [json.loads(line) for line in INFILE.open(encoding="utf-8")]
+
+def main() -> None:
+    infiles = sorted(DATA.glob("*_policies.jsonl"))
+    if not infiles:
+        raise SystemExit(f"{DATA}에 정책 파일 없음 — 수집 스크립트를 먼저 실행")
+
+    policies = [
+        json.loads(line)
+        for infile in infiles
+        for line in infile.open(encoding="utf-8")
+    ]
     chunks = []
     for p in policies:
         for idx, c in enumerate(split(build_doc(p))):
@@ -71,17 +104,37 @@ def main() -> None:
     print(f"{len(policies)}개 정책 → {len(chunks)}개 청크")
 
     print(f"모델 로드: {MODEL_NAME} (첫 실행 시 다운로드)")
+    from sentence_transformers import SentenceTransformer
+
     model = SentenceTransformer(MODEL_NAME)
 
-    inputs = [f"passage: {c['content']}" for c in chunks]
-    vecs = model.encode(inputs, normalize_embeddings=True,
-                        batch_size=32, show_progress_bar=True)
+    start = completed_chunks(chunks)
+    if start:
+        print(f"체크포인트 재개: {start}/{len(chunks)}개 청크 완료")
 
-    with OUTFILE.open("w", encoding="utf-8") as f:
-        for c, v in zip(chunks, vecs):
-            c["embedding"] = [round(float(x), 6) for x in v]
-            f.write(json.dumps(c, ensure_ascii=False) + "\n")
-    print(f"\n완료: {len(chunks)}개 청크 → {OUTFILE} (차원 {len(vecs[0])})")
+    mode = "a" if start else "w"
+    with TEMPFILE.open(mode, encoding="utf-8") as stream:
+        for offset in range(start, len(chunks), CHECKPOINT_SIZE):
+            batch = chunks[offset:offset + CHECKPOINT_SIZE]
+            inputs = [f"passage: {chunk['content']}" for chunk in batch]
+            vectors = model.encode(
+                inputs,
+                normalize_embeddings=True,
+                batch_size=INFERENCE_BATCH_SIZE,
+                show_progress_bar=False,
+            )
+            records = []
+            for chunk, vector in zip(batch, vectors):
+                record = {**chunk, "embedding": [round(float(x), 6) for x in vector]}
+                records.append(json.dumps(record, ensure_ascii=False))
+            stream.write("\n".join(records) + "\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+            done = min(offset + len(batch), len(chunks))
+            print(f"임베딩 진행: {done}/{len(chunks)}", flush=True)
+
+    TEMPFILE.replace(OUTFILE)
+    print(f"\n완료: {len(chunks)}개 청크 → {OUTFILE} (차원 {DIMS})")
 
 
 if __name__ == "__main__":
