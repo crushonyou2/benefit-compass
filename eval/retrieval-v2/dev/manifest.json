@@ -1,0 +1,21 @@
+{
+  "role": "dev",
+  "cases": 36,
+  "youth": 18,
+  "gov24": 18,
+  "eval_file": "eval/retrieval-v2/dev/evalset.jsonl",
+  "sha256": "d0fcf959ccb1e3ccbee3e6acbeebffa3475b475f602d19cce05220c44cf989ff",
+  "created_at": "2026-08-29T18:00:15.013319+00:00",
+  "base_commit": "5b9641c6d16532ab78a4e5ee4f9ea49f7b8c0025",
+  "contract": "D-007",
+  "canonical_overlap_query": 0,
+  "canonical_overlap_gold": 0,
+  "category_counts": {
+    "housing_finance": 6,
+    "employment_education": 7,
+    "welfare_health": 9,
+    "family_care": 3,
+    "business_agriculture": 3,
+    "culture_community": 8
+  }
+}
