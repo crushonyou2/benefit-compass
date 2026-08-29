@@ -1,0 +1,2652 @@
+{
+  "generated_at": "2026-08-29T23:37:25.310850+00:00",
+  "contract": "D-007",
+  "production_contract": {
+    "candidates": 30,
+    "cosine_min": 0.78,
+    "lexical_bias": 0.01,
+    "rerank": 0,
+    "embed_model": "intfloat/multilingual-e5-base",
+    "strip_region": true,
+    "expired_exclusion": true,
+    "youth_intent_bias": true,
+    "gov24_org_suppression": true,
+    "lexical_terms_baseline": "lexical_overlap_terms",
+    "lexical_terms_candidate": "lexical_overlap_terms_rewrite",
+    "request_region": null,
+    "age": null,
+    "rp": null
+  },
+  "candidate": {
+    "p50": 395.82,
+    "p95": 480.55,
+    "count": 180
+  },
+  "dev": {
+    "manifest": "eval/retrieval-v2/dev/manifest.json",
+    "evalset": "eval/retrieval-v2/dev/evalset.jsonl",
+    "role": "dev",
+    "cases": 36,
+    "sha256": "e9510203cb26bb9db5598b1cd284398ba226460437a396e72906aa6505aff56e",
+    "sha256_basis": "utf8_text_lf_normalized",
+    "evalset_lf_hash_verified": true
+  },
+  "evaluator": {
+    "harness": "eval/retrieval_v2/run_latency_candidate_gate.py",
+    "harness_sha256": "66a4e48e9c71ecd03aa389ac93ac651817d3147355cb40d64511044357ac26e0",
+    "commit": "7b8c4ea868afc3eb8b4ab33f63b067bd23c087ba",
+    "dirty": false,
+    "tag": "retrieval-v2-latency-evaluator-v2"
+  },
+  "corpus": {
+    "total_policies": 13589,
+    "total_chunks": 17609,
+    "by_source": {
+      "gov24": {
+        "policies": 10958,
+        "chunks": 14526
+      },
+      "youth": {
+        "policies": 2631,
+        "chunks": 3083
+      }
+    }
+  },
+  "timed_scope": "lexical term generation (lexical_overlap_terms vs lexical_overlap_terms_rewrite) through same SQL execute+fetch, region_filter(None), COSINE_MIN post-filter; model load and embedding encode excluded; qvec precomputed; youth_bias/lexical_bias=.01/CANDIDATES=30/SQL/post-filter identical",
+  "benchmark_queries": {
+    "source": "frozen dev 36",
+    "role": "dev",
+    "cases": 36,
+    "note": "benchmark queries only; not used for quality analysis/tuning"
+  },
+  "design": {
+    "same_process": true,
+    "same_db_connection": true,
+    "same_corpus": true,
+    "same_query_set": true,
+    "precomputed_qvec": true,
+    "model_load_excluded": true,
+    "embedding_encode_excluded": true,
+    "timed_section": "variant lexical term generation through SQL execute+fetch, region_filter(None), COSINE_MIN post-filter",
+    "warmup_per_variant": 36,
+    "warmup_total": 72,
+    "rounds": 5,
+    "observations_per_variant": 180,
+    "total_samples": 360,
+    "order_strategy": "(round+query_index)%2 alternation, deterministic seed shuffle, paired interleaved immediately",
+    "shuffle_seed": 20260830,
+    "pairing": "immediate (case_id,round) baseline/candidate paired; (round+query_index)%2 alternation B->C/C->B; not all-A-then-B",
+    "timer": "time.perf_counter_ns()",
+    "summarize": "latency.summarize(samples, expected_sample_count=180)"
+  },
+  "warmup": 36,
+  "rounds": 5,
+  "order_strategy": "(round+query_index)%2 alternation, deterministic seed shuffle, paired interleaved immediately",
+  "shuffle_seed": 20260830,
+  "expected_sample_count": 180,
+  "summary": {
+    "expected_sample_count": 180,
+    "actual_sample_count": 180,
+    "sample_count": 180,
+    "baseline": {
+      "p50": 410.4,
+      "p95": 476.51,
+      "count": 180
+    },
+    "candidate": {
+      "p50": 395.82,
+      "p95": 480.55,
+      "count": 180
+    },
+    "gate": "HOLD",
+    "delta_p95": 4.04
+  },
+  "baseline": {
+    "p50": 410.4,
+    "p95": 476.51,
+    "count": 180
+  },
+  "baseline_p50": 410.4,
+  "baseline_p95": 476.51,
+  "candidate_p50": 395.82,
+  "candidate_p95": 480.55,
+  "count": 180,
+  "delta_p95": 4.04,
+  "gate": "HOLD",
+  "samples": [
+    {
+      "case_id": "dev-008",
+      "round": 0,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 344.72
+    },
+    {
+      "case_id": "dev-008",
+      "round": 0,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 413.849
+    },
+    {
+      "case_id": "dev-036",
+      "round": 0,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 375.777
+    },
+    {
+      "case_id": "dev-036",
+      "round": 0,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 380.959
+    },
+    {
+      "case_id": "dev-024",
+      "round": 0,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 338.487
+    },
+    {
+      "case_id": "dev-024",
+      "round": 0,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 409.483
+    },
+    {
+      "case_id": "dev-023",
+      "round": 0,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 413.911
+    },
+    {
+      "case_id": "dev-023",
+      "round": 0,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 342.81
+    },
+    {
+      "case_id": "dev-035",
+      "round": 0,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 442.678
+    },
+    {
+      "case_id": "dev-035",
+      "round": 0,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 341.533
+    },
+    {
+      "case_id": "dev-022",
+      "round": 0,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 420.482
+    },
+    {
+      "case_id": "dev-022",
+      "round": 0,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 438.013
+    },
+    {
+      "case_id": "dev-002",
+      "round": 0,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 473.498
+    },
+    {
+      "case_id": "dev-002",
+      "round": 0,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 415.623
+    },
+    {
+      "case_id": "dev-013",
+      "round": 0,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 411.949
+    },
+    {
+      "case_id": "dev-013",
+      "round": 0,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 342.952
+    },
+    {
+      "case_id": "dev-034",
+      "round": 0,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 349.063
+    },
+    {
+      "case_id": "dev-034",
+      "round": 0,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 404.545
+    },
+    {
+      "case_id": "dev-012",
+      "round": 0,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 391.833
+    },
+    {
+      "case_id": "dev-012",
+      "round": 0,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 441.508
+    },
+    {
+      "case_id": "dev-021",
+      "round": 0,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 369.815
+    },
+    {
+      "case_id": "dev-021",
+      "round": 0,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 419.145
+    },
+    {
+      "case_id": "dev-032",
+      "round": 0,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 483.376
+    },
+    {
+      "case_id": "dev-032",
+      "round": 0,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 395.86
+    },
+    {
+      "case_id": "dev-005",
+      "round": 0,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 476.509
+    },
+    {
+      "case_id": "dev-005",
+      "round": 0,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 476.626
+    },
+    {
+      "case_id": "dev-009",
+      "round": 0,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 410.875
+    },
+    {
+      "case_id": "dev-009",
+      "round": 0,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 422.08
+    },
+    {
+      "case_id": "dev-014",
+      "round": 0,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 453.556
+    },
+    {
+      "case_id": "dev-014",
+      "round": 0,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 359.137
+    },
+    {
+      "case_id": "dev-006",
+      "round": 0,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 316.613
+    },
+    {
+      "case_id": "dev-006",
+      "round": 0,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 344.752
+    },
+    {
+      "case_id": "dev-029",
+      "round": 0,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 442.474
+    },
+    {
+      "case_id": "dev-029",
+      "round": 0,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 408.049
+    },
+    {
+      "case_id": "dev-025",
+      "round": 0,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 373.92
+    },
+    {
+      "case_id": "dev-025",
+      "round": 0,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 444.333
+    },
+    {
+      "case_id": "dev-017",
+      "round": 0,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 362.996
+    },
+    {
+      "case_id": "dev-017",
+      "round": 0,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 342.716
+    },
+    {
+      "case_id": "dev-028",
+      "round": 0,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 472.619
+    },
+    {
+      "case_id": "dev-028",
+      "round": 0,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 474.523
+    },
+    {
+      "case_id": "dev-020",
+      "round": 0,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 394.258
+    },
+    {
+      "case_id": "dev-020",
+      "round": 0,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 370.336
+    },
+    {
+      "case_id": "dev-016",
+      "round": 0,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 318.139
+    },
+    {
+      "case_id": "dev-016",
+      "round": 0,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 318.378
+    },
+    {
+      "case_id": "dev-033",
+      "round": 0,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 400.418
+    },
+    {
+      "case_id": "dev-033",
+      "round": 0,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 350.175
+    },
+    {
+      "case_id": "dev-001",
+      "round": 0,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 441.278
+    },
+    {
+      "case_id": "dev-001",
+      "round": 0,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 487.023
+    },
+    {
+      "case_id": "dev-011",
+      "round": 0,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 470.646
+    },
+    {
+      "case_id": "dev-011",
+      "round": 0,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 474.313
+    },
+    {
+      "case_id": "dev-031",
+      "round": 0,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 416.591
+    },
+    {
+      "case_id": "dev-031",
+      "round": 0,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 440.983
+    },
+    {
+      "case_id": "dev-010",
+      "round": 0,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 338.025
+    },
+    {
+      "case_id": "dev-010",
+      "round": 0,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 339.276
+    },
+    {
+      "case_id": "dev-026",
+      "round": 0,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 412.606
+    },
+    {
+      "case_id": "dev-026",
+      "round": 0,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 317.007
+    },
+    {
+      "case_id": "dev-019",
+      "round": 0,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 463.094
+    },
+    {
+      "case_id": "dev-019",
+      "round": 0,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 471.573
+    },
+    {
+      "case_id": "dev-027",
+      "round": 0,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 314.487
+    },
+    {
+      "case_id": "dev-027",
+      "round": 0,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 313.289
+    },
+    {
+      "case_id": "dev-018",
+      "round": 0,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 442.48
+    },
+    {
+      "case_id": "dev-018",
+      "round": 0,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 439.878
+    },
+    {
+      "case_id": "dev-003",
+      "round": 0,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 313.413
+    },
+    {
+      "case_id": "dev-003",
+      "round": 0,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 414.011
+    },
+    {
+      "case_id": "dev-007",
+      "round": 0,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 439.391
+    },
+    {
+      "case_id": "dev-007",
+      "round": 0,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 466.941
+    },
+    {
+      "case_id": "dev-030",
+      "round": 0,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 495.567
+    },
+    {
+      "case_id": "dev-030",
+      "round": 0,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 403.618
+    },
+    {
+      "case_id": "dev-015",
+      "round": 0,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 578.9
+    },
+    {
+      "case_id": "dev-015",
+      "round": 0,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 342.512
+    },
+    {
+      "case_id": "dev-004",
+      "round": 0,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 471.39
+    },
+    {
+      "case_id": "dev-004",
+      "round": 0,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 391.968
+    },
+    {
+      "case_id": "dev-004",
+      "round": 1,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 395.356
+    },
+    {
+      "case_id": "dev-004",
+      "round": 1,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 390.247
+    },
+    {
+      "case_id": "dev-020",
+      "round": 1,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 400.719
+    },
+    {
+      "case_id": "dev-020",
+      "round": 1,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 368.802
+    },
+    {
+      "case_id": "dev-006",
+      "round": 1,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 313.803
+    },
+    {
+      "case_id": "dev-006",
+      "round": 1,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 344.932
+    },
+    {
+      "case_id": "dev-035",
+      "round": 1,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 379.697
+    },
+    {
+      "case_id": "dev-035",
+      "round": 1,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 351.926
+    },
+    {
+      "case_id": "dev-016",
+      "round": 1,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 387.926
+    },
+    {
+      "case_id": "dev-016",
+      "round": 1,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 316.788
+    },
+    {
+      "case_id": "dev-028",
+      "round": 1,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 471.037
+    },
+    {
+      "case_id": "dev-028",
+      "round": 1,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 472.564
+    },
+    {
+      "case_id": "dev-002",
+      "round": 1,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 365.994
+    },
+    {
+      "case_id": "dev-002",
+      "round": 1,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 470.313
+    },
+    {
+      "case_id": "dev-001",
+      "round": 1,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 369.689
+    },
+    {
+      "case_id": "dev-001",
+      "round": 1,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 372.026
+    },
+    {
+      "case_id": "dev-007",
+      "round": 1,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 461.116
+    },
+    {
+      "case_id": "dev-007",
+      "round": 1,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 439.157
+    },
+    {
+      "case_id": "dev-010",
+      "round": 1,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 333.865
+    },
+    {
+      "case_id": "dev-010",
+      "round": 1,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 340.659
+    },
+    {
+      "case_id": "dev-029",
+      "round": 1,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 412.167
+    },
+    {
+      "case_id": "dev-029",
+      "round": 1,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 443.56
+    },
+    {
+      "case_id": "dev-027",
+      "round": 1,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 310.865
+    },
+    {
+      "case_id": "dev-027",
+      "round": 1,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 315.33
+    },
+    {
+      "case_id": "dev-009",
+      "round": 1,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 473.178
+    },
+    {
+      "case_id": "dev-009",
+      "round": 1,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 415.139
+    },
+    {
+      "case_id": "dev-024",
+      "round": 1,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 337.158
+    },
+    {
+      "case_id": "dev-024",
+      "round": 1,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 336.339
+    },
+    {
+      "case_id": "dev-005",
+      "round": 1,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 468.714
+    },
+    {
+      "case_id": "dev-005",
+      "round": 1,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 470.063
+    },
+    {
+      "case_id": "dev-023",
+      "round": 1,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 346.066
+    },
+    {
+      "case_id": "dev-023",
+      "round": 1,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 344.633
+    },
+    {
+      "case_id": "dev-008",
+      "round": 1,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 426.177
+    },
+    {
+      "case_id": "dev-008",
+      "round": 1,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 419.067
+    },
+    {
+      "case_id": "dev-017",
+      "round": 1,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 365.405
+    },
+    {
+      "case_id": "dev-017",
+      "round": 1,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 335.837
+    },
+    {
+      "case_id": "dev-011",
+      "round": 1,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 480.78
+    },
+    {
+      "case_id": "dev-011",
+      "round": 1,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 474.062
+    },
+    {
+      "case_id": "dev-012",
+      "round": 1,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 441.918
+    },
+    {
+      "case_id": "dev-012",
+      "round": 1,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 382.351
+    },
+    {
+      "case_id": "dev-032",
+      "round": 1,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 481.926
+    },
+    {
+      "case_id": "dev-032",
+      "round": 1,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 397.181
+    },
+    {
+      "case_id": "dev-021",
+      "round": 1,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 369.896
+    },
+    {
+      "case_id": "dev-021",
+      "round": 1,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 343.591
+    },
+    {
+      "case_id": "dev-014",
+      "round": 1,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 423.703
+    },
+    {
+      "case_id": "dev-014",
+      "round": 1,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 452.322
+    },
+    {
+      "case_id": "dev-034",
+      "round": 1,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 342.851
+    },
+    {
+      "case_id": "dev-034",
+      "round": 1,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 401.4
+    },
+    {
+      "case_id": "dev-031",
+      "round": 1,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 350.833
+    },
+    {
+      "case_id": "dev-031",
+      "round": 1,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 444.391
+    },
+    {
+      "case_id": "dev-026",
+      "round": 1,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 316.327
+    },
+    {
+      "case_id": "dev-026",
+      "round": 1,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 413.804
+    },
+    {
+      "case_id": "dev-025",
+      "round": 1,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 380.108
+    },
+    {
+      "case_id": "dev-025",
+      "round": 1,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 456.037
+    },
+    {
+      "case_id": "dev-018",
+      "round": 1,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 447.11
+    },
+    {
+      "case_id": "dev-018",
+      "round": 1,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 456.445
+    },
+    {
+      "case_id": "dev-015",
+      "round": 1,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 351.611
+    },
+    {
+      "case_id": "dev-015",
+      "round": 1,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 478.278
+    },
+    {
+      "case_id": "dev-003",
+      "round": 1,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 346.995
+    },
+    {
+      "case_id": "dev-003",
+      "round": 1,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 316.157
+    },
+    {
+      "case_id": "dev-022",
+      "round": 1,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 415.113
+    },
+    {
+      "case_id": "dev-022",
+      "round": 1,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 444.186
+    },
+    {
+      "case_id": "dev-030",
+      "round": 1,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 463.677
+    },
+    {
+      "case_id": "dev-030",
+      "round": 1,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 505.236
+    },
+    {
+      "case_id": "dev-019",
+      "round": 1,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 633.73
+    },
+    {
+      "case_id": "dev-019",
+      "round": 1,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 462.994
+    },
+    {
+      "case_id": "dev-033",
+      "round": 1,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 398.341
+    },
+    {
+      "case_id": "dev-033",
+      "round": 1,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 341.558
+    },
+    {
+      "case_id": "dev-036",
+      "round": 1,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 379.008
+    },
+    {
+      "case_id": "dev-036",
+      "round": 1,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 376.581
+    },
+    {
+      "case_id": "dev-013",
+      "round": 1,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 415.714
+    },
+    {
+      "case_id": "dev-013",
+      "round": 1,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 415.11
+    },
+    {
+      "case_id": "dev-016",
+      "round": 2,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 315.5
+    },
+    {
+      "case_id": "dev-016",
+      "round": 2,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 401.498
+    },
+    {
+      "case_id": "dev-011",
+      "round": 2,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 492.168
+    },
+    {
+      "case_id": "dev-011",
+      "round": 2,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 495.102
+    },
+    {
+      "case_id": "dev-023",
+      "round": 2,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 354.854
+    },
+    {
+      "case_id": "dev-023",
+      "round": 2,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 343.727
+    },
+    {
+      "case_id": "dev-035",
+      "round": 2,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 347.611
+    },
+    {
+      "case_id": "dev-035",
+      "round": 2,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 455.966
+    },
+    {
+      "case_id": "dev-003",
+      "round": 2,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 440.587
+    },
+    {
+      "case_id": "dev-003",
+      "round": 2,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 323.736
+    },
+    {
+      "case_id": "dev-015",
+      "round": 2,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 422.675
+    },
+    {
+      "case_id": "dev-015",
+      "round": 2,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 478.426
+    },
+    {
+      "case_id": "dev-026",
+      "round": 2,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 318.759
+    },
+    {
+      "case_id": "dev-026",
+      "round": 2,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 412.614
+    },
+    {
+      "case_id": "dev-030",
+      "round": 2,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 480.548
+    },
+    {
+      "case_id": "dev-030",
+      "round": 2,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 392.185
+    },
+    {
+      "case_id": "dev-027",
+      "round": 2,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 313.365
+    },
+    {
+      "case_id": "dev-027",
+      "round": 2,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 314.971
+    },
+    {
+      "case_id": "dev-004",
+      "round": 2,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 463.374
+    },
+    {
+      "case_id": "dev-004",
+      "round": 2,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 387.884
+    },
+    {
+      "case_id": "dev-024",
+      "round": 2,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 340.086
+    },
+    {
+      "case_id": "dev-024",
+      "round": 2,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 412.651
+    },
+    {
+      "case_id": "dev-028",
+      "round": 2,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 469.668
+    },
+    {
+      "case_id": "dev-028",
+      "round": 2,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 472.934
+    },
+    {
+      "case_id": "dev-001",
+      "round": 2,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 366.92
+    },
+    {
+      "case_id": "dev-001",
+      "round": 2,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 367.715
+    },
+    {
+      "case_id": "dev-022",
+      "round": 2,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 413.524
+    },
+    {
+      "case_id": "dev-022",
+      "round": 2,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 440.836
+    },
+    {
+      "case_id": "dev-020",
+      "round": 2,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 462.906
+    },
+    {
+      "case_id": "dev-020",
+      "round": 2,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 369.482
+    },
+    {
+      "case_id": "dev-021",
+      "round": 2,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 346.112
+    },
+    {
+      "case_id": "dev-021",
+      "round": 2,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 383.663
+    },
+    {
+      "case_id": "dev-019",
+      "round": 2,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 474.927
+    },
+    {
+      "case_id": "dev-019",
+      "round": 2,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 464.667
+    },
+    {
+      "case_id": "dev-029",
+      "round": 2,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 344.129
+    },
+    {
+      "case_id": "dev-029",
+      "round": 2,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 368.587
+    },
+    {
+      "case_id": "dev-032",
+      "round": 2,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 395.328
+    },
+    {
+      "case_id": "dev-032",
+      "round": 2,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 475.127
+    },
+    {
+      "case_id": "dev-036",
+      "round": 2,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 306.783
+    },
+    {
+      "case_id": "dev-036",
+      "round": 2,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 377.781
+    },
+    {
+      "case_id": "dev-008",
+      "round": 2,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 359.803
+    },
+    {
+      "case_id": "dev-008",
+      "round": 2,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 349.291
+    },
+    {
+      "case_id": "dev-002",
+      "round": 2,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 414.053
+    },
+    {
+      "case_id": "dev-002",
+      "round": 2,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 468.121
+    },
+    {
+      "case_id": "dev-006",
+      "round": 2,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 335.712
+    },
+    {
+      "case_id": "dev-006",
+      "round": 2,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 395.825
+    },
+    {
+      "case_id": "dev-009",
+      "round": 2,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 475.422
+    },
+    {
+      "case_id": "dev-009",
+      "round": 2,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 417.077
+    },
+    {
+      "case_id": "dev-014",
+      "round": 2,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 449.6
+    },
+    {
+      "case_id": "dev-014",
+      "round": 2,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 354.271
+    },
+    {
+      "case_id": "dev-017",
+      "round": 2,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 337.443
+    },
+    {
+      "case_id": "dev-017",
+      "round": 2,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 361.354
+    },
+    {
+      "case_id": "dev-033",
+      "round": 2,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 466.046
+    },
+    {
+      "case_id": "dev-033",
+      "round": 2,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 342.195
+    },
+    {
+      "case_id": "dev-025",
+      "round": 2,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 442.119
+    },
+    {
+      "case_id": "dev-025",
+      "round": 2,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 440.356
+    },
+    {
+      "case_id": "dev-034",
+      "round": 2,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 413.847
+    },
+    {
+      "case_id": "dev-034",
+      "round": 2,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 457.831
+    },
+    {
+      "case_id": "dev-007",
+      "round": 2,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 460.944
+    },
+    {
+      "case_id": "dev-007",
+      "round": 2,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 437.835
+    },
+    {
+      "case_id": "dev-018",
+      "round": 2,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 435.377
+    },
+    {
+      "case_id": "dev-018",
+      "round": 2,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 366.335
+    },
+    {
+      "case_id": "dev-010",
+      "round": 2,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 337.468
+    },
+    {
+      "case_id": "dev-010",
+      "round": 2,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 493.819
+    },
+    {
+      "case_id": "dev-031",
+      "round": 2,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 474.144
+    },
+    {
+      "case_id": "dev-031",
+      "round": 2,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 342.336
+    },
+    {
+      "case_id": "dev-005",
+      "round": 2,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 475.201
+    },
+    {
+      "case_id": "dev-005",
+      "round": 2,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 482.55
+    },
+    {
+      "case_id": "dev-012",
+      "round": 2,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 372.29
+    },
+    {
+      "case_id": "dev-012",
+      "round": 2,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 312.855
+    },
+    {
+      "case_id": "dev-013",
+      "round": 2,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 415.647
+    },
+    {
+      "case_id": "dev-013",
+      "round": 2,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 347.839
+    },
+    {
+      "case_id": "dev-034",
+      "round": 3,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 393.704
+    },
+    {
+      "case_id": "dev-034",
+      "round": 3,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 341.461
+    },
+    {
+      "case_id": "dev-006",
+      "round": 3,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 340.21
+    },
+    {
+      "case_id": "dev-006",
+      "round": 3,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 315.572
+    },
+    {
+      "case_id": "dev-002",
+      "round": 3,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 425.797
+    },
+    {
+      "case_id": "dev-002",
+      "round": 3,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 473.168
+    },
+    {
+      "case_id": "dev-011",
+      "round": 3,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 394.705
+    },
+    {
+      "case_id": "dev-011",
+      "round": 3,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 395.593
+    },
+    {
+      "case_id": "dev-014",
+      "round": 3,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 424.423
+    },
+    {
+      "case_id": "dev-014",
+      "round": 3,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 450.016
+    },
+    {
+      "case_id": "dev-001",
+      "round": 3,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 365.256
+    },
+    {
+      "case_id": "dev-001",
+      "round": 3,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 365.248
+    },
+    {
+      "case_id": "dev-012",
+      "round": 3,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 389.069
+    },
+    {
+      "case_id": "dev-012",
+      "round": 3,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 439.387
+    },
+    {
+      "case_id": "dev-022",
+      "round": 3,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 364.513
+    },
+    {
+      "case_id": "dev-022",
+      "round": 3,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 341.233
+    },
+    {
+      "case_id": "dev-003",
+      "round": 3,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 316.59
+    },
+    {
+      "case_id": "dev-003",
+      "round": 3,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 413.858
+    },
+    {
+      "case_id": "dev-030",
+      "round": 3,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 462.284
+    },
+    {
+      "case_id": "dev-030",
+      "round": 3,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 473.164
+    },
+    {
+      "case_id": "dev-023",
+      "round": 3,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 345.698
+    },
+    {
+      "case_id": "dev-023",
+      "round": 3,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 343.622
+    },
+    {
+      "case_id": "dev-004",
+      "round": 3,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 383.077
+    },
+    {
+      "case_id": "dev-004",
+      "round": 3,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 461.531
+    },
+    {
+      "case_id": "dev-021",
+      "round": 3,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 351.066
+    },
+    {
+      "case_id": "dev-021",
+      "round": 3,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 449.965
+    },
+    {
+      "case_id": "dev-027",
+      "round": 3,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 315.518
+    },
+    {
+      "case_id": "dev-027",
+      "round": 3,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 310.295
+    },
+    {
+      "case_id": "dev-033",
+      "round": 3,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 346.606
+    },
+    {
+      "case_id": "dev-033",
+      "round": 3,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 467.699
+    },
+    {
+      "case_id": "dev-005",
+      "round": 3,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 542.783
+    },
+    {
+      "case_id": "dev-005",
+      "round": 3,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 478.712
+    },
+    {
+      "case_id": "dev-028",
+      "round": 3,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 466.823
+    },
+    {
+      "case_id": "dev-028",
+      "round": 3,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 399.729
+    },
+    {
+      "case_id": "dev-019",
+      "round": 3,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 387.91
+    },
+    {
+      "case_id": "dev-019",
+      "round": 3,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 465.358
+    },
+    {
+      "case_id": "dev-017",
+      "round": 3,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 341.212
+    },
+    {
+      "case_id": "dev-017",
+      "round": 3,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 367.018
+    },
+    {
+      "case_id": "dev-024",
+      "round": 3,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 341.772
+    },
+    {
+      "case_id": "dev-024",
+      "round": 3,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 409.99
+    },
+    {
+      "case_id": "dev-036",
+      "round": 3,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 380.284
+    },
+    {
+      "case_id": "dev-036",
+      "round": 3,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 379.894
+    },
+    {
+      "case_id": "dev-007",
+      "round": 3,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 437.095
+    },
+    {
+      "case_id": "dev-007",
+      "round": 3,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 390.021
+    },
+    {
+      "case_id": "dev-020",
+      "round": 3,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 364.026
+    },
+    {
+      "case_id": "dev-020",
+      "round": 3,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 471.582
+    },
+    {
+      "case_id": "dev-029",
+      "round": 3,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 434.25
+    },
+    {
+      "case_id": "dev-029",
+      "round": 3,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 411.12
+    },
+    {
+      "case_id": "dev-018",
+      "round": 3,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 365.435
+    },
+    {
+      "case_id": "dev-018",
+      "round": 3,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 437.195
+    },
+    {
+      "case_id": "dev-015",
+      "round": 3,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 472.293
+    },
+    {
+      "case_id": "dev-015",
+      "round": 3,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 354.18
+    },
+    {
+      "case_id": "dev-010",
+      "round": 3,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 342.286
+    },
+    {
+      "case_id": "dev-010",
+      "round": 3,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 332.553
+    },
+    {
+      "case_id": "dev-016",
+      "round": 3,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 313.63
+    },
+    {
+      "case_id": "dev-016",
+      "round": 3,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 388.059
+    },
+    {
+      "case_id": "dev-032",
+      "round": 3,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 477.697
+    },
+    {
+      "case_id": "dev-032",
+      "round": 3,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 390.55
+    },
+    {
+      "case_id": "dev-035",
+      "round": 3,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 368.736
+    },
+    {
+      "case_id": "dev-035",
+      "round": 3,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 343.439
+    },
+    {
+      "case_id": "dev-025",
+      "round": 3,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 448.949
+    },
+    {
+      "case_id": "dev-025",
+      "round": 3,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 439.924
+    },
+    {
+      "case_id": "dev-013",
+      "round": 3,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 418.84
+    },
+    {
+      "case_id": "dev-013",
+      "round": 3,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 415.371
+    },
+    {
+      "case_id": "dev-008",
+      "round": 3,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 345.856
+    },
+    {
+      "case_id": "dev-008",
+      "round": 3,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 350.327
+    },
+    {
+      "case_id": "dev-026",
+      "round": 3,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 316.048
+    },
+    {
+      "case_id": "dev-026",
+      "round": 3,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 417.418
+    },
+    {
+      "case_id": "dev-031",
+      "round": 3,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 440.413
+    },
+    {
+      "case_id": "dev-031",
+      "round": 3,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 503.328
+    },
+    {
+      "case_id": "dev-009",
+      "round": 3,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 421.068
+    },
+    {
+      "case_id": "dev-009",
+      "round": 3,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 402.514
+    },
+    {
+      "case_id": "dev-003",
+      "round": 4,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 340.131
+    },
+    {
+      "case_id": "dev-003",
+      "round": 4,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 315.155
+    },
+    {
+      "case_id": "dev-024",
+      "round": 4,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 410.865
+    },
+    {
+      "case_id": "dev-024",
+      "round": 4,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 340.382
+    },
+    {
+      "case_id": "dev-004",
+      "round": 4,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 391.017
+    },
+    {
+      "case_id": "dev-004",
+      "round": 4,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 465.593
+    },
+    {
+      "case_id": "dev-005",
+      "round": 4,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 476.851
+    },
+    {
+      "case_id": "dev-005",
+      "round": 4,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 470.731
+    },
+    {
+      "case_id": "dev-001",
+      "round": 4,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 365.515
+    },
+    {
+      "case_id": "dev-001",
+      "round": 4,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 366.452
+    },
+    {
+      "case_id": "dev-013",
+      "round": 4,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 415.65
+    },
+    {
+      "case_id": "dev-013",
+      "round": 4,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 414.383
+    },
+    {
+      "case_id": "dev-016",
+      "round": 4,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 311.854
+    },
+    {
+      "case_id": "dev-016",
+      "round": 4,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 392.94
+    },
+    {
+      "case_id": "dev-036",
+      "round": 4,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 379.478
+    },
+    {
+      "case_id": "dev-036",
+      "round": 4,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 377.734
+    },
+    {
+      "case_id": "dev-018",
+      "round": 4,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 445.086
+    },
+    {
+      "case_id": "dev-018",
+      "round": 4,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 441.047
+    },
+    {
+      "case_id": "dev-006",
+      "round": 4,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 318.868
+    },
+    {
+      "case_id": "dev-006",
+      "round": 4,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 344.81
+    },
+    {
+      "case_id": "dev-020",
+      "round": 4,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 469.604
+    },
+    {
+      "case_id": "dev-020",
+      "round": 4,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 438.652
+    },
+    {
+      "case_id": "dev-030",
+      "round": 4,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 543.614
+    },
+    {
+      "case_id": "dev-030",
+      "round": 4,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 389.736
+    },
+    {
+      "case_id": "dev-015",
+      "round": 4,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 403.505
+    },
+    {
+      "case_id": "dev-015",
+      "round": 4,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 344.704
+    },
+    {
+      "case_id": "dev-023",
+      "round": 4,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 344.513
+    },
+    {
+      "case_id": "dev-023",
+      "round": 4,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 343.341
+    },
+    {
+      "case_id": "dev-027",
+      "round": 4,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 310.029
+    },
+    {
+      "case_id": "dev-027",
+      "round": 4,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 310.372
+    },
+    {
+      "case_id": "dev-029",
+      "round": 4,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 403.058
+    },
+    {
+      "case_id": "dev-029",
+      "round": 4,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 432.462
+    },
+    {
+      "case_id": "dev-009",
+      "round": 4,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 416.576
+    },
+    {
+      "case_id": "dev-009",
+      "round": 4,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 403.682
+    },
+    {
+      "case_id": "dev-032",
+      "round": 4,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 402.219
+    },
+    {
+      "case_id": "dev-032",
+      "round": 4,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 318.273
+    },
+    {
+      "case_id": "dev-019",
+      "round": 4,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 468.505
+    },
+    {
+      "case_id": "dev-019",
+      "round": 4,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 463.964
+    },
+    {
+      "case_id": "dev-010",
+      "round": 4,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 350.435
+    },
+    {
+      "case_id": "dev-010",
+      "round": 4,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 336.668
+    },
+    {
+      "case_id": "dev-026",
+      "round": 4,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 382.438
+    },
+    {
+      "case_id": "dev-026",
+      "round": 4,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 412.277
+    },
+    {
+      "case_id": "dev-011",
+      "round": 4,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 469.368
+    },
+    {
+      "case_id": "dev-011",
+      "round": 4,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 469.722
+    },
+    {
+      "case_id": "dev-028",
+      "round": 4,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 470.183
+    },
+    {
+      "case_id": "dev-028",
+      "round": 4,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 468.377
+    },
+    {
+      "case_id": "dev-031",
+      "round": 4,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 341.104
+    },
+    {
+      "case_id": "dev-031",
+      "round": 4,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 440.849
+    },
+    {
+      "case_id": "dev-033",
+      "round": 4,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 400.151
+    },
+    {
+      "case_id": "dev-033",
+      "round": 4,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 346.039
+    },
+    {
+      "case_id": "dev-034",
+      "round": 4,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 461.616
+    },
+    {
+      "case_id": "dev-034",
+      "round": 4,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 410.403
+    },
+    {
+      "case_id": "dev-002",
+      "round": 4,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 474.267
+    },
+    {
+      "case_id": "dev-002",
+      "round": 4,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 342.855
+    },
+    {
+      "case_id": "dev-007",
+      "round": 4,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 389.684
+    },
+    {
+      "case_id": "dev-007",
+      "round": 4,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 432.658
+    },
+    {
+      "case_id": "dev-014",
+      "round": 4,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 446.75
+    },
+    {
+      "case_id": "dev-014",
+      "round": 4,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 422.096
+    },
+    {
+      "case_id": "dev-017",
+      "round": 4,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 335.177
+    },
+    {
+      "case_id": "dev-017",
+      "round": 4,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 434.575
+    },
+    {
+      "case_id": "dev-022",
+      "round": 4,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 441.796
+    },
+    {
+      "case_id": "dev-022",
+      "round": 4,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 411.955
+    },
+    {
+      "case_id": "dev-021",
+      "round": 4,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 416.021
+    },
+    {
+      "case_id": "dev-021",
+      "round": 4,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 441.422
+    },
+    {
+      "case_id": "dev-025",
+      "round": 4,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 439.538
+    },
+    {
+      "case_id": "dev-025",
+      "round": 4,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 375.394
+    },
+    {
+      "case_id": "dev-012",
+      "round": 4,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 381.132
+    },
+    {
+      "case_id": "dev-012",
+      "round": 4,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 440.119
+    },
+    {
+      "case_id": "dev-035",
+      "round": 4,
+      "order": 1,
+      "variant": "baseline",
+      "latency_ms": 372.19
+    },
+    {
+      "case_id": "dev-035",
+      "round": 4,
+      "order": 2,
+      "variant": "candidate",
+      "latency_ms": 343.801
+    },
+    {
+      "case_id": "dev-008",
+      "round": 4,
+      "order": 1,
+      "variant": "candidate",
+      "latency_ms": 500.086
+    },
+    {
+      "case_id": "dev-008",
+      "round": 4,
+      "order": 2,
+      "variant": "baseline",
+      "latency_ms": 350.032
+    }
+  ],
+  "latency_retrieval_runs_executed": 1,
+  "candidate_tuning_after_final_holdout": false,
+  "holdout_accessed": false,
+  "output_path": "eval/retrieval-v2/latency/latency-candidate-v2.json",
+  "notes": "D-007 warm paired same-environment retrieval/search p95: candidate <= paired D-003 baseline; live timing executed exactly once even on failure; candidate/dev tuning after final holdout remains prohibited",
+  "candidate_provenance": {
+    "tag": "retrieval-v2-candidate-v2",
+    "commit": "5745cc3144b519da456b21030d0e0752d1d018ae",
+    "artifact_commit": "c6c082681b4f2fcd521790e50c5fd46549116307",
+    "manifest": "eval/retrieval-v2/candidate/manifest.json",
+    "manifest_sha256": "86f80ff6389ede4673e3c8d819cfab2ceefc79b8979a68b7b2bb5d64cc8eccff"
+  },
+  "candidate_tag": "retrieval-v2-candidate-v2",
+  "candidate_commit": "5745cc3144b519da456b21030d0e0752d1d018ae"
+}
