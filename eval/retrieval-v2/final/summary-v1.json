@@ -1,0 +1,107 @@
+{
+  "role": "final_holdout_summary",
+  "contract": "D-007",
+  "quality_status": "PASS",
+  "generated_at": "2026-08-30T07:45:00+09:00",
+  "candidate": {
+    "commit": "5745cc3144b519da456b21030d0e0752d1d018ae",
+    "tag": "retrieval-v2-candidate-v2"
+  },
+  "evaluator": {
+    "commit": "e32d3ebee871918bccf08613e34ae7a72d953737",
+    "tag": "retrieval-v2-holdout-evaluator-v1"
+  },
+  "holdout": {
+    "commit": "12515a20758265b0b5a5f52acef5aa40de3b6253",
+    "tag": "retrieval-v2-holdout-v1",
+    "sha256": "02eb03866f8e09b66ea7c3b83856fe939ee0b966350053277aaca3f2d7121eda",
+    "sha256_basis": "utf8_text_lf_normalized",
+    "n": 40,
+    "eval_file": "eval/retrieval-v2/holdout/evalset.jsonl"
+  },
+  "raw_result": {
+    "path": "eval/retrieval-v2/final/holdout-evaluation-v1.json",
+    "byte_sha256": "e4927ac40def2baa0f25f2cb0a8112dee8998eb83760821af4f58e9993a7c45b",
+    "lf_sha256": "c41e3d2e7cdca080f4589004764bd9801db8f9f02646c16a993b07f910941b73",
+    "sha256_basis_byte": "raw_bytes",
+    "sha256_basis_lf": "utf8_text_lf_normalized"
+  },
+  "baseline": {
+    "n": 40,
+    "recall@1": 0.55,
+    "hit@1": 22,
+    "recall@5": 0.825,
+    "hit@5": 33,
+    "recall@10": 0.95,
+    "hit@10": 38,
+    "mrr@10": 0.692,
+    "source_macro_recall@5": 0.825,
+    "by_source": {
+      "youth": {
+        "n": 20,
+        "hit@5": 18,
+        "recall@5": 0.9
+      },
+      "gov24": {
+        "n": 20,
+        "hit@5": 15,
+        "recall@5": 0.75
+      }
+    }
+  },
+  "candidate_metrics": {
+    "n": 40,
+    "recall@1": 0.525,
+    "hit@1": 21,
+    "recall@5": 0.9,
+    "hit@5": 36,
+    "recall@10": 0.95,
+    "hit@10": 38,
+    "mrr@10": 0.6927,
+    "source_macro_recall@5": 0.9,
+    "by_source": {
+      "youth": {
+        "n": 20,
+        "hit@5": 20,
+        "recall@5": 1.0
+      },
+      "gov24": {
+        "n": 20,
+        "hit@5": 16,
+        "recall@5": 0.8
+      }
+    }
+  },
+  "net_hit@5": 3,
+  "gain_case_ids": [
+    "holdout-001",
+    "holdout-028",
+    "holdout-036"
+  ],
+  "loss_case_ids": [],
+  "quality_gate": {
+    "macro_improved": true,
+    "net_ge_2": true,
+    "no_youth_gov24_regression": true,
+    "youth_regression": false,
+    "gov24_regression": false,
+    "overall_quality_pass": true
+  },
+  "corpus": {
+    "total_policies": 13589,
+    "total_chunks": 17609,
+    "by_source": {
+      "gov24": {
+        "policies": 10958,
+        "chunks": 14526
+      },
+      "youth": {
+        "policies": 2631,
+        "chunks": 3083
+      }
+    }
+  },
+  "final_holdout_retrieval_runs_executed": 1,
+  "candidate_dev_tuning_after_holdout": false,
+  "raw_holdout_plaintext_committed": false
+}
