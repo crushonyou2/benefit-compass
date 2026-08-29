@@ -1,0 +1,169 @@
+{
+  "youth_total": 2631,
+  "gov24_total": 10958,
+  "chunk_total": 17609,
+  "before_missing": 614,
+  "bug_rows": 15,
+  "recoverable": 15,
+  "expected_after": 599,
+  "details": [
+    {
+      "id": 2598,
+      "source_id": "20250107005400110060",
+      "old_apply_url": "www.work.go.kr",
+      "aplyUrlAddr": "www.work.go.kr",
+      "refUrlAddr1": "http://www.kaum.or.kr/bbs/board.php?bo_table=recruitment",
+      "refUrlAddr2": "",
+      "new_apply_url": "http://www.kaum.or.kr/bbs/board.php?bo_table=recruitment",
+      "would_fix": true
+    },
+    {
+      "id": 2097,
+      "source_id": "20250430005400210744",
+      "old_apply_url": "www.chuncheon.go.kr",
+      "aplyUrlAddr": "www.chuncheon.go.kr",
+      "refUrlAddr1": "https://www.chuncheon.go.kr/cityhall/",
+      "refUrlAddr2": "",
+      "new_apply_url": "https://www.chuncheon.go.kr/cityhall/",
+      "would_fix": true
+    },
+    {
+      "id": 2001,
+      "source_id": "20250623005400111115",
+      "old_apply_url": "www.bokjiro.go.kr",
+      "aplyUrlAddr": "www.bokjiro.go.kr",
+      "refUrlAddr1": "https://hope.welfareinfo.or.kr/",
+      "refUrlAddr2": "https://www.mohw.go.kr/board.es?mid=a10409020000&bid=0026&act=view&list_no=1484569",
+      "new_apply_url": "https://hope.welfareinfo.or.kr/",
+      "would_fix": true
+    },
+    {
+      "id": 1394,
+      "source_id": "20250916005400211693",
+      "old_apply_url": "www.modadream.kr",
+      "aplyUrlAddr": "www.modadream.kr",
+      "refUrlAddr1": "https://youth.gyeongnam.go.kr/youth/",
+      "refUrlAddr2": "",
+      "new_apply_url": "https://youth.gyeongnam.go.kr/youth/",
+      "would_fix": true
+    },
+    {
+      "id": 988,
+      "source_id": "20260317005400112169",
+      "old_apply_url": "www.work.go.kr",
+      "aplyUrlAddr": "www.work.go.kr",
+      "refUrlAddr1": "http://www.kaum.or.kr/bbs/board.php?bo_table=recruitment",
+      "refUrlAddr2": "",
+      "new_apply_url": "http://www.kaum.or.kr/bbs/board.php?bo_table=recruitment",
+      "would_fix": true
+    },
+    {
+      "id": 911,
+      "source_id": "20260325005400212266",
+      "old_apply_url": "www.gbhome.kr",
+      "aplyUrlAddr": "www.gbhome.kr",
+      "refUrlAddr1": "http://www.gbhome.kr",
+      "refUrlAddr2": "",
+      "new_apply_url": "http://www.gbhome.kr",
+      "would_fix": true
+    },
+    {
+      "id": 574,
+      "source_id": "20260408005400212631",
+      "old_apply_url": "www.bokjiro.go.kr",
+      "aplyUrlAddr": "www.bokjiro.go.kr",
+      "refUrlAddr1": "https://youth.gwangju.go.kr/www/50?siteId=www&policyId=1269&url=%2Fwww%2Fpolicy%2FgjYgPolicyView",
+      "refUrlAddr2": "",
+      "new_apply_url": "https://youth.gwangju.go.kr/www/50?siteId=www&policyId=1269&url=%2Fwww%2Fpolicy%2FgjYgPolicyView",
+      "would_fix": true
+    },
+    {
+      "id": 426,
+      "source_id": "20260421005400212794",
+      "old_apply_url": "추후 공지",
+      "aplyUrlAddr": "추후 공지",
+      "refUrlAddr1": "https://jejuyouthdream.com/policy/detail/69",
+      "refUrlAddr2": "",
+      "new_apply_url": "https://jejuyouthdream.com/policy/detail/69",
+      "would_fix": true
+    },
+    {
+      "id": 352,
+      "source_id": "20260427005400212879",
+      "old_apply_url": "-",
+      "aplyUrlAddr": "-",
+      "refUrlAddr1": "https://jejuyouthdream.com/policy/detail/103",
+      "refUrlAddr2": "",
+      "new_apply_url": "https://jejuyouthdream.com/policy/detail/103",
+      "would_fix": true
+    },
+    {
+      "id": 331,
+      "source_id": "20260429005400212903",
+      "old_apply_url": "plus.gov.kr",
+      "aplyUrlAddr": "plus.gov.kr",
+      "refUrlAddr1": "https://www.busan.go.kr/depart/house0203",
+      "refUrlAddr2": "",
+      "new_apply_url": "https://www.busan.go.kr/depart/house0203",
+      "would_fix": true
+    },
+    {
+      "id": 278,
+      "source_id": "20260430005400212958",
+      "old_apply_url": "www.gov.kr",
+      "aplyUrlAddr": "www.gov.kr ",
+      "refUrlAddr1": "https://www.busan.go.kr/depart/charterdamage001",
+      "refUrlAddr2": "",
+      "new_apply_url": "https://www.busan.go.kr/depart/charterdamage001",
+      "would_fix": true
+    },
+    {
+      "id": 261,
+      "source_id": "20260430005400212977",
+      "old_apply_url": "www.cheonan.go.kr",
+      "aplyUrlAddr": "www.cheonan.go.kr",
+      "refUrlAddr1": "https://www.cheonan.go.kr/kor/sub06_04_03_05.do",
+      "refUrlAddr2": "",
+      "new_apply_url": "https://www.cheonan.go.kr/kor/sub06_04_03_05.do",
+      "would_fix": true
+    },
+    {
+      "id": 258,
+      "source_id": "20260430005400212980",
+      "old_apply_url": "www.cheonan.go.kr",
+      "aplyUrlAddr": "www.cheonan.go.kr",
+      "refUrlAddr1": "https://www.cheonan.go.kr/go_now/",
+      "refUrlAddr2": "",
+      "new_apply_url": "https://www.cheonan.go.kr/go_now/",
+      "would_fix": true
+    },
+    {
+      "id": 255,
+      "source_id": "20260430005400212983",
+      "old_apply_url": "www.gongju.go.kr",
+      "aplyUrlAddr": "www.gongju.go.kr",
+      "refUrlAddr1": "https://www.gongju.go.kr/kr/sub06_01_09_04_03.do",
+      "refUrlAddr2": "",
+      "new_apply_url": "https://www.gongju.go.kr/kr/sub06_01_09_04_03.do",
+      "would_fix": true
+    },
+    {
+      "id": 55,
+      "source_id": "20260513005400213184",
+      "old_apply_url": "www.bokjiro.go.kr",
+      "aplyUrlAddr": "www.bokjiro.go.kr",
+      "refUrlAddr1": "https://youth.gwangju.go.kr/www/50?siteId=www&policyId=1362&url=%2Fwww%2Fpolicy%2FgjYgPolicyView",
+      "refUrlAddr2": "",
+      "new_apply_url": "https://youth.gwangju.go.kr/www/50?siteId=www&policyId=1362&url=%2Fwww%2Fpolicy%2FgjYgPolicyView",
+      "would_fix": true
+    }
+  ],
+  "executed": true,
+  "after_missing": 599,
+  "validation": {
+    "missing_embeddings": 0,
+    "duplicate_policies": 0,
+    "policies_without_chunks": 0,
+    "orphan_chunks": 0
+  }
+}
