@@ -8,9 +8,11 @@
 사용법: python run_eval.py
 """
 import argparse
+import datetime
 import json
 import os
 import pathlib
+import subprocess
 import sys
 
 from dotenv import load_dotenv
@@ -27,6 +29,54 @@ HERE = pathlib.Path(__file__).resolve().parent
 KS = [1, 5, 10]
 TOPK = 10
 
+CANONICAL_EVALUATOR = "eval/run_eval.py"
+
+
+def get_git_commit() -> dict:
+    try:
+        commit = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=str(ROOT), stderr=subprocess.DEVNULL
+        ).decode().strip()
+    except Exception:
+        commit = "unknown"
+    try:
+        dirty = bool(
+            subprocess.check_output(
+                ["git", "status", "--porcelain"], cwd=str(ROOT), stderr=subprocess.DEVNULL
+            ).decode().strip()
+        )
+    except Exception:
+        dirty = False
+    return {"commit": commit, "dirty": dirty}
+
+
+def get_corpus_summary(conn) -> dict:
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT source, count(*) FROM policy GROUP BY source")
+        by_source = {source: {"policies": count} for source, count in cur.fetchall()}
+        cur.execute(
+            "SELECT p.source, count(*) FROM policy_chunk c JOIN policy p ON p.id=c.policy_id GROUP BY p.source"
+        )
+        for source, count in cur.fetchall():
+            if source in by_source:
+                by_source[source]["chunks"] = count
+            else:
+                by_source[source] = {"policies": 0, "chunks": count}
+        cur.execute("SELECT count(*) FROM policy")
+        total_policies = cur.fetchone()[0]
+        cur.execute("SELECT count(*) FROM policy_chunk")
+        total_chunks = cur.fetchone()[0]
+        cur.close()
+        return {
+            "total_policies": total_policies,
+            "total_chunks": total_chunks,
+            "by_source": by_source,
+        }
+    except Exception:
+        return {"total_policies": None, "total_chunks": None, "by_source": {}}
+
+
 def load_embedder():
     from sentence_transformers import SentenceTransformer
 
@@ -38,6 +88,12 @@ def parse_args():
     parser = argparse.ArgumentParser(description="정답 정책의 검색 순위를 평가합니다")
     parser.add_argument("--eval-file", type=pathlib.Path, default=HERE / "evalset.jsonl")
     parser.add_argument("--output", type=pathlib.Path, default=HERE / "results.json")
+    parser.add_argument(
+        "--lexical-bias",
+        type=float,
+        default=None,
+        help="어휘 보정값 override. 미지정 시 production LEXICAL_OVERLAP_BIAS(0.01) 사용",
+    )
     return parser.parse_args()
 
 
@@ -63,9 +119,12 @@ def main():
     args = parse_args()
     if not DB:
         raise SystemExit("DATABASE_URL 없음")
+    lexical_bias = args.lexical_bias if args.lexical_bias is not None else ml_app.LEXICAL_OVERLAP_BIAS
     items = load_items(args.eval_file)
     model = load_embedder()
     conn = psycopg2.connect(DB)
+    # corpus provenance — evaluation SQL 간섭을 피하려고 메인 루프 전에 수집
+    corpus = get_corpus_summary(conn)
     cur = conn.cursor()
 
     ranked = []
@@ -79,7 +138,7 @@ def main():
             "rp": None,
             "youth_bias": youth_source_bias(query),
             "lexical_terms": lexical_overlap_terms(query),
-            "lexical_bias": ml_app.LEXICAL_OVERLAP_BIAS,
+            "lexical_bias": lexical_bias,
             "n": ml_app.CANDIDATES,
         })
         candidates = [
@@ -97,7 +156,6 @@ def main():
     cur.close()
     conn.close()
 
-
     n = len(ranked)
     ranks = [rank for _, rank in ranked]
     eval_file = args.eval_file.resolve()
@@ -105,14 +163,32 @@ def main():
         eval_file = eval_file.relative_to(ROOT)
     except ValueError:
         pass
+    git_info = get_git_commit()
     results = {
+        "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "git_commit": git_info["commit"],
+        "git_dirty": git_info["dirty"],
+        "evaluator": CANONICAL_EVALUATOR,
         "n": n,
         "eval_file": str(eval_file),
-        "model": "multilingual-e5-base",
+        "model": ml_app.EMBED_MODEL_NAME,
+        "embedder": ml_app.EMBED_MODEL_NAME,
         "top_k": TOPK,
+        "production_contract": {
+            "candidate_sql": "ml-service/app.py:SQL",
+            "request_region": None,
+            "query_preprocessing": "strip_region",
+            "expired_policies_excluded": True,
+            "candidates": ml_app.CANDIDATES,
+            "rerank": 0,
+            "bi_encoder_min_score": ml_app.COSINE_MIN,
+        },
         "source_ranking": ranking_metadata(),
+        "lexical_bias_used": lexical_bias,
+        "lexical_bias_param": lexical_bias,
+        "corpus": corpus,
     }
-    print(f"평가 문항: {n}")
+    print(f"평가 문항: {n}  lexical_bias={lexical_bias}")
     print("-" * 40)
     for k in KS:
         recall = sum(1 for r in ranks if 1 <= r <= k) / n
