@@ -168,10 +168,24 @@ python eval/run_api_eval.py `
   --output eval/results_expansion_api.json
 ```
 
+### 경량 어휘 보정 실험
+
+production-parity 후보 진단에서 기존 youth 60문항의 gold가 `CANDIDATES=30` 밖으로 밀린 사례가 대부분이었지만, gold 정책의 직접 코사인 점수는 모두 `0.78` 이상이었다. 따라서 재임베딩·리랭커 대신 후보 정렬에만 질의 핵심어가 정책 본문(`title`, `summary`, `support_content`, `add_qualify`, `keywords`)에 나타난 서로 다른 개수를 반영하는 보정을 실험했다. 질문 상투어는 제외하고, 어휘 보정값은 `0.01`로 고정했다. `RERANK=0`, `CANDIDATES=30`, `COSINE_MIN=0.78`, `strip_region`, 만료 제외, 결과 컬럼과 지역 요청 400 계약은 유지했다.
+
+| 평가셋·지표 | 기존 bi-encoder | 어휘 보정 bi-encoder | 변화 |
+|---|---:|---:|---:|
+| 기존 youth 60 Recall@1 | 0.2000 | 0.2333 | +0.0333 |
+| 기존 youth 60 Recall@10 | 0.4667 | 0.5167 | +0.0500 |
+| 기존 youth 60 MRR@10 | 0.2881 | 0.3281 | +0.0400 |
+| Gov24 21 Recall@1 | 0.2857 | 0.2857 | +0.0000 |
+| Gov24 21 Recall@10 | 0.6190 | 0.7619 | +0.1429 |
+| Gov24 21 MRR@10 | 0.3798 | 0.4222 | +0.0424 |
+
+어휘 보정은 두 평가 범위 모두 개선되어 유지한다. production parity evaluator와 ML 서비스가 같은 SQL·어휘 추출기를 공유하며, cross-encoder 결과는 기존과 같이 youth top-10을 악화시키므로 배포 결정은 `RERANK=0`으로 유지한다.
+
 남은 품질 게이트:
 
-- production-parity 기존 60문항 Recall@1 `0.2000`과 Recall@10 `0.4667`을 개선할 경량 hybrid/재정렬 후보 평가
 - 승인된 환경에서 27문항 API 통합 평가 실행
 - API 평가로 공식 링크 누락, 무근거 생성, 비대상 정책 노출의 실제 건수 측정
 
-Gov24 전체 수집·임베딩·Neon 적재, 최소 source 보정, production-parity 리랭커 판정과 Docker local-only 실행 검증을 완료했다. 현재 cross-encoder는 두 검색 범위를 함께 지키지 못해 No-Go이며 `RERANK=0`을 유지한다. 복수 출처 검색 품질의 전반적 향상을 주장하지 않는다.
+Gov24 전체 수집·임베딩·Neon 적재, 최소 source 보정, production-parity 리랭커 판정과 Docker local-only 실행, 그리고 경량 어휘 보정 평가를 완료했다. 복수 출처 검색 품질의 전반적 향상을 주장하지 않는다.

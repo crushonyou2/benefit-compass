@@ -55,6 +55,9 @@ class ProductionParityEvaluationTest(unittest.TestCase):
         self.assertEqual(25, captured["params"]["age"])
         self.assertIsNone(captured["params"]["rp"])
         self.assertEqual(0.015, captured["params"]["youth_bias"])
+        self.assertEqual(["청년"], captured["params"]["lexical_terms"])
+        self.assertEqual(ml_app.LEXICAL_OVERLAP_BIAS,
+                         captured["params"]["lexical_bias"])
         self.assertEqual(ml_app.CANDIDATES, captured["params"]["n"])
         self.assertEqual("청년 지원", captured["pairs"][0][0])
         self.assertEqual("청년 지원 지원 내용", captured["pairs"][0][1])

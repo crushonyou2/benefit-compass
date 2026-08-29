@@ -18,7 +18,7 @@ import psycopg2
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "ml-service"))
 import app as ml_app
-from source_ranking import ranking_metadata, youth_source_bias
+from source_ranking import lexical_overlap_terms, ranking_metadata, youth_source_bias
 
 load_dotenv(ROOT / ".env")
 DB = os.getenv("DATABASE_URL", "").strip()
@@ -81,6 +81,8 @@ def evaluate_items(items, embedder, reranker, cursor):
             "age": item.get("age"),
             "rp": None,
             "youth_bias": youth_source_bias(query),
+            "lexical_terms": lexical_overlap_terms(query),
+            "lexical_bias": ml_app.LEXICAL_OVERLAP_BIAS,
             "n": ml_app.CANDIDATES,
         })
         candidates = [

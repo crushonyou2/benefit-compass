@@ -2,7 +2,9 @@ import unittest
 
 from source_ranking import (
     GOV24_INTENT_TERMS,
+    LEXICAL_OVERLAP_BIAS,
     YOUTH_INTENT_BIAS,
+    lexical_overlap_terms,
     ranking_metadata,
     youth_source_bias,
 )
@@ -39,6 +41,18 @@ class SourceRankingTest(unittest.TestCase):
 
     def test_leaves_generic_queries_unbiased(self):
         self.assertEqual(0.0, youth_source_bias("출산 후 받을 수 있는 지원"))
+
+    def test_extracts_distinct_content_terms(self):
+        self.assertEqual(
+            ["청년", "월세", "지원금"],
+            lexical_overlap_terms("청년 월세 지원금 받을 수 있나요"),
+        )
+
+    def test_metadata_records_lexical_rule(self):
+        self.assertEqual(
+            LEXICAL_OVERLAP_BIAS,
+            ranking_metadata()["lexical_overlap_bias"],
+        )
 
     def test_metadata_records_the_frozen_rule(self):
         metadata = ranking_metadata()
