@@ -1,13 +1,15 @@
 import pathlib
 import sys
 import unittest
-from eval.retrieval_v2.schema import validate_file, validate_item
-from eval.retrieval_v2.metrics import compute_metrics, macro_recall_at_5
-from eval.retrieval_v2.paired import paired_result, is_practical_improvement, holdout_quality_gate
-from eval.retrieval_v2.p0_gate import youth_gate, gov24_gate, p0_gate, p0_gate_from_metrics
-from eval.retrieval_v2.hard_negative import hard_negative_gate
-from eval.retrieval_v2.latency import p50, p95, summarize, Sample
-from eval.retrieval_v2.guard import is_canonical_path, assert_not_canonical, ensure_retrieval_v2_path
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from retrieval_v2.schema import validate_file, validate_item, validate_role_contract
+from retrieval_v2.metrics import compute_metrics, macro_recall_at_5
+from retrieval_v2.paired import paired_result, is_practical_improvement, holdout_quality_gate
+from retrieval_v2.p0_gate import youth_gate, gov24_gate, p0_gate, p0_gate_from_metrics
+from retrieval_v2.hard_negative import hard_negative_gate
+from retrieval_v2.latency import p50, p95, summarize, Sample
+from retrieval_v2.guard import is_canonical_path, assert_not_canonical, ensure_retrieval_v2_path
 
 
 class SchemaTest(unittest.TestCase):
@@ -43,12 +45,11 @@ class SchemaTest(unittest.TestCase):
 
 class MetricsTest(unittest.TestCase):
     def test_source_macro(self):
-        by = {"youth": [1, 1, 0, 0] * 15, "gov24": [1, 0, 0] * 7}  # youth 30/60=0.5, gov24 7/21=0.333
-        # youth 30 hits, gov24 7 hits -> macro 0.4167
+        by = {"youth": [1, 1, 0, 0] * 15, "gov24": [1, 0, 0] * 7}
         self.assertAlmostEqual(macro_recall_at_5(by), 0.4167, places=4)
 
     def test_compute_raw_hits(self):
-        ranks = [1, 5, 10, 0, 3, 0]  # 4 hits@5 (1,5,3) -> actually 1,5,3 =3, plus ? 1 is hit, 5 is hit, 3 is hit => 3? plus 1? Let's count: 1 hit,5 hit,10 not,0 not,3 hit,0 not => 3
+        ranks = [1, 5, 10, 0, 3, 0]
         m = compute_metrics(ranks)
         self.assertEqual(m["hit@5"], 3)
         self.assertEqual(m["hit@1"], 1)
@@ -61,27 +62,33 @@ class MetricsTest(unittest.TestCase):
 
 class PairedTest(unittest.TestCase):
     def test_paired_delta(self):
-        br = [1, 0, 5, 0] * 15  # 30 hits
-        cr = [1, 1, 5, 0] * 15  # 45 hits
-        # provide by_source that sums to 60
-        br_by = {"youth": br[:30], "gov24": br[30:]}
-        cr_by = {"youth": cr[:30], "gov24": cr[30:]}
-        res = paired_result(br, cr, br_by, cr_by)
+        br = [1, 0, 5, 0] * 15
+        cr = [1, 1, 5, 0] * 15
+        ids = [f"q{i}" for i in range(60)]
+        srcs = ["youth"] * 30 + ["gov24"] * 30
+        # need gov24 also 30 to make total 60, but we will use 30/30 for simplicity (not 60/21, but our paired now derives by_source from case_sources, so counts will be 30/30)
+        # For this test, we use youth 30 gov24 30 to keep simple and not hit P0 gate
+        res = paired_result(br, cr, ids, ids, srcs, srcs)
         self.assertEqual(res["net_hit@5"], 15)
-        self.assertTrue(res["summary"]["macro_pass"] in (True, False))
 
     def test_practical_effect_rule(self):
         self.assertEqual(is_practical_improvement(2, True), "PASS")
         self.assertEqual(is_practical_improvement(1, True), "HOLD")
         self.assertEqual(is_practical_improvement(0, True), "NO-GO")
-        self.assertEqual(is_practical_improvement(2, False), "HOLD")  # source regression → HOLD
+        self.assertEqual(is_practical_improvement(2, False), "HOLD")
 
     def test_source_regression_detection(self):
-        br_by = {"youth": [1, 0] * 30, "gov24": [1, 0] * 10 + [1]}
-        cr_by = {"youth": [1, 0] * 30, "gov24": [0] * 21}  # gov24 loses
-        br = br_by["youth"] + br_by["gov24"]
-        cr = cr_by["youth"] + cr_by["gov24"]
-        res = paired_result(br, cr, br_by, cr_by)
+        br = [1, 0] * 30 + [1, 0] * 10 + [1]
+        cr = [1, 0] * 30 + [0] * 21
+        ids = [f"q{i}" for i in range(len(br))]
+        srcs = ["youth"] * 60 + ["gov24"] * 21
+        # br has youth 30 hits, gov24 11 hits; cr has youth 30, gov24 0
+        # But we need lengths to match: br len 81 (60+21), cr len 81
+        br = [1, 0] * 30 + [1, 0] * 10 + [1]  # 60 +21 =81? Actually [1,0]*30 =60, plus [1,0]*10=20 +1=21 =>81
+        cr = [1, 0] * 30 + [0] * 21
+        ids = [f"q{i}" for i in range(81)]
+        srcs = ["youth"] * 60 + ["gov24"] * 21
+        res = paired_result(br, cr, ids, ids, srcs, srcs)
         self.assertTrue(res["per_source_delta"]["gov24"]["regression"])
         self.assertFalse(res["summary"]["no_source_regression"])
 
@@ -130,25 +137,23 @@ class LatencyTest(unittest.TestCase):
         for i in range(5):
             samples.append(Sample(f"q{i}", 1, "baseline", 100 + i*10))
             samples.append(Sample(f"q{i}", 1, "candidate", 90 + i*10))
-        s = summarize(samples)
+        s = summarize(samples, expected_sample_count=5)
         self.assertEqual(s["sample_count"], 5)
         self.assertEqual(s["gate"], "PASS")
-        # candidate slower
         samples2 = [Sample("q", 1, "baseline", 100), Sample("q", 1, "candidate", 200)]
-        self.assertEqual(summarize(samples2)["gate"], "HOLD")
+        self.assertEqual(summarize(samples2, expected_sample_count=1)["gate"], "HOLD")
 
     def test_identical_counts_required(self):
         samples = [Sample("q", 1, "baseline", 100)]
         with self.assertRaises(ValueError):
-            summarize(samples)
+            summarize(samples, expected_sample_count=1)
 
     def test_self_comparison_passes(self):
-        # baseline == candidate synthetic
         samples = []
         for i in range(10):
             samples.append(Sample(f"q{i}", 1, "baseline", 100))
             samples.append(Sample(f"q{i}", 1, "candidate", 100))
-        s = summarize(samples)
+        s = summarize(samples, expected_sample_count=10)
         self.assertEqual(s["gate"], "PASS")
         self.assertEqual(s["delta_p95"], 0)
 
@@ -184,7 +189,6 @@ class GuardTest(unittest.TestCase):
             ensure_retrieval_v2_path("eval/retrieval-v2/dev/../../../eval/results.json")
         with self.assertRaises(ValueError):
             ensure_retrieval_v2_path("eval/retrieval-v2\\..\\..\\foo.json")
-        # normal nested is allowed
         ensure_retrieval_v2_path("eval/retrieval-v2/nested/dev.json")
 
 
@@ -200,6 +204,7 @@ class P0GateExtraTest(unittest.TestCase):
             p0_gate({"youth": [1]*59, "gov24": [1]*21})
         with self.assertRaises(ValueError):
             p0_gate({"youth": [1]*60, "gov24": [1]*20})
+
     def test_hit_out_of_range(self):
         with self.assertRaises(ValueError):
             youth_gate(-1)
@@ -217,86 +222,168 @@ class PairedExtraTest(unittest.TestCase):
     def test_missing_by_source_fails(self):
         br = [1]*10
         cr = [1]*10
+        ids = [f"q{i}" for i in range(10)]
+        srcs = ["youth"]*5 + ["gov24"]*5
+        # missing by_source is now not allowed because we derive, but we test missing case_ids
         with self.assertRaises(ValueError):
-            paired_result(br, cr, None, None)
-        with self.assertRaises(ValueError):
-            paired_result(br, cr, {"youth": [1]*5}, {"youth": [1]*5})
+            paired_result(br, cr, None, None, None, None)
 
     def test_case_ids_mismatch(self):
         br = [1]*3
         cr = [1]*3
-        by = {"youth": [1]*2, "gov24": [1]}
         with self.assertRaises(ValueError):
-            paired_result(br, cr, by, by, baseline_case_ids=["a","b","c"], candidate_case_ids=["a","b","d"])
+            paired_result(br, cr, ["a","b","c"], ["a","b","d"], ["youth","youth","gov24"], ["youth","youth","gov24"])
         with self.assertRaises(ValueError):
-            paired_result(br, cr, by, by, baseline_case_ids=["a","b","c"], candidate_case_ids=["c","b","a"])
+            paired_result(br, cr, ["a","b","c"], ["c","b","a"], ["youth","youth","gov24"], ["youth","youth","gov24"])
 
     def test_source_membership_mismatch(self):
         br = [1]*3
         cr = [1]*3
-        by_baseline = {"youth": [1,1], "gov24": [1]}
-        by_candidate = {"youth": [1], "gov24": [1,1]}
         with self.assertRaises(ValueError):
-            paired_result(br, cr, by_baseline, by_candidate)
+            paired_result(br, cr, ["a","b","c"], ["a","b","c"], ["youth","youth","gov24"], ["youth","gov24","gov24"])
 
     def test_holdout_gate_precedence(self):
-        from eval.retrieval_v2.paired import holdout_quality_gate
-        # macro fail -> NO-GO even if net +2 and no regression
         self.assertEqual(holdout_quality_gate(False, 2, True), "NO-GO")
-        # net 0 -> NO-GO
         self.assertEqual(holdout_quality_gate(True, 0, True), "NO-GO")
         self.assertEqual(holdout_quality_gate(True, -1, True), "NO-GO")
-        # net 0 + regression -> still NO-GO (not HOLD)
         self.assertEqual(holdout_quality_gate(True, 0, False), "NO-GO")
-        # net +1 -> HOLD
         self.assertEqual(holdout_quality_gate(True, 1, True), "HOLD")
-        # net >=2 but regression -> HOLD
         self.assertEqual(holdout_quality_gate(True, 2, False), "HOLD")
         self.assertEqual(holdout_quality_gate(True, 3, False), "HOLD")
-        # PASS
         self.assertEqual(holdout_quality_gate(True, 2, True), "PASS")
         self.assertEqual(holdout_quality_gate(True, 5, True), "PASS")
 
     def test_is_practical_fixed(self):
-        # is_practical should also fix precedence: net 0 + regression should be NO-GO not HOLD
         self.assertEqual(is_practical_improvement(0, False), "NO-GO")
         self.assertEqual(is_practical_improvement(-5, False), "NO-GO")
         self.assertEqual(is_practical_improvement(0, True), "NO-GO")
+
+    def test_case_ids_omitted(self):
+        br = [1]*5
+        cr = [1]*5
+        with self.assertRaises(ValueError):
+            paired_result(br, cr, None, None, ["youth"]*3+["gov24"]*2, ["youth"]*3+["gov24"]*2)
+
+    def test_duplicate_case_id(self):
+        br = [1]*3
+        cr = [1]*3
+        with self.assertRaises(ValueError):
+            paired_result(br, cr, ["a","a","c"], ["a","a","c"], ["youth","youth","gov24"], ["youth","youth","gov24"])
+
+    def test_empty_case_id(self):
+        br = [1]*3
+        cr = [1]*3
+        with self.assertRaises(ValueError):
+            paired_result(br, cr, ["a","","c"], ["a","","c"], ["youth","youth","gov24"], ["youth","youth","gov24"])
+
+    def test_invalid_source(self):
+        br = [1]*3
+        cr = [1]*3
+        with self.assertRaises(ValueError):
+            paired_result(br, cr, ["a","b","c"], ["a","b","c"], ["youth","other","gov24"], ["youth","other","gov24"])
+
+    def test_same_counts_but_different_order(self):
+        br = [1]*3
+        cr = [1]*3
+        with self.assertRaises(ValueError):
+            paired_result(br, cr, ["a","b","c"], ["a","b","c"], ["youth","gov24","youth"], ["youth","youth","gov24"])
+
+    def test_provided_by_source_inconsistent(self):
+        br = [1,0,1]
+        cr = [1,0,1]
+        ids = ["a","b","c"]
+        srcs = ["youth","youth","gov24"]
+        # provide by_source that is inconsistent with derived
+        bad_by = {"youth": [1,1], "gov24": [1]}  # derived would be youth [1,0] gov24 [1]
+        with self.assertRaises(ValueError):
+            paired_result(br, cr, ids, ids, srcs, srcs, baseline_by_source=bad_by, candidate_by_source=bad_by)
 
 
 class LatencyExtraTest(unittest.TestCase):
     def test_different_key_sets(self):
         samples = [Sample("q1", 1, "baseline", 100), Sample("q2", 1, "candidate", 100)]
         with self.assertRaises(ValueError):
-            summarize(samples)
+            summarize(samples, expected_sample_count=1)
 
     def test_duplicate_sample(self):
         samples = [Sample("q1", 1, "baseline", 100), Sample("q1", 1, "baseline", 101), Sample("q1", 1, "candidate", 100), Sample("q1", 1, "candidate", 101)]
         with self.assertRaises(ValueError):
-            summarize(samples)
+            summarize(samples, expected_sample_count=1)
 
     def test_all_baseline_then_all_candidate_rejected(self):
         samples = [Sample("q1", 1, "baseline", 100), Sample("q2", 1, "baseline", 100), Sample("q1", 1, "candidate", 100), Sample("q2", 1, "candidate", 100)]
         with self.assertRaises(ValueError):
-            summarize(samples)
+            summarize(samples, expected_sample_count=2)
 
     def test_proper_interleaving_accepted(self):
         samples = [Sample("q1", 1, "baseline", 100), Sample("q1", 1, "candidate", 100), Sample("q2", 1, "baseline", 100), Sample("q2", 1, "candidate", 100)]
-        s = summarize(samples)
+        s = summarize(samples, expected_sample_count=2)
         self.assertEqual(s["sample_count"], 2)
 
     def test_negative_latency(self):
         samples = [Sample("q1", 1, "baseline", -5), Sample("q1", 1, "candidate", 100)]
         with self.assertRaises(ValueError):
-            summarize(samples)
+            summarize(samples, expected_sample_count=1)
 
     def test_nan_inf(self):
         samples = [Sample("q1", 1, "baseline", float("nan")), Sample("q1", 1, "candidate", 100)]
         with self.assertRaises(ValueError):
-            summarize(samples)
+            summarize(samples, expected_sample_count=1)
         samples = [Sample("q1", 1, "baseline", float("inf")), Sample("q1", 1, "candidate", 100)]
         with self.assertRaises(ValueError):
-            summarize(samples)
+            summarize(samples, expected_sample_count=1)
+
+    def test_expected_missing(self):
+        samples = [Sample("q1", 1, "baseline", 100), Sample("q1", 1, "candidate", 100)]
+        with self.assertRaises(TypeError):
+            summarize(samples)  # missing expected_sample_count
+        with self.assertRaises(ValueError):
+            summarize(samples, expected_sample_count=0)
+        with self.assertRaises(ValueError):
+            summarize(samples, expected_sample_count=-1)
+        with self.assertRaises(ValueError):
+            summarize(samples, expected_sample_count="10")
+
+    def test_expected_mismatch(self):
+        samples = [Sample("q1", 1, "baseline", 100), Sample("q1", 1, "candidate", 100), Sample("q2", 1, "baseline", 100), Sample("q2", 1, "candidate", 100)]
+        with self.assertRaises(ValueError):
+            summarize(samples, expected_sample_count=1)
+        with self.assertRaises(ValueError):
+            summarize(samples, expected_sample_count=10)
+
+
+class SchemaExtraTest(unittest.TestCase):
+    def test_dev_29_fails(self):
+        items = [{"query": f"q{i}", "gold_source": "youth" if i < 15 else "gov24", "gold_source_id": f"id{i}", "category": "c"} for i in range(29)]
+        self.assertTrue(any("30..40" in e for e in validate_role_contract(items, "dev")))
+
+    def test_dev_30_balanced_pass(self):
+        items = [{"query": f"q{i}", "gold_source": "youth" if i < 15 else "gov24", "gold_source_id": f"id{i}", "category": "c"} for i in range(30)]
+        self.assertEqual([], validate_role_contract(items, "dev"))
+
+    def test_dev_40_balanced_pass(self):
+        items = [{"query": f"q{i}", "gold_source": "youth" if i < 20 else "gov24", "gold_source_id": f"id{i}", "category": "c"} for i in range(40)]
+        self.assertEqual([], validate_role_contract(items, "dev"))
+
+    def test_dev_41_fails(self):
+        items = [{"query": f"q{i}", "gold_source": "youth" if i < 21 else "gov24", "gold_source_id": f"id{i}", "category": "c"} for i in range(41)]
+        self.assertTrue(any("30..40" in e for e in validate_role_contract(items, "dev")))
+
+    def test_holdout_39_fails(self):
+        items = [{"query": f"q{i}", "gold_source": "youth" if i < 20 else "gov24", "gold_source_id": f"id{i}", "category": "c"} for i in range(39)]
+        self.assertTrue(any(">=40" in e for e in validate_role_contract(items, "holdout")))
+
+    def test_holdout_40_balanced_pass(self):
+        items = [{"query": f"q{i}", "gold_source": "youth" if i < 20 else "gov24", "gold_source_id": f"id{i}", "category": "c"} for i in range(40)]
+        self.assertEqual([], validate_role_contract(items, "holdout"))
+
+    def test_holdout_41_20_21_pass(self):
+        items = [{"query": f"q{i}", "gold_source": "youth" if i < 20 else "gov24", "gold_source_id": f"id{i}", "category": "c"} for i in range(41)]
+        self.assertEqual([], validate_role_contract(items, "holdout"))
+
+    def test_holdout_40_unbalanced_fails(self):
+        items = [{"query": f"q{i}", "gold_source": "youth" if i < 30 else "gov24", "gold_source_id": f"id{i}", "category": "c"} for i in range(40)]
+        self.assertTrue(any("abs" in e for e in validate_role_contract(items, "holdout")))
 
 
 if __name__ == "__main__":

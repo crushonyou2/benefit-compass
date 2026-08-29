@@ -45,10 +45,11 @@ def p95(latencies: list[float]) -> float:
     idx = math.ceil(0.95 * n) - 1
     return float(s[max(0, min(idx, n - 1))])
 
-def summarize(samples: list[Sample]) -> dict:
+def summarize(samples: list[Sample], expected_sample_count: int) -> dict:
+    if not isinstance(expected_sample_count, int) or expected_sample_count <= 0:
+        raise ValueError(f"expected_sample_count must be positive integer, got {expected_sample_count!r}")
     if not samples:
         raise ValueError("no samples")
-    # validate finite and non-negative
     for s in samples:
         if not isinstance(s.latency_ms, (int, float)):
             raise ValueError(f"latency_ms must be number, got {s.latency_ms!r} for {s.query_id}/{s.variant}")
@@ -58,7 +59,6 @@ def summarize(samples: list[Sample]) -> dict:
             raise ValueError(f"latency_ms must be >=0, got {s.latency_ms!r} for {s.query_id}/{s.variant}")
         if s.variant not in {"baseline", "candidate"}:
             raise ValueError(f"unknown variant {s.variant!r}")
-    # build key -> {baseline, candidate} and check duplicate and pairing
     from collections import defaultdict
     by_key: dict[tuple[str, int], dict[str, Sample]] = defaultdict(dict)
     for s in samples:
@@ -66,12 +66,9 @@ def summarize(samples: list[Sample]) -> dict:
         if s.variant in by_key[key]:
             raise ValueError(f"duplicate sample for key {key} variant {s.variant!r}")
         by_key[key][s.variant] = s
-    # every key must have exactly one baseline and one candidate
     for key, variants in by_key.items():
         if set(variants.keys()) != {"baseline", "candidate"}:
             raise ValueError(f"key {key} must have exactly one baseline and one candidate, got {sorted(variants.keys())}")
-    # check interleaving: timed samples must be paired, not all baseline then all candidate
-    # We enforce that the input list is already paired: each consecutive pair shares same (query_id, round) and has both variants
     if len(samples) % 2 != 0:
         raise ValueError("samples must be even — each (query_id, round) yields 2 samples")
     for i in range(0, len(samples), 2):
@@ -87,7 +84,13 @@ def summarize(samples: list[Sample]) -> dict:
         by_variant[s.variant].append(s.latency_ms)
     if len(by_variant["baseline"]) != len(by_variant["candidate"]):
         raise ValueError(f"baseline {len(by_variant['baseline'])} vs candidate {len(by_variant['candidate'])} count mismatch — must be identical timed sample count")
+    if len(by_variant["baseline"]) != expected_sample_count:
+        raise ValueError(f"actual baseline count {len(by_variant['baseline'])} != expected_sample_count {expected_sample_count}")
+    if len(by_variant["candidate"]) != expected_sample_count:
+        raise ValueError(f"actual candidate count {len(by_variant['candidate'])} != expected_sample_count {expected_sample_count}")
     out = {
+        "expected_sample_count": expected_sample_count,
+        "actual_sample_count": len(by_variant["baseline"]),
         "sample_count": len(by_variant["baseline"]),
         "baseline": {
             "p50": round(p50(by_variant["baseline"]), 2),
@@ -103,6 +106,5 @@ def summarize(samples: list[Sample]) -> dict:
     out["gate"] = "PASS" if out["candidate"]["p95"] <= out["baseline"]["p95"] else "HOLD"
     out["delta_p95"] = round(out["candidate"]["p95"] - out["baseline"]["p95"], 2)
     return out
-
 def is_latency_pass(baseline_p95: float, candidate_p95: float) -> bool:
     return candidate_p95 <= baseline_p95
