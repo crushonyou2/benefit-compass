@@ -1,0 +1,19 @@
+{
+  "role": "harness",
+  "name": "final-holdout-evaluator-v1",
+  "expected_candidate_commit": "5745cc3144b519da456b21030d0e0752d1d018ae",
+  "expected_candidate_tag": "retrieval-v2-candidate-v2",
+  "expected_artifact_commit": "c6c082681b4f2fcd521790e50c5fd46549116307",
+  "expected_holdout_sha256": "02eb03866f8e09b66ea7c3b83856fe939ee0b966350053277aaca3f2d7121eda",
+  "candidate_manifest": "eval/retrieval-v2/candidate/manifest.json",
+  "harness": "eval/retrieval_v2/run_final_holdout.py",
+  "test": "eval/test_final_holdout_harness.py",
+  "sha256": {
+    "run_final_holdout": "58ed0e8f6a74e79e139ea8e4f13cbf9f8a88f605a9489dac0a5ff67510399762",
+    "test_final_holdout_harness": "30a202e19ed6847d8a8be1bb526d1748f32f394caa64ed27461c7da1e714c9ea",
+    "candidate_manifest": "86f80ff6389ede4673e3c8d819cfab2ceefc79b8979a68b7b2bb5d64cc8eccff"
+  },
+  "sha256_basis": "utf8_text_lf_normalized",
+  "created_at": "2026-08-29T22:12:20.312589+00:00",
+  "note": "harness frozen before final holdout; actual holdout plaintext never opened"
+}
