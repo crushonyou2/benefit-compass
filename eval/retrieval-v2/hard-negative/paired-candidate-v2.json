@@ -1,0 +1,539 @@
+{
+  "role": "hard_negative_candidate_gate",
+  "contract": "D-007",
+  "generated_at": "2026-08-29T23:05:22.621857+00:00",
+  "candidate": {
+    "commit": "5745cc3144b519da456b21030d0e0752d1d018ae",
+    "tag": "retrieval-v2-candidate-v2",
+    "manifest": "eval/retrieval-v2/candidate/manifest.json",
+    "manifest_sha256": "86f80ff6389ede4673e3c8d819cfab2ceefc79b8979a68b7b2bb5d64cc8eccff",
+    "manifest_sha256_basis": "utf8_text_lf_normalized",
+    "module": "eval/retrieval_v2/candidate_lexical_rewrite.py",
+    "module_sha256": "ed598aeafcda6969d877f476394cf8a36c72581326ef70eed3bcfc3327834577",
+    "config": {
+      "name": "lexical-rewrite-v1",
+      "normalization_rule": "lexical rewrite replacement: original term replaced by particle-stripped stem (particles 에게서/으로부터/에게/한테/께/에서/으로/로/은/는/이/가/을/를/의/에/와/과/도/만/부터/까지, MIN_STEM_LEN 2, deduped); residue dropped: pure josa + bare admin_units ['특별자치도', '특별자치시', '특별시', '광역시', '자치도', '도', '시', '군', '구'] + admin+['에서', '에', '의', '으로', '로'] only (no proper-noun prefix), checked only before particle strip (no post-strip re-check); stopword stems dropped; verb expansion none",
+      "min_stem_len": 2,
+      "particles": [
+        "에게서",
+        "으로부터",
+        "에게",
+        "한테",
+        "께",
+        "에서",
+        "으로",
+        "로",
+        "은",
+        "는",
+        "이",
+        "가",
+        "을",
+        "를",
+        "의",
+        "에",
+        "와",
+        "과",
+        "도",
+        "만",
+        "부터",
+        "까지"
+      ],
+      "residue_pure": [
+        "과",
+        "까지",
+        "께",
+        "도",
+        "로",
+        "만",
+        "부터",
+        "에",
+        "에게",
+        "에게서",
+        "에서",
+        "와",
+        "으로",
+        "으로부터",
+        "의",
+        "한테"
+      ],
+      "admin_units": [
+        "특별자치도",
+        "특별자치시",
+        "특별시",
+        "광역시",
+        "자치도",
+        "도",
+        "시",
+        "군",
+        "구"
+      ],
+      "admin_residue_particles": [
+        "에서",
+        "에",
+        "의",
+        "으로",
+        "로"
+      ],
+      "verb_expansion": false,
+      "lexical_terms": "lexical_overlap_terms_rewrite",
+      "strip_region": "unchanged"
+    }
+  },
+  "evaluator": {
+    "commit": "ba2b3099ea0daf67f47453390c24ccbc9a389819",
+    "tag": "retrieval-v2-hard-negative-evaluator-v1",
+    "harness": "eval/retrieval_v2/run_hard_negative_candidate_gate.py",
+    "git_commit": "ba2b3099ea0daf67f47453390c24ccbc9a389819",
+    "git_dirty": false
+  },
+  "input": {
+    "path": "eval/expansion_api_evalset.jsonl",
+    "lf_sha256": "2b56dcfd79b14b91f719a65e3eef836cee5dff9a242277fa4148ada215521da5",
+    "sha256_basis": "utf8_text_lf_normalized",
+    "n": 36,
+    "slices": {
+      "pure_positive": 21,
+      "ineligible": 3,
+      "no_answer": 12
+    }
+  },
+  "canonical": {
+    "manifest": "eval/canonical_manifest.json",
+    "manifest_sha256": "6c902b31a6179e32e9559216c03549d5b4ede8674088bdb6bb64399bb0899c88",
+    "manifest_sha256_basis": "utf8_text_lf_normalized",
+    "artifact": "eval/canonical_hard_negative_36_production_parity.json",
+    "artifact_sha256": "9355f826660c54965faa0732e9e2dddb7c820945f975210a3db44fe5c9c13edf",
+    "artifact_sha256_basis": "utf8_text_lf_normalized",
+    "historical_blocking": {
+      "pure_hit@5": "15/21",
+      "intrusion_top5": "0/3"
+    },
+    "verified_blocking": {
+      "pure_hit@5": 15,
+      "intrusion_top5": 0
+    }
+  },
+  "production_contract": {
+    "candidate_sql": "ml-service/app.py:SQL",
+    "request_region": null,
+    "query_preprocessing": "strip_region",
+    "expired_policies_excluded": true,
+    "candidates": 30,
+    "rerank": 0,
+    "bi_encoder_min_score": 0.78,
+    "lexical_bias": 0.01,
+    "lexical_terms_baseline": "lexical_overlap_terms",
+    "lexical_terms_candidate": "lexical_overlap_terms_rewrite",
+    "youth_intent_bias": 0.015,
+    "youth_intent_terms": [
+      "청년",
+      "대학생",
+      "사회초년생"
+    ],
+    "gov24_intent_terms": [
+      "국토교통부",
+      "중소벤처기업부",
+      "고용노동부",
+      "보건복지부",
+      "교육부",
+      "행정안전부",
+      "문화체육관광부",
+      "농림축산식품부",
+      "산업통상자원부",
+      "과학기술정보통신부",
+      "국가보훈부",
+      "해양수산부",
+      "통일부",
+      "법무부",
+      "국방부",
+      "기획재정부",
+      "여성가족부",
+      "환경부",
+      "국세청",
+      "산림청",
+      "국민연금공단",
+      "한국장학재단",
+      "한국주택금융공사",
+      "주택도시보증공사",
+      "근로복지공단",
+      "소상공인시장진흥공단"
+    ],
+    "embed_model": "intfloat/multilingual-e5-base",
+    "note": "paired: same vector reuse; ranking diff only lexical terms; no threshold/abstention logic"
+  },
+  "corpus": {
+    "total_policies": 13589,
+    "total_chunks": 17609,
+    "by_source": {
+      "gov24": {
+        "policies": 10958,
+        "chunks": 14526
+      },
+      "youth": {
+        "policies": 2631,
+        "chunks": 3083
+      }
+    }
+  },
+  "results": {
+    "baseline_pure_hit@5": 15,
+    "candidate_pure_hit@5": 16,
+    "baseline_intrusion_top5": 0,
+    "candidate_intrusion_top5": 0,
+    "pure_fail": false,
+    "intrusion_fail": false,
+    "gate": "PASS",
+    "overall": "PASS",
+    "adoption": "PASS",
+    "baseline_canonical_parity": true,
+    "hard_negative_gate": {
+      "baseline_pure_hit@5": 15,
+      "candidate_pure_hit@5": 16,
+      "baseline_intrusion_top5": 0,
+      "candidate_intrusion_top5": 0,
+      "pure_fail": false,
+      "intrusion_fail": false,
+      "gate": "PASS",
+      "overall": "PASS",
+      "adoption": "PASS"
+    }
+  },
+  "baseline_canonical_parity": true,
+  "no_answer_diagnostics": {
+    "note": "nonblocking diagnostic only — not used for gate or threshold",
+    "baseline": {
+      "retrieved_counts": [
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30
+      ],
+      "top1_score_range": {
+        "min": 0.8303408936817753,
+        "max": 0.8658321554207256,
+        "count": 12
+      }
+    },
+    "candidate": {
+      "retrieved_counts": [
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30
+      ],
+      "top1_score_range": {
+        "min": 0.8151706149243522,
+        "max": 0.8658321554207256,
+        "count": 12
+      }
+    }
+  },
+  "per_case": [
+    {
+      "index": 1,
+      "case_type": "pure_positive",
+      "baseline_rank_top5": 1,
+      "candidate_rank_top5": 1,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 2,
+      "case_type": "pure_positive",
+      "baseline_rank_top5": 4,
+      "candidate_rank_top5": 1,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 3,
+      "case_type": "pure_positive",
+      "baseline_rank_top5": 2,
+      "candidate_rank_top5": 3,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 4,
+      "case_type": "pure_positive",
+      "baseline_rank_top5": 3,
+      "candidate_rank_top5": 0,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 5,
+      "case_type": "pure_positive",
+      "baseline_rank_top5": 0,
+      "candidate_rank_top5": 0,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 6,
+      "case_type": "pure_positive",
+      "baseline_rank_top5": 0,
+      "candidate_rank_top5": 3,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 7,
+      "case_type": "pure_positive",
+      "baseline_rank_top5": 0,
+      "candidate_rank_top5": 3,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 8,
+      "case_type": "pure_positive",
+      "baseline_rank_top5": 1,
+      "candidate_rank_top5": 1,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 9,
+      "case_type": "pure_positive",
+      "baseline_rank_top5": 1,
+      "candidate_rank_top5": 1,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 10,
+      "case_type": "pure_positive",
+      "baseline_rank_top5": 0,
+      "candidate_rank_top5": 3,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 11,
+      "case_type": "pure_positive",
+      "baseline_rank_top5": 3,
+      "candidate_rank_top5": 2,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 12,
+      "case_type": "pure_positive",
+      "baseline_rank_top5": 0,
+      "candidate_rank_top5": 0,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 13,
+      "case_type": "pure_positive",
+      "baseline_rank_top5": 4,
+      "candidate_rank_top5": 0,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 14,
+      "case_type": "pure_positive",
+      "baseline_rank_top5": 0,
+      "candidate_rank_top5": 0,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 15,
+      "case_type": "pure_positive",
+      "baseline_rank_top5": 1,
+      "candidate_rank_top5": 1,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 16,
+      "case_type": "pure_positive",
+      "baseline_rank_top5": 1,
+      "candidate_rank_top5": 1,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 17,
+      "case_type": "pure_positive",
+      "baseline_rank_top5": 1,
+      "candidate_rank_top5": 1,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 18,
+      "case_type": "pure_positive",
+      "baseline_rank_top5": 5,
+      "candidate_rank_top5": 5,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 19,
+      "case_type": "pure_positive",
+      "baseline_rank_top5": 4,
+      "candidate_rank_top5": 3,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 20,
+      "case_type": "pure_positive",
+      "baseline_rank_top5": 4,
+      "candidate_rank_top5": 4,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 21,
+      "case_type": "pure_positive",
+      "baseline_rank_top5": 3,
+      "candidate_rank_top5": 3,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 22,
+      "case_type": "ineligible",
+      "baseline_rank_top5": 0,
+      "candidate_rank_top5": 0,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 23,
+      "case_type": "ineligible",
+      "baseline_rank_top5": 0,
+      "candidate_rank_top5": 0,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 24,
+      "case_type": "ineligible",
+      "baseline_rank_top5": 0,
+      "candidate_rank_top5": 0,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 25,
+      "case_type": "no_answer",
+      "baseline_rank_top5": 0,
+      "candidate_rank_top5": 0,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 26,
+      "case_type": "no_answer",
+      "baseline_rank_top5": 0,
+      "candidate_rank_top5": 0,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 27,
+      "case_type": "no_answer",
+      "baseline_rank_top5": 0,
+      "candidate_rank_top5": 0,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 28,
+      "case_type": "no_answer",
+      "baseline_rank_top5": 0,
+      "candidate_rank_top5": 0,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 29,
+      "case_type": "no_answer",
+      "baseline_rank_top5": 0,
+      "candidate_rank_top5": 0,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 30,
+      "case_type": "no_answer",
+      "baseline_rank_top5": 0,
+      "candidate_rank_top5": 0,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 31,
+      "case_type": "no_answer",
+      "baseline_rank_top5": 0,
+      "candidate_rank_top5": 0,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 32,
+      "case_type": "no_answer",
+      "baseline_rank_top5": 0,
+      "candidate_rank_top5": 0,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 33,
+      "case_type": "no_answer",
+      "baseline_rank_top5": 0,
+      "candidate_rank_top5": 0,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 34,
+      "case_type": "no_answer",
+      "baseline_rank_top5": 0,
+      "candidate_rank_top5": 0,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 35,
+      "case_type": "no_answer",
+      "baseline_rank_top5": 0,
+      "candidate_rank_top5": 0,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    },
+    {
+      "index": 36,
+      "case_type": "no_answer",
+      "baseline_rank_top5": 0,
+      "candidate_rank_top5": 0,
+      "baseline_intrusion_top5": false,
+      "candidate_intrusion_top5": false
+    }
+  ],
+  "candidate_tuning_after_final_holdout": false,
+  "hard_negative_retrieval_runs_executed": 1
+}
