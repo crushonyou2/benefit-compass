@@ -25,3 +25,12 @@
 {"query":"개인 주식 투자 손실을 정부가 전액 보전해주는 정책이 있나요?","expected_no_results":true,"case_type":"no_answer"}
 {"query":"명품 가방 구매비를 국민 누구에게나 지급하는 지원금이 있나요?","expected_no_results":true,"case_type":"no_answer"}
 {"query":"온라인 게임 아이템 구매 비용을 정부 예산으로 환급받을 수 있나요?","expected_no_results":true,"case_type":"no_answer"}
+{"query": "비트코인 등 가상자산 투자 손실을 정부가 보장해주는 지원금이 있나요?", "expected_no_results": true, "case_type": "no_answer"}
+{"query": "해외 고가 명품 시계 구매 비용을 정부가 지원해주는 제도가 있나요?", "expected_no_results": true, "case_type": "no_answer"}
+{"query": "e스포츠 프로게이머 장비 구매비를 정부가 지원해주는 청년 정책이 있나요?", "expected_no_results": true, "case_type": "no_answer"}
+{"query": "강남 아파트 매매 대금 10억원을 정부가 무이자로 빌려주는 청년 주택 정책이 있나요?", "expected_no_results": true, "case_type": "no_answer"}
+{"query": "서울 고급 오피스텔 월세 300만원을 정부가 전액 지원해주는 주거 정책이 있나요?", "expected_no_results": true, "case_type": "no_answer"}
+{"query": "대기업 임원 연봉을 정부가 보조해주는 고용 지원 제도가 있나요?", "expected_no_results": true, "case_type": "no_answer"}
+{"query": "해외 아이비리그 대학 등록금 1억원을 정부가 전액 지원해주는 장학금 있나요?", "expected_no_results": true, "case_type": "no_answer"}
+{"query": "성형수술이나 미용 시술 비용을 건강보험으로 전액 지원받을 수 있나요?", "expected_no_results": true, "case_type": "no_answer"}
+{"query": "반려견 사료와 병원비를 매달 정부가 지급하는 반려동물 수당이 있나요?", "expected_no_results": true, "case_type": "no_answer"}
