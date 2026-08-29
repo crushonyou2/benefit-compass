@@ -1,0 +1,1036 @@
+{
+  "role": "p0_candidate_gate",
+  "contract": "D-007",
+  "generated_at": "2026-08-29T22:52:51.424341+00:00",
+  "candidate": {
+    "commit": "5745cc3144b519da456b21030d0e0752d1d018ae",
+    "tag": "retrieval-v2-candidate-v2"
+  },
+  "evaluator": {
+    "commit": "63b9ac62dc980ca0a1ab84fe90456e85cdae1a18",
+    "tag": "retrieval-v2-p0-evaluator-v1",
+    "harness": "eval/retrieval_v2/run_p0_candidate_gate.py",
+    "git_commit": "63b9ac62dc980ca0a1ab84fe90456e85cdae1a18",
+    "git_dirty": false
+  },
+  "canonical": {
+    "manifest": "eval/canonical_manifest.json",
+    "manifest_sha256": "6c902b31a6179e32e9559216c03549d5b4ede8674088bdb6bb64399bb0899c88",
+    "manifest_sha256_basis": "utf8_text_lf_normalized",
+    "youth_eval": "eval/evalset.jsonl",
+    "youth_sha256": "02853c0b907955b1c8c3cdc49127b8ad790a559a44ee7b7b821bf2b77f45a807",
+    "youth_sha256_basis": "utf8_text_lf_normalized",
+    "youth_n": 60,
+    "gov24_eval": "eval/expansion_evalset.jsonl",
+    "gov24_sha256": "86fb2d87b2430192fbd5a7c46cfc999e447c31e03b67573c3ea2b185ad6cf3e3",
+    "gov24_sha256_basis": "utf8_text_lf_normalized",
+    "gov24_n": 21
+  },
+  "production_contract": {
+    "candidate_sql": "ml-service/app.py:SQL",
+    "request_region": null,
+    "query_preprocessing": "strip_region",
+    "expired_policies_excluded": true,
+    "candidates": 30,
+    "rerank": 0,
+    "bi_encoder_min_score": 0.78,
+    "lexical_bias": 0.01,
+    "youth_intent_bias": 0.015,
+    "youth_intent_terms": [
+      "청년",
+      "대학생",
+      "사회초년생"
+    ],
+    "gov24_intent_terms": [
+      "국토교통부",
+      "중소벤처기업부",
+      "고용노동부",
+      "보건복지부",
+      "교육부",
+      "행정안전부",
+      "문화체육관광부",
+      "농림축산식품부",
+      "산업통상자원부",
+      "과학기술정보통신부",
+      "국가보훈부",
+      "해양수산부",
+      "통일부",
+      "법무부",
+      "국방부",
+      "기획재정부",
+      "여성가족부",
+      "환경부",
+      "국세청",
+      "산림청",
+      "국민연금공단",
+      "한국장학재단",
+      "한국주택금융공사",
+      "주택도시보증공사",
+      "근로복지공단",
+      "소상공인시장진흥공단"
+    ],
+    "embed_model": "intfloat/multilingual-e5-base",
+    "lexical_terms": "lexical_overlap_terms_rewrite",
+    "note": "production parity: strip_region, youth_source_bias, lexical_overlap_terms_rewrite, .01 bias, 30 candidates, region_filter None, COSINE_MIN .78, no rank fusion/cross-encoder/new threshold"
+  },
+  "candidate_config": {
+    "name": "lexical-rewrite-v1",
+    "candidate_module": "eval/retrieval_v2/candidate_lexical_rewrite.py",
+    "normalization_rule": "lexical rewrite replacement: original term replaced by particle-stripped stem (particles 에게서/으로부터/에게/한테/께/에서/으로/로/은/는/이/가/을/를/의/에/와/과/도/만/부터/까지, MIN_STEM_LEN 2, deduped); residue dropped: pure josa + bare admin_units ['특별자치도', '특별자치시', '특별시', '광역시', '자치도', '도', '시', '군', '구'] + admin+['에서', '에', '의', '으로', '로'] only (no proper-noun prefix), checked only before particle strip (no post-strip re-check); stopword stems dropped; verb expansion none",
+    "min_stem_len": 2,
+    "particles": [
+      "에게서",
+      "으로부터",
+      "에게",
+      "한테",
+      "께",
+      "에서",
+      "으로",
+      "로",
+      "은",
+      "는",
+      "이",
+      "가",
+      "을",
+      "를",
+      "의",
+      "에",
+      "와",
+      "과",
+      "도",
+      "만",
+      "부터",
+      "까지"
+    ],
+    "residue_pure": [
+      "과",
+      "까지",
+      "께",
+      "도",
+      "로",
+      "만",
+      "부터",
+      "에",
+      "에게",
+      "에게서",
+      "에서",
+      "와",
+      "으로",
+      "으로부터",
+      "의",
+      "한테"
+    ],
+    "admin_units": [
+      "특별자치도",
+      "특별자치시",
+      "특별시",
+      "광역시",
+      "자치도",
+      "도",
+      "시",
+      "군",
+      "구"
+    ],
+    "admin_residue_particles": [
+      "에서",
+      "에",
+      "의",
+      "으로",
+      "로"
+    ],
+    "lexical_terms": "lexical_overlap_terms_rewrite",
+    "strip_region": "unchanged"
+  },
+  "corpus": {
+    "total_policies": 13589,
+    "total_chunks": 17609,
+    "by_source": {
+      "gov24": {
+        "policies": 10958,
+        "chunks": 14526
+      },
+      "youth": {
+        "policies": 2631,
+        "chunks": 3083
+      }
+    }
+  },
+  "metrics": {
+    "youth": {
+      "n": 60,
+      "hit@1": 13,
+      "hit@5": 28,
+      "hit@10": 32,
+      "recall@1": 0.2167,
+      "recall@5": 0.4667,
+      "recall@10": 0.5333,
+      "mrr@10": 0.3225
+    },
+    "gov24": {
+      "n": 21,
+      "hit@1": 7,
+      "hit@5": 16,
+      "hit@10": 18,
+      "recall@1": 0.3333,
+      "recall@5": 0.7619,
+      "recall@10": 0.8571,
+      "mrr@10": 0.4833
+    },
+    "overall": {
+      "n": 81,
+      "hit@1": 20,
+      "hit@5": 44,
+      "hit@10": 50,
+      "recall@1": 0.2469,
+      "recall@5": 0.5432,
+      "recall@10": 0.6173,
+      "mrr@10": 0.3642
+    }
+  },
+  "p0_gate": {
+    "youth": {
+      "hit@5": 28,
+      "n": 60,
+      "gate": "PASS"
+    },
+    "gov24": {
+      "hit@5": 16,
+      "n": 21,
+      "gate": "PASS"
+    },
+    "overall": "PASS"
+  },
+  "youth": {
+    "n": 60,
+    "hit@5": 28,
+    "recall@1": 0.2167,
+    "recall@5": 0.4667,
+    "recall@10": 0.5333,
+    "mrr@10": 0.3225,
+    "gate": "PASS"
+  },
+  "gov24": {
+    "n": 21,
+    "hit@5": 16,
+    "recall@1": 0.3333,
+    "recall@5": 0.7619,
+    "recall@10": 0.8571,
+    "mrr@10": 0.4833,
+    "gate": "PASS"
+  },
+  "overall_gate": "PASS",
+  "per_case": [
+    {
+      "case_index": 1,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250103005400210030",
+      "rank": 3,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 2,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260416005400112762",
+      "rank": 2,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 3,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260504005400113135",
+      "rank": 2,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 4,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20251214005400211997",
+      "rank": 3,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 5,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260313005400212151",
+      "rank": 1,
+      "hit@1": true,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 6,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260325005400212262",
+      "rank": 5,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 7,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260408005400212633",
+      "rank": 8,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": true
+    },
+    {
+      "case_index": 8,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260421005400212800",
+      "rank": 1,
+      "hit@1": true,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 9,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250304005400210590",
+      "rank": 1,
+      "hit@1": true,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 10,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260424005400212874",
+      "rank": 1,
+      "hit@1": true,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 11,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250117005400210321",
+      "rank": 1,
+      "hit@1": true,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 12,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250716005400111300",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 13,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260504005400113107",
+      "rank": 1,
+      "hit@1": true,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 14,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260504005400113115",
+      "rank": 4,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 15,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260422005400212840",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 16,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260325005400212281",
+      "rank": 2,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 17,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260319005400212212",
+      "rank": 6,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": true
+    },
+    {
+      "case_index": 18,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250508005400210800",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 19,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250114005400210254",
+      "rank": 4,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 20,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260504005400113129",
+      "rank": 1,
+      "hit@1": true,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 21,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250220005400210488",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 22,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260402005400212381",
+      "rank": 4,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 23,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250305005400110591",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 24,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260325005400212274",
+      "rank": 1,
+      "hit@1": true,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 25,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250711005400211185",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 26,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250716005400211310",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 27,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250117005400210327",
+      "rank": 3,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 28,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20251214005400211984",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 29,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260522005400213213",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 30,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260407005400112546",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 31,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250716005400211297",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 32,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250916005400211693",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 33,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20251214005400211985",
+      "rank": 2,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 34,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260407005400212564",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 35,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260326005400212295",
+      "rank": 1,
+      "hit@1": true,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 36,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250917005400211709",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 37,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260421005400212801",
+      "rank": 9,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": true
+    },
+    {
+      "case_index": 38,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260422005400212845",
+      "rank": 2,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 39,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250729005400211499",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 40,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260421005400212824",
+      "rank": 1,
+      "hit@1": true,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 41,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250903005400211606",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 42,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250908005400211676",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 43,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250114005400210242",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 44,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20251223005400212045",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 45,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260504005400213060",
+      "rank": 1,
+      "hit@1": true,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 46,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250625005400111134",
+      "rank": 3,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 47,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250316005400210636",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 48,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260413005400212705",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 49,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250731005400211507",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 50,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260429005400212912",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 51,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250221005400110541",
+      "rank": 6,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": true
+    },
+    {
+      "case_index": 52,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20251121005400211918",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 53,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250109005400210094",
+      "rank": 1,
+      "hit@1": true,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 54,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250113005400210169",
+      "rank": 2,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 55,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250903005400211593",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 56,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20250304005400210582",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 57,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260406005400212409",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 58,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260430005400212951",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 59,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260504005400213050",
+      "rank": 1,
+      "hit@1": true,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 60,
+      "p0_set": "youth",
+      "gold_source": "youth",
+      "gold_source_id": "20260319005400212234",
+      "rank": 2,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 61,
+      "p0_set": "gov24",
+      "gold_source": "gov24",
+      "gold_source_id": "105100000001",
+      "rank": 1,
+      "hit@1": true,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 62,
+      "p0_set": "gov24",
+      "gold_source": "gov24",
+      "gold_source_id": "SSE000000170",
+      "rank": 1,
+      "hit@1": true,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 63,
+      "p0_set": "gov24",
+      "gold_source": "gov24",
+      "gold_source_id": "B55353000001",
+      "rank": 3,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 64,
+      "p0_set": "gov24",
+      "gold_source": "gov24",
+      "gold_source_id": "135200000120",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 65,
+      "p0_set": "gov24",
+      "gold_source": "gov24",
+      "gold_source_id": "336000000096",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 66,
+      "p0_set": "gov24",
+      "gold_source": "gov24",
+      "gold_source_id": "116010000001",
+      "rank": 3,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 67,
+      "p0_set": "gov24",
+      "gold_source": "gov24",
+      "gold_source_id": "149200005007",
+      "rank": 3,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 68,
+      "p0_set": "gov24",
+      "gold_source": "gov24",
+      "gold_source_id": "149200000026",
+      "rank": 1,
+      "hit@1": true,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 69,
+      "p0_set": "gov24",
+      "gold_source": "gov24",
+      "gold_source_id": "149200005008",
+      "rank": 1,
+      "hit@1": true,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 70,
+      "p0_set": "gov24",
+      "gold_source": "gov24",
+      "gold_source_id": "135200000080",
+      "rank": 3,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 71,
+      "p0_set": "gov24",
+      "gold_source": "gov24",
+      "gold_source_id": "135200000125",
+      "rank": 2,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 72,
+      "p0_set": "gov24",
+      "gold_source": "gov24",
+      "gold_source_id": "SD0000016119",
+      "rank": 10,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": true
+    },
+    {
+      "case_index": 73,
+      "p0_set": "gov24",
+      "gold_source": "gov24",
+      "gold_source_id": "135200005003",
+      "rank": 10,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": true
+    },
+    {
+      "case_index": 74,
+      "p0_set": "gov24",
+      "gold_source": "gov24",
+      "gold_source_id": "134200005002",
+      "rank": 0,
+      "hit@1": false,
+      "hit@5": false,
+      "hit@10": false
+    },
+    {
+      "case_index": 75,
+      "p0_set": "gov24",
+      "gold_source": "gov24",
+      "gold_source_id": "138300000033",
+      "rank": 1,
+      "hit@1": true,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 76,
+      "p0_set": "gov24",
+      "gold_source": "gov24",
+      "gold_source_id": "378000000145",
+      "rank": 1,
+      "hit@1": true,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 77,
+      "p0_set": "gov24",
+      "gold_source": "gov24",
+      "gold_source_id": "534000000106",
+      "rank": 1,
+      "hit@1": true,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 78,
+      "p0_set": "gov24",
+      "gold_source": "gov24",
+      "gold_source_id": "301000000142",
+      "rank": 5,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 79,
+      "p0_set": "gov24",
+      "gold_source": "gov24",
+      "gold_source_id": "161300000099",
+      "rank": 3,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 80,
+      "p0_set": "gov24",
+      "gold_source": "gov24",
+      "gold_source_id": "161300000103",
+      "rank": 4,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    },
+    {
+      "case_index": 81,
+      "p0_set": "gov24",
+      "gold_source": "gov24",
+      "gold_source_id": "142000000099",
+      "rank": 3,
+      "hit@1": false,
+      "hit@5": true,
+      "hit@10": true
+    }
+  ],
+  "candidate_tuning_after_final_holdout": false,
+  "p0_retrieval_runs_executed": 1
+}
