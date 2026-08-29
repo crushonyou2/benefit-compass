@@ -50,7 +50,7 @@
 - ML 검색 결과는 `source`, `source_id`, 공식 링크를 함께 반환한다.
 - Java API와 React 화면은 기존 필드를 유지하면서 출처 배지만 추가한다.
 - `/api/ask`는 기존 `answer`·`sources`에 하위 호환되는 `generated` 불리언을 추가해 실제 LLM 호출 여부를 노출한다.
-- Gemini 프롬프트에는 검색된 정책의 이름·출처·지원내용·공식 링크만 들어간다.
+- Gemini 프롬프트에는 검색된 정책의 이름·출처·지원내용·공식 링크만 들어간다. 모델은 `api/src/main/resources/application.yml`의 `gemini.model=${GEMINI_MODEL:gemini-3.5-flash-lite}` (Free Tier, env로 교체 가능)이며, 요청 형식·재시도·프롬프트 구조는 이전 `gemini-3.1-flash-lite`와 동일하다.
 - 검색 결과가 0건이면 Gemini를 호출하지 않는다.
 - `(source, source_id)`로 평가해 출처 간 ID 충돌을 피한다.
 - `region`이 들어온 공개 API 요청은 기존과 같이 400으로 거절한다.

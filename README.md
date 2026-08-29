@@ -138,7 +138,7 @@ ML 라이브러리는 Python 생태계가 편하고 비즈니스 로직은 Sprin
 | ML | Python, FastAPI, sentence-transformers |
 | 임베딩 | `intfloat/multilingual-e5-base` (768d, 로컬 구동) |
 | 리랭커 | `BAAI/bge-reranker-v2-m3` (평가·로컬 경로) |
-| 생성 | Google Gemini |
+| 생성 | Google Gemini `gemini-3.5-flash-lite` (Free Tier, `GEMINI_MODEL`로 교체 가능) |
 | 저장소 | PostgreSQL + pgvector (Neon) |
 | 인프라 | Cloud Run, GitHub Actions, GitHub Pages |
 | 데이터 | 공공데이터포털 온통청년 청년정책 + 행정안전부 정부24 공공서비스(혜택) OpenAPI |
@@ -169,8 +169,7 @@ ML 라이브러리는 Python 생태계가 편하고 비즈니스 로직은 Sprin
 > [운영 기준선](docs/operations/BASELINE_2026-07-14.md) · [SLO 초안](docs/operations/SLO.md) · [런북](docs/operations/RUNBOOK.md)
 
 ## 실행 방법
-
-`.env`에 `DATABASE_URL`(Neon), `YOUTH_API_KEY`, `DATA_GO_KR_KEY`, `GEMINI_API_KEY`가 필요합니다.
+`.env`에 `DATABASE_URL`(Neon), `YOUTH_API_KEY`, `DATA_GO_KR_KEY`, `GEMINI_API_KEY`가 필요합니다. `GEMINI_MODEL` 미설정 시 `gemini-3.5-flash-lite`가 사용됩니다.
 
 ```bash
 # 1) 데이터 수집 + 임베딩 + 적재 (pgvector 지원 Postgres 필요)
