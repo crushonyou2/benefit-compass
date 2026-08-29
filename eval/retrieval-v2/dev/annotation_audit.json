@@ -1,0 +1,446 @@
+{
+  "cases": 36,
+  "well_posed_gold": 36,
+  "ambiguous_gold": 0,
+  "p0_query_overlap": 0,
+  "p0_gold_overlap": 0,
+  "per_case": [
+    {
+      "case_id": "dev-001",
+      "source": "youth",
+      "source_id": "20260330005400212324",
+      "jurisdiction_or_scope": "경상북도 의성군",
+      "distinguishing_basis": "query explicitly specifies 의성군 + 청년키움지원센터 (facility)",
+      "category": "culture_community",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "의성군"
+      ]
+    },
+    {
+      "case_id": "dev-002",
+      "source": "youth",
+      "source_id": "20250714005400211220",
+      "jurisdiction_or_scope": "울산광역시",
+      "distinguishing_basis": "benefit type + query contains distinguishing fact",
+      "category": "housing_finance",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "울산에서"
+      ]
+    },
+    {
+      "case_id": "dev-003",
+      "source": "youth",
+      "source_id": "20260430005400213001",
+      "jurisdiction_or_scope": "충청남도 부여군",
+      "distinguishing_basis": "query explicitly specifies 부여군 + 청년 셰어하우스 (10호실)",
+      "category": "housing_finance",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "부여군",
+        "셰어하우스"
+      ]
+    },
+    {
+      "case_id": "dev-004",
+      "source": "gov24",
+      "source_id": "331000000105",
+      "jurisdiction_or_scope": "부산광역시 동래구",
+      "distinguishing_basis": "query explicitly specifies 부산 동래구 + 대학생 기숙사 (동래학숙)",
+      "category": "housing_finance",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "부산"
+      ]
+    },
+    {
+      "case_id": "dev-005",
+      "source": "gov24",
+      "source_id": "363000000234",
+      "jurisdiction_or_scope": "전남광주통합특별시 광산구",
+      "distinguishing_basis": "query explicitly specifies 광산구 + 시민안전보험 + 온열질환",
+      "category": "welfare_health",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "광산구"
+      ]
+    },
+    {
+      "case_id": "dev-006",
+      "source": "gov24",
+      "source_id": "650000001140",
+      "jurisdiction_or_scope": "제주특별자치도",
+      "distinguishing_basis": "query explicitly specifies 제주특별자치도 + 저소득 자녀 안경구입비",
+      "category": "welfare_health",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "제주특별자치도"
+      ]
+    },
+    {
+      "case_id": "dev-007",
+      "source": "youth",
+      "source_id": "20260506005400213141",
+      "jurisdiction_or_scope": "인천광역시",
+      "distinguishing_basis": "query specifies 대학생 학자금대출 이자 + 인천 (youth)",
+      "category": "employment_education",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "대학생"
+      ]
+    },
+    {
+      "case_id": "dev-008",
+      "source": "youth",
+      "source_id": "20260422005400212868",
+      "jurisdiction_or_scope": "서귀포시",
+      "distinguishing_basis": "query explicitly specifies 서귀포시 + 청년농업인 영농정착",
+      "category": "business_agriculture",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "서귀포시"
+      ]
+    },
+    {
+      "case_id": "dev-009",
+      "source": "youth",
+      "source_id": "20251211005400211953",
+      "jurisdiction_or_scope": "충청남도",
+      "distinguishing_basis": "query explicitly specifies 충남 + 직업계고 희망날개",
+      "category": "employment_education",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "충남"
+      ]
+    },
+    {
+      "case_id": "dev-010",
+      "source": "gov24",
+      "source_id": "462000000303",
+      "jurisdiction_or_scope": "충청남도 태안군",
+      "distinguishing_basis": "query explicitly specifies 태안군 + 가정위탁 양육",
+      "category": "family_care",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "태안군"
+      ]
+    },
+    {
+      "case_id": "dev-011",
+      "source": "gov24",
+      "source_id": "496000000109",
+      "jurisdiction_or_scope": "전남 함평군",
+      "distinguishing_basis": "query explicitly specifies 함평군 + 소상공인 카드수수료",
+      "category": "business_agriculture",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "함평군"
+      ]
+    },
+    {
+      "case_id": "dev-012",
+      "source": "gov24",
+      "source_id": "O00101200013",
+      "jurisdiction_or_scope": "national/unique program",
+      "distinguishing_basis": "benefit type + query contains distinguishing fact",
+      "category": "family_care",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "전북에서"
+      ]
+    },
+    {
+      "case_id": "dev-013",
+      "source": "youth",
+      "source_id": "20260504005400213088",
+      "jurisdiction_or_scope": "충청남도 계룡시",
+      "distinguishing_basis": "query explicitly specifies 계룡시 + 사람유두종 바이러스",
+      "category": "welfare_health",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "계룡시"
+      ]
+    },
+    {
+      "case_id": "dev-014",
+      "source": "youth",
+      "source_id": "20260407005400212560",
+      "jurisdiction_or_scope": "광주광역시",
+      "distinguishing_basis": "benefit type + query contains distinguishing fact",
+      "category": "employment_education",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "광주에서"
+      ]
+    },
+    {
+      "case_id": "dev-015",
+      "source": "youth",
+      "source_id": "20250904005400211635",
+      "jurisdiction_or_scope": "세종특별자치시",
+      "distinguishing_basis": "query explicitly specifies 세종시 + 출생축하금",
+      "category": "family_care",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "세종시"
+      ]
+    },
+    {
+      "case_id": "dev-016",
+      "source": "gov24",
+      "source_id": "424000000159",
+      "jurisdiction_or_scope": "강원도 삼척시",
+      "distinguishing_basis": "query explicitly specifies 삼척시 + 어르신 봉양수당",
+      "category": "welfare_health",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "삼척시"
+      ]
+    },
+    {
+      "case_id": "dev-017",
+      "source": "gov24",
+      "source_id": "483000000110",
+      "jurisdiction_or_scope": "전남 나주시",
+      "distinguishing_basis": "query explicitly specifies 나주시 + 효도수당 월 5만원",
+      "category": "welfare_health",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "나주시"
+      ]
+    },
+    {
+      "case_id": "dev-018",
+      "source": "gov24",
+      "source_id": "481000000124",
+      "jurisdiction_or_scope": "전남 여수시",
+      "distinguishing_basis": "query explicitly specifies 여수시 + 재가 암환자 관리",
+      "category": "welfare_health",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "여수시"
+      ]
+    },
+    {
+      "case_id": "dev-019",
+      "source": "gov24",
+      "source_id": "390000000129",
+      "jurisdiction_or_scope": "national/unique program",
+      "distinguishing_basis": "query specifies 아이소망 지원사업 + 체외수정 신선배아 1차 50만원 (unique program)",
+      "category": "family_care",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "아이소망"
+      ]
+    },
+    {
+      "case_id": "dev-020",
+      "source": "gov24",
+      "source_id": "403000000157",
+      "jurisdiction_or_scope": "경기도 의왕시",
+      "distinguishing_basis": "benefit type + query contains distinguishing fact",
+      "category": "family_care",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "경기도"
+      ]
+    },
+    {
+      "case_id": "dev-021",
+      "source": "gov24",
+      "source_id": "467000000106",
+      "jurisdiction_or_scope": "전북 군산시",
+      "distinguishing_basis": "query explicitly specifies 군산시 + 예비맘 엽산제",
+      "category": "family_care",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "군산시"
+      ]
+    },
+    {
+      "case_id": "dev-022",
+      "source": "gov24",
+      "source_id": "648000001093",
+      "jurisdiction_or_scope": "경상남도",
+      "distinguishing_basis": "query explicitly specifies 경상남도 + 가축질병 예방약품 (소 젖소)",
+      "category": "business_agriculture",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "경상남도"
+      ]
+    },
+    {
+      "case_id": "dev-023",
+      "source": "gov24",
+      "source_id": "444000000118",
+      "jurisdiction_or_scope": "충북 영동군",
+      "distinguishing_basis": "query explicitly specifies 영동군 + 벼 육묘상자",
+      "category": "business_agriculture",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "영동군"
+      ]
+    },
+    {
+      "case_id": "dev-024",
+      "source": "gov24",
+      "source_id": "641000000142",
+      "jurisdiction_or_scope": "경기도",
+      "distinguishing_basis": "query explicitly specifies 경기도 + 농업인안전재해보험",
+      "category": "business_agriculture",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "경기도"
+      ]
+    },
+    {
+      "case_id": "dev-025",
+      "source": "youth",
+      "source_id": "20260406005400212433",
+      "jurisdiction_or_scope": "인천 서구 (서구1939)",
+      "distinguishing_basis": "query explicitly specifies 서구 + 청년센터 서구1939 (facility)",
+      "category": "culture_community",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "서구"
+      ]
+    },
+    {
+      "case_id": "dev-026",
+      "source": "youth",
+      "source_id": "20260430005400212959",
+      "jurisdiction_or_scope": "부산광역시",
+      "distinguishing_basis": "benefit type + query contains distinguishing fact",
+      "category": "culture_community",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "부산에서"
+      ]
+    },
+    {
+      "case_id": "dev-027",
+      "source": "youth",
+      "source_id": "20260506005400213176",
+      "jurisdiction_or_scope": "인천 계양구",
+      "distinguishing_basis": "query explicitly specifies 계양구 + 청년네트워크",
+      "category": "culture_community",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "계양구"
+      ]
+    },
+    {
+      "case_id": "dev-028",
+      "source": "gov24",
+      "source_id": "O00007100022",
+      "jurisdiction_or_scope": "시흥시 목감2어울림센터",
+      "distinguishing_basis": "facility name uniquely identifies service (목감2어울림센터)",
+      "category": "culture_community",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "목감2어울림센터"
+      ]
+    },
+    {
+      "case_id": "dev-029",
+      "source": "gov24",
+      "source_id": "O00113600017",
+      "jurisdiction_or_scope": "충청북도",
+      "distinguishing_basis": "query explicitly specifies 충북 + 문화예술교육사 배치 (충북문화재단)",
+      "category": "culture_community",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "충북"
+      ]
+    },
+    {
+      "case_id": "dev-030",
+      "source": "gov24",
+      "source_id": "405000000690",
+      "jurisdiction_or_scope": "경기도 용인특례시",
+      "distinguishing_basis": "query explicitly specifies 용인특례시 + 시민안전보험 + 자연재해",
+      "category": "welfare_health",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "용인",
+        "시민안전보험"
+      ]
+    },
+    {
+      "case_id": "dev-031",
+      "source": "youth",
+      "source_id": "20260504005400113109",
+      "jurisdiction_or_scope": "충청남도",
+      "distinguishing_basis": "query explicitly specifies 충남 + 대학생 연합설계 (건축)",
+      "category": "culture_community",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "충남"
+      ]
+    },
+    {
+      "case_id": "dev-032",
+      "source": "youth",
+      "source_id": "20250617005400110945",
+      "jurisdiction_or_scope": "youth national",
+      "distinguishing_basis": "national unique program (자립준비청년 의료비)",
+      "category": "welfare_health",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "자립준비청년"
+      ]
+    },
+    {
+      "case_id": "dev-033",
+      "source": "youth",
+      "source_id": "20260408005400212608",
+      "jurisdiction_or_scope": "광주광역시 서구",
+      "distinguishing_basis": "query explicitly specifies 광주광역시 서구 + 전입 청년 웰컴박스",
+      "category": "culture_community",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "광주",
+        "서구",
+        "웰컴박스"
+      ]
+    },
+    {
+      "case_id": "dev-034",
+      "source": "youth",
+      "source_id": "20260408005400212593",
+      "jurisdiction_or_scope": "광주광역시",
+      "distinguishing_basis": "query explicitly specifies 광주 + 대학원생 학자금 대출이자",
+      "category": "employment_education",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "광주",
+        "학자금"
+      ]
+    },
+    {
+      "case_id": "dev-035",
+      "source": "youth",
+      "source_id": "20260422005400212853",
+      "jurisdiction_or_scope": "제주특별자치도",
+      "distinguishing_basis": "query explicitly specifies 제주 + 청년원탁회의",
+      "category": "culture_community",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "제주"
+      ]
+    },
+    {
+      "case_id": "dev-036",
+      "source": "youth",
+      "source_id": "20260327005400212306",
+      "jurisdiction_or_scope": "전북 익산시",
+      "distinguishing_basis": "query explicitly specifies 익산시 + 임산부 280 건강관리비 40만원",
+      "category": "welfare_health",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "익산시"
+      ]
+    }
+  ]
+}
