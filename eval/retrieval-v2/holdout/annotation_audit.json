@@ -1,0 +1,491 @@
+{
+  "cases": 40,
+  "well_posed_gold": 40,
+  "ambiguous_gold": 0,
+  "p0_query_overlap": 0,
+  "p0_gold_overlap": 0,
+  "dev_query_overlap": 0,
+  "dev_gold_overlap": 0,
+  "per_case": [
+    {
+      "case_id": "holdout-001",
+      "source": "youth",
+      "source_id": "20260421005400212799",
+      "jurisdiction_or_scope": "제주특별자치도",
+      "distinguishing_basis": "query explicitly specifies 제주특별자치도 + 전세보증금반환보증 보증료 지",
+      "category": "housing_finance",
+      "competing_policy_count": 4,
+      "required_query_terms": [
+        "제주에서"
+      ]
+    },
+    {
+      "case_id": "holdout-002",
+      "source": "gov24",
+      "source_id": "457000000111",
+      "jurisdiction_or_scope": "충청남도 부여군",
+      "distinguishing_basis": "query explicitly specifies 충청남도 + 다자녀 맘 산후 건강관리 지",
+      "category": "family_care",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "부여군에서"
+      ]
+    },
+    {
+      "case_id": "holdout-003",
+      "source": "youth",
+      "source_id": "20260406005400212527",
+      "jurisdiction_or_scope": "울산광역시",
+      "distinguishing_basis": "query explicitly specifies 울산광역시 + 배터리 특성화 대학 지원사업",
+      "category": "employment_education",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "울산에서"
+      ]
+    },
+    {
+      "case_id": "holdout-004",
+      "source": "youth",
+      "source_id": "20260323005400112244",
+      "jurisdiction_or_scope": "youth national",
+      "distinguishing_basis": "query explicitly specifies youth +  예비청년 대상 발명교육 지",
+      "category": "employment_education",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "예비청년"
+      ]
+    },
+    {
+      "case_id": "holdout-005",
+      "source": "youth",
+      "source_id": "20260504005400113117",
+      "jurisdiction_or_scope": "youth national",
+      "distinguishing_basis": "query explicitly specifies youth + 청년·사회초년생을 위한 필수",
+      "category": "employment_education",
+      "competing_policy_count": 2,
+      "required_query_terms": [
+        "청년·사회초년생을"
+      ]
+    },
+    {
+      "case_id": "holdout-006",
+      "source": "youth",
+      "source_id": "20260429005400212934",
+      "jurisdiction_or_scope": "광주광역시",
+      "distinguishing_basis": "query explicitly specifies 광주광역시 + 2026년 광주광역시청년위원",
+      "category": "culture_community",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "광주광역시"
+      ]
+    },
+    {
+      "case_id": "holdout-007",
+      "source": "youth",
+      "source_id": "20250718005400211414",
+      "jurisdiction_or_scope": "youth national",
+      "distinguishing_basis": "query explicitly specifies youth + 검단신도시 워라밸빌리지 특화",
+      "category": "housing_finance",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "검단신도시"
+      ]
+    },
+    {
+      "case_id": "holdout-008",
+      "source": "youth",
+      "source_id": "20260504005400213013",
+      "jurisdiction_or_scope": "제주특별자치도",
+      "distinguishing_basis": "query explicitly specifies 제주특별자치도 + 청년이어드림(Dream) 지",
+      "category": "welfare_health",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "제주에서"
+      ]
+    },
+    {
+      "case_id": "holdout-009",
+      "source": "gov24",
+      "source_id": "370000000113",
+      "jurisdiction_or_scope": "울산광역시",
+      "distinguishing_basis": "query explicitly specifies 울산광역시 + 출산·양육 장려금품 지원",
+      "category": "family_care",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "울산에서"
+      ]
+    },
+    {
+      "case_id": "holdout-010",
+      "source": "gov24",
+      "source_id": "SCY000000060",
+      "jurisdiction_or_scope": "national",
+      "distinguishing_basis": "national unique program (입양아동 양육수당 지원)",
+      "category": "family_care",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "입양아동"
+      ]
+    },
+    {
+      "case_id": "holdout-011",
+      "source": "gov24",
+      "source_id": "358000000134",
+      "jurisdiction_or_scope": "national",
+      "distinguishing_basis": "national unique program (노인 보청기 지원 사업)",
+      "category": "housing_finance",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "노인 보"
+      ]
+    },
+    {
+      "case_id": "holdout-012",
+      "source": "gov24",
+      "source_id": "383000000133",
+      "jurisdiction_or_scope": "경기도",
+      "distinguishing_basis": "query explicitly specifies 경기도 + 안양청년옷장",
+      "category": "employment_education",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "경기도"
+      ]
+    },
+    {
+      "case_id": "holdout-013",
+      "source": "gov24",
+      "source_id": "B27000100006",
+      "jurisdiction_or_scope": "national",
+      "distinguishing_basis": "national unique program (무료 소송대리 서비스(경찰·)",
+      "category": "culture_community",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "무료 소"
+      ]
+    },
+    {
+      "case_id": "holdout-014",
+      "source": "gov24",
+      "source_id": "476000000131",
+      "jurisdiction_or_scope": "전북",
+      "distinguishing_basis": "query explicitly specifies 전북 + 당도 향상제 지원",
+      "category": "business_agriculture",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "전북"
+      ]
+    },
+    {
+      "case_id": "holdout-015",
+      "source": "youth",
+      "source_id": "20251121005400211916",
+      "jurisdiction_or_scope": "youth national",
+      "distinguishing_basis": "query explicitly specifies youth + 양산시 출산축하용품 비용 지",
+      "category": "welfare_health",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "양산시"
+      ]
+    },
+    {
+      "case_id": "holdout-016",
+      "source": "gov24",
+      "source_id": "524000000113",
+      "jurisdiction_or_scope": "national",
+      "distinguishing_basis": "national unique program (출산육아지원금 지급)",
+      "category": "family_care",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "출산육아"
+      ]
+    },
+    {
+      "case_id": "holdout-017",
+      "source": "youth",
+      "source_id": "20250515005400210824",
+      "jurisdiction_or_scope": "youth national",
+      "distinguishing_basis": "query explicitly specifies youth + 부산 취업연수생 고용사업",
+      "category": "employment_education",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "부산에서"
+      ]
+    },
+    {
+      "case_id": "holdout-018",
+      "source": "gov24",
+      "source_id": "427000000195",
+      "jurisdiction_or_scope": "강원도",
+      "distinguishing_basis": "query explicitly specifies 강원도 + 임신 및 출산 축하기념품 지",
+      "category": "family_care",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "강원도"
+      ]
+    },
+    {
+      "case_id": "holdout-019",
+      "source": "youth",
+      "source_id": "20260408005400212631",
+      "jurisdiction_or_scope": "광주광역시",
+      "distinguishing_basis": "query explicitly specifies 광주광역시 + 청년 주거급여 분리지급",
+      "category": "housing_finance",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "광주에서"
+      ]
+    },
+    {
+      "case_id": "holdout-020",
+      "source": "gov24",
+      "source_id": "427000000210",
+      "jurisdiction_or_scope": "강원도",
+      "distinguishing_basis": "query explicitly specifies 강원도 + 생분해성 멀칭필름 지원",
+      "category": "business_agriculture",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "강원도"
+      ]
+    },
+    {
+      "case_id": "holdout-021",
+      "source": "gov24",
+      "source_id": "645000000103",
+      "jurisdiction_or_scope": "전북",
+      "distinguishing_basis": "query explicitly specifies 전북 + 악취저감 안개분무시설 지원사",
+      "category": "business_agriculture",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "전북"
+      ]
+    },
+    {
+      "case_id": "holdout-022",
+      "source": "youth",
+      "source_id": "20250103005400210043",
+      "jurisdiction_or_scope": "youth national",
+      "distinguishing_basis": "query explicitly specifies youth + 공공근로사업(청년실업대책)",
+      "category": "employment_education",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "공공근로사업"
+      ]
+    },
+    {
+      "case_id": "holdout-023",
+      "source": "gov24",
+      "source_id": "GMW000000110",
+      "jurisdiction_or_scope": "national",
+      "distinguishing_basis": "national unique program (노인복지용구제공)",
+      "category": "welfare_health",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "노인복지"
+      ]
+    },
+    {
+      "case_id": "holdout-024",
+      "source": "youth",
+      "source_id": "20260504005400213042",
+      "jurisdiction_or_scope": "youth national",
+      "distinguishing_basis": "query explicitly specifies youth + 서산시 군복무 청년 상해보험",
+      "category": "welfare_health",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "서산시"
+      ]
+    },
+    {
+      "case_id": "holdout-025",
+      "source": "youth",
+      "source_id": "20260422005400212855",
+      "jurisdiction_or_scope": "제주특별자치도",
+      "distinguishing_basis": "query explicitly specifies 제주특별자치도 + 제주청년의 열린ㆍ공감 광장",
+      "category": "culture_community",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "제주에서"
+      ]
+    },
+    {
+      "case_id": "holdout-026",
+      "source": "youth",
+      "source_id": "20260406005400212483",
+      "jurisdiction_or_scope": "youth national",
+      "distinguishing_basis": "query explicitly specifies youth + 에코 크리에이터즈 운영",
+      "category": "culture_community",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "에코"
+      ]
+    },
+    {
+      "case_id": "holdout-027",
+      "source": "gov24",
+      "source_id": "442000000113",
+      "jurisdiction_or_scope": "national",
+      "distinguishing_basis": "national unique program (고품질 과수생산 지원)",
+      "category": "business_agriculture",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "고품질 "
+      ]
+    },
+    {
+      "case_id": "holdout-028",
+      "source": "youth",
+      "source_id": "20260413005400212694",
+      "jurisdiction_or_scope": "울산광역시",
+      "distinguishing_basis": "query explicitly specifies 울산광역시 + 전세보증금 반환보증 보증료 ",
+      "category": "housing_finance",
+      "competing_policy_count": 3,
+      "required_query_terms": [
+        "울산에서"
+      ]
+    },
+    {
+      "case_id": "holdout-029",
+      "source": "youth",
+      "source_id": "20260121005400212078",
+      "jurisdiction_or_scope": "강원도",
+      "distinguishing_basis": "query explicitly specifies 강원도 + 제2기 원주시 청년정책네트워",
+      "category": "culture_community",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "강원도"
+      ]
+    },
+    {
+      "case_id": "holdout-030",
+      "source": "gov24",
+      "source_id": "521000000112",
+      "jurisdiction_or_scope": "national",
+      "distinguishing_basis": "national unique program (출산양육지원금 지원)",
+      "category": "family_care",
+      "competing_policy_count": 3,
+      "required_query_terms": [
+        "출산양육"
+      ]
+    },
+    {
+      "case_id": "holdout-031",
+      "source": "youth",
+      "source_id": "20260409005400212653",
+      "jurisdiction_or_scope": "울산광역시",
+      "distinguishing_basis": "query explicitly specifies 울산광역시 + 울산 도심융합특구 조성사업",
+      "category": "housing_finance",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "울산에서"
+      ]
+    },
+    {
+      "case_id": "holdout-032",
+      "source": "youth",
+      "source_id": "20250729005400111501",
+      "jurisdiction_or_scope": "전북",
+      "distinguishing_basis": "query explicitly specifies 전북 + 자립준비청년 자립지원 체계 ",
+      "category": "welfare_health",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "전북"
+      ]
+    },
+    {
+      "case_id": "holdout-033",
+      "source": "youth",
+      "source_id": "20250910005400211691",
+      "jurisdiction_or_scope": "youth national",
+      "distinguishing_basis": "query explicitly specifies youth + 일상돌봄서비스사업",
+      "category": "welfare_health",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "일상돌봄서비스사업"
+      ]
+    },
+    {
+      "case_id": "holdout-034",
+      "source": "gov24",
+      "source_id": "462000000300",
+      "jurisdiction_or_scope": "충청남도",
+      "distinguishing_basis": "query explicitly specifies 충청남도 + 저소득세대 국민건강보험료 지",
+      "category": "welfare_health",
+      "competing_policy_count": 2,
+      "required_query_terms": [
+        "충남에서"
+      ]
+    },
+    {
+      "case_id": "holdout-035",
+      "source": "youth",
+      "source_id": "20260520005400213208",
+      "jurisdiction_or_scope": "서울",
+      "distinguishing_basis": "query explicitly specifies 서울 + 2026년 서울청년정책네트워",
+      "category": "culture_community",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "서울"
+      ]
+    },
+    {
+      "case_id": "holdout-036",
+      "source": "gov24",
+      "source_id": "305000000152",
+      "jurisdiction_or_scope": "서울",
+      "distinguishing_basis": "query explicitly specifies 서울 + 대학생 학습멘토링 프로그램 ",
+      "category": "employment_education",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "서울"
+      ]
+    },
+    {
+      "case_id": "holdout-037",
+      "source": "gov24",
+      "source_id": "648000001071",
+      "jurisdiction_or_scope": "national",
+      "distinguishing_basis": "national unique program (난임부부 진단검진비 지원)",
+      "category": "family_care",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "난임부부"
+      ]
+    },
+    {
+      "case_id": "holdout-038",
+      "source": "gov24",
+      "source_id": "O00019400002",
+      "jurisdiction_or_scope": "national",
+      "distinguishing_basis": "national unique program (특별공급(생애최초 주택구입자)",
+      "category": "housing_finance",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "특별공급"
+      ]
+    },
+    {
+      "case_id": "holdout-039",
+      "source": "gov24",
+      "source_id": "498000000128",
+      "jurisdiction_or_scope": "광주광역시",
+      "distinguishing_basis": "query explicitly specifies 광주광역시 + 꿀벌 기자재 지원",
+      "category": "business_agriculture",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "광주에서"
+      ]
+    },
+    {
+      "case_id": "holdout-040",
+      "source": "gov24",
+      "source_id": "522000000112",
+      "jurisdiction_or_scope": "national",
+      "distinguishing_basis": "national unique program (벼 육묘 공장 지원)",
+      "category": "business_agriculture",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "벼 육묘"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{"case_id": "holdout-001", "query": "제주에서 전세보증금반환보증 보증료 지원을 받을 수 있나요?", "gold_source": "youth", "gold_source_id": "20260421005400212799", "gold_title": "전세보증금반환보증 보증료 지원", "category": "housing_finance"}
+{"case_id": "holdout-002", "query": "부여군에서 다자녀 맘 산후 건강관리 지원을 받을 수 있나요?", "gold_source": "gov24", "gold_source_id": "457000000111", "gold_title": "다자녀 맘 산후 건강관리 지원", "category": "family_care"}
+{"case_id": "holdout-003", "query": "울산에서 배터리 특성화 대학 지원사업 지원을 받을 수 있나요?", "gold_source": "youth", "gold_source_id": "20260406005400212527", "gold_title": "배터리 특성화 대학 지원사업", "category": "employment_education"}
+{"case_id": "holdout-004", "query": "예비청년 대상 발명교육 지원을 받을 수 있나요?", "gold_source": "youth", "gold_source_id": "20260323005400112244", "gold_title": " 예비청년 대상 발명교육 지원", "category": "employment_education"}
+{"case_id": "holdout-005", "query": "청년·사회초년생을 위한 필수 교육 운 지원을 받을 수 있나요?", "gold_source": "youth", "gold_source_id": "20260504005400113117", "gold_title": "청년·사회초년생을 위한 필수 교육 운영", "category": "employment_education"}
+{"case_id": "holdout-006", "query": "광주에서 2026년 광주광역시청년위원회 운영지 지원을 받을 수 있나요?", "gold_source": "youth", "gold_source_id": "20260429005400212934", "gold_title": "2026년 광주광역시청년위원회 운영지원단 모집", "category": "culture_community"}
+{"case_id": "holdout-007", "query": "검단신도시 워라밸빌리지 특화구역 청년 지원을 받을 수 있나요?", "gold_source": "youth", "gold_source_id": "20250718005400211414", "gold_title": "검단신도시 워라밸빌리지 특화구역 청년주거단지 조성", "category": "housing_finance"}
+{"case_id": "holdout-008", "query": "제주에서 청년이어드림 지원을 받을 수 있나요?", "gold_source": "youth", "gold_source_id": "20260504005400213013", "gold_title": "청년이어드림(Dream) 지원금", "category": "welfare_health"}
+{"case_id": "holdout-009", "query": "울산에서 출산·양육 장려금품 지원을 받을 수 있나요?", "gold_source": "gov24", "gold_source_id": "370000000113", "gold_title": "출산·양육 장려금품 지원", "category": "family_care"}
+{"case_id": "holdout-010", "query": "입양아동 양육수당 지원을 받을 수 있나요?", "gold_source": "gov24", "gold_source_id": "SCY000000060", "gold_title": "입양아동 양육수당 지원", "category": "family_care"}
+{"case_id": "holdout-011", "query": "노인 보청기 지원 사업 지원을 받을 수 있나요?", "gold_source": "gov24", "gold_source_id": "358000000134", "gold_title": "노인 보청기 지원 사업", "category": "housing_finance"}
+{"case_id": "holdout-012", "query": "경기도에서 안양청년옷장 지원을 받을 수 있나요?", "gold_source": "gov24", "gold_source_id": "383000000133", "gold_title": "안양청년옷장", "category": "employment_education"}
+{"case_id": "holdout-013", "query": "무료 소송대리 서비스 지원을 받을 수 있나요?", "gold_source": "gov24", "gold_source_id": "B27000100006", "gold_title": "무료 소송대리 서비스(경찰·소방공무원)", "category": "culture_community"}
+{"case_id": "holdout-014", "query": "전북에서 당도 향상제 지원을 받을 수 있나요?", "gold_source": "gov24", "gold_source_id": "476000000131", "gold_title": "당도 향상제 지원", "category": "business_agriculture"}
+{"case_id": "holdout-015", "query": "양산시 출산축하용품 비용 지원을 받을 수 있나요?", "gold_source": "youth", "gold_source_id": "20251121005400211916", "gold_title": "양산시 출산축하용품 비용 지원", "category": "welfare_health"}
+{"case_id": "holdout-016", "query": "출산육아지원금 지급 지원을 받을 수 있나요?", "gold_source": "gov24", "gold_source_id": "524000000113", "gold_title": "출산육아지원금 지급", "category": "family_care"}
+{"case_id": "holdout-017", "query": "부산에서 부산 취업연수생 고용사업 지원을 받을 수 있나요?", "gold_source": "youth", "gold_source_id": "20250515005400210824", "gold_title": "부산 취업연수생 고용사업", "category": "employment_education"}
+{"case_id": "holdout-018", "query": "강원도에서 임신 및 출산 축하기념품 지원을 받을 수 있나요?", "gold_source": "gov24", "gold_source_id": "427000000195", "gold_title": "임신 및 출산 축하기념품 지원", "category": "family_care"}
+{"case_id": "holdout-019", "query": "광주에서 청년 주거급여 분리지급 지원을 받을 수 있나요?", "gold_source": "youth", "gold_source_id": "20260408005400212631", "gold_title": "청년 주거급여 분리지급", "category": "housing_finance"}
+{"case_id": "holdout-020", "query": "강원도에서 생분해성 멀칭필름 지원을 받을 수 있나요?", "gold_source": "gov24", "gold_source_id": "427000000210", "gold_title": "생분해성 멀칭필름 지원", "category": "business_agriculture"}
+{"case_id": "holdout-021", "query": "전북에서 악취저감 안개분무시설 지원사업 지원을 받을 수 있나요?", "gold_source": "gov24", "gold_source_id": "645000000103", "gold_title": "악취저감 안개분무시설 지원사업", "category": "business_agriculture"}
+{"case_id": "holdout-022", "query": "공공근로사업 지원을 받을 수 있나요?", "gold_source": "youth", "gold_source_id": "20250103005400210043", "gold_title": "공공근로사업(청년실업대책)", "category": "employment_education"}
+{"case_id": "holdout-023", "query": "노인복지용구제공 지원을 받을 수 있나요?", "gold_source": "gov24", "gold_source_id": "GMW000000110", "gold_title": "노인복지용구제공", "category": "welfare_health"}
+{"case_id": "holdout-024", "query": "서산시 군복무 청년 상해보험 가입 지원을 받을 수 있나요?", "gold_source": "youth", "gold_source_id": "20260504005400213042", "gold_title": "서산시 군복무 청년 상해보험 가입", "category": "welfare_health"}
+{"case_id": "holdout-025", "query": "제주에서 제주청년의 열린ㆍ공감 광장 지원을 받을 수 있나요?", "gold_source": "youth", "gold_source_id": "20260422005400212855", "gold_title": "제주청년의 열린ㆍ공감 광장", "category": "culture_community"}
+{"case_id": "holdout-026", "query": "에코 크리에이터즈 운영 지원을 받을 수 있나요?", "gold_source": "youth", "gold_source_id": "20260406005400212483", "gold_title": "에코 크리에이터즈 운영", "category": "culture_community"}
+{"case_id": "holdout-027", "query": "고품질 과수생산 지원을 받을 수 있나요?", "gold_source": "gov24", "gold_source_id": "442000000113", "gold_title": "고품질 과수생산 지원", "category": "business_agriculture"}
+{"case_id": "holdout-028", "query": "울산에서 전세보증금 반환보증 보증료 지원을 받을 수 있나요?", "gold_source": "youth", "gold_source_id": "20260413005400212694", "gold_title": "전세보증금 반환보증 보증료 지원", "category": "housing_finance"}
+{"case_id": "holdout-029", "query": "강원도에서 제2기 원주시 청년정책네트워크 위원 지원을 받을 수 있나요?", "gold_source": "youth", "gold_source_id": "20260121005400212078", "gold_title": "제2기 원주시 청년정책네트워크 위원 모집 ", "category": "culture_community"}
+{"case_id": "holdout-030", "query": "출산양육지원금 지원을 받을 수 있나요?", "gold_source": "gov24", "gold_source_id": "521000000112", "gold_title": "출산양육지원금 지원", "category": "family_care"}
+{"case_id": "holdout-031", "query": "울산에서 울산 도심융합특구 조성사업 지원을 받을 수 있나요?", "gold_source": "youth", "gold_source_id": "20260409005400212653", "gold_title": "울산 도심융합특구 조성사업", "category": "housing_finance"}
+{"case_id": "holdout-032", "query": "전북에서 자립준비청년 자립지원 체계 구축 지원을 받을 수 있나요?", "gold_source": "youth", "gold_source_id": "20250729005400111501", "gold_title": "자립준비청년 자립지원 체계 구축", "category": "welfare_health"}
+{"case_id": "holdout-033", "query": "일상돌봄서비스사업 지원을 받을 수 있나요?", "gold_source": "youth", "gold_source_id": "20250910005400211691", "gold_title": "일상돌봄서비스사업", "category": "welfare_health"}
+{"case_id": "holdout-034", "query": "충남에서 저소득세대 국민건강보험료 지원을 받을 수 있나요?", "gold_source": "gov24", "gold_source_id": "462000000300", "gold_title": "저소득세대 국민건강보험료 지원", "category": "welfare_health"}
+{"case_id": "holdout-035", "query": "서울에서 2026년 서울청년정책네트워크 하반기 지원을 받을 수 있나요?", "gold_source": "youth", "gold_source_id": "20260520005400213208", "gold_title": "2026년 서울청년정책네트워크 하반기 모집", "category": "culture_community"}
+{"case_id": "holdout-036", "query": "서울에서 대학생 학습멘토링 프로그램 운영 지원을 받을 수 있나요?", "gold_source": "gov24", "gold_source_id": "305000000152", "gold_title": "대학생 학습멘토링 프로그램 운영", "category": "employment_education"}
+{"case_id": "holdout-037", "query": "난임부부 진단검진비 지원을 받을 수 있나요?", "gold_source": "gov24", "gold_source_id": "648000001071", "gold_title": "난임부부 진단검진비 지원", "category": "family_care"}
+{"case_id": "holdout-038", "query": "특별공급 지원을 받을 수 있나요?", "gold_source": "gov24", "gold_source_id": "O00019400002", "gold_title": "특별공급(생애최초 주택구입자)", "category": "housing_finance"}
+{"case_id": "holdout-039", "query": "광주에서 꿀벌 기자재 지원을 받을 수 있나요?", "gold_source": "gov24", "gold_source_id": "498000000128", "gold_title": "꿀벌 기자재 지원", "category": "business_agriculture"}
+{"case_id": "holdout-040", "query": "벼 육묘 공장 지원을 받을 수 있나요?", "gold_source": "gov24", "gold_source_id": "522000000112", "gold_title": "벼 육묘 공장 지원", "category": "business_agriculture"}
