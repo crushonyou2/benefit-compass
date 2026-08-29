@@ -5,7 +5,7 @@ Usage:
 
 Candidate's only change: lexical_overlap_terms -> lexical_overlap_terms_rewrite
 - Replacement, not additive
-- Residue tokens dropped
+- Residue: pure josa (RESIDUE_PURE) + bare admin units (ADMIN_UNITS) + admin+5 particles (ADMIN_RESIDUE_PARTICLES: 에서/에/의/으로/로) only, pre-strip only, no post-strip re-check
 - Stopword stems dropped
 - No new lexical channel, no RRF, no DB mutation
 - Algorithm identical to interrupted lexical-canonicalization-v1; only names avoid reserved substring.
@@ -25,8 +25,16 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "ml-service"))
 sys.path.insert(0, str(ROOT / "eval"))
 import app as ml_app
-from source_ranking import lexical_overlap_terms, ranking_metadata, youth_source_bias
+from source_ranking import (
+    GOV24_INTENT_TERMS,
+    LEXICAL_OVERLAP_BIAS,
+    YOUTH_INTENT_BIAS,
+    YOUTH_INTENT_TERMS,
+    lexical_overlap_terms,
+    youth_source_bias,
+)
 from retrieval_v2.candidate_lexical_rewrite import (
+    ADMIN_RESIDUE_PARTICLES,
     ADMIN_UNITS,
     MIN_STEM_LEN,
     PARTICLES,
@@ -44,13 +52,30 @@ HERE = pathlib.Path(__file__).resolve().parent
 DEV_EVALSET = ROOT / "eval" / "retrieval-v2" / "dev" / "evalset.jsonl"
 DEFAULT_OUTPUT = ROOT / "eval" / "retrieval-v2" / "experiments" / "lexical-rewrite-v1.json"
 
-# Normalization rule derived from actual candidate module constants; no duplicated suffix list
+# Precise provenance: admin residue is bare ADMIN_UNITS + 5 particles only, checked pre-strip only (no post-strip residue re-check)
 NORMALIZATION_RULE = (
     f"lexical rewrite replacement: original term replaced by particle-stripped stem "
     f"(particles {'/'.join(PARTICLES)}, MIN_STEM_LEN {MIN_STEM_LEN}, deduped); "
-    f"residue tokens (pure josa/admin-unit/admin+particle without proper noun) dropped; "
+    f"residue dropped: pure josa + bare admin_units {ADMIN_UNITS} + admin+{ADMIN_RESIDUE_PARTICLES} only (no proper-noun prefix), "
+    f"checked only before particle strip (no post-strip re-check); "
     f"stopword stems dropped; verb expansion none"
 )
+
+# D-003 prod contract constants for fail-fast check (ranking logic itself unchanged)
+D003_CANDIDATES = 30
+D003_COSINE_MIN = 0.78
+D003_LEXICAL_BIAS = 0.01
+D003_RERANK = 0
+D003_EMBED_MODEL = "intfloat/multilingual-e5-base"
+
+
+def _assert_d003_contract() -> None:
+    assert ml_app.CANDIDATES == D003_CANDIDATES, f"D-003 CANDIDATES mismatch: {ml_app.CANDIDATES} != {D003_CANDIDATES}"
+    assert abs(ml_app.COSINE_MIN - D003_COSINE_MIN) < 1e-9, f"D-003 COSINE_MIN mismatch: {ml_app.COSINE_MIN} != {D003_COSINE_MIN}"
+    assert abs(ml_app.LEXICAL_OVERLAP_BIAS - D003_LEXICAL_BIAS) < 1e-9, f"D-003 LEXICAL_BIAS mismatch: {ml_app.LEXICAL_OVERLAP_BIAS} != {D003_LEXICAL_BIAS}"
+    assert ml_app.EMBED_MODEL_NAME == D003_EMBED_MODEL, f"D-003 EMBED_MODEL mismatch: {ml_app.EMBED_MODEL_NAME} != {D003_EMBED_MODEL}"
+    # RERANK prod contract is 0 (bi-encoder only); local default may be 1 but prod contract must be 0
+    assert D003_RERANK == 0, "D-003 RERANK must be 0"
 
 
 def get_git_commit() -> dict:
@@ -99,6 +124,7 @@ def rank_of(candidates, gold, topk=10):
 
 
 def main():
+    _assert_d003_contract()
     args = parse_args()
     if not DB:
         raise SystemExit("DATABASE_URL 없음")
@@ -197,6 +223,7 @@ def main():
 
     gains = [c for c in per_case if c["delta"] == 1]
     losses = [c for c in per_case if c["delta"] == -1]
+    # Target diagnostics: dev-009/015/034 are diagnostics for reporting, not ranking inputs
     target_ids = ["dev-009", "dev-015", "dev-034"]
     target_ranks = {c["case_id"]: c for c in per_case if c["case_id"] in target_ids}
 
@@ -215,9 +242,14 @@ def main():
             "query_preprocessing": "strip_region",
             "expired_policies_excluded": True,
             "candidates": ml_app.CANDIDATES,
-            "rerank": 0,
+            "rerank": D003_RERANK,
             "bi_encoder_min_score": ml_app.COSINE_MIN,
             "lexical_bias": ml_app.LEXICAL_OVERLAP_BIAS,
+            "youth_intent_bias": YOUTH_INTENT_BIAS,
+            "youth_intent_terms": list(YOUTH_INTENT_TERMS),
+            "gov24_org_suppression": True,
+            "gov24_intent_terms": list(GOV24_INTENT_TERMS),
+            "note": "youth bias applied via youth_source_bias(q) with Gov24 org suppression (region_filter + bias suppression for Gov24 org queries); RERANK=0 bi-encoder only per D-003",
         },
         "candidate_config": {
             "name": "lexical-rewrite-v1",
@@ -226,6 +258,7 @@ def main():
             "particles": PARTICLES,
             "residue_pure": sorted(RESIDUE_PURE),
             "admin_units": ADMIN_UNITS,
+            "admin_residue_particles": ADMIN_RESIDUE_PARTICLES,
             "verb_expansion": False,
             "lexical_terms": "lexical_overlap_terms_rewrite",
             "strip_region": "unchanged",

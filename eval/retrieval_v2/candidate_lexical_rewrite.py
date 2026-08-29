@@ -2,10 +2,15 @@
 
 - Replacement, not additive: if particle stripping succeeds, use rewrite stem only.
 - If rewrite stem is stopword, drop the term entirely.
-- Pure administrative/josa residue tokens are dropped (see RESIDUE_*).
+- Residue: pure josa (RESIDUE_PURE) and bare admin units (ADMIN_UNITS) plus
+  admin+particle with exactly the 5 ADMIN_RESIDUE_PARTICLES (에서/에/의/으로/로)
+  without proper-noun prefix. Checked only before particle strip; no post-strip re-check.
 - strip_region is still used for query, no raw region re-addition.
 - Algorithm identical to interrupted v3 candidate_lexical_canonicalization.py;
   only file/function names avoid the reserved substring.
+
+Provenance: ADMIN_RESIDUE_PARTICLES makes the 5-particle admin residue explicit
+without changing the set; output is byte-for-byte identical to frozen v1.
 """
 import pathlib
 import re
@@ -25,11 +30,13 @@ MIN_STEM_LEN = 2
 # Residue classes: pure josa, admin-unit only, admin+particle without proper noun prefix
 RESIDUE_PURE = {"에서", "에", "의", "으로", "로", "와", "과", "도", "만", "부터", "까지", "에게", "한테", "께", "에게서", "으로부터"}
 ADMIN_UNITS = ["특별자치도", "특별자치시", "특별시", "광역시", "자치도", "도", "시", "군", "구"]
+# Explicit admin residue particles: only these 5 make admin+particle residue (bare admin prefix)
+ADMIN_RESIDUE_PARTICLES = ["에서", "에", "의", "으로", "로"]
 
-# Build admin+particle residue set: admin alone, admin+particle
+# Build admin+particle residue set: admin alone, admin+particle (5 only)
 RESIDUE_ADMIN = set(ADMIN_UNITS)
 for admin in ADMIN_UNITS:
-    for p in ["에서", "에", "의", "으로", "로"]:
+    for p in ADMIN_RESIDUE_PARTICLES:
         RESIDUE_ADMIN.add(admin + p)
 
 # Note: "태안군에서" is NOT in RESIDUE_ADMIN because "태안군" is not in ADMIN_UNITS
@@ -47,10 +54,11 @@ def is_residue(term: str) -> bool:
 def rewrite_term(term: str) -> str | None:
     """Return rewrite stem or None if dropped.
 
-    - If term is residue, drop (return None).
+    - If term is residue, drop (return None). Residue is checked only before strip.
     - Else try particle stripping once; if stem valid (>=2, not stopword) return stem,
       else keep original if not stopword and len>=2 and not residue.
     - If stripped stem is stopword, drop entirely (do not keep original either).
+    - No post-strip residue re-check (precise provenance: admin residue is pre-strip only).
     """
     if is_residue(term):
         return None
