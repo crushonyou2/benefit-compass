@@ -3,11 +3,10 @@
 ## Rollout Date / Repo
 - date: 2026-08-29 16:06 UTC
 - repo: `crushonyou2/benefit-compass`
-- base: `main == origin/main == e3f6758` (Merge PR #7 `codex/p2-no-traffic-verification`)
+- rollout base: `e3f6758` (P2 evidence merge)
 - verified application revision: `fe95ac4` (P1 merge; P2 verified ML/API images rebuilt from this revision)
-- P3 branch: `codex/p3-public-rollout` HEAD `e3f6758` (no application code change, evidence only)
-- working tree clean, `git diff --check` 0
-
+- initial P3 evidence commit: `f3885fd` (`docs: record P3 public rollout`)
+- no application code changes in P3; rollout changed Cloud Run API traffic only and committed documentation evidence
 ## Topology Before Rollout (2026-08-29 15:00 UTC, `gcloud run services describe`)
 
 **Web:** `web/src/App.jsx` `API_BASE = VITE_API_BASE || ''` → prod `VITE_API_BASE=https://benefit-api-866560009438.asia-northeast3.run.app` (generic `benefit-api`, not direct ML). Verified via `gh-pages` built JS `https://benefit-api-866560009438.asia-northeast3.run.app`.
@@ -68,8 +67,8 @@ Verified via `gcloud run services describe` after canary.
 
 ## Canary Verification (via generic public URL `https://benefit-api-866560009438.asia-northeast3.run.app`)
 
-Synthetic recommend (generic, to test traffic routing, ≤50, low concurrency):
-- 20 concurrent `POST /api/policies/recommend` `{"query":"청년 월세 지원","age":25}` → 14/20 200 (6 pool timeouts due to low concurrency client, not server), 0 5xx, but **12/14 had `source:null`** — expected because 90% old stack returns `source null` (old SQL without `source` column, fixed in P2). Candidate correctly returns `source youth`.
+Synthetic recommend (generic, to test traffic routing, ≤50):
+- 20 client-side concurrent `POST /api/policies/recommend` `{"query":"청년 월세 지원","age":25}` were issued → 14 completed with HTTP 200, 6 failed locally while waiting for an HTTP client connection/pool slot and did not produce server-side 5xx responses (candidate server logs showed no corresponding 5xx/startup/OOM failure), 0 5xx overall, but **12/14 had `source:null`** — expected because 90% old stack returns `source null` (old SQL without `source` column, fixed in P2). Candidate correctly returns `source youth`.
 - Gov24: picked `eval/expansion_evalset.jsonl` gov24 case `소득이 적은 근로자인데 세금 환급처럼 받을 수 있는 지원금이 있나요?` → generic: 5 results `source [None,None,None]` `has gov24 false` (old), candidate tag: `sources [gov24,gov24,youth]` `has gov24 true` — candidate path correct.
 - Region: generic `{"region":"11"}` → 200 (old, no 400) — candidate tag `{"region":"11"}` → 400 `{"code":"INVALID_REQUEST"}` — candidate 400 correct.
 
@@ -155,17 +154,20 @@ Reason: `generic benefit-ml` has no other production consumer (frontend calls on
 
 - No new application code, so no new unit tests; existing quality gate reused: `pytest ingest` 35, `eval` 4, `ml-service` 17, `compileall -q ingest ml-service eval scripts` ok, `git diff --check` 0 — as in P2
 
-## Commits
+## P3 Evidence Commits
 
-- `c15d1ae docs: record P2 no-traffic production validation` (P2)
-- `8fd3062 docs: correct P2 validation provenance` (P2 follow-up)
-- `P3 branch c15d1ae -> new` `docs: record P3 public rollout` (this, HEAD `e3f6758` base, `fe95ac4` verification revision)
+- `f3885fd docs: record P3 public rollout`
+  - records rollout performed from base `e3f6758`
+  - application images were the P2-verified `fe95ac4` builds
+  - documentation only; no application-code commit
+- `docs: correct P3 rollout provenance` (this commit)
+  - corrects stale `HEAD e3f6758` wording to distinguish `rollout base` vs `verified application revision` vs `initial P3 evidence commit`
+  - corrects `P3 branch c15d1ae -> new` to `f3885fd` and removes `Will be committed` stale phrasing
+  - unifies rollout traffic to `API candidate 0% -> 10% -> 100%` and `ML generic 100/0 invariant`
+  - clarifies 20 concurrent client pool timeouts vs server 5xx
 
 ## Rollout Evidence Commit
 
-- Will be committed as `docs: record P3 public rollout` on `codex/p3-public-rollout`, pushed, PR not yet merged — public traffic already at 100% P2 API (canary → promotion completed in this session, verification before commit)
-
-## Issues
-
+- Already committed as `f3885fd docs: record P3 public rollout` on `codex/p3-public-rollout` — this follow-up corrects provenance wording only, public traffic already at 100% P2 API
 - None blocker after promotion; initial canary's generic `source null`/`region 200` were from old 90% stack, not candidate — candidate itself was correct, promotion fixed public path.
 
