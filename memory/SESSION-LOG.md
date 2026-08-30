@@ -25,3 +25,12 @@ One short section per working session: what was worked on, what was decided (wit
 - **Overall verdict:** Retrieval v2 evaluation **HOLD** per D-007 §6; evaluation GO not granted, production rollout not authorized. Quality success is explicitly distinguished from mandatory latency failure.
 - **Durable record:** D-008 appended (append-only), Q-004 registered (cycle-2 whether to start, open), `docs/RETRIEVAL_V2.md` created as SSOT/status page. Candidate and all cycle-1 artifacts remain immutable; same holdout/benchmark not rerun or retuned to manufacture PASS. Future cycle 2, if chosen, is a separate evaluation cycle and does not retroactively change cycle-1 HOLD.
 - ** validations in this task:** `git diff --check` clean; `git diff 3ac6218..HEAD` limited to `memory/` + `docs/RETRIEVAL_V2.md`; no retrieval/DB tests rerun per HARD RULES.
+
+## 2026-08-30 — Retrieval v2 evaluation cycle 2 starts (D-009) — holdout preparation
+
+- **Scope:** cycle-2 start durable record only — no benchmark/retrieval/search/DB ranking, no embedding/model load, no cycle-1 artifact modification, no candidate tuning. Branch `codex/retrieval-v2-cycle2-start` from cycle-1 HOLD `5311e9807bab43f869655e13d4cdd006123f1ed5`.
+- **Reconciled base:** branch `codex/retrieval-v2-cycle1-hold-record` HEAD `5311e9807bab43f869655e13d4cdd006123f1ed5`; tag `retrieval-v2-cycle1-hold-v1` object `86482c0b4f76a8adf1f7bc5ed55d9f4a1ff59582` peeled HEAD verified; D-008 HOLD, Q-004 open verified. Model `Muse Spark 1.2 Contributor / 매우 높음` unchanged.
+- **Decisions:** D-009 appended (user-confirmed cycle 2 start; D-003/D-004/D-007 unchanged, D-008 immutable, new independent holdout frozen before tuning, cycle-1 results not reused for PASS, latency `candidate p95 <= paired D-003 baseline p95` with fresh D-007 measurement, separate candidate freeze). Q-004 closed → D-009. No algorithm/implementation direction chosen.
+- **Docs:** `docs/RETRIEVAL_V2.md` updated to reflect cycle-2 holdout-preparation phase; `memory/00-INDEX.md` unchanged (already links RETRIEVAL_V2 SSOT).
+- **Next:** holdout freeze on `codex/retrieval-v2-cycle2-holdout-freeze` + clean candidate start; this holdout-builder session not reused for tuning.
+- **Validations:** `git diff --check` clean (to be verified before commit); no retrieval/DB/model rerun per HARD RULES.

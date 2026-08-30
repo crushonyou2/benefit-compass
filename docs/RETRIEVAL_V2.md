@@ -6,8 +6,9 @@
 
 - **D-003** — production retrieval contract (`RERANK=0`, `CANDIDATES=30`, `COSINE_MIN=0.78`, `LEXICAL_OVERLAP_BIAS=0.01`, `strip_region`, expired-policy exclusion, `intfloat/multilingual-e5-base`, source-aware youth bias).
 - **D-004** — rejected alternatives remain out of scope (cross-encoder reranking, global similarity/abstention threshold, public region search) unless materially new evidence justifies reconsideration.
-- **D-007** — Retrieval v2 evaluation contract. Primary metric source-macro Recall@5; final-holdout quality requires candidate > baseline, net hit@5 ≥ +2, no Youth/Gov24 regression; P0 gates Youth ≥ 28/60 and Gov24 ≥ 15/21; hard-negative paired safety (pure-positive not lower, intrusion not higher); warm paired latency non-regression `candidate p95 <= paired baseline p95`; GO only if all 7 mandatory checks pass (quality improvement, +2 net, no per-source regression, P0 PASS, hard-negative PASS, latency non-regression, holdout integrity). HOLD = fixable mandatory failure; NO-GO = clear quality regression/failure to improve. A GO does not itself authorize production rollout.
+- **D-007** — Retrieval v2 evaluation contract. Primary metric source-macro Recall@5; final-holdout quality requires candidate > baseline, net hit@5 ≥ +2, no Youth/Gov24 regression; P0 gates Youth ≥ 28/60 and Gov24 ≥ 15/21; hard-negative paired safety (pure-positive not lower, intrusion not higher); warm paired latency non-regression `candidate p95 <= paired baseline p95`; GO only if all 7 mandatory checks pass (quality improvement, +2 net, no per-source regression, P0 PASS, hard-negative PASS, latency non-regression, holdout integrity). HOLD = fixable mandatory failure; NO-GO = clear quality regression/failure to improve. A GO does not itself authorize production rollout. **Cycle 2 uses same contract; latency requires fresh paired measurement.**
 - **D-008** — Retrieval v2 evaluation cycle 1 closes as **HOLD** (2026-08-30). Candidate-v2 and all frozen cycle-1 artifacts remain immutable; no rerun/retune/threshold relaxation to manufacture PASS. Future cycle 2 is a separate evaluation cycle and must not retroactively change cycle-1 HOLD.
+- **D-009** — Retrieval v2 evaluation cycle 2 starts (2026-08-30). D-003/D-004/D-007 unchanged; D-008 HOLD immutable; new independent holdout frozen before tuning; cycle-1 results not reused for PASS; latency gate still `candidate p95 <= paired D-003 baseline p95` with fresh measurement; cycle-2 candidate has separate freeze. Current phase: **holdout preparation** (no candidate tuning yet).
 
 ## Cycle 1 — frozen candidate
 
@@ -44,17 +45,14 @@ Additional immutable refs: holdout `retrieval-v2-holdout-v1` (`12515a20758265b0b
 - Evaluation **GO not granted**; **production rollout not authorized**.
 - Cycle-1 HOLD is durable and not retroactively changeable by a future cycle.
 
+## Cycle 2 — current phase: holdout preparation
+
+- **Status:** D-009 started 2026-08-30. Holdout-builder session constructs new independent 40-case holdout frozen before tuning. No candidate implementation/tuning/retrieval running in this session.
+- Branch `codex/retrieval-v2-cycle2-start` from cycle-1 HOLD commit `5311e9807bab43f869655e13d4cdd006123f1ed5`; tag `retrieval-v2-cycle2-start-v1` (pending push verification).
+- Next: freeze cycle-2 holdout on `codex/retrieval-v2-cycle2-holdout-freeze` → clean candidate branch without holdout plaintext.
+
 ## Next state
 
-- **Q-004** (open): whether to start Retrieval v2 evaluation cycle 2. Not decided in this task. A cycle 2, if chosen, must be a **separately designed** evaluation cycle with a **new independent holdout frozen before candidate tuning** (and new benchmark design), not reuse of the cycle-1 holdout or its latency benchmark to claim a new PASS.
-- This task does not propose, design, or tune a cycle-2 candidate.
+- Cycle 2 holdout preparation in progress. Candidate tuning awaits separate fresh session after holdout freeze.
 
 ## Known limitations (non-blocking)
-
-- Tags are **unsigned** (annotated, not GPG-signed).
-- No **DB snapshot** or **append-only run log** for latency measurement; provenance relies on committed result hashes + attestation + external observer evidence (Web ChatGPT workflow observation of one process start→done). These limitations do not affect the HOLD verdict and are not overstated as cryptographic proof.
-- Measurement scope is lexical term normalisation through SQL execute+fetch (model load/embedding encode excluded; qvec precomputed), per `latency-candidate-v2.json` `timed_scope`.
-
-## History
-
-- This file created at cycle-1 HOLD closure (`codex/retrieval-v2-cycle1-hold-record`, tag `retrieval-v2-cycle1-hold-v1`). Prior to this, no Retrieval v2 roadmap/status doc existed.

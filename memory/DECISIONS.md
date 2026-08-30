@@ -149,3 +149,22 @@ Consequences:
 - A future cycle 2, if chosen (Q-004), is a **separate evaluation cycle** with a separately designed holdout frozen before tuning. It must not reuse the cycle-1 holdout to claim a new PASS and must not retroactively change the cycle-1 HOLD verdict. This HOLD record branch `codex/retrieval-v2-cycle1-hold-record` and tag `retrieval-v2-cycle1-hold-v1` are the durable closure marker.
 
 Reconciled at `3ac62181de9c343511adfb2db82cb0cc64b36009` on branch `codex/retrieval-v2-latency-provenance-recovery`; provenance v3 peeled HEAD verified against remote. No benchmark/DB/model/embedding rerun was performed to produce this record.
+
+## D-009 · Start Retrieval v2 evaluation cycle 2 — 2026-08-30 (user-confirmed)
+
+User explicitly approved starting Retrieval v2 evaluation cycle 2. Q-004 resolved to start.
+
+Contract continuity:
+
+- D-003 (production retrieval contract), D-004 (rejected alternatives), and D-007 (evaluation contract) remain **unchanged and in force**.
+- D-008 cycle-1 HOLD is **immutable**; no retroactive modification of verdict, gates, or artifacts.
+- No threshold or gate relaxation.
+
+Cycle-2 evaluation structure:
+
+- Cycle 2 is a **separate evaluation cycle** with a **new independent holdout frozen before any candidate tuning**. Candidate tuning must not begin before holdout freeze.
+- Cycle-1 final holdout, P0/hard-negative/latency results, and latency measurements are **not reused** to claim a new cycle-2 PASS.
+- Latency gate remains `candidate retrieval/search p95 <= paired D-003 baseline p95` per D-007. Cycle 2 will perform a **fresh paired warm measurement** using the same D-007 methodology (same environment/DB/corpus/query set/timed sample count, interleaved in same run/window after warm-up, cold/model-load excluded, count fixed before inspection). Cycle-1 latency result is not re-measured or reinterpreted.
+- Cycle-2 candidate must have its own separate freeze and ref (`retrieval-v2-candidate-*` independent of cycle-1).
+
+Scope for this cycle-2 start session (holdout-builder only): create and freeze cycle-2 holdout before tuning; do not run benchmark/retrieval/search/DB ranking, do not load embedding/model, do not modify cycle-1 artifacts, do not tune candidate, do not relax D-003/D-004/D-007/D-008. This holdout-builder session is not reused for candidate tuning.
