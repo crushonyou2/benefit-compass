@@ -24,15 +24,16 @@ Without fix, (1)+(2) reads as **undocumented mutation** of a supposedly evaluato
 |---|---|
 | committed result byte SHA256 | `41f8cbc9d4003b06c3ecd84370811355de4aee2f9074cec571f2fa422e5d5cef` |
 | committed result LF SHA256 | `054719b84bde760f2eabc950bbe8c2a52a2f1af6d8810349c32f3ed84c7bddcb` |
-| reconstructed core SHA256 (remove 3 keys, `json.dumps(..., indent=2)` + newline) | `b1beb8c797ce22c4559ddb6618260effb646301ab9236a5ca4946be2aa2fb1c4` |
+| reconstructed core SHA256 (remove 3 keys, `json.dumps(..., indent=2)` no trailing newline, len 52453) | `ee57d748515173157b3f16874b3962c866e0b1810881eeb5d5718cbe9d638294` |
 | samples canonical SHA256 (`sort_keys, separators`) | `e33ebc910bf3b1aed3a6aaf616af3ed45a83653ba22ef651066fa6a919b89c33` |
 | summary canonical SHA256 | `eff268e268117de8a2983b12feacd78caf365aeb591bc02ec824d5a511ce9f8e` |
 | measurement-critical canonical (summary/baseline/candidate/delta/gate/design/samples + D-007 constants) | `e691567a12fb59ca999cec03b171c9f55c895b78c2d3fb69dcc0e3cab7b3be56` |
 | harness `run_latency_candidate_gate.py` LF SHA256 | `66a4e48e9c71ecd03aa389ac93ac651817d3147355cb40d64511044357ac26e0` |
 | candidate manifest LF SHA256 | `86f80ff6389ede4673e3c8d819cfab2ceefc79b8979a68b7b2bb5d64cc8eccff` |
+| harness manifest LF SHA256 | `55f46e59ee3513d39b3ead745ab72464fe28d2c722f214e370949f724ce55d47` |
+| `eval/retrieval_v2/latency.py` LF SHA256 | `47181e90ee9de142275d31a4082095fe0998500370fdb3886793302a8e1d6874` |
 
-Reconstruction proof: `core_hash == b1beb8...` ⇒ committed file is **exactly** core + the 3 added keys, no measurement field mutated.
-
+Reconstruction proof: `core_hash == ee57d748...` (no trailing newline, `ends_newline=False`, len 52453) ⇒ committed file is **exactly** core + the 3 added keys, no measurement field mutated. `write_text(json.dumps(..., indent=2))` has no trailing newline — verified by byte/LF hashes and `ends_newline=False`.
 ## 4. Fact: post-run patch recovered from transcript — metadata-only
 
 In Paseo session `Run Retrieval v2 D-007 latency gate`, after the live run the agent's Thinking contains:
@@ -116,7 +117,7 @@ Fresh read-only reviewer should re-audit: does documented metadata-only post-run
 ## 12. How to verify
 
 ```bash
-python -c "import hashlib,pathlib,json; p=pathlib.Path('eval/retrieval-v2/latency/latency-candidate-v2.json'); b=p.read_bytes(); print(hashlib.sha256(b).hexdigest()); print(hashlib.sha256(b.replace(b'\r\n',b'\n')).hexdigest()); j=json.loads(b); j2={k:v for k,v in j.items() if k not in ('candidate_provenance','candidate_tag','candidate_commit')}; print(hashlib.sha256((json.dumps(j2,ensure_ascii=False,indent=2).encode()+b'\n')).hexdigest())"
-# expect 41f8cbc9... / 054719b8... / b1beb8c7...
+python -c "import hashlib,pathlib,json; p=pathlib.Path('eval/retrieval-v2/latency/latency-candidate-v2.json'); b=p.read_bytes(); print(hashlib.sha256(b).hexdigest()); print(hashlib.sha256(b.replace(b'\r\n',b'\n')).hexdigest()); print(b.endswith(b'\n')); j=json.loads(b); j2={k:v for k,v in j.items() if k not in ('candidate_provenance','candidate_tag','candidate_commit')}; print(hashlib.sha256(json.dumps(j2,ensure_ascii=False,indent=2).encode()).hexdigest(), len(json.dumps(j2,ensure_ascii=False,indent=2).encode()))"
+# expect 41f8cbc9... / 054719b8... / False / ee57d748... 52453
 pytest eval/test_retrieval_v2_latency_provenance_attestation.py -v
 ```

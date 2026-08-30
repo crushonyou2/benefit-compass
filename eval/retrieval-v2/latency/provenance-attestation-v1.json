@@ -6,7 +6,6 @@
     "path": "eval/retrieval-v2/latency/latency-candidate-v2.json",
     "commit": "b04556f9251d6cabadd32c7c39c85dee690c8b48",
     "tag": "retrieval-v2-latency-result-v1",
-    "tag_commit": "845af6e88c4e99e73c305dd02ba5224de651c2df",
     "byte_sha256": "41f8cbc9d4003b06c3ecd84370811355de4aee2f9074cec571f2fa422e5d5cef",
     "lf_sha256": "054719b84bde760f2eabc950bbe8c2a52a2f1af6d8810349c32f3ed84c7bddcb",
     "sha256_basis": "byte exact and LF-normalized (CRLF->LF)",
@@ -16,7 +15,9 @@
     "candidate_p95": 480.55,
     "delta_p95": 4.04,
     "samples": 360,
-    "expected_sample_count": 180
+    "expected_sample_count": 180,
+    "tag_object": "845af6e88c4e99e73c305dd02ba5224de651c2df",
+    "tag_peeled_commit": "b04556f9251d6cabadd32c7c39c85dee690c8b48"
   },
   "evaluator": {
     "v1": {
@@ -31,7 +32,8 @@
       "harness": "eval/retrieval_v2/run_latency_candidate_gate.py",
       "harness_sha256_lf": "66a4e48e9c71ecd03aa389ac93ac651817d3147355cb40d64511044357ac26e0",
       "harness_manifest": "eval/retrieval-v2/latency/harness-manifest.json",
-      "harness_manifest_sha256_lf": "47181e90ee9de142275d31a4082095fe0998500370fdb3886793302a8e1d6874"
+      "harness_manifest_sha256_lf": "55f46e59ee3513d39b3ead745ab72464fe28d2c722f214e370949f724ce55d47",
+      "latency_py_sha256_lf": "47181e90ee9de142275d31a4082095fe0998500370fdb3886793302a8e1d6874"
     },
     "frozen_source_emits_candidate_provenance": false,
     "frozen_source_overwrite_bug": "output dict defines candidate provenance object at lines 474-480 then overwrites output['candidate'] with summary['candidate'] at lines 531-532 (candidate: summary['candidate']); so provenance object is lost and summary stats remain as candidate"
@@ -61,8 +63,8 @@
   "measurement_hashes": {
     "committed_result_byte_sha256": "41f8cbc9d4003b06c3ecd84370811355de4aee2f9074cec571f2fa422e5d5cef",
     "committed_result_lf_sha256": "054719b84bde760f2eabc950bbe8c2a52a2f1af6d8810349c32f3ed84c7bddcb",
-    "reconstructed_core_sha256": "b1beb8c797ce22c4559ddb6618260effb646301ab9236a5ca4946be2aa2fb1c4",
-    "reconstructed_core_basis": "committed JSON with keys candidate_provenance/candidate_tag/candidate_commit removed, re-serialized with json.dumps(ensure_ascii=False, indent=2) + trailing newline, UTF-8",
+    "reconstructed_core_sha256": "ee57d748515173157b3f16874b3962c866e0b1810881eeb5d5718cbe9d638294",
+    "reconstructed_core_basis": "committed JSON with keys candidate_provenance/candidate_tag/candidate_commit removed, re-serialized with json.dumps(ensure_ascii=False, indent=2) and no trailing newline, UTF-8; length 52453",
     "reconstructed_core_removed_keys": [
       "candidate_provenance",
       "candidate_tag",
@@ -117,14 +119,14 @@
       "candidate_commit"
     ],
     "exact_code": "j['candidate_provenance'] = {'tag': 'retrieval-v2-candidate-v2','commit': '5745cc3144b519da456b21030d0e0752d1d018ae','artifact_commit': 'c6c082681b4f2fcd521790e50c5fd46549116307','manifest': 'eval/retrieval-v2/candidate/manifest.json','manifest_sha256': '86f80ff6389ede4673e3c8d819cfab2ceefc79b8979a68b7b2bb5d64cc8eccff'}; j['candidate_tag'] = 'retrieval-v2-candidate-v2'; j['candidate_commit'] = '5745cc3144b519da456b21030d0e0752d1d018ae'; p.write_text(json.dumps(j, ensure_ascii=False, indent=2), encoding='utf-8')",
-    "file_write": "json.dumps(j, ensure_ascii=False, indent=2) with trailing newline behavior via write_text (implicit newline from dumps indent=2, no extra newline appended beyond dumps output) — byte hash proves committed file is dumps+indent2 output",
+    "file_write": "json.dumps(j, ensure_ascii=False, indent=2) with no trailing newline via write_text; byte/LF hashes and ends_newline=False prove committed file has no trailing newline",
     "transcript_comments": [
       "also add top-level candidate_tag/commit for convenience to satisfy spec phrase",
       "ensure evaluator tag already correct",
       "write back"
     ],
     "provenance_object_match": "candidate_provenance values correspond exactly to candidate-v2 tag/commit/artifact/manifest_sha256 as pinned in evaluator and candidate manifest",
-    "measurement_fields_untouched": "summary/baseline/candidate(stats)/delta_p95/gate/design/samples/production_contract/corpus/timed_scope unchanged; reconstructed core hash b1beb8... proves removing only the 3 added keys yields deterministic core that contains summary stats as candidate",
+    "measurement_fields_untouched": "summary/baseline/candidate(stats)/delta_p95/gate/design/samples/production_contract/corpus/timed_scope unchanged; reconstructed core hash ee57d7... (no newline, len 52453) proves removing only the 3 added keys yields deterministic core that contains summary stats as candidate",
     "why_not_in_frozen_evaluator": "evaluator-v2 source never emits candidate_provenance/candidate_tag/candidate_commit; its candidate dict is overwritten by summary['candidate']; annotation was explicit post-run metadata-only step to restore provenance without touching timed data"
   },
   "external_observer_evidence": {
@@ -262,5 +264,6 @@
       "eval/test_retrieval_v2_latency_provenance_attestation.py"
     ],
     "forbidden_modifications_verified": "existing latency result byte/LF hashes unchanged; evaluator-v2/candidate-v2/production files diff 0"
-  }
+  },
+  "corrections_from_v1": "v2 fixes: tag_object vs tag_peeled_commit split, harness_manifest vs latency_py hash correction, reconstructed core no-newline hash ee57... replaces previous newline-appended hash; file_write clarifies no trailing newline"
 }

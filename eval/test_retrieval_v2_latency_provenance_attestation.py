@@ -11,7 +11,7 @@ HARNESS = ROOT / "eval" / "retrieval_v2" / "run_latency_candidate_gate.py"
 
 EXPECTED_BYTE = "41f8cbc9d4003b06c3ecd84370811355de4aee2f9074cec571f2fa422e5d5cef"
 EXPECTED_LF = "054719b84bde760f2eabc950bbe8c2a52a2f1af6d8810349c32f3ed84c7bddcb"
-EXPECTED_CORE = "b1beb8c797ce22c4559ddb6618260effb646301ab9236a5ca4946be2aa2fb1c4"
+EXPECTED_CORE = "ee57d748515173157b3f16874b3962c866e0b1810881eeb5d5718cbe9d638294"
 EXPECTED_SAMPLES = "e33ebc910bf3b1aed3a6aaf616af3ed45a83653ba22ef651066fa6a919b89c33"
 EXPECTED_SUMMARY = "eff268e268117de8a2983b12feacd78caf365aeb591bc02ec824d5a511ce9f8e"
 
@@ -31,9 +31,11 @@ class ResultHashPinTest(unittest.TestCase):
 
     def test_reconstructed_core_hash(self):
         b = RESULT.read_bytes()
+        self.assertFalse(b.endswith(b"\n"), "result file must have ends_newline=False (no trailing newline)")
         j = json.loads(b.decode("utf-8"))
         j2 = {k: v for k, v in j.items() if k not in ("candidate_provenance", "candidate_tag", "candidate_commit")}
-        core = json.dumps(j2, ensure_ascii=False, indent=2).encode("utf-8") + b"\n"
+        core = json.dumps(j2, ensure_ascii=False, indent=2).encode("utf-8")  # no trailing newline, ends_newline=False
+        self.assertEqual(len(core), 52453)
         self.assertEqual(hashlib.sha256(core).hexdigest(), EXPECTED_CORE)
         # core candidate must be summary stats, not provenance object
         self.assertEqual(j2["candidate"], j2["summary"]["candidate"])
@@ -134,6 +136,8 @@ class AttestationInvariantTest(unittest.TestCase):
         self.assertFalse(a["post_run_annotation"]["mutates_measurement_fields"])
         self.assertEqual(a["post_run_annotation"]["source"], "recovered_paseo_session_transcript")
         self.assertEqual(set(a["post_run_annotation"]["exact_added_top_level_keys"]), {"candidate_provenance", "candidate_tag", "candidate_commit"})
+        self.assertIn("no trailing newline", a["post_run_annotation"]["file_write"].lower())
+        self.assertNotIn("implicit newline", a["post_run_annotation"]["file_write"].lower())
         # external observer class must be external_observer_record
         self.assertEqual(a["external_observer_evidence"]["evidence_class"], "external_observer_record")
         # hashes pinned must match constants
@@ -145,9 +149,14 @@ class AttestationInvariantTest(unittest.TestCase):
         # result commit/tag/path
         self.assertEqual(a["result"]["commit"], "b04556f9251d6cabadd32c7c39c85dee690c8b48")
         self.assertEqual(a["result"]["tag"], "retrieval-v2-latency-result-v1")
+        self.assertEqual(a["result"]["tag_object"], "845af6e88c4e99e73c305dd02ba5224de651c2df")
+        self.assertEqual(a["result"]["tag_peeled_commit"], "b04556f9251d6cabadd32c7c39c85dee690c8b48")
+        self.assertNotIn("tag_commit", a["result"])
         self.assertEqual(a["result"]["path"], "eval/retrieval-v2/latency/latency-candidate-v2.json")
         # evaluator commits
         self.assertEqual(a["evaluator"]["v2"]["commit"], "7b8c4ea868afc3eb8b4ab33f63b067bd23c087ba")
+        self.assertEqual(a["evaluator"]["v2"]["harness_manifest_sha256_lf"], "55f46e59ee3513d39b3ead745ab72464fe28d2c722f214e370949f724ce55d47")
+        self.assertEqual(a["evaluator"]["v2"]["latency_py_sha256_lf"], "47181e90ee9de142275d31a4082095fe0998500370fdb3886793302a8e1d6874")
         self.assertEqual(a["candidate"]["commit"], "5745cc3144b519da456b21030d0e0752d1d018ae")
 
     def test_attestation_known_limitations_present(self):
