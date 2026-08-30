@@ -129,3 +129,23 @@ A fixable mandatory failure is HOLD. Clear quality regression or failure to impr
 A Retrieval v2 evaluation GO does not itself authorize production rollout. A passing candidate still proceeds through staging / no-traffic verification and a separate rollout decision.
 
 This decision does not reopen cross-encoder reranking, a global similarity/abstention threshold, or public region search. Those remain governed by D-004.
+
+## D-008 · Close Retrieval v2 evaluation cycle 1 as HOLD — 2026-08-30 (user-confirmed, recorded 2026-08-30)
+
+Retrieval v2 evaluation cycle 1 closes as **HOLD** under D-007 because mandatory warm paired latency non-regression (D-007 §6) failed, despite quality / P0 / hard-negative PASS. Evaluation GO is therefore not granted and production rollout is not authorized.
+
+Cycle-1 gate summary (re-execution prohibited; artifact/tag cross-verified only):
+
+- Final holdout quality **PASS** — baseline 33/40 → candidate 36/40, source-macro 0.825 → 0.900, net +3, Youth 18/20 → 20/20, Gov24 15/20 → 16/20, losses 0. Tag `retrieval-v2-final-holdout-result-v1` (commit `d86e0119f9ac5cf3028364df24d898ff638d3b76`, candidate `retrieval-v2-candidate-v2` `5745cc3144b519da456b21030d0e0752d1d018ae`).
+- P0 regression **PASS** — Youth 28/60, Gov24 16/21. Tag `retrieval-v2-p0-result-v1` (commit `3373da294b73705861b7a0e494ba802f9e9f6786`).
+- Hard-negative paired safety **PASS** — pure-positive 15/21 → 16/21, excluded-policy intrusion 0/3 → 0/3. Tag `retrieval-v2-hard-negative-result-v1` (commit `34ca5a537f0a537b9217e3b2fffd005b80a5fe19`).
+- Warm paired latency **HOLD** — baseline p95 476.51 ms, candidate p95 480.55 ms, delta +4.04 ms; D-007 requires `candidate p95 <= paired baseline p95`. Result tag `retrieval-v2-latency-result-v1` (commit `b04556f9251d6cabadd32c7c39c85dee690c8b48`). Measurement provenance blocker resolved via `retrieval-v2-latency-provenance-v3` (tag object `c0d2a9321114144b5ab4235a66c80faf6f112c57` → commit `3ac62181de9c343511adfb2db82cb0cc64b36009`); reviewer verdict APPROVE means provenance blocker resolved, not latency PASS. Latency numerical gate remains HOLD.
+
+Consequences:
+
+- `retrieval-v2-candidate-v2` and all frozen cycle-1 artifacts remain **immutable evidence**; no retuning, no threshold/gate relaxation, no rerun to manufacture PASS.
+- The same cycle-1 holdout / P0 / hard-negative / warm paired latency benchmark is **not rerun or retuned** to seek PASS. D-007 is unchanged.
+- No production rollout is authorized from cycle 1.
+- A future cycle 2, if chosen (Q-004), is a **separate evaluation cycle** with a separately designed holdout frozen before tuning. It must not reuse the cycle-1 holdout to claim a new PASS and must not retroactively change the cycle-1 HOLD verdict. This HOLD record branch `codex/retrieval-v2-cycle1-hold-record` and tag `retrieval-v2-cycle1-hold-v1` are the durable closure marker.
+
+Reconciled at `3ac62181de9c343511adfb2db82cb0cc64b36009` on branch `codex/retrieval-v2-latency-provenance-recovery`; provenance v3 peeled HEAD verified against remote. No benchmark/DB/model/embedding rerun was performed to produce this record.

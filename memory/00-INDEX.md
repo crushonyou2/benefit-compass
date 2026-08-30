@@ -11,6 +11,10 @@ Purpose: this folder is the durable memory for benefit-compass. Conversations fo
 | `SESSION-LOG.md` | What happened, per working session | Append, dated |
 | `PRODUCT-TRUTH.md` | What the product actually does (if applicable) | Evidence + date only. Three sections: implemented / not / excluded |
 
+## Project status / reference docs
+
+- `docs/RETRIEVAL_V2.md` — Retrieval v2 SSOT/status page (cycle-1 HOLD, D-007/D-008, frozen candidate, gate outcomes, provenance).
+
 ## Operating principles
 
 1. **Record in-session.** Decisions and important facts are written the moment they appear, not at the end. Zero loss.

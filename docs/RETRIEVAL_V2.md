@@ -1,0 +1,60 @@
+# Retrieval v2 — Status (SSOT)
+
+> This page is the current SSOT/status page for Retrieval v2. It does not rerun evaluations and does not propose a new candidate.
+
+## Contract
+
+- **D-003** — production retrieval contract (`RERANK=0`, `CANDIDATES=30`, `COSINE_MIN=0.78`, `LEXICAL_OVERLAP_BIAS=0.01`, `strip_region`, expired-policy exclusion, `intfloat/multilingual-e5-base`, source-aware youth bias).
+- **D-004** — rejected alternatives remain out of scope (cross-encoder reranking, global similarity/abstention threshold, public region search) unless materially new evidence justifies reconsideration.
+- **D-007** — Retrieval v2 evaluation contract. Primary metric source-macro Recall@5; final-holdout quality requires candidate > baseline, net hit@5 ≥ +2, no Youth/Gov24 regression; P0 gates Youth ≥ 28/60 and Gov24 ≥ 15/21; hard-negative paired safety (pure-positive not lower, intrusion not higher); warm paired latency non-regression `candidate p95 <= paired baseline p95`; GO only if all 7 mandatory checks pass (quality improvement, +2 net, no per-source regression, P0 PASS, hard-negative PASS, latency non-regression, holdout integrity). HOLD = fixable mandatory failure; NO-GO = clear quality regression/failure to improve. A GO does not itself authorize production rollout.
+- **D-008** — Retrieval v2 evaluation cycle 1 closes as **HOLD** (2026-08-30). Candidate-v2 and all frozen cycle-1 artifacts remain immutable; no rerun/retune/threshold relaxation to manufacture PASS. Future cycle 2 is a separate evaluation cycle and must not retroactively change cycle-1 HOLD.
+
+## Cycle 1 — frozen candidate
+
+| item | value |
+|---|---|
+| candidate tag | `retrieval-v2-candidate-v2` |
+| candidate commit | `5745cc3144b519da456b21030d0e0752d1d018ae` |
+| artifact commit | `c6c082681b4f2fcd521790e50c5fd46549116307` |
+| manifest | `eval/retrieval-v2/candidate/manifest.json` LF SHA256 `86f80ff6389ede4673e3c8d819cfab2ceefc79b8979a68b7b2bb5d64cc8eccff` |
+| config | `lexical-rewrite-v1` (`lexical_overlap_terms_rewrite` — particle-stripped stem replacement, `MIN_STEM_LEN 2`) |
+| production parity | `strip_region`, youth intent bias suppressed for Gov24 orgs, `LEXICAL_BIAS 0.01`, `CANDIDATES 30`, `COSINE_MIN 0.78`, no cross-encoder/threshold/region search |
+
+## Cycle 1 — gate outcomes (no rerun; artifact/tag cross-verified)
+
+| gate | result | detail | artifact | tag → commit |
+|---|---|---|---|---|
+| Final holdout quality (D-007) | **PASS** | 40 queries (Youth 20 + Gov24 20). Baseline 33/40 → candidate 36/40, source-macro 0.825 → 0.900, net +3 (gains holdout-001/028/036, losses 0), Youth 18/20→20/20, Gov24 15/20→16/20 | `eval/retrieval-v2/final/summary-v1.json` | `retrieval-v2-final-holdout-result-v1` → `d86e0119f9ac5cf3028364df24d898ff638d3b76` |
+| P0 regression | **PASS** | Youth 28/60, Gov24 16/21 | `eval/retrieval-v2/p0/p0-candidate-v2.json` | `retrieval-v2-p0-result-v1` → `3373da294b73705861b7a0e494ba802f9e9f6786` |
+| Hard-negative paired safety | **PASS** | pure-positive 15/21→16/21, excluded-policy intrusion 0/3→0/3 | `eval/retrieval-v2/hard-negative/paired-candidate-v2.json` | `retrieval-v2-hard-negative-result-v1` → `34ca5a537f0a537b9217e3b2fffd005b80a5fe19` |
+| Warm paired latency (D-007) | **HOLD** | baseline p95 476.51 ms, candidate p95 480.55 ms, Δ +4.04 ms; D-007 requires `candidate p95 <= baseline p95`. p50 baseline 410.40 → candidate 395.82 (diagnostic), n=180 per variant (360 total), warmup 36/variant, interleaved paired design | `eval/retrieval-v2/latency/latency-candidate-v2.json` | `retrieval-v2-latency-result-v1` → `b04556f9251d6cabadd32c7c39c85dee690c8b48` |
+
+Additional immutable refs: holdout `retrieval-v2-holdout-v1` (`12515a20758265b0b5a5f52acef5aa40de3b6253`, SHA `02eb03866f8e09b66ea7c3b83856fe939ee0b966350053277aaca3f2d7121eda`, 40 cases), evaluator `retrieval-v2-holdout-evaluator-v1` (`e32d3ebee871918bccf08613e34ae7a72d953737`), p0 evaluator `retrieval-v2-p0-evaluator-v1` (`63b9ac62dc980ca0a1ab84fe90456e85cdae1a18`), hard-negative evaluator `retrieval-v2-hard-negative-evaluator-v1` (`ba2b3099ea0daf67f47453390c24ccbc9a389819`), latency evaluator `retrieval-v2-latency-evaluator-v2` (`7b8c4ea868afc3eb8b4ab33f63b067bd23c087ba`, harness LF `66a4e48e9c71ecd03aa389ac93ac651817d3147355cb40d64511044357ac26e0`).
+
+## Provenance & review
+
+- Latency provenance SSOT: `retrieval-v2-latency-provenance-v3` — tag object `c0d2a9321114144b5ab4235a66c80faf6f112c57` → commit `3ac62181de9c343511adfb2db82cb0cc64b36009` on branch `codex/retrieval-v2-latency-provenance-recovery`.
+- Independent reviewer verdict: **APPROVE** — measurement **provenance blocker resolved**, not latency PASS. Latency numerical gate remains HOLD.
+- Superseded tags `retrieval-v2-latency-provenance-v1/v2` remain immutable audit history.
+- Recovery scope: 3 files only (`PROVENANCE-RECOVERY.md`, `provenance-attestation-v1.json`, `test_retrieval_v2_latency_provenance_attestation.py`); no measurement rerun.
+
+## Overall verdict
+
+- **Cycle 1 = HOLD** per D-007/D-008. Quality / P0 / hard-negative success is explicitly distinguished from mandatory **latency failure**.
+- Evaluation **GO not granted**; **production rollout not authorized**.
+- Cycle-1 HOLD is durable and not retroactively changeable by a future cycle.
+
+## Next state
+
+- **Q-004** (open): whether to start Retrieval v2 evaluation cycle 2. Not decided in this task. A cycle 2, if chosen, must be a **separately designed** evaluation cycle with a **new independent holdout frozen before candidate tuning** (and new benchmark design), not reuse of the cycle-1 holdout or its latency benchmark to claim a new PASS.
+- This task does not propose, design, or tune a cycle-2 candidate.
+
+## Known limitations (non-blocking)
+
+- Tags are **unsigned** (annotated, not GPG-signed).
+- No **DB snapshot** or **append-only run log** for latency measurement; provenance relies on committed result hashes + attestation + external observer evidence (Web ChatGPT workflow observation of one process start→done). These limitations do not affect the HOLD verdict and are not overstated as cryptographic proof.
+- Measurement scope is lexical term normalisation through SQL execute+fetch (model load/embedding encode excluded; qvec precomputed), per `latency-candidate-v2.json` `timed_scope`.
+
+## History
+
+- This file created at cycle-1 HOLD closure (`codex/retrieval-v2-cycle1-hold-record`, tag `retrieval-v2-cycle1-hold-v1`). Prior to this, no Retrieval v2 roadmap/status doc existed.
