@@ -1,0 +1,41 @@
+{
+  "role": "holdout",
+  "cycle": 2,
+  "contract": "D-007",
+  "cases": 40,
+  "youth": 20,
+  "gov24": 20,
+  "by_source": {
+    "youth": 20,
+    "gov24": 20
+  },
+  "eval_file": "eval/retrieval-v2/cycle2/holdout/evalset.jsonl",
+  "sha256": "cf003bab7713138fbd9c4622addeeb886c01f401aeab3d43b1144ae6e4c79727",
+  "sha256_basis": "utf8_text_lf_normalized",
+  "created_at": "2026-08-30T12:25:14.382637+09:00",
+  "base_commit": "434b798d60bf15433590362aaad4a021846094d4",
+  "frozen_before_tuning": true,
+  "retrieval_observed": false,
+  "candidate_tuning_started": false,
+  "cycle1_candidate_results_used_for_case_selection": false,
+  "cycle1_holdout_accessed_for_collision_audit": true,
+  "cycle1_holdout_access_purpose": "normalized query and gold (source,source_id) overlap check only; no plaintext logged",
+  "p0_query_overlap": 0,
+  "p0_gold_overlap": 0,
+  "dev_query_overlap": 0,
+  "dev_gold_overlap": 0,
+  "cycle1_holdout_query_overlap": 0,
+  "cycle1_holdout_gold_overlap": 0,
+  "hard_negative_query_overlap": 0,
+  "hard_negative_gold_overlap": 0,
+  "category_counts": {
+    "culture_community": 6,
+    "employment_education": 7,
+    "housing_finance": 7,
+    "business_agriculture": 6,
+    "family_care": 7,
+    "welfare_health": 7
+  },
+  "annotation_audit": "eval/retrieval-v2/cycle2/holdout/annotation_audit.json",
+  "frozen_before_tuning_verified": true
+}

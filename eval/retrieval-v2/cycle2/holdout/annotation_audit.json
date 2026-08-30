@@ -1,0 +1,564 @@
+{
+  "cases": 40,
+  "well_posed_gold": 40,
+  "ambiguous_gold": 0,
+  "p0_query_overlap": 0,
+  "p0_gold_overlap": 0,
+  "dev_query_overlap": 0,
+  "dev_gold_overlap": 0,
+  "cycle1_holdout_query_overlap": 0,
+  "cycle1_holdout_gold_overlap": 0,
+  "hard_negative_query_overlap": 0,
+  "hard_negative_gold_overlap": 0,
+  "cycle1_holdout_accessed_for_collision_audit": true,
+  "per_case": [
+    {
+      "case_id": "c2h-001",
+      "source": "gov24",
+      "source_id": "O00085100002",
+      "jurisdiction_or_scope": "(재)노원문화재단",
+      "distinguishing_basis": "query explicitly specifies 거주하는 지역 + 노원문화예술회관 기획공연 티",
+      "category": "culture_community",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "노원문화",
+        "기획공연"
+      ]
+    },
+    {
+      "case_id": "c2h-002",
+      "source": "gov24",
+      "source_id": "O00113600030",
+      "jurisdiction_or_scope": "충북 ((재)충북문화재단)",
+      "distinguishing_basis": "query explicitly specifies 충북 + 2025 문화예술교육 배달",
+      "category": "employment_education",
+      "competing_policy_count": 3,
+      "required_query_terms": [
+        "충북",
+        "2025",
+        "문화예술"
+      ]
+    },
+    {
+      "case_id": "c2h-003",
+      "source": "gov24",
+      "source_id": "482000000587",
+      "jurisdiction_or_scope": "광주 (전남광주통합특별시 순천시)",
+      "distinguishing_basis": "query explicitly specifies 광주 + 대학(원)생 전입장려금",
+      "category": "housing_finance",
+      "competing_policy_count": 3,
+      "required_query_terms": [
+        "광주",
+        "대학(원",
+        "전입장려"
+      ]
+    },
+    {
+      "case_id": "c2h-004",
+      "source": "gov24",
+      "source_id": "474000000149",
+      "jurisdiction_or_scope": "전북 (전북특별자치도 무주군)",
+      "distinguishing_basis": "query explicitly specifies 전북 + 포도(머루), 블루베리 재배",
+      "category": "business_agriculture",
+      "competing_policy_count": 3,
+      "required_query_terms": [
+        "전북",
+        "포도(머",
+        "블루베리"
+      ]
+    },
+    {
+      "case_id": "c2h-005",
+      "source": "gov24",
+      "source_id": "524000000167",
+      "jurisdiction_or_scope": "경상북도 봉화군",
+      "distinguishing_basis": "query explicitly specifies 거주하는 지역 + 봉화한우 고급육 생산",
+      "category": "business_agriculture",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "봉화한우",
+        "고급육"
+      ]
+    },
+    {
+      "case_id": "c2h-006",
+      "source": "gov24",
+      "source_id": "148000000046",
+      "jurisdiction_or_scope": "기후에너지환경부",
+      "distinguishing_basis": "query explicitly specifies 거주하는 지역 + 농촌 폐비닐 수거보상금 지급",
+      "category": "culture_community",
+      "competing_policy_count": 2,
+      "required_query_terms": [
+        "농촌",
+        "폐비닐"
+      ]
+    },
+    {
+      "case_id": "c2h-007",
+      "source": "youth",
+      "source_id": "20260430005400213010",
+      "jurisdiction_or_scope": "충남 (지역경제과)",
+      "distinguishing_basis": "query explicitly specifies 충남 + 청년성장프로젝트",
+      "category": "employment_education",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "충남",
+        "청년성장"
+      ]
+    },
+    {
+      "case_id": "c2h-008",
+      "source": "gov24",
+      "source_id": "486000000111",
+      "jurisdiction_or_scope": "광주 (전남광주통합특별시 곡성군)",
+      "distinguishing_basis": "query explicitly specifies 광주 + 결혼이민자 국적취득 비용(수",
+      "category": "housing_finance",
+      "competing_policy_count": 3,
+      "required_query_terms": [
+        "광주",
+        "결혼이민",
+        "국적취득"
+      ]
+    },
+    {
+      "case_id": "c2h-009",
+      "source": "youth",
+      "source_id": "20260506005400213161",
+      "jurisdiction_or_scope": "인천 (인천광역시 중구 주민생활국 경제산업과)",
+      "distinguishing_basis": "query explicitly specifies 인천 + (중구) 청년정책조정위원회",
+      "category": "culture_community",
+      "competing_policy_count": 2,
+      "required_query_terms": [
+        "인천",
+        "(중구)",
+        "청년정책"
+      ]
+    },
+    {
+      "case_id": "c2h-010",
+      "source": "gov24",
+      "source_id": "312000000105",
+      "jurisdiction_or_scope": "서울 (서울특별시 서대문구)",
+      "distinguishing_basis": "query explicitly specifies 서울 + 입양가정 입양축하금 지급",
+      "category": "family_care",
+      "competing_policy_count": 3,
+      "required_query_terms": [
+        "서울",
+        "입양가정",
+        "입양축하"
+      ]
+    },
+    {
+      "case_id": "c2h-011",
+      "source": "youth",
+      "source_id": "20250714005400111211",
+      "jurisdiction_or_scope": "울산 (울산광역시)",
+      "distinguishing_basis": "query explicitly specifies 울산 + 태화동 청년희망주택 건립",
+      "category": "housing_finance",
+      "competing_policy_count": 2,
+      "required_query_terms": [
+        "울산",
+        "태화동",
+        "청년희망"
+      ]
+    },
+    {
+      "case_id": "c2h-012",
+      "source": "gov24",
+      "source_id": "301000000132",
+      "jurisdiction_or_scope": "서울 (서울특별시 중구)",
+      "distinguishing_basis": "query explicitly specifies 서울 + 저소득주민 유료방송 시청료",
+      "category": "welfare_health",
+      "competing_policy_count": 3,
+      "required_query_terms": [
+        "서울",
+        "저소득주",
+        "유료방송"
+      ]
+    },
+    {
+      "case_id": "c2h-013",
+      "source": "youth",
+      "source_id": "20260413005400212713",
+      "jurisdiction_or_scope": "울산 (울산광역시)",
+      "distinguishing_basis": "query explicitly specifies 울산 + 울산시립아이돌봄센터",
+      "category": "family_care",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "울산",
+        "울산시립"
+      ]
+    },
+    {
+      "case_id": "c2h-014",
+      "source": "youth",
+      "source_id": "20250714005400111213",
+      "jurisdiction_or_scope": "울산 (울산광역시)",
+      "distinguishing_basis": "query explicitly specifies 울산 + 달동 청년희망주택 건립",
+      "category": "housing_finance",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "울산",
+        "달동",
+        "청년희망"
+      ]
+    },
+    {
+      "case_id": "c2h-015",
+      "source": "gov24",
+      "source_id": "361000000102",
+      "jurisdiction_or_scope": "광주 (전남광주통합특별시 남구)",
+      "distinguishing_basis": "query explicitly specifies 광주 + 참전유공자명예수당",
+      "category": "welfare_health",
+      "competing_policy_count": 2,
+      "required_query_terms": [
+        "광주",
+        "참전유공"
+      ]
+    },
+    {
+      "case_id": "c2h-016",
+      "source": "youth",
+      "source_id": "20250116005400210313",
+      "jurisdiction_or_scope": "제주 (교육정책협력과)",
+      "distinguishing_basis": "query explicitly specifies 제주 + 평생교육 바우처",
+      "category": "welfare_health",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "제주",
+        "평생교육",
+        "바우처"
+      ]
+    },
+    {
+      "case_id": "c2h-017",
+      "source": "youth",
+      "source_id": "20260504005400113092",
+      "jurisdiction_or_scope": "충남 (스마트교육센터)",
+      "distinguishing_basis": "query explicitly specifies 충남 + 스마트팜 청년 창업 교육",
+      "category": "business_agriculture",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "충남",
+        "스마트팜",
+        "청년"
+      ]
+    },
+    {
+      "case_id": "c2h-018",
+      "source": "youth",
+      "source_id": "20260402005400212384",
+      "jurisdiction_or_scope": "울산 (울산광역시)",
+      "distinguishing_basis": "query explicitly specifies 울산 + 시 공공기관 청년인턴 채용",
+      "category": "employment_education",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "울산",
+        "공공기관"
+      ]
+    },
+    {
+      "case_id": "c2h-019",
+      "source": "youth",
+      "source_id": "20250716005400211303",
+      "jurisdiction_or_scope": "울산 (울산광역시)",
+      "distinguishing_basis": "query explicitly specifies 울산 + 울산 비보이 페스티벌",
+      "category": "welfare_health",
+      "competing_policy_count": 2,
+      "required_query_terms": [
+        "울산",
+        "비보이"
+      ]
+    },
+    {
+      "case_id": "c2h-020",
+      "source": "gov24",
+      "source_id": "474000000151",
+      "jurisdiction_or_scope": "전북 (전북특별자치도 무주군)",
+      "distinguishing_basis": "query explicitly specifies 전북 + 귀농·귀촌·귀향인 건축설계 ",
+      "category": "housing_finance",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "전북",
+        "귀농·귀",
+        "건축설계"
+      ]
+    },
+    {
+      "case_id": "c2h-021",
+      "source": "gov24",
+      "source_id": "O00091100003",
+      "jurisdiction_or_scope": "인천 ((재)인천문화재단)",
+      "distinguishing_basis": "query explicitly specifies 인천 + 인천예술인 역량강화",
+      "category": "employment_education",
+      "competing_policy_count": 2,
+      "required_query_terms": [
+        "인천",
+        "인천예술",
+        "역량강화"
+      ]
+    },
+    {
+      "case_id": "c2h-022",
+      "source": "gov24",
+      "source_id": "459000000120",
+      "jurisdiction_or_scope": "충청남도 청양군",
+      "distinguishing_basis": "query explicitly specifies 거주하는 지역 + 출산장려금",
+      "category": "family_care",
+      "competing_policy_count": 2,
+      "required_query_terms": [
+        "출산장려"
+      ]
+    },
+    {
+      "case_id": "c2h-023",
+      "source": "youth",
+      "source_id": "20250901005400211555",
+      "jurisdiction_or_scope": "서울 (예천군)",
+      "distinguishing_basis": "query explicitly specifies 서울 + 청년창업 지역정착",
+      "category": "business_agriculture",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "서울",
+        "청년창업",
+        "지역정착"
+      ]
+    },
+    {
+      "case_id": "c2h-024",
+      "source": "gov24",
+      "source_id": "641000000182",
+      "jurisdiction_or_scope": "경기 (경기도)",
+      "distinguishing_basis": "query explicitly specifies 경기 + 가축전염병 차단방역시설 설치",
+      "category": "business_agriculture",
+      "competing_policy_count": 3,
+      "required_query_terms": [
+        "경기",
+        "가축전염",
+        "차단방역"
+      ]
+    },
+    {
+      "case_id": "c2h-025",
+      "source": "youth",
+      "source_id": "20250116005400210307",
+      "jurisdiction_or_scope": "경남 (소멸위기대응추진단)",
+      "distinguishing_basis": "query explicitly specifies 경남 + 의령군 청년부부 결혼장려금",
+      "category": "welfare_health",
+      "competing_policy_count": 2,
+      "required_query_terms": [
+        "경남",
+        "의령군",
+        "청년부부"
+      ]
+    },
+    {
+      "case_id": "c2h-026",
+      "source": "youth",
+      "source_id": "20260513005400213200",
+      "jurisdiction_or_scope": "부산 (부산광역시 청년산학국 청년정책과)",
+      "distinguishing_basis": "query explicitly specifies 부산 + 부산 청년 임차보증금 대출 ",
+      "category": "housing_finance",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "부산",
+        "청년"
+      ]
+    },
+    {
+      "case_id": "c2h-027",
+      "source": "gov24",
+      "source_id": "424000000145",
+      "jurisdiction_or_scope": "강원 (강원특별자치도 삼척시)",
+      "distinguishing_basis": "query explicitly specifies 강원 + 기초생활보장수급자 이사비용",
+      "category": "housing_finance",
+      "competing_policy_count": 2,
+      "required_query_terms": [
+        "강원",
+        "기초생활",
+        "이사비용"
+      ]
+    },
+    {
+      "case_id": "c2h-028",
+      "source": "youth",
+      "source_id": "20250529005400210880",
+      "jurisdiction_or_scope": "서울 (복지국)",
+      "distinguishing_basis": "query explicitly specifies 서울 + 2025년 화성시 청년정책 ",
+      "category": "family_care",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "서울",
+        "2025",
+        "화성시"
+      ]
+    },
+    {
+      "case_id": "c2h-029",
+      "source": "youth",
+      "source_id": "20250103005400210029",
+      "jurisdiction_or_scope": "충남 (서산시)",
+      "distinguishing_basis": "query explicitly specifies 충남 + 출산가정 산후조리비용",
+      "category": "family_care",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "충남",
+        "출산가정",
+        "산후조리"
+      ]
+    },
+    {
+      "case_id": "c2h-030",
+      "source": "gov24",
+      "source_id": "B55101300001",
+      "jurisdiction_or_scope": "대한체육회",
+      "distinguishing_basis": "query explicitly specifies 거주하는 지역 + 국가대표선수촌 개방 프로그램",
+      "category": "family_care",
+      "competing_policy_count": 2,
+      "required_query_terms": [
+        "국가대표",
+        "개방"
+      ]
+    },
+    {
+      "case_id": "c2h-031",
+      "source": "gov24",
+      "source_id": "O00026700003",
+      "jurisdiction_or_scope": "인천 (인천광역시부평구시설관리공단)",
+      "distinguishing_basis": "query explicitly specifies 인천 + 스포츠강좌 이용권 제공(인천",
+      "category": "employment_education",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "인천",
+        "스포츠강",
+        "이용권"
+      ]
+    },
+    {
+      "case_id": "c2h-032",
+      "source": "gov24",
+      "source_id": "O00023400009",
+      "jurisdiction_or_scope": "서울 (서울특별시서대문구도시관리공단)",
+      "distinguishing_basis": "query explicitly specifies 서울 + 서대문독립공원 주차장 주차요",
+      "category": "culture_community",
+      "competing_policy_count": 3,
+      "required_query_terms": [
+        "서울",
+        "서대문독",
+        "주차장"
+      ]
+    },
+    {
+      "case_id": "c2h-033",
+      "source": "youth",
+      "source_id": "20260506005400213160",
+      "jurisdiction_or_scope": "인천 (인천광역시 연수구 송도행정지원국 일자)",
+      "distinguishing_basis": "query explicitly specifies 인천 + (연수구) 연수청년자리 청년",
+      "category": "culture_community",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "인천",
+        "(연수구",
+        "연수청년"
+      ]
+    },
+    {
+      "case_id": "c2h-034",
+      "source": "youth",
+      "source_id": "20250904005400211655",
+      "jurisdiction_or_scope": "세종 (청년정책담당관)",
+      "distinguishing_basis": "query explicitly specifies 세종 + 청년문화 활성화",
+      "category": "culture_community",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "세종",
+        "청년문화",
+        "활성화"
+      ]
+    },
+    {
+      "case_id": "c2h-035",
+      "source": "youth",
+      "source_id": "20250220005400210513",
+      "jurisdiction_or_scope": "충북 (괴산군)",
+      "distinguishing_basis": "query explicitly specifies 충북 + 전입대학생 인재양성 장학금 ",
+      "category": "employment_education",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "충북",
+        "전입대학",
+        "인재양성"
+      ]
+    },
+    {
+      "case_id": "c2h-036",
+      "source": "gov24",
+      "source_id": "408000000549",
+      "jurisdiction_or_scope": "경기 (경기도 안성시)",
+      "distinguishing_basis": "query explicitly specifies 경기 + 환경기초시설 주변마을 주민자",
+      "category": "family_care",
+      "competing_policy_count": 3,
+      "required_query_terms": [
+        "경기",
+        "환경기초",
+        "주변마을"
+      ]
+    },
+    {
+      "case_id": "c2h-037",
+      "source": "gov24",
+      "source_id": "480000000361",
+      "jurisdiction_or_scope": "광주 (전남광주통합특별시 목포시)",
+      "distinguishing_basis": "query explicitly specifies 광주 + 목포시 시민안전보험",
+      "category": "welfare_health",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "광주",
+        "목포시",
+        "시민안전"
+      ]
+    },
+    {
+      "case_id": "c2h-038",
+      "source": "youth",
+      "source_id": "20250903005400211619",
+      "jurisdiction_or_scope": "경북 (경상북도)",
+      "distinguishing_basis": "query explicitly specifies 경북 + 신혼부부 임차보증금 이자",
+      "category": "welfare_health",
+      "competing_policy_count": 2,
+      "required_query_terms": [
+        "경북",
+        "신혼부부",
+        "임차보증"
+      ]
+    },
+    {
+      "case_id": "c2h-039",
+      "source": "youth",
+      "source_id": "20250909005400211683",
+      "jurisdiction_or_scope": "세종 (농업정책과)",
+      "distinguishing_basis": "query explicitly specifies 세종 + 청년농업인 종합지원(행정도우",
+      "category": "business_agriculture",
+      "competing_policy_count": 3,
+      "required_query_terms": [
+        "세종",
+        "청년농업",
+        "종합지원"
+      ]
+    },
+    {
+      "case_id": "c2h-040",
+      "source": "youth",
+      "source_id": "20250211005400110417",
+      "jurisdiction_or_scope": "서울 (고용노동부)",
+      "distinguishing_basis": "query explicitly specifies 서울 + 청소년·청년 근로권익센터",
+      "category": "employment_education",
+      "competing_policy_count": 2,
+      "required_query_terms": [
+        "서울",
+        "청소년·",
+        "근로권익"
+      ]
+    }
+  ]
+}
