@@ -31,7 +31,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "ml-service"))
 sys.path.insert(0, str(ROOT / "eval"))
 import app as ml_app  # type: ignore
-from source_ranking import LEXICAL_STOPWORDS, lexical_overlap_terms, youth_source_bias  # type: ignore
+from source_ranking import LEXICAL_STOPWORDS, YOUTH_INTENT_BIAS, lexical_overlap_terms, youth_source_bias  # type: ignore
 from retrieval_v2.candidate_lexical_rewrite import lexical_overlap_terms_rewrite  # type: ignore
 from retrieval_v2.candidate_region_hint import (  # type: ignore
     canonical_for_code,
@@ -551,9 +551,8 @@ def main():
             "lexical_terms_new": "lexical_overlap_terms_region_hint (base + SIDO canonical hint)",
             "qvec_shared": True,
             "db_shared": True,
-            "corpus_shared": True,
             "sql_shared": True,
-            "youth_intent_bias": ml_app.LEXICAL_OVERLAP_BIAS,  # placeholder? actually youth bias
+            "youth_intent_bias": YOUTH_INTENT_BIAS,
             "youth_bias_shared": True,
             "rp": None,
             "region_filter": "None (no filtering)",

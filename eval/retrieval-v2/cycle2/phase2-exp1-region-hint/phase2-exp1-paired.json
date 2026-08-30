@@ -29,7 +29,7 @@
     "db_shared": true,
     "corpus_shared": true,
     "sql_shared": true,
-    "youth_intent_bias": 0.01,
+    "youth_intent_bias": 0.015,
     "youth_bias_shared": true,
     "rp": null,
     "region_filter": "None (no filtering)"
