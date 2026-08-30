@@ -11,7 +11,7 @@ SESSION_ID = f"catalog-freeze-20260831-{os.getpid()}"
 def _git_head(): return subprocess.check_output(["git","rev-parse","HEAD"], cwd=str(ROOT)).decode().strip().lower()
 def _lf_sha(data: bytes): return hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
 def _lf_sha_file(p: pathlib.Path): return _lf_sha(p.read_bytes())
-def _git_show_bytes(ref: str): 
+def _git_show_bytes(ref: str):
     r=subprocess.run(["git","show",ref], capture_output=True, check=False)
     if r.returncode!=0: raise RuntimeError(f"git show failed {ref}: {r.stderr.decode('utf-8', errors='replace')[:500]}")
     if not r.stdout: raise RuntimeError(f"git show empty {ref}")
