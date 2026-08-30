@@ -1,6 +1,6 @@
 # Retrieval v2 — Status (SSOT)
 
-> **Process audit (2026-08-30):** [Cycle2 PROCESS AUDIT — durable evidence only (read-only)](./RETRIEVAL_V2_CYCLE2_PROCESS_AUDIT.md) — 본 SSOT의 `single execution` 표현은 `canonical accepted execution 1회`로 정정 해석해야 하며, `28/30/30` 등 dev 수치는 기술적으로 유효하나 “충분히 탐색했다/더 좋은 후보가 없다”는 완전성 결론은 durable 증거 없이 성립하지 않음. 최종 후보 선정은 반드시 fresh holdout에서만 판정.
+> **Process audit (2026-08-30 durable-only + Web cross-validation addendum):** [Cycle2 PROCESS AUDIT (v2)](./RETRIEVAL_V2_CYCLE2_PROCESS_AUDIT.md) — 본 SSOT의 `single execution` 표현은 `canonical accepted execution 1회`로 정정. `28/30/30` 등 dev 수치(Phase1 28→30, Exp1~Exp4 30/36 REJECTED)는 기술적으로 유효(`VALID_CANONICAL_RESULT`)하나, **Web session recording으로 Exp1 post-result extra retrieval, Exp2 2회 premature+폐기+steering, Exp3/Exp4 premature+steering이 확정되어 Cycle2 candidate-search 전체는 `PROCESS_CONTAMINATED` — “충분히 탐색했다/더 좋은 후보 없음” 결론은 무효.** 최종 선정은 반드시 fresh holdout에서만 판정. Cycle2 dev 36(SHA `c8b66fef…`)은 D-010상 tuning set 유지 가능하나 Web 관점에서는 `fresh dev + fresh holdout`이 더 보수적 대안(Q-005 선택지, 결정 아님).
 
 > This page is the current SSOT/status page for Retrieval v2. It does not rerun evaluations and does not propose a new candidate.
 ## Contract
