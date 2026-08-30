@@ -1,0 +1,497 @@
+{
+  "cases": 36,
+  "well_posed_gold": 36,
+  "ambiguous_gold": 0,
+  "p0_query_overlap": 0,
+  "p0_gold_overlap": 0,
+  "dev_query_overlap": 0,
+  "dev_gold_overlap": 0,
+  "cycle1_holdout_query_overlap": 0,
+  "cycle1_holdout_gold_overlap": 0,
+  "cycle2_holdout_query_overlap": 0,
+  "cycle2_holdout_gold_overlap": 0,
+  "hard_negative_query_overlap": 0,
+  "hard_negative_gold_overlap": 0,
+  "cycle1_holdout_accessed_for_collision_audit": true,
+  "cycle2_holdout_accessed_for_collision_audit": true,
+  "per_case": [
+    {
+      "case_id": "c2d-001",
+      "source": "youth",
+      "source_id": "20260618005400213241",
+      "jurisdiction_or_scope": "서울특별시",
+      "distinguishing_basis": "query explicitly specifies 서울 + 부동산 중개보수·이사비",
+      "category": "housing_finance",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "서울",
+        "중개보수",
+        "이사비"
+      ]
+    },
+    {
+      "case_id": "c2d-002",
+      "source": "youth",
+      "source_id": "20260616005400113238",
+      "jurisdiction_or_scope": "국토교통부 (전국)",
+      "distinguishing_basis": "query explicitly specifies 청년주택드림청약통장",
+      "category": "housing_finance",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "청년주택드림",
+        "청약통장"
+      ]
+    },
+    {
+      "case_id": "c2d-003",
+      "source": "youth",
+      "source_id": "20260513005400213199",
+      "jurisdiction_or_scope": "부산광역시",
+      "distinguishing_basis": "query explicitly specifies 부산 + 청년 월세 지원",
+      "category": "housing_finance",
+      "competing_policy_count": 2,
+      "required_query_terms": [
+        "부산",
+        "청년",
+        "월세"
+      ]
+    },
+    {
+      "case_id": "c2d-004",
+      "source": "gov24",
+      "source_id": "409000000103",
+      "jurisdiction_or_scope": "경기도 김포시",
+      "distinguishing_basis": "query explicitly specifies 김포시 + 기초생활수급자 이사비용",
+      "category": "housing_finance",
+      "competing_policy_count": 2,
+      "required_query_terms": [
+        "김포",
+        "이사비용"
+      ]
+    },
+    {
+      "case_id": "c2d-005",
+      "source": "gov24",
+      "source_id": "135200005010",
+      "jurisdiction_or_scope": "보건복지부 (전국, 일하는 생계급여 수급자)",
+      "distinguishing_basis": "query explicitly specifies 희망저축Ⅰ + 생계급여",
+      "category": "housing_finance",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "희망저축",
+        "생계급여"
+      ]
+    },
+    {
+      "case_id": "c2d-006",
+      "source": "gov24",
+      "source_id": "161300000101",
+      "jurisdiction_or_scope": "국토교통부 (전국)",
+      "distinguishing_basis": "query explicitly specifies 통합공공임대주택 + 중위소득 150%",
+      "category": "housing_finance",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "통합공공임대",
+        "중위소득"
+      ]
+    },
+    {
+      "case_id": "c2d-007",
+      "source": "youth",
+      "source_id": "20260330005400212344",
+      "jurisdiction_or_scope": "전북특별자치도 완주군 (청년 1인 소상공인·농어업인)",
+      "distinguishing_basis": "query explicitly specifies 전북 완주 + 소상공인·농어업인 출산급여",
+      "category": "family_care",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "전북",
+        "완주",
+        "출산급여"
+      ]
+    },
+    {
+      "case_id": "c2d-008",
+      "source": "youth",
+      "source_id": "20260319005400212213",
+      "jurisdiction_or_scope": "전라남도 광양시",
+      "distinguishing_basis": "query explicitly specifies 광양시 + 출생축하금 자동지급",
+      "category": "family_care",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "광양",
+        "출생축하금"
+      ]
+    },
+    {
+      "case_id": "c2d-009",
+      "source": "youth",
+      "source_id": "20260504005400213037",
+      "jurisdiction_or_scope": "충청남도 서산시",
+      "distinguishing_basis": "query explicitly specifies 서산시 + 출산지원금·양육비 둘째 이후",
+      "category": "family_care",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "서산",
+        "출산지원금",
+        "양육비"
+      ]
+    },
+    {
+      "case_id": "c2d-010",
+      "source": "gov24",
+      "source_id": "499000000151",
+      "jurisdiction_or_scope": "전남 완도군",
+      "distinguishing_basis": "query explicitly specifies 완도군 + 모유수유 유축기 대여",
+      "category": "family_care",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "완도",
+        "유축기"
+      ]
+    },
+    {
+      "case_id": "c2d-011",
+      "source": "gov24",
+      "source_id": "453000000180",
+      "jurisdiction_or_scope": "충청남도 서산시",
+      "distinguishing_basis": "query explicitly specifies 서산시 + 가정위탁 양육보조금",
+      "category": "family_care",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "서산",
+        "가정위탁",
+        "양육보조금"
+      ]
+    },
+    {
+      "case_id": "c2d-012",
+      "source": "gov24",
+      "source_id": "360000000112",
+      "jurisdiction_or_scope": "광주 서구",
+      "distinguishing_basis": "query explicitly specifies 광주 서구 + 산모 산후관리비",
+      "category": "family_care",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "서구",
+        "산후관리"
+      ]
+    },
+    {
+      "case_id": "c2d-013",
+      "source": "youth",
+      "source_id": "20260522005400213218",
+      "jurisdiction_or_scope": "강원 삼척시",
+      "distinguishing_basis": "query explicitly specifies 삼척시 + 청년인턴 행정인턴",
+      "category": "employment_education",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "삼척",
+        "행정인턴"
+      ]
+    },
+    {
+      "case_id": "c2d-014",
+      "source": "youth",
+      "source_id": "20260527005400113224",
+      "jurisdiction_or_scope": "고용노동부 (전국, 34세 이하)",
+      "distinguishing_basis": "query explicitly specifies 국가기술자격 응시료",
+      "category": "employment_education",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "국가기술자격",
+        "응시료"
+      ]
+    },
+    {
+      "case_id": "c2d-015",
+      "source": "youth",
+      "source_id": "20260522005400213219",
+      "jurisdiction_or_scope": "강원 삼척시",
+      "distinguishing_basis": "query explicitly specifies 삼척시 + 대학생 아르바이트",
+      "category": "employment_education",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "삼척",
+        "대학생",
+        "아르바이트"
+      ]
+    },
+    {
+      "case_id": "c2d-016",
+      "source": "gov24",
+      "source_id": "O00046700016",
+      "jurisdiction_or_scope": "경기도 고양시 (고양산업진흥원)",
+      "distinguishing_basis": "query explicitly specifies 고양시 + 중소기업 데이터 컨설팅",
+      "category": "employment_education",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "고양",
+        "데이터",
+        "컨설팅"
+      ]
+    },
+    {
+      "case_id": "c2d-017",
+      "source": "gov24",
+      "source_id": "134200000046",
+      "jurisdiction_or_scope": "교육부 (전국)",
+      "distinguishing_basis": "query explicitly specifies 희망사다리 + 중소기업 취업연계 장학금",
+      "category": "employment_education",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "희망사다리",
+        "장학금"
+      ]
+    },
+    {
+      "case_id": "c2d-018",
+      "source": "gov24",
+      "source_id": "145000000100",
+      "jurisdiction_or_scope": "산업통상부 (전국)",
+      "distinguishing_basis": "query explicitly specifies 플랜트기자재 수출 지원",
+      "category": "employment_education",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "플랜트",
+        "기자재",
+        "수출"
+      ]
+    },
+    {
+      "case_id": "c2d-019",
+      "source": "youth",
+      "source_id": "20251112005400211866",
+      "jurisdiction_or_scope": "충청남도",
+      "distinguishing_basis": "query explicitly specifies 충남 + 청년 자살예방 심리지원",
+      "category": "welfare_health",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "충남",
+        "심리지원"
+      ]
+    },
+    {
+      "case_id": "c2d-020",
+      "source": "youth",
+      "source_id": "20260317005400212183",
+      "jurisdiction_or_scope": "경상북도 (청년한부모)",
+      "distinguishing_basis": "query explicitly specifies 경북 + 청년한부모 자녀양육비",
+      "category": "welfare_health",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "경북",
+        "한부모",
+        "양육비"
+      ]
+    },
+    {
+      "case_id": "c2d-021",
+      "source": "youth",
+      "source_id": "20250916005400211698",
+      "jurisdiction_or_scope": "보건복지부/지자체 (자립준비청년, 보호아동)",
+      "distinguishing_basis": "query explicitly specifies 자립지원전담기관 + 보호종료 청년",
+      "category": "welfare_health",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "자립지원전담",
+        "보호종료"
+      ]
+    },
+    {
+      "case_id": "c2d-022",
+      "source": "gov24",
+      "source_id": "369000000102",
+      "jurisdiction_or_scope": "울산광역시 중구",
+      "distinguishing_basis": "query explicitly specifies 울산 중구 + B형간염 예방접종",
+      "category": "welfare_health",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "울산",
+        "중구",
+        "B형간염"
+      ]
+    },
+    {
+      "case_id": "c2d-023",
+      "source": "gov24",
+      "source_id": "315000000109",
+      "jurisdiction_or_scope": "서울 강서구",
+      "distinguishing_basis": "query explicitly specifies 강서구 + 건강보험료 저소득 장애인·노인",
+      "category": "welfare_health",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "강서구",
+        "건강보험료"
+      ]
+    },
+    {
+      "case_id": "c2d-024",
+      "source": "gov24",
+      "source_id": "496000000115",
+      "jurisdiction_or_scope": "전남 함평군",
+      "distinguishing_basis": "query explicitly specifies 함평군 + 소외계층 밑반찬",
+      "category": "welfare_health",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "함평",
+        "밑반찬"
+      ]
+    },
+    {
+      "case_id": "c2d-025",
+      "source": "youth",
+      "source_id": "20250904005400211654",
+      "jurisdiction_or_scope": "세종특별자치시",
+      "distinguishing_basis": "query explicitly specifies 세종 + 청년센터",
+      "category": "culture_community",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "세종",
+        "청년센터"
+      ]
+    },
+    {
+      "case_id": "c2d-026",
+      "source": "youth",
+      "source_id": "20251231005400212067",
+      "jurisdiction_or_scope": "경기도",
+      "distinguishing_basis": "query explicitly specifies 경기도 + 청년참여기구",
+      "category": "culture_community",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "경기도",
+        "청년참여기구"
+      ]
+    },
+    {
+      "case_id": "c2d-027",
+      "source": "youth",
+      "source_id": "20260615005400213234",
+      "jurisdiction_or_scope": "광주 북구",
+      "distinguishing_basis": "query explicitly specifies 광주 북구 + 청춘페스타 추진기획단",
+      "category": "culture_community",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "북구",
+        "청춘페스타"
+      ]
+    },
+    {
+      "case_id": "c2d-028",
+      "source": "gov24",
+      "source_id": "O00053500002",
+      "jurisdiction_or_scope": "경기도 양평군",
+      "distinguishing_basis": "query explicitly specifies 양평 + 생활문화공동체",
+      "category": "culture_community",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "양평",
+        "생활문화공동체"
+      ]
+    },
+    {
+      "case_id": "c2d-029",
+      "source": "gov24",
+      "source_id": "119200000110",
+      "jurisdiction_or_scope": "해양수산부 (전국, 어촌)",
+      "distinguishing_basis": "query explicitly specifies 폐패각 친환경 처리 + 어촌",
+      "category": "culture_community",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "패각",
+        "친환경"
+      ]
+    },
+    {
+      "case_id": "c2d-030",
+      "source": "gov24",
+      "source_id": "447000000112",
+      "jurisdiction_or_scope": "충북 음성군",
+      "distinguishing_basis": "query explicitly specifies 음성군 + 음성행복페이",
+      "category": "culture_community",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "음성",
+        "행복페이"
+      ]
+    },
+    {
+      "case_id": "c2d-031",
+      "source": "youth",
+      "source_id": "20260513005400213183",
+      "jurisdiction_or_scope": "광주광역시",
+      "distinguishing_basis": "query explicitly specifies 광주 + 청년농업인 영농정착지원",
+      "category": "business_agriculture",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "광주",
+        "영농정착"
+      ]
+    },
+    {
+      "case_id": "c2d-032",
+      "source": "youth",
+      "source_id": "20260506005400213146",
+      "jurisdiction_or_scope": "인천광역시",
+      "distinguishing_basis": "query explicitly specifies 인천 + 청년농업인 스타트업 시설·농기계",
+      "category": "business_agriculture",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "인천",
+        "청년농업인"
+      ]
+    },
+    {
+      "case_id": "c2d-033",
+      "source": "youth",
+      "source_id": "20260504005400113119",
+      "jurisdiction_or_scope": "농업기술센터 (전국)",
+      "distinguishing_basis": "query explicitly specifies 청년농업인 역량강화",
+      "category": "business_agriculture",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "청년농업인",
+        "역량강화"
+      ]
+    },
+    {
+      "case_id": "c2d-034",
+      "source": "gov24",
+      "source_id": "470000000112",
+      "jurisdiction_or_scope": "전북 남원시",
+      "distinguishing_basis": "query explicitly specifies 남원시 + 양봉 기자재",
+      "category": "business_agriculture",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "남원",
+        "양봉"
+      ]
+    },
+    {
+      "case_id": "c2d-035",
+      "source": "gov24",
+      "source_id": "498000000101",
+      "jurisdiction_or_scope": "전남 장성군",
+      "distinguishing_basis": "query explicitly specifies 장성군 + 소 사육 사양관리",
+      "category": "business_agriculture",
+      "competing_policy_count": 0,
+      "required_query_terms": [
+        "장성군",
+        "사양관리"
+      ]
+    },
+    {
+      "case_id": "c2d-036",
+      "source": "gov24",
+      "source_id": "523000000185",
+      "jurisdiction_or_scope": "경북 예천군",
+      "distinguishing_basis": "query explicitly specifies 예천군 + 귀농인 영농기반",
+      "category": "business_agriculture",
+      "competing_policy_count": 1,
+      "required_query_terms": [
+        "예천",
+        "귀농인"
+      ]
+    }
+  ]
+}
