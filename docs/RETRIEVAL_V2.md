@@ -8,8 +8,7 @@
 - **D-004** — rejected alternatives remain out of scope (cross-encoder reranking, global similarity/abstention threshold, public region search) unless materially new evidence justifies reconsideration.
 - **D-007** — Retrieval v2 evaluation contract. Primary metric source-macro Recall@5; final-holdout quality requires candidate > baseline, net hit@5 ≥ +2, no Youth/Gov24 regression; P0 gates Youth ≥ 28/60 and Gov24 ≥ 15/21; hard-negative paired safety (pure-positive not lower, intrusion not higher); warm paired latency non-regression `candidate p95 <= paired baseline p95`; GO only if all 7 mandatory checks pass (quality improvement, +2 net, no per-source regression, P0 PASS, hard-negative PASS, latency non-regression, holdout integrity). HOLD = fixable mandatory failure; NO-GO = clear quality regression/failure to improve. A GO does not itself authorize production rollout. **Cycle 2 uses same contract; latency requires fresh paired measurement.**
 - **D-008** — Retrieval v2 evaluation cycle 1 closes as **HOLD** (2026-08-30). Candidate-v2 and all frozen cycle-1 artifacts remain immutable; no rerun/retune/threshold relaxation to manufacture PASS. Future cycle 2 is a separate evaluation cycle and must not retroactively change cycle-1 HOLD.
-- **D-009** — Retrieval v2 evaluation cycle 2 starts (2026-08-30). D-003/D-004/D-007 unchanged; D-008 HOLD immutable; new independent holdout frozen before tuning; cycle-1 results not reused for PASS; latency gate still `candidate p95 <= paired D-003 baseline p95` with fresh measurement; cycle-2 candidate has separate freeze. Current phase: **holdout frozen; candidate development not started** (no candidate tuning yet).
-
+- **D-009** — Retrieval v2 evaluation cycle 2 starts (2026-08-30). D-003/D-004/D-007 unchanged; D-008 HOLD immutable; new independent holdout frozen before tuning; cycle-1 results not reused for PASS; latency gate still `candidate p95 <= paired D-003 baseline p95` with fresh measurement; cycle-2 candidate has separate freeze. Current phase: **holdout and dev frozen; candidate development not started** (dev frozen before tuning, not sealed holdout, but composition locked).
 ## Cycle 1 — frozen candidate
 
 | item | value |
@@ -45,17 +44,20 @@ Additional immutable refs: holdout `retrieval-v2-holdout-v1` (`12515a20758265b0b
 - Evaluation **GO not granted**; **production rollout not authorized**.
 - Cycle-1 HOLD is durable and not retroactively changeable by a future cycle.
 
-## Cycle 2 — current phase: holdout frozen; candidate development not started
+## Cycle 2 — current phase: holdout and dev frozen; candidate development not started
 
-- **Status:** D-009 started 2026-08-30; holdout frozen before tuning; no candidate implementation/tuning/retrieval running in this holdout-builder session.
+- **Status:** D-009 started 2026-08-30; holdout frozen before tuning; dev frozen before tuning (tuning data, not sealed final holdout, but frozen so composition does not drift during tuning); no candidate implementation/tuning/retrieval running in this data-builder session. This data-builder session is retired and must not be reused for candidate tuning.
 - **cycle2-start:** branch `codex/retrieval-v2-cycle2-start` from cycle-1 HOLD `5311e9807bab43f869655e13d4cdd006123f1ed5` → commit `434b798d60bf15433590362aaad4a021846094d4`; tag `retrieval-v2-cycle2-start-v1` object `f8d03d1b5565cd1e6dcda341bfe92230c7dab4cd` peeled `434b798` (verified remote).
 - **holdout freeze:** remote branch `codex/retrieval-v2-cycle2-holdout-freeze` → commit `9e2cd6ea4b8203b474d7d6a6a69a088763284043`; tag `retrieval-v2-cycle2-holdout-v1` object `03da4cc28d1bb324f5176efb500dfeaa1684b3fa` peeled `9e2cd6ea4b8203b474d7d6a6a69a088763284043` (verified remote).
 - **holdout aggregates (plaintext-free):** n=40 Youth 20 / Gov24 20, categories housing_finance 7 / family_care 7 / employment_education 7 / welfare_health 7 / culture_community 6 / business_agriculture 6, evalset `eval/retrieval-v2/cycle2/holdout/evalset.jsonl` LF SHA256 `cf003bab7713138fbd9c4622addeeb886c01f401aeab3d43b1144ae6e4c79727`, P0/dev/cycle1-holdout/hard-negative query+gold overlaps all 0, `retrieval_observed=false`, `candidate_tuning_started=false`, sealed before tuning.
-- **candidate start:** branch `codex/retrieval-v2-cycle2-candidate` at `65561b48f10e697a699284e7877f943895774e9e` (this branch, docs-only follow-up after holdout freeze), holdout plaintext `eval/retrieval-v2/cycle2/` absent, `eval/test_retrieval_v2_cycle2_holdoutset.py` absent.
-- **Next:** fresh candidate-development session must start from this clean candidate branch; this holdout-builder session is isolated and must not be reused for tuning. Final holdout evaluation allowed only after candidate freeze + explicit user authorization.
+- **dev freeze:** branch `codex/retrieval-v2-cycle2-candidate` → commit `372ed686579b4e8e2b9854d297e44fee18775352`; tag `retrieval-v2-cycle2-dev-v1` object `500beadae11ddb423cc2ea4d46494c0a9f2b1173` peeled `372ed686579b4e8e2b9854d297e44fee18775352` (verified remote).
+- **dev aggregates (plaintext-free):** n=36 Youth 18 / Gov24 18, categories housing_finance 6 / family_care 6 / employment_education 6 / welfare_health 6 / culture_community 6 / business_agriculture 6 (each 3/3 balanced), evalset `eval/retrieval-v2/cycle2/dev/evalset.jsonl` LF SHA256 `c8b66fef69bdfd0db053ac7cac0fb027fc3271c6072ab992b622cacdc71ace5e`, P0/cycle1-dev/cycle1-holdout/cycle2-holdout/hard-negative query+gold overlaps all 0, `retrieval_observed=false`, `candidate_tuning_started=false`, frozen before tuning. No benchmark/retrieval/search/DB ranking or embedding/model load executed to create dev; cycle1 candidate per-case results not used for case selection.
+- **candidate branch current:** branch `codex/retrieval-v2-cycle2-candidate` at `372ed686579b4e8e2b9854d297e44fee18775352` (dev-frozen), dev plaintext `eval/retrieval-v2/cycle2/dev/` present (`evalset.jsonl`, `manifest.json`, `annotation_audit.json`, `test_retrieval_v2_cycle2_devset.py`), holdout plaintext `eval/retrieval-v2/cycle2/holdout/` still absent, `eval/test_retrieval_v2_cycle2_holdoutset.py` absent on candidate.
+- **Next:** fresh candidate-development session must start from this dev-frozen branch (`372ed686579b4e8e2b9854d297e44fee18775352`); this data-builder session is retired and must not be reused for candidate tuning. Final holdout evaluation allowed only after candidate freeze + explicit user authorization.
 
 ## Next state
 
-- Cycle 2 holdout frozen; candidate development not started. Awaiting fresh candidate-development session.
+- Cycle 2 holdout and dev frozen; candidate development not started. Awaiting fresh candidate-development session in isolated fresh session. Dev composition locked; candidate tuning has not begun.
+
 
 ## Known limitations (non-blocking)
