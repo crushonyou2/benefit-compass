@@ -313,11 +313,17 @@ def main():
         by_category_candidate.setdefault(cat, []).append(c_rank)
         by_category_vector.setdefault(cat, []).append(v_rank)
 
-        # threshold diagnostics
+        # threshold diagnostics — corrected: filtered_by_cosine only when gold raw score < COSINE_MIN
+        # `filtered_by_cosine`는 gold가 top30에 있고 raw score가 존재하며 < D003_COSINE_MIN 일 때만 true.
+        # score>=COSINE_MIN지만 top10 밖(rank==0)인 경우는 threshold miss가 아니라 ranking/top10 miss이므로
+        # 별도 field `outside_top10_after_threshold` 로 표현한다. production post-filter는 `score >= 0.78` 이다.
         b_in_top30 = b_rank_top30 != 0
         c_in_top30 = c_rank_top30 != 0
         v_in_top30 = v_rank_top30 != 0
-        b_filtered_by_cosine = b_in_top30 and b_rank == 0  # in top30 but removed by threshold
+        b_filtered_by_cosine = b_in_top30 and b_gold_score is not None and b_gold_score < D003_COSINE_MIN
+        c_filtered_by_cosine = c_in_top30 and c_gold_score is not None and c_gold_score < D003_COSINE_MIN
+        b_outside_top10_after_threshold = b_in_top30 and b_gold_score is not None and b_gold_score >= D003_COSINE_MIN and b_rank == 0
+        c_outside_top10_after_threshold = c_in_top30 and c_gold_score is not None and c_gold_score >= D003_COSINE_MIN and c_rank == 0
         # lexical diagnostics
         per_case.append({
             "case_id": it["case_id"],
@@ -338,6 +344,7 @@ def main():
                 "score": b_gold_score,
                 "in_top30": b_in_top30,
                 "filtered_by_cosine": b_filtered_by_cosine,
+                "outside_top10_after_threshold": b_outside_top10_after_threshold,
                 "top1": [{"source": c["source"], "source_id": c["source_id"], "title": c["title"], "score": c["score"]} for c in bi_b[:1]],
             },
             "candidate": {
@@ -349,7 +356,8 @@ def main():
                 "hit@10": 1 <= c_rank <= 10,
                 "score": c_gold_score,
                 "in_top30": c_in_top30,
-                "filtered_by_cosine": c_in_top30 and c_rank == 0,
+                "filtered_by_cosine": c_filtered_by_cosine,
+                "outside_top10_after_threshold": c_outside_top10_after_threshold,
                 "top1": [{"source": c["source"], "source_id": c["source_id"], "title": c["title"], "score": c["score"]} for c in bi_c[:1]],
             },
             "vector_only": {

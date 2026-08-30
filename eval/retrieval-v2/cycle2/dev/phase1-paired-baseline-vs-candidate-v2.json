@@ -396,7 +396,8 @@
         "hit@10": false,
         "score": 0.8684863087261379,
         "in_top30": true,
-        "filtered_by_cosine": true,
+        "filtered_by_cosine": false,
+        "outside_top10_after_threshold": true,
         "top1": [
           {
             "source": "youth",
@@ -422,6 +423,7 @@
         "score": 0.8684863087261379,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -476,6 +478,7 @@
         "score": 0.8951346778228453,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -499,6 +502,7 @@
         "score": 0.8951346778228453,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -558,6 +562,7 @@
         "score": 0.9122225150798373,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -584,6 +589,7 @@
         "score": 0.9122225150798373,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -640,6 +646,7 @@
         "score": 0.8827340409696602,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -666,6 +673,7 @@
         "score": 0.8827340409696602,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -724,6 +732,7 @@
         "score": null,
         "in_top30": false,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -750,6 +759,7 @@
         "score": null,
         "in_top30": false,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -804,6 +814,7 @@
         "score": 0.9176602314508246,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -828,6 +839,7 @@
         "score": 0.9176602314508246,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -884,6 +896,7 @@
         "score": 0.8662848871097444,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -909,6 +922,7 @@
         "score": 0.8662848871097444,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -966,6 +980,7 @@
         "score": 0.8807496647311656,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -992,6 +1007,7 @@
         "score": 0.8807496647311656,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -1047,6 +1063,7 @@
         "score": 0.9154318390252594,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -1073,6 +1090,7 @@
         "score": 0.9154318390252594,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -1128,6 +1146,7 @@
         "score": 0.9254476472468998,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -1153,6 +1172,7 @@
         "score": 0.9254476472468998,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -1211,6 +1231,7 @@
         "score": 0.9410059733362325,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -1239,6 +1260,7 @@
         "score": 0.9410059733362325,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -1297,6 +1319,7 @@
         "score": 0.9027114489622697,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -1322,6 +1345,7 @@
         "score": 0.9027114489622697,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -1378,6 +1402,7 @@
         "score": 0.8967924383231713,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -1403,6 +1428,7 @@
         "score": 0.8967924383231713,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -1461,6 +1487,7 @@
         "score": 0.8989039130244841,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -1486,6 +1513,7 @@
         "score": 0.8989039130244841,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -1542,6 +1570,7 @@
         "score": null,
         "in_top30": false,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -1567,6 +1596,7 @@
         "score": null,
         "in_top30": false,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -1624,6 +1654,7 @@
         "score": 0.9067271296220096,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -1648,6 +1679,7 @@
         "score": 0.9067271296220096,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -1705,6 +1737,7 @@
         "score": null,
         "in_top30": false,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -1730,6 +1763,7 @@
         "score": null,
         "in_top30": false,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -1787,6 +1821,7 @@
         "score": 0.9334725538682613,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -1812,6 +1847,7 @@
         "score": 0.9334725538682613,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -1870,6 +1906,7 @@
         "score": 0.9010409287493201,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -1899,6 +1936,7 @@
         "score": 0.9010409287493201,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -1961,6 +1999,7 @@
         "score": 0.913212374470407,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -1986,6 +2025,7 @@
         "score": 0.913212374470407,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -2045,6 +2085,7 @@
         "score": null,
         "in_top30": false,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -2072,6 +2113,7 @@
         "score": null,
         "in_top30": false,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -2129,6 +2171,7 @@
         "score": 0.8896890613529401,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -2153,6 +2196,7 @@
         "score": 0.8896890613529401,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -2210,6 +2254,7 @@
         "score": null,
         "in_top30": false,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -2237,6 +2282,7 @@
         "score": null,
         "in_top30": false,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -2291,6 +2337,7 @@
         "score": 0.912314940967015,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -2315,6 +2362,7 @@
         "score": 0.912314940967015,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -2370,6 +2418,7 @@
         "score": 0.9242079935599761,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -2395,6 +2444,7 @@
         "score": 0.9242079935599761,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -2449,6 +2499,7 @@
         "score": 0.9116184852923265,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -2472,6 +2523,7 @@
         "score": 0.9116184852923265,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -2527,7 +2579,8 @@
         "hit@10": false,
         "score": 0.8684863087261379,
         "in_top30": true,
-        "filtered_by_cosine": true,
+        "filtered_by_cosine": false,
+        "outside_top10_after_threshold": true,
         "top1": [
           {
             "source": "youth",
@@ -2553,6 +2606,7 @@
         "score": 0.8684863087261379,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -2609,6 +2663,7 @@
         "score": null,
         "in_top30": false,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -2635,6 +2690,7 @@
         "score": null,
         "in_top30": false,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -2691,6 +2747,7 @@
         "score": 0.9232936363502043,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -2717,6 +2774,7 @@
         "score": 0.9232936363502043,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -2773,6 +2831,7 @@
         "score": 0.9071604234790372,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -2797,6 +2856,7 @@
         "score": 0.9071604234790372,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -2854,6 +2914,7 @@
         "score": 0.8965247211769455,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -2880,6 +2941,7 @@
         "score": 0.8965247211769455,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -2937,6 +2999,7 @@
         "score": 0.9379928465492072,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -2961,6 +3024,7 @@
         "score": 0.9379928465492072,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -3015,6 +3079,7 @@
         "score": 0.8951346778228453,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -3038,6 +3103,7 @@
         "score": 0.8951346778228453,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -3093,6 +3159,7 @@
         "score": 0.8882271380966039,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -3118,6 +3185,7 @@
         "score": 0.8882271380966039,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -3175,6 +3243,7 @@
         "score": 0.9194637344989405,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -3201,6 +3270,7 @@
         "score": 0.9194637344989405,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "youth",
@@ -3255,6 +3325,7 @@
         "score": 0.9213487238025438,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -3281,6 +3352,7 @@
         "score": 0.9213487238025438,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -3338,6 +3410,7 @@
         "score": 0.9101238793214363,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -3365,6 +3438,7 @@
         "score": 0.9101238793214363,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -3422,6 +3496,7 @@
         "score": 0.911047562593487,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -3447,6 +3522,7 @@
         "score": 0.911047562593487,
         "in_top30": true,
         "filtered_by_cosine": false,
+        "outside_top10_after_threshold": false,
         "top1": [
           {
             "source": "gov24",
@@ -3509,6 +3585,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -3535,6 +3612,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -3589,6 +3667,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -3614,6 +3693,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -3672,6 +3752,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -3697,6 +3778,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -3756,6 +3838,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -3783,6 +3866,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -3841,6 +3925,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -3868,6 +3953,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -3924,7 +4010,8 @@
           "hit@10": false,
           "score": 0.8684863087261379,
           "in_top30": true,
-          "filtered_by_cosine": true,
+          "filtered_by_cosine": false,
+          "outside_top10_after_threshold": true,
           "top1": [
             {
               "source": "youth",
@@ -3950,6 +4037,7 @@
           "score": 0.8684863087261379,
           "in_top30": true,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -4006,6 +4094,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -4032,6 +4121,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -4086,6 +4176,7 @@
           "score": 0.8951346778228453,
           "in_top30": true,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -4109,6 +4200,7 @@
           "score": 0.8951346778228453,
           "in_top30": true,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -4167,6 +4259,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -4193,6 +4286,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -4247,6 +4341,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -4272,6 +4367,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -4330,6 +4426,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -4355,6 +4452,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -4414,6 +4512,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -4441,6 +4540,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -4499,6 +4599,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -4526,6 +4627,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -4582,6 +4684,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
@@ -4608,6 +4711,7 @@
           "score": null,
           "in_top30": false,
           "filtered_by_cosine": false,
+          "outside_top10_after_threshold": false,
           "top1": [
             {
               "source": "youth",
