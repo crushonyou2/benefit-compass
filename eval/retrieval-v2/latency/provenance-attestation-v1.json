@@ -1,0 +1,266 @@
+{
+  "role": "latency_provenance_attestation",
+  "contract": "D-007",
+  "measurement_status": "HOLD",
+  "result": {
+    "path": "eval/retrieval-v2/latency/latency-candidate-v2.json",
+    "commit": "b04556f9251d6cabadd32c7c39c85dee690c8b48",
+    "tag": "retrieval-v2-latency-result-v1",
+    "tag_commit": "845af6e88c4e99e73c305dd02ba5224de651c2df",
+    "byte_sha256": "41f8cbc9d4003b06c3ecd84370811355de4aee2f9074cec571f2fa422e5d5cef",
+    "lf_sha256": "054719b84bde760f2eabc950bbe8c2a52a2f1af6d8810349c32f3ed84c7bddcb",
+    "sha256_basis": "byte exact and LF-normalized (CRLF->LF)",
+    "generated_at": "2026-08-29T23:37:25.310850+00:00",
+    "gate": "HOLD",
+    "baseline_p95": 476.51,
+    "candidate_p95": 480.55,
+    "delta_p95": 4.04,
+    "samples": 360,
+    "expected_sample_count": 180
+  },
+  "evaluator": {
+    "v1": {
+      "tag": "retrieval-v2-latency-evaluator-v1",
+      "tag_object": "54a8bc48e042125fe6105100248f163ed1fcee1e",
+      "commit": "08280c825c621a796ae99b90b7d889dad4edd3ee"
+    },
+    "v2": {
+      "tag": "retrieval-v2-latency-evaluator-v2",
+      "tag_object": "b3b1fc30f8a74ce7ffc5158dd06527017d03315d",
+      "commit": "7b8c4ea868afc3eb8b4ab33f63b067bd23c087ba",
+      "harness": "eval/retrieval_v2/run_latency_candidate_gate.py",
+      "harness_sha256_lf": "66a4e48e9c71ecd03aa389ac93ac651817d3147355cb40d64511044357ac26e0",
+      "harness_manifest": "eval/retrieval-v2/latency/harness-manifest.json",
+      "harness_manifest_sha256_lf": "47181e90ee9de142275d31a4082095fe0998500370fdb3886793302a8e1d6874"
+    },
+    "frozen_source_emits_candidate_provenance": false,
+    "frozen_source_overwrite_bug": "output dict defines candidate provenance object at lines 474-480 then overwrites output['candidate'] with summary['candidate'] at lines 531-532 (candidate: summary['candidate']); so provenance object is lost and summary stats remain as candidate"
+  },
+  "candidate": {
+    "tag": "retrieval-v2-candidate-v2",
+    "tag_object": "778dc77f2a06296d1f440adc6b49a89403ba717e",
+    "commit": "5745cc3144b519da456b21030d0e0752d1d018ae",
+    "artifact_commit": "c6c082681b4f2fcd521790e50c5fd46549116307",
+    "manifest": "eval/retrieval-v2/candidate/manifest.json",
+    "manifest_sha256_lf": "86f80ff6389ede4673e3c8d819cfab2ceefc79b8979a68b7b2bb5d64cc8eccff",
+    "bundle_sha256": {
+      "candidate_module": "ed598aeafcda6969d877f476394cf8a36c72581326ef70eed3bcfc3327834577",
+      "runner": "5c24325c36e768a97db47f2ed341e0e63edd89eb67027db189c466a2102d4c5a",
+      "unit_test": "63f6a719efa824e3fc43b56baee38632b5495042da804366f31cce386cb1735a",
+      "dev_result": "416dddede4337ffa20791cc7fbad9e666402514721e7c1d08950d312c98cddb7"
+    }
+  },
+  "dev": {
+    "manifest": "eval/retrieval-v2/dev/manifest.json",
+    "manifest_sha256_lf": "1a1cfcee1c03ef0af6ea9423b5737417eea47e9229322f665873d902db4e0bbe",
+    "evalset": "eval/retrieval-v2/dev/evalset.jsonl",
+    "evalset_sha256_lf": "e9510203cb26bb9db5598b1cd284398ba226460437a396e72906aa6505aff56e",
+    "sha256_basis": "utf8_text_lf_normalized",
+    "cases": 36
+  },
+  "measurement_hashes": {
+    "committed_result_byte_sha256": "41f8cbc9d4003b06c3ecd84370811355de4aee2f9074cec571f2fa422e5d5cef",
+    "committed_result_lf_sha256": "054719b84bde760f2eabc950bbe8c2a52a2f1af6d8810349c32f3ed84c7bddcb",
+    "reconstructed_core_sha256": "b1beb8c797ce22c4559ddb6618260effb646301ab9236a5ca4946be2aa2fb1c4",
+    "reconstructed_core_basis": "committed JSON with keys candidate_provenance/candidate_tag/candidate_commit removed, re-serialized with json.dumps(ensure_ascii=False, indent=2) + trailing newline, UTF-8",
+    "reconstructed_core_removed_keys": [
+      "candidate_provenance",
+      "candidate_tag",
+      "candidate_commit"
+    ],
+    "samples_canonical_sha256": "e33ebc910bf3b1aed3a6aaf616af3ed45a83653ba22ef651066fa6a919b89c33",
+    "summary_canonical_sha256": "eff268e268117de8a2983b12feacd78caf365aeb591bc02ec824d5a511ce9f8e",
+    "measurement_critical_canonical_sha256": "e691567a12fb59ca999cec03b171c9f55c895b78c2d3fb69dcc0e3cab7b3be56",
+    "measurement_critical_keys": [
+      "summary",
+      "baseline",
+      "candidate",
+      "baseline_p50",
+      "baseline_p95",
+      "candidate_p50",
+      "candidate_p95",
+      "delta_p95",
+      "gate",
+      "design",
+      "samples",
+      "expected_sample_count",
+      "production_contract",
+      "corpus",
+      "timed_scope",
+      "benchmark_queries",
+      "warmup",
+      "rounds",
+      "order_strategy",
+      "shuffle_seed"
+    ],
+    "measurement_minimal_canonical_sha256": "dccc7511d3e860a9e56feeb7536054968d5c766372cbc8411acde83124788d88",
+    "measurement_minimal_keys": [
+      "summary",
+      "baseline",
+      "candidate",
+      "delta_p95",
+      "gate",
+      "design",
+      "samples"
+    ],
+    "canonical_basis": "json.dumps(ensure_ascii=False, sort_keys=True, separators=(',', ':')) UTF-8, SHA256"
+  },
+  "post_run_annotation": {
+    "source": "recovered_paseo_session_transcript",
+    "session_name": "Run Retrieval v2 D-007 latency gate",
+    "thinking_quote": "Addressing a provenance overwrite bug by adding candidate tag/commit metadata without altering timing data or existing structure.",
+    "occurred": "after measurement and before result commit",
+    "mutates_measurement_fields": false,
+    "exact_added_top_level_keys": [
+      "candidate_provenance",
+      "candidate_tag",
+      "candidate_commit"
+    ],
+    "exact_code": "j['candidate_provenance'] = {'tag': 'retrieval-v2-candidate-v2','commit': '5745cc3144b519da456b21030d0e0752d1d018ae','artifact_commit': 'c6c082681b4f2fcd521790e50c5fd46549116307','manifest': 'eval/retrieval-v2/candidate/manifest.json','manifest_sha256': '86f80ff6389ede4673e3c8d819cfab2ceefc79b8979a68b7b2bb5d64cc8eccff'}; j['candidate_tag'] = 'retrieval-v2-candidate-v2'; j['candidate_commit'] = '5745cc3144b519da456b21030d0e0752d1d018ae'; p.write_text(json.dumps(j, ensure_ascii=False, indent=2), encoding='utf-8')",
+    "file_write": "json.dumps(j, ensure_ascii=False, indent=2) with trailing newline behavior via write_text (implicit newline from dumps indent=2, no extra newline appended beyond dumps output) — byte hash proves committed file is dumps+indent2 output",
+    "transcript_comments": [
+      "also add top-level candidate_tag/commit for convenience to satisfy spec phrase",
+      "ensure evaluator tag already correct",
+      "write back"
+    ],
+    "provenance_object_match": "candidate_provenance values correspond exactly to candidate-v2 tag/commit/artifact/manifest_sha256 as pinned in evaluator and candidate manifest",
+    "measurement_fields_untouched": "summary/baseline/candidate(stats)/delta_p95/gate/design/samples/production_contract/corpus/timed_scope unchanged; reconstructed core hash b1beb8... proves removing only the 3 added keys yields deterministic core that contains summary stats as candidate",
+    "why_not_in_frozen_evaluator": "evaluator-v2 source never emits candidate_provenance/candidate_tag/candidate_commit; its candidate dict is overwritten by summary['candidate']; annotation was explicit post-run metadata-only step to restore provenance without touching timed data"
+  },
+  "external_observer_evidence": {
+    "evidence_class": "external_observer_record",
+    "note": "Not a repo-internal cryptographic log; recorded by Web ChatGPT local workflow outside repo. Attested here as recovered evidence, not as repo-generated fact.",
+    "recording_session_id": "2026-08-29-7a0a4f35",
+    "timezone": "UTC and KST (+09:00)",
+    "observations": [
+      {
+        "tool": "TKS",
+        "utc": "2026-08-29T23:29:39Z",
+        "kst": "2026-08-30T08:29:39+09:00",
+        "fact": "Head/tag inspected during evaluator-v1 incident: HEAD/tag were evaluator-v1 08280c8..., latency-candidate-v2.json was NO_RESULT_FILE; working tree had broad absolute-path diff after v1 failure (later discarded, v2 was minimal fix)"
+      },
+      {
+        "tool": "TLB",
+        "utc": "2026-08-29T23:34:28Z",
+        "kst": "2026-08-30T08:34:28+09:00",
+        "fact": "Python process list observed PID 19904, StartTime 2026-08-30 08:33:54 KST"
+      },
+      {
+        "tool": "TLC",
+        "utc": "2026-08-29T23:34:36Z",
+        "kst": "2026-08-30T08:34:36+09:00",
+        "fact": "PID 19904 CommandLine: \"C:\\Users\\joji\\AppData\\Local\\Programs\\Python\\Python311\\python.exe\" eval/retrieval_v2/run_latency_candidate_gate.py --authorized-latency-gate; parallel Paseo transcript shell line: RERANK=0 python eval/retrieval_v2/run_latency_candidate_gate.py --authorized-latency-gate 2>&1"
+      },
+      {
+        "tool": "TLG",
+        "utc": "2026-08-29T23:35:21Z",
+        "kst": "2026-08-30T08:35:21+09:00",
+        "fact": "Same PID 19904 still running, result file NO_RESULT_YET"
+      },
+      {
+        "tool": "TLQ",
+        "utc": "2026-08-29T23:36:53Z",
+        "kst": "2026-08-30T08:36:53+09:00",
+        "fact": "Same PID 19904 still running, NO_RESULT_YET"
+      },
+      {
+        "tool": "TLV",
+        "utc": "2026-08-29T23:38:13Z",
+        "kst": "2026-08-30T08:38:13+09:00",
+        "fact": "PROCESS_DONE observed; result file Length 55567, LastWriteTime 2026-08-30 08:38:10 KST"
+      },
+      {
+        "tool": "TLX",
+        "utc": "2026-08-29T23:38:22Z",
+        "kst": "2026-08-30T08:38:22+09:00",
+        "fact": "Result still untracked, HEAD frozen at evaluator-v2 7b8c4ea...; result gate HOLD, baseline p95 476.51, candidate p95 480.55, samples 360, runs 1, evaluator commit/tag readable"
+      }
+    ],
+    "continuous_observation_proves": "One controlled Web workflow timing process (PID 19904) went start->running->running->done, produced the committed file; no evidence of second concurrent timed process during observed window",
+    "cannot_prove": "No repo-only append-only runner log; execution count claim inside JSON remains self-attestation; external observer record is not cryptographic proof of absence of other unobserved invocations outside the Web workflow window"
+  },
+  "execution_count_claim": {
+    "repo_self_attestation": {
+      "field": "latency_retrieval_runs_executed",
+      "value": 1,
+      "origin": "evaluator-v2 hardcoded to 1; not an append-only counter",
+      "class": "self_attestation"
+    },
+    "external_observer_observation": {
+      "observed_processes": 1,
+      "pid": 19904,
+      "window": "2026-08-30 08:33:54 KST to 08:38:13 KST (TKS->TLX)",
+      "advanced_evidence": "PID CommandLine exactly matches authorized latency gate invocation; RERANK=0 env seen only in Paseo transcript, not in Win32 CommandLine (env not visible via wmic CommandLine)",
+      "class": "external_observer_record"
+    },
+    "cryptographically_proven": "none: no DB snapshot/version log, no append-only runner log, no signed invocation receipt; cannot cryptographically prove exactly-one warm paired run occurred, only that one was observed and self-attestation says 1",
+    "tuning_flags_self_attestation": {
+      "candidate_tuning_after_final_holdout": false,
+      "holdout_accessed": false,
+      "class": "self_attestation"
+    }
+  },
+  "measurement_arithmetic_audit": {
+    "source": "independent reviewer recompute without DB/model",
+    "samples": 360,
+    "per_variant": 180,
+    "rounds": 5,
+    "unique_cases": 36,
+    "pairing": "every adjacent pair shares case_id+round, opposite variants, immediate interleaving",
+    "order_counts": {
+      "baseline_first": 90,
+      "candidate_first": 90
+    },
+    "seed_replay": "exact: Random(SHUFFLE_SEED + round) shuffle per round, (round+query_index)%2 alternation verified",
+    "sample_keys_allowed": [
+      "case_id",
+      "round",
+      "order",
+      "variant",
+      "latency_ms"
+    ],
+    "forbidden_keys_absent": true,
+    "nearest_rank_p95": {
+      "baseline_raw": 476.509,
+      "baseline_rounded": 476.51,
+      "candidate_raw": 480.548,
+      "candidate_rounded": 480.55,
+      "delta_raw": 4.039,
+      "delta_rounded": 4.04,
+      "gate": "HOLD"
+    },
+    "recompute_matches_committed": true
+  },
+  "known_limitations": [
+    "No DB snapshot or version hash at measurement time; corpus claims total_policies 13589/total_chunks 17609/gov24 10958/14526/youth 2631/3083 are from runtime preflight but not pinned to a DB snapshot hash",
+    "No append-only runner log; latency_retrieval_runs_executed and tuning/holdout booleans are self-attestation, not cryptographic counter",
+    "Manifest created_at anomaly: harness-manifest.json created_at 2026-08-30T09:15:00+09:00 is after result generated_at 2026-08-29T23:37:25Z (08:38 KST) — harness manifest was re-stamped post-result; does not affect measurement but is not contemporaneous",
+    "CLI env RERANK=0 appears only in Paseo transcript shell line; Win32 CommandLine snapshot shows python path + --authorized-latency-gate but not env vars (wmic does not expose env)",
+    "Candidate manifest created_at 2026-08-29T22:06:01Z is before measurement, consistent; no anomaly",
+    "No invocation-args record inside result; args are only externally attested via observed CommandLine and transcript",
+    "External observer evidence is Web ChatGPT local recording (session 2026-08-29-7a0a4f35), not repo-internal signed log; classified as external_observer_record, not repo-generated fact"
+  ],
+  "invariants": {
+    "no_rerun_performed_in_recovery": true,
+    "candidate_modified_in_recovery": false,
+    "result_modified_in_recovery": false,
+    "threshold_gate_changed": false,
+    "production_code_modified": false,
+    "evaluator_modified": false,
+    "benchmark_or_holdout_rerun": false,
+    "latency_timing_rerun": false
+  },
+  "recovery_metadata": {
+    "branch": "codex/retrieval-v2-latency-provenance-recovery",
+    "base_commit": "b04556f9251d6cabadd32c7c39c85dee690c8b48",
+    "recovery_commit": "to be filled after commit (see git log for codex/retrieval-v2-latency-provenance-recovery HEAD)",
+    "tag": "retrieval-v2-latency-provenance-v1",
+    "role": "latency_provenance_attestation",
+    "produced_files": [
+      "eval/retrieval-v2/latency/provenance-attestation-v1.json",
+      "eval/retrieval-v2/latency/PROVENANCE-RECOVERY.md",
+      "eval/test_retrieval_v2_latency_provenance_attestation.py"
+    ],
+    "forbidden_modifications_verified": "existing latency result byte/LF hashes unchanged; evaluator-v2/candidate-v2/production files diff 0"
+  }
+}
