@@ -175,6 +175,27 @@ class AttestationInvariantTest(unittest.TestCase):
         # top-level external observer evidence must be marked as non-cryptographic
         self.assertEqual(a["external_observer_evidence"]["evidence_class"], "external_observer_record")
         self.assertIn("cannot cryptographically", exec_claim["cryptographically_proven"].lower())
+    def test_recovery_metadata_v3_no_self_reference(self):
+        a = json.loads(ATTESTATION.read_text(encoding="utf-8"))
+        rm = a["recovery_metadata"]
+        # placeholder must be absent — hash intentionally not self-embedded
+        self.assertNotIn("recovery_commit", rm)
+        self.assertIn("recovery_commit_resolution", rm)
+        self.assertIn("retrieval-v2-latency-provenance-v3", rm["recovery_commit_resolution"])
+        self.assertIn("not self-embedded", rm["recovery_commit_resolution"])
+        self.assertEqual(rm["tag"], "retrieval-v2-latency-provenance-v3")
+        # superseded tags
+        self.assertIn("superseded_tags", rm)
+        tags = [t["tag"] if isinstance(t, dict) else t for t in rm["superseded_tags"]]
+        self.assertIn("retrieval-v2-latency-provenance-v1", tags)
+        self.assertIn("retrieval-v2-latency-provenance-v2", tags)
+        # each superseded entry must have reason
+        for entry in rm["superseded_tags"]:
+            if isinstance(entry, dict):
+                self.assertIn("reason", entry)
+                self.assertTrue(len(entry["reason"]) > 10)
+        # produced_files still correct
+        self.assertIn("eval/retrieval-v2/latency/provenance-attestation-v1.json", rm["produced_files"])
 
 class NoSideEffectsTest(unittest.TestCase):
     def test_result_file_still_byte_identical(self):

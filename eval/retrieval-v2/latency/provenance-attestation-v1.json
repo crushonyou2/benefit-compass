@@ -255,15 +255,25 @@
   "recovery_metadata": {
     "branch": "codex/retrieval-v2-latency-provenance-recovery",
     "base_commit": "b04556f9251d6cabadd32c7c39c85dee690c8b48",
-    "recovery_commit": "to be filled after commit (see git log for codex/retrieval-v2-latency-provenance-recovery HEAD)",
-    "tag": "retrieval-v2-latency-provenance-v1",
+    "tag": "retrieval-v2-latency-provenance-v3",
     "role": "latency_provenance_attestation",
     "produced_files": [
       "eval/retrieval-v2/latency/provenance-attestation-v1.json",
       "eval/retrieval-v2/latency/PROVENANCE-RECOVERY.md",
       "eval/test_retrieval_v2_latency_provenance_attestation.py"
     ],
-    "forbidden_modifications_verified": "existing latency result byte/LF hashes unchanged; evaluator-v2/candidate-v2/production files diff 0"
+    "forbidden_modifications_verified": "existing latency result byte/LF hashes unchanged; evaluator-v2/candidate-v2/production files diff 0",
+    "recovery_commit_resolution": "resolve annotated tag retrieval-v2-latency-provenance-v3^{commit}; commit hash intentionally not self-embedded",
+    "superseded_tags": [
+      {
+        "tag": "retrieval-v2-latency-provenance-v1",
+        "reason": "superseded due to attestation metadata/tag/hash corrections (v2)"
+      },
+      {
+        "tag": "retrieval-v2-latency-provenance-v2",
+        "reason": "superseded due to recovery_metadata self-reference placeholder; replaced with tag-resolution method (v3)"
+      }
+    ]
   },
   "corrections_from_v1": "v2 fixes: tag_object vs tag_peeled_commit split, harness_manifest vs latency_py hash correction, reconstructed core no-newline hash ee57... replaces previous newline-appended hash; file_write clarifies no trailing newline"
 }

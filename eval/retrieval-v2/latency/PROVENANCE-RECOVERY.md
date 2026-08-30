@@ -1,6 +1,7 @@
 # Retrieval v2 Latency Provenance Recovery — D-007 HOLD
 
 > This document does **not** change the HOLD gate. It only converts `frozen evaluator / committed result mismatch` from **undocumented mutation** to **documented metadata-only post-run annotation with external observer evidence**.
+> **Current provenance SSOT is `retrieval-v2-latency-provenance-v3`.** `v1`/`v2` tags are immutable superseded audit history (see §11, `recovery_metadata.superseded_tags`).
 
 ## 1. What was frozen
 
@@ -8,7 +9,7 @@
 - `retrieval-v2-candidate-v2` tag `778dc77f` → commit `5745cc3144b519da456b21030d0e0752d1d018ae` (artifact `c6c082681b4f2fcd521790e50c5fd46549116307`)
 - `retrieval-v2-latency-result-v1` tag `845af6e8` → commit `b04556f9251d6cabadd32c7c39c85dee690c8b48` file `eval/retrieval-v2/latency/latency-candidate-v2.json`
 - This recovery branch: `codex/retrieval-v2-latency-provenance-recovery` from `b04556f...`
-
+- Provenance attestation tags: `v3` is final SSOT; `v1` superseded due to attestation metadata/tag/hash corrections (v2), `v2` superseded due to `recovery_metadata` self-reference placeholder replaced with tag-resolution method (v3). Previous tags remain immutable audit history.
 ## 2. Problem found by independent reviewer
 
 1. Frozen evaluator-v2 source never emits `candidate_provenance` / `candidate_tag` / `candidate_commit`, but committed result contains them.
@@ -108,10 +109,9 @@ We keep HOLD and do not claim the gate is proven single-run by cryptography.
 ## 10. Recommendation
 
 Fresh read-only reviewer should re-audit: does documented metadata-only post-run annotation + external observer chain resolve the **provenance blocker** (mismatch = mutation vs intentional provenance restoration)? **Latency numerical gate itself remains HOLD** (candidate +4.04 ms p95 vs baseline, HOLD unchanged) and is independent of provenance attestation.
-
 ## 11. Files
 
-- `eval/retrieval-v2/latency/provenance-attestation-v1.json` — machine-readable attestation (this document's source of truth for hashes).
+- `eval/retrieval-v2/latency/provenance-attestation-v1.json` — machine-readable attestation (this document's source of truth for hashes). `recovery_metadata.tag` is `retrieval-v2-latency-provenance-v3` (final SSOT); `superseded_tags` lists `v1`/`v2` as immutable audit history. `recovery_commit` is **not** self-embedded; resolve via `git rev-parse retrieval-v2-latency-provenance-v3^{commit}` (`recovery_commit_resolution`).
 - `eval/test_retrieval_v2_latency_provenance_attestation.py` — static pins, pairing & HOLD recompute, invariant checks; never touches DB/model/retrieval.
 
 ## 12. How to verify
@@ -119,5 +119,6 @@ Fresh read-only reviewer should re-audit: does documented metadata-only post-run
 ```bash
 python -c "import hashlib,pathlib,json; p=pathlib.Path('eval/retrieval-v2/latency/latency-candidate-v2.json'); b=p.read_bytes(); print(hashlib.sha256(b).hexdigest()); print(hashlib.sha256(b.replace(b'\r\n',b'\n')).hexdigest()); print(b.endswith(b'\n')); j=json.loads(b); j2={k:v for k,v in j.items() if k not in ('candidate_provenance','candidate_tag','candidate_commit')}; print(hashlib.sha256(json.dumps(j2,ensure_ascii=False,indent=2).encode()).hexdigest(), len(json.dumps(j2,ensure_ascii=False,indent=2).encode()))"
 # expect 41f8cbc9... / 054719b8... / False / ee57d748... 52453
+git rev-parse retrieval-v2-latency-provenance-v3^{commit}  # resolve recovery commit (not self-embedded)
 pytest eval/test_retrieval_v2_latency_provenance_attestation.py -v
 ```
