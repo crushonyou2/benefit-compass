@@ -347,8 +347,9 @@ def append_event(
         f.flush()
         try:
             os.fsync(f.fileno())
-        except Exception:
-            pass
+        except Exception as e:
+            # Durability failure is fail-closed: do not return success token
+            raise AuditError(f"fsync failed for {p}: {e}") from e
 
     # Post-append verify (detect concurrent truncate/overwrite race)
     # Re-read and ensure last event is ours and chain still valid
@@ -390,22 +391,32 @@ def verify_holdout_access_allowed(
             raise AuditError(f"expected_event_hash must be 64-hex, got {expected_event_hash!r}")
         expected_event_hash = expected_event_hash.lower()
     set_sha = set_sha.lower()
-
     events = read_and_verify_chain(log_path)
-    # Find all matching protected_access_start with exact set_sha+session_id+success outcome
-    candidates: list[tuple[int, dict[str, Any]]] = []
+    # Gate: find ALL protected_access_start with exact set_role+set_sha+session_id, then pick latest.
+    # Fail-closed: if latest outcome is not success/allowed, deny (covers success→failure, success→None).
+    matched: list[tuple[int, dict[str, Any]]] = []
     for idx, ev in enumerate(events):
-        if ev.get("action") == "protected_access_start" and ev.get("set_role") == set_role and isinstance(ev.get("set_sha"), str) and ev.get("set_sha","").lower() == set_sha and ev.get("session_id") == session_id:
-            outcome = ev.get("outcome")
-            if outcome in ("success", "allowed"):
-                candidates.append((idx, ev))
-    if not candidates:
+        if (
+            ev.get("action") == "protected_access_start"
+            and ev.get("set_role") == set_role
+            and isinstance(ev.get("set_sha"), str)
+            and ev.get("set_sha", "").lower() == set_sha
+            and ev.get("session_id") == session_id
+        ):
+            matched.append((idx, ev))
+    if not matched:
         raise AuditError(
-            f"protected access denied: no successful protected_access_start for set_role={set_role!r} set_sha={set_sha[:8]}... session_id={session_id!r} in {log_path}; "
+            f"protected access denied: no protected_access_start for set_role={set_role!r} set_sha={set_sha[:8]}... session_id={session_id!r} in {log_path}; "
             "event append must succeed with outcome success/allowed before plaintext open"
         )
-    # Most recent is last in chain order
-    latest_idx, latest = candidates[-1]
+    # Latest start (last in chain) determines grant; earlier success does not grant if latest is not success.
+    latest_idx, latest = matched[-1]
+    outcome = latest.get("outcome")
+    if outcome not in ("success", "allowed"):
+        raise AuditError(
+            f"protected access denied: latest protected_access_start outcome is {outcome!r} (expected success/allowed) "
+            f"for set_role={set_role!r} set_sha={set_sha[:8]}... session_id={session_id!r} at {latest.get('event_hash','')[:8]}... (fail-closed latest-outcome check)"
+        )
     # Check if a later protected_access_end for same set_role/set_sha/session_id closes the grant
     for later in events[latest_idx + 1:]:
         if later.get("action") == "protected_access_end" and later.get("set_role") == set_role and isinstance(later.get("set_sha"), str) and later.get("set_sha","").lower() == set_sha and later.get("session_id") == session_id:
@@ -417,7 +428,6 @@ def verify_holdout_access_allowed(
             f"protected access denied: expected_event_hash {expected_event_hash[:8]}... does not match latest grant {latest.get('event_hash','')[:8]}... for set_role={set_role!r} set_sha={set_sha[:8]}... session_id={session_id!r} (stale grant token)"
         )
     return latest
-
 
 # Convenience helpers for runners (optional)
 def build_run_start(

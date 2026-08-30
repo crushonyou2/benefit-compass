@@ -17,6 +17,8 @@ from retrieval_v2.cycle3_fingerprint import (
 )
 
 def _m(qfps, gfps, cases=None):
+    # Helper for tests: if cases not supplied, infer from lengths when they match and >0;
+    # empty manifests intentionally left without cases to test gate failure, caller must pass cases explicitly for valid manifests.
     d = {
         "fingerprint_version": FINGERPRINT_VERSION,
         "normalization_spec": NORMALIZATION_SPEC,
@@ -25,6 +27,9 @@ def _m(qfps, gfps, cases=None):
     }
     if cases is not None:
         d["cases"] = cases
+    elif len(qfps) == len(gfps) and len(qfps) > 0:
+        # Auto-infer cases for valid non-empty manifests to reduce test boilerplate
+        d["cases"] = len(qfps)
     return d
 
 class Cycle3FingerprintTest(unittest.TestCase):
@@ -107,23 +112,31 @@ class Cycle3FingerprintTest(unittest.TestCase):
             check_overlap(a, b, strict=True)
 
     def test_check_overlap_normalized(self):
-        # "Hello   World" and "hello world" should collide after normalization
-        a = _m([query_fingerprint("Hello   World")], [])
-        b = _m([query_fingerprint("hello world")], [])
+        # "Hello   World" and "hello world" should collide after normalization, gold distinct to keep gold overlap 0
+        a = _m([query_fingerprint("Hello   World")], [gold_fingerprint("youth","n1")])
+        b = _m([query_fingerprint("hello world")], [gold_fingerprint("youth","n2")])
         res = check_overlap(a, b, strict=False)
         self.assertEqual(1, res["query_overlap"])
 
     def test_check_overlap_pure_no_file_access(self):
-        # Ensure helper is pure: no file read, just dicts
+        # Pure helper: empty manifests must NOT certify as overlap 0 PASS — fail-closed (builder gate)
         a = _m([], [])
         b = _m([], [])
-        check_overlap(a, b, strict=True)
+        with self.assertRaises((ValueError, TypeError)):
+            check_overlap(a, b, strict=True)
+        # Valid non-empty distinct manifests should PASS with overlap 0
+        a2 = _m([query_fingerprint("pure-a")], [gold_fingerprint("youth","pa1")])
+        b2 = _m([query_fingerprint("pure-b")], [gold_fingerprint("gov24","pb1")])
+        check_overlap(a2, b2, strict=True)
 
     def test_no_protected_plaintext_read_in_this_test(self):
         # This test itself must not read cycle1/2 holdout plaintext; we just verify helpers operate on synthetic data
         # If helpers accidentally read files, this would fail via HOLDOUT_AUDIT_ENV gate, but we simply ensure synthetic path works
-        a = fingerprints_for_items([{"query":"synthetic query 1", "gold_source":"youth","gold_source_id":"syn-1"}])
-        b = fingerprints_for_items([{"query":"synthetic query 2", "gold_source":"gov24","gold_source_id":"syn-2"}])
+        # fingerprints_for_items returns fragment without cases; wrap into protected manifest via manifest_with_fingerprints
+        frag_a = fingerprints_for_items([{"query":"synthetic query 1", "gold_source":"youth","gold_source_id":"syn-1"}])
+        frag_b = fingerprints_for_items([{"query":"synthetic query 2", "gold_source":"gov24","gold_source_id":"syn-2"}])
+        a = manifest_with_fingerprints(role="dev", cycle=3, cases=1, query_fingerprints=frag_a["query_fingerprints"], gold_fingerprints=frag_a["gold_fingerprints"])
+        b = manifest_with_fingerprints(role="holdout", cycle=3, cases=1, query_fingerprints=frag_b["query_fingerprints"], gold_fingerprints=frag_b["gold_fingerprints"])
         check_overlap(a, b, strict=True)
 
     def test_fingerprint_version_present(self):

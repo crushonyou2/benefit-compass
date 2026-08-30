@@ -13,6 +13,11 @@ Proves directly that bootstrap infra fail-opens are repaired:
 - invalid timestamp FAIL
 - git provenance command failure FAIL
 
+And Cycle3 NARROW INFRA REPAIR (this session) additional gates:
+- audit latest-start fail-open: success→failure / success→None DENY (latest outcome strict)
+- protected-set fingerprint builder gate: cases mandatory + exact count + 0 forbidden, empty manifest cannot PASS overlap 0
+- audit durability: os.fsync failure propagates as AuditError, no success token returned
+
 All tests are pure/static, no DB/retrieval/model/embedding/holdout plaintext.
 """
 
@@ -53,6 +58,9 @@ def _valid_manifest(qfps, gfps, cases=None):
     }
     if cases is not None:
         d["cases"] = cases
+    elif len(qfps) == len(gfps) and len(qfps) > 0:
+        # Auto-infer cases for valid non-empty manifests to reduce boilerplate in older tests
+        d["cases"] = len(qfps)
     return d
 
 
@@ -75,23 +83,25 @@ class FingerprintInfraRepairTest(unittest.TestCase):
         q = query_fingerprint("hello")
         g = gold_fingerprint("youth", "123")
         with self.assertRaises(ValueError):
-            validate_fingerprint_manifest({"fingerprint_version": "v2", "normalization_spec": NORMALIZATION_SPEC, "query_fingerprints": [q], "gold_fingerprints": [g]})
+            validate_fingerprint_manifest({"fingerprint_version": "v2", "normalization_spec": NORMALIZATION_SPEC, "query_fingerprints": [q], "gold_fingerprints": [g], "cases": 1})
         with self.assertRaises(ValueError):
-            validate_fingerprint_manifest({"fingerprint_version": FINGERPRINT_VERSION, "normalization_spec": "WRONG", "query_fingerprints": [q], "gold_fingerprints": [g]})
-        bad_a = {"fingerprint_version": "v2", "normalization_spec": NORMALIZATION_SPEC, "query_fingerprints": [q], "gold_fingerprints": [g]}
+            validate_fingerprint_manifest({"fingerprint_version": FINGERPRINT_VERSION, "normalization_spec": "WRONG", "query_fingerprints": [q], "gold_fingerprints": [g], "cases": 1})
+        bad_a = {"fingerprint_version": "v2", "normalization_spec": NORMALIZATION_SPEC, "query_fingerprints": [q], "gold_fingerprints": [g], "cases": 1}
         good_b = _valid_manifest([query_fingerprint("other")], [gold_fingerprint("gov24", "999")])
         with self.assertRaises(ValueError):
             check_overlap(bad_a, good_b, strict=False)
 
     def test_invalid_hash_fail(self):
+        q_good = query_fingerprint("valid")
+        g_good = gold_fingerprint("youth", "1")
         with self.assertRaises(ValueError):
-            validate_fingerprint_manifest(_valid_manifest(["not-a-hex"], []))
+            validate_fingerprint_manifest(_valid_manifest(["not-a-hex"], [g_good]))
         with self.assertRaises(ValueError):
-            validate_fingerprint_manifest(_valid_manifest(["z" * 64], []))
+            validate_fingerprint_manifest(_valid_manifest(["z" * 64], [g_good]))
         with self.assertRaises(ValueError):
-            validate_fingerprint_manifest(_valid_manifest(["a" * 63], []))
+            validate_fingerprint_manifest(_valid_manifest(["a" * 63], [g_good]))
         with self.assertRaises(ValueError):
-            validate_fingerprint_manifest(_valid_manifest([], ["a" * 64 + "extra"]))
+            validate_fingerprint_manifest(_valid_manifest([q_good], ["a" * 64 + "extra"]))
         with self.assertRaises(ValueError):
             manifest_with_fingerprints(role="dev", cycle=3, cases=1, query_fingerprints=["invalid"], gold_fingerprints=[gold_fingerprint("youth", "1")])
 
@@ -99,12 +109,12 @@ class FingerprintInfraRepairTest(unittest.TestCase):
         q = query_fingerprint("dup")
         g = gold_fingerprint("youth", "1")
         with self.assertRaises(ValueError):
-            validate_fingerprint_manifest(_valid_manifest([q, q], [g]))
+            validate_fingerprint_manifest(_valid_manifest([q, q], [g, gold_fingerprint("gov24","2")]))
         with self.assertRaises(ValueError):
             validate_fingerprint_manifest(_valid_manifest([q], [g, g]))
         with self.assertRaises(ValueError):
             manifest_with_fingerprints(role="dev", cycle=3, cases=2, query_fingerprints=[q, q], gold_fingerprints=[g, gold_fingerprint("gov24", "2")])
-        dup_manifest = _valid_manifest([q, q], [g])
+        dup_manifest = _valid_manifest([q, q], [g, gold_fingerprint("gov24","dup2")])
         good = _valid_manifest([query_fingerprint("other")], [gold_fingerprint("gov24", "2")])
         with self.assertRaises(ValueError):
             check_overlap(dup_manifest, good, strict=False)
@@ -307,3 +317,206 @@ class AuditInfraRepairTest(unittest.TestCase):
                 verify_holdout_access_allowed(log, set_role="holdout", set_sha=sha, session_id=sess, expected_event_hash=token1)
             verify_holdout_access_allowed(log, set_role="holdout", set_sha=sha, session_id=sess, expected_event_hash=token2)
             verify_holdout_access_allowed(log, set_role="holdout", set_sha=sha, session_id=sess)
+
+
+# --- NARROW INFRA REPAIR v3 additional gates (Sol/High + Luna Max 합의 3개) ---
+
+class AuditLatestStartFailOpenTest(unittest.TestCase):
+    """Blocker 1: verify_holdout_access_allowed latest-start fail-open repair.
+
+    Must pick latest protected_access_start among ALL (not just success) for same
+    set_role+set_sha+session_id, then check outcome success/allowed. Success->failure
+    and success->None must DENY.
+    """
+
+    def test_success_then_failure_denies(self):
+        with tempfile.TemporaryDirectory() as td:
+            log = pathlib.Path(td) / "events.jsonl"
+            sha = "a" * 64
+            sess = "sess-latest"
+            append_event(log, action="protected_access_start", candidate_id="c3e1-vector-pool-128", set_role="holdout", set_sha=sha, git_head="0"*40, git_dirty=False, session_id=sess, outcome="success")
+            append_event(log, action="protected_access_start", candidate_id="c3e1-vector-pool-128", set_role="holdout", set_sha=sha, git_head="0"*40, git_dirty=False, session_id=sess, outcome="failure")
+            with self.assertRaises(AuditError):
+                verify_holdout_access_allowed(log, set_role="holdout", set_sha=sha, session_id=sess)
+
+    def test_success_then_none_denies(self):
+        with tempfile.TemporaryDirectory() as td:
+            log = pathlib.Path(td) / "events.jsonl"
+            sha = "b" * 64
+            sess = "sess-latest-none"
+            append_event(log, action="protected_access_start", candidate_id="c3e1-vector-pool-128", set_role="holdout", set_sha=sha, git_head="0"*40, git_dirty=False, session_id=sess, outcome="success")
+            append_event(log, action="protected_access_start", candidate_id="c3e1-vector-pool-128", set_role="holdout", set_sha=sha, git_head="0"*40, git_dirty=False, session_id=sess, outcome=None)
+            with self.assertRaises(AuditError):
+                verify_holdout_access_allowed(log, set_role="holdout", set_sha=sha, session_id=sess)
+
+    def test_success_then_allowed_grants(self):
+        with tempfile.TemporaryDirectory() as td:
+            log = pathlib.Path(td) / "events.jsonl"
+            sha = "c" * 64
+            sess = "sess-grant"
+            append_event(log, action="protected_access_start", candidate_id="c3e1-vector-pool-128", set_role="holdout", set_sha=sha, git_head="0"*40, git_dirty=False, session_id=sess, outcome="success")
+            ev2 = append_event(log, action="protected_access_start", candidate_id="c3e1-vector-pool-128", set_role="holdout", set_sha=sha, git_head="0"*40, git_dirty=False, session_id=sess, outcome="allowed")
+            # latest is allowed -> grant
+            result = verify_holdout_access_allowed(log, set_role="holdout", set_sha=sha, session_id=sess)
+            self.assertEqual(ev2["event_hash"], result["event_hash"])
+
+    def test_failure_then_success_grants(self):
+        with tempfile.TemporaryDirectory() as td:
+            log = pathlib.Path(td) / "events.jsonl"
+            sha = "d" * 64
+            sess = "sess-fail-then-success"
+            append_event(log, action="protected_access_start", candidate_id="c3e1-vector-pool-128", set_role="holdout", set_sha=sha, git_head="0"*40, git_dirty=False, session_id=sess, outcome="failure")
+            ev2 = append_event(log, action="protected_access_start", candidate_id="c3e1-vector-pool-128", set_role="holdout", set_sha=sha, git_head="0"*40, git_dirty=False, session_id=sess, outcome="success")
+            result = verify_holdout_access_allowed(log, set_role="holdout", set_sha=sha, session_id=sess)
+            self.assertEqual(ev2["event_hash"], result["event_hash"])
+            # token must match latest, not earlier success (there was none earlier success, but now latest success)
+            with self.assertRaises(AuditError):
+                # token from non-existent earlier would be invalid; use mismatched token
+                verify_holdout_access_allowed(log, set_role="holdout", set_sha=sha, session_id=sess, expected_event_hash="0"*64)
+
+    def test_single_failure_denies(self):
+        with tempfile.TemporaryDirectory() as td:
+            log = pathlib.Path(td) / "events.jsonl"
+            sha = "e" * 64
+            sess = "sess-single-fail"
+            append_event(log, action="protected_access_start", candidate_id="c3e1-vector-pool-128", set_role="holdout", set_sha=sha, git_head="0"*40, git_dirty=False, session_id=sess, outcome="failure")
+            with self.assertRaises(AuditError):
+                verify_holdout_access_allowed(log, set_role="holdout", set_sha=sha, session_id=sess)
+
+    def test_success_then_empty_string_denies(self):
+        with tempfile.TemporaryDirectory() as td:
+            log = pathlib.Path(td) / "events.jsonl"
+            sha = "f" * 64
+            sess = "sess-empty"
+            append_event(log, action="protected_access_start", candidate_id="c3e1-vector-pool-128", set_role="holdout", set_sha=sha, git_head="0"*40, git_dirty=False, session_id=sess, outcome="success")
+            append_event(log, action="protected_access_start", candidate_id="c3e1-vector-pool-128", set_role="holdout", set_sha=sha, git_head="0"*40, git_dirty=False, session_id=sess, outcome="")
+            with self.assertRaises(AuditError):
+                verify_holdout_access_allowed(log, set_role="holdout", set_sha=sha, session_id=sess)
+
+
+class FingerprintBuilderGateTest(unittest.TestCase):
+    """Blocker 2: protected-set fingerprint builder gate.
+
+    Builder/protected-set validation boundary must require cases mandatory,
+    exact count match, and 0 forbidden. Empty manifest cannot certify overlap 0 PASS.
+    """
+
+    def test_missing_cases_fails(self):
+        q = query_fingerprint("hello")
+        g = gold_fingerprint("youth", "1")
+        with self.assertRaises(ValueError):
+            validate_fingerprint_manifest({"fingerprint_version": FINGERPRINT_VERSION, "normalization_spec": NORMALIZATION_SPEC, "query_fingerprints": [q], "gold_fingerprints": [g]})
+        with self.assertRaises((ValueError, TypeError)):
+            check_overlap({"fingerprint_version": FINGERPRINT_VERSION, "normalization_spec": NORMALIZATION_SPEC, "query_fingerprints": [q], "gold_fingerprints": [g]},
+                          {"fingerprint_version": FINGERPRINT_VERSION, "normalization_spec": NORMALIZATION_SPEC, "query_fingerprints": [q], "gold_fingerprints": [g]}, strict=False)
+
+    def test_zero_cases_forbidden(self):
+        q = query_fingerprint("q")
+        g = gold_fingerprint("youth", "1")
+        with self.assertRaises(ValueError):
+            validate_fingerprint_manifest({"fingerprint_version": FINGERPRINT_VERSION, "normalization_spec": NORMALIZATION_SPEC, "query_fingerprints": [], "gold_fingerprints": [], "cases": 0})
+        with self.assertRaises(ValueError):
+            manifest_with_fingerprints(role="dev", cycle=3, cases=0, query_fingerprints=[], gold_fingerprints=[])
+        # empty manifest overlap must not PASS
+        empty_a = {"fingerprint_version": FINGERPRINT_VERSION, "normalization_spec": NORMALIZATION_SPEC, "query_fingerprints": [], "gold_fingerprints": [], "cases": 0}
+        empty_b = {"fingerprint_version": FINGERPRINT_VERSION, "normalization_spec": NORMALIZATION_SPEC, "query_fingerprints": [], "gold_fingerprints": [], "cases": 0}
+        with self.assertRaises(ValueError):
+            check_overlap(empty_a, empty_b, strict=True)
+        with self.assertRaises(ValueError):
+            check_overlap(empty_a, empty_b, strict=False)
+
+    def test_empty_manifest_no_cases_cannot_pass_overlap(self):
+        # Historical catalog / fresh holdout / fresh dev builder cannot certify empty as PASS
+        empty_no_cases_a = {"fingerprint_version": FINGERPRINT_VERSION, "normalization_spec": NORMALIZATION_SPEC, "query_fingerprints": [], "gold_fingerprints": []}
+        empty_no_cases_b = {"fingerprint_version": FINGERPRINT_VERSION, "normalization_spec": NORMALIZATION_SPEC, "query_fingerprints": [], "gold_fingerprints": []}
+        with self.assertRaises((ValueError, TypeError)):
+            check_overlap(empty_no_cases_a, empty_no_cases_b, strict=True)
+        with self.assertRaises((ValueError, TypeError)):
+            check_overlap(empty_no_cases_a, empty_no_cases_b, strict=False)
+        # Even with manifest_with_fingerprints building empty must fail
+        with self.assertRaises(ValueError):
+            manifest_with_fingerprints(role="historical", cycle=1, cases=1, query_fingerprints=[], gold_fingerprints=[])
+
+    def test_cases_exact_count_required(self):
+        q1 = query_fingerprint("q1")
+        q2 = query_fingerprint("q2")
+        g1 = gold_fingerprint("youth", "1")
+        g2 = gold_fingerprint("gov24", "2")
+        # cases 1 but 2 fingerprints -> mismatch
+        with self.assertRaises(ValueError):
+            validate_fingerprint_manifest({"fingerprint_version": FINGERPRINT_VERSION, "normalization_spec": NORMALIZATION_SPEC, "query_fingerprints": [q1, q2], "gold_fingerprints": [g1, g2], "cases": 1})
+        with self.assertRaises(ValueError):
+            validate_fingerprint_manifest({"fingerprint_version": FINGERPRINT_VERSION, "normalization_spec": NORMALIZATION_SPEC, "query_fingerprints": [q1], "gold_fingerprints": [g1, g2], "cases": 1})
+        with self.assertRaises(ValueError):
+            manifest_with_fingerprints(role="dev", cycle=3, cases=2, query_fingerprints=[q1], gold_fingerprints=[g1])
+        # correct exact match passes
+        m = manifest_with_fingerprints(role="dev", cycle=3, cases=2, query_fingerprints=[q1, q2], gold_fingerprints=[g1, g2])
+        self.assertEqual(2, m["cases"])
+        # overlap with correct cases passes when distinct
+        a = manifest_with_fingerprints(role="dev", cycle=3, cases=1, query_fingerprints=[q1], gold_fingerprints=[g1])
+        b = manifest_with_fingerprints(role="holdout", cycle=3, cases=1, query_fingerprints=[q2], gold_fingerprints=[g2])
+        result = check_overlap(a, b, strict=False)
+        self.assertEqual(0, result["query_overlap"])
+
+    def test_builder_empty_fingerprint_lists_fail(self):
+        # Builder with expected count vs actual fingerprint lists mismatch
+        q = query_fingerprint("q1")
+        g = gold_fingerprint("youth", "1")
+        with self.assertRaises(ValueError):
+            manifest_with_fingerprints(role="fresh-dev", cycle=3, cases=2, query_fingerprints=[q], gold_fingerprints=[g])
+        with self.assertRaises(ValueError):
+            manifest_with_fingerprints(role="fresh-holdout", cycle=3, cases=1, query_fingerprints=[], gold_fingerprints=[g])
+
+
+class AuditDurabilityTest(unittest.TestCase):
+    """Blocker 3: append_event durability — os.fsync failure must propagate as AuditError, no success token."""
+
+    def test_fsync_failure_raises_audit_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            log = pathlib.Path(td) / "events.jsonl"
+            import retrieval_v2.cycle3_audit as audit_mod
+            orig_fsync = audit_mod.os.fsync
+
+            def fake_fsync(fd):
+                raise OSError("simulated fsync failure")
+
+            audit_mod.os.fsync = fake_fsync  # type: ignore
+            try:
+                with self.assertRaises(AuditError) as ctx:
+                    append_event(log, action="run_start", candidate_id="c3e1-vector-pool-128", set_role="none", git_head="0"*40, git_dirty=False, session_id="sess-dur")
+                self.assertIn("fsync", str(ctx.exception).lower())
+            finally:
+                audit_mod.os.fsync = orig_fsync  # type: ignore
+
+    def test_fsync_failure_no_success_token(self):
+        with tempfile.TemporaryDirectory() as td:
+            log = pathlib.Path(td) / "events.jsonl"
+            import retrieval_v2.cycle3_audit as audit_mod
+            orig_fsync = audit_mod.os.fsync
+            call_count = {"n": 0}
+
+            def failing_fsync(fd):
+                call_count["n"] += 1
+                raise OSError("disk full")
+
+            audit_mod.os.fsync = failing_fsync  # type: ignore
+            try:
+                token = None
+                try:
+                    token = append_event(log, action="protected_access_start", candidate_id="c3e1-vector-pool-128", set_role="holdout", set_sha="a"*64, git_head="0"*40, git_dirty=False, session_id="s1", outcome="success")
+                except AuditError:
+                    pass
+                self.assertIsNone(token, "event/token must not be returned on fsync failure")
+                self.assertEqual(1, call_count["n"])
+            finally:
+                audit_mod.os.fsync = orig_fsync  # type: ignore
+
+    def test_fsync_success_still_works(self):
+        with tempfile.TemporaryDirectory() as td:
+            log = pathlib.Path(td) / "events.jsonl"
+            ev = append_event(log, action="run_start", candidate_id="c3e1-vector-pool-128", set_role="none", git_head="0"*40, git_dirty=False, session_id="s1")
+            self.assertIn("event_hash", ev)
+            # verify chain readable
+            chain = read_and_verify_chain(log)
+            self.assertEqual(1, len(chain))
+            self.assertEqual(ev["event_hash"], chain[0]["event_hash"])

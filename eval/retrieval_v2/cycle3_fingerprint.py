@@ -78,7 +78,10 @@ def validate_fingerprint_manifest(manifest: dict[str, Any]) -> None:
     - query_fingerprints and gold_fingerprints keys required, must be lists (not None), type mismatch forbidden
     - each fingerprint must be 64-hex (case-insensitive, but stored lower)
     - duplicate fingerprint inside same manifest => error (no silent set dedup)
-    - if manifest contains 'cases', it must be positive int and query/gold counts must exactly equal cases
+    - cases is REQUIRED (protected-set builder gate): must be positive int (>0) and
+      query/gold counts must exactly equal cases; 0 or missing or mismatch => fail-closed.
+      This prevents historical catalog / fresh holdout / fresh dev builders from certifying
+      an empty (0-case) manifest as overlap 0 PASS.
 
     Raises:
         TypeError / ValueError on any violation.
@@ -124,18 +127,18 @@ def validate_fingerprint_manifest(manifest: dict[str, Any]) -> None:
         raise ValueError(f"query_fingerprints contains duplicate entries (len {len(qfps)} vs unique {len(set(q.lower() for q in qfps))})")
     if len(gfps) != len(set(g.lower() for g in gfps)):
         raise ValueError(f"gold_fingerprints contains duplicate entries (len {len(gfps)} vs unique {len(set(g.lower() for g in gfps))})")
-    # cases check
-    if "cases" in manifest:
-        cases = manifest["cases"]
-        if not isinstance(cases, int) or isinstance(cases, bool):
-            raise TypeError(f"cases must be int, got {type(cases).__name__}: {cases!r}")
-        if cases <= 0:
-            raise ValueError(f"cases must be positive int, got {cases!r}")
-        if len(qfps) != cases:
-            raise ValueError(f"query_fingerprints count {len(qfps)} != cases {cases}")
-        if len(gfps) != cases:
-            raise ValueError(f"gold_fingerprints count {len(gfps)} != cases {cases}")
-
+    # cases check — REQUIRED (builder/protected-set gate, fail-closed, 0 forbidden)
+    if "cases" not in manifest:
+        raise ValueError("missing cases (protected-set manifest must include cases; empty 0-case manifest cannot be certified as PASS)")
+    cases = manifest["cases"]
+    if not isinstance(cases, int) or isinstance(cases, bool):
+        raise TypeError(f"cases must be int, got {type(cases).__name__}: {cases!r}")
+    if cases <= 0:
+        raise ValueError(f"cases must be positive int (>0), got {cases!r} (0-case empty manifest forbidden)")
+    if len(qfps) != cases:
+        raise ValueError(f"query_fingerprints count {len(qfps)} != cases {cases}")
+    if len(gfps) != cases:
+        raise ValueError(f"gold_fingerprints count {len(gfps)} != cases {cases}")
 
 def fingerprints_for_items(
     items: list[dict[str, Any]],
