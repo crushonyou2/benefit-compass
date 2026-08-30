@@ -26,8 +26,9 @@ class Cycle3AuditTest(unittest.TestCase):
     def test_append_and_verify_chain(self):
         with tempfile.TemporaryDirectory() as td:
             log = pathlib.Path(td) / "events.jsonl"
-            e1 = append_event(log, action="run_start", candidate_id="c3e1-vector-pool-128", set_role="dev", set_sha="abc", command="pytest", runner_id="r1", outcome="started", git_head="0"*40, git_dirty=False, session_id="s1")
-            e2 = append_event(log, action="run_end", candidate_id="c3e1-vector-pool-128", set_role="dev", set_sha="abc", runner_id="r1", outcome="success", git_head="0"*40, git_dirty=False, session_id="s1")
+            sha = "a" * 64
+            e1 = append_event(log, action="run_start", candidate_id="c3e1-vector-pool-128", set_role="dev", set_sha=sha, command="pytest", runner_id="r1", outcome="started", git_head="0"*40, git_dirty=False, session_id="s1")
+            e2 = append_event(log, action="run_end", candidate_id="c3e1-vector-pool-128", set_role="dev", set_sha=sha, runner_id="r1", outcome="success", git_head="0"*40, git_dirty=False, session_id="s1")
             events = read_and_verify_chain(log)
             self.assertEqual(2, len(events))
             self.assertEqual(e1["event_hash"], events[0]["event_hash"])
@@ -44,8 +45,9 @@ class Cycle3AuditTest(unittest.TestCase):
     def test_chain_violation_on_tamper(self):
         with tempfile.TemporaryDirectory() as td:
             log = pathlib.Path(td) / "events.jsonl"
-            append_event(log, action="run_start", candidate_id="c3e1-vector-pool-128", set_role="dev", git_head="0"*40, git_dirty=False, session_id="s1")
-            append_event(log, action="run_end", candidate_id="c3e1-vector-pool-128", set_role="dev", git_head="0"*40, git_dirty=False, session_id="s1")
+            sha = "d" * 64
+            append_event(log, action="run_start", candidate_id="c3e1-vector-pool-128", set_role="dev", set_sha=sha, git_head="0"*40, git_dirty=False, session_id="s1")
+            append_event(log, action="run_end", candidate_id="c3e1-vector-pool-128", set_role="dev", set_sha=sha, git_head="0"*40, git_dirty=False, session_id="s1")
             # Tamper: edit outcome field without updating hash
             text = log.read_text(encoding="utf-8").splitlines()
             obj = json.loads(text[1])
@@ -57,14 +59,15 @@ class Cycle3AuditTest(unittest.TestCase):
                 read_and_verify_chain(log)
             # also append after tamper must fail
             with self.assertRaises(AuditChainError):
-                append_event(log, action="run_start", candidate_id="c3e2-vector-pool-256", set_role="dev", git_head="0"*40, git_dirty=False, session_id="s1")
+                append_event(log, action="run_start", candidate_id="c3e2-vector-pool-256", set_role="dev", set_sha=sha, git_head="0"*40, git_dirty=False, session_id="s1")
 
     def test_truncate_detection(self):
         with tempfile.TemporaryDirectory() as td:
             log = pathlib.Path(td) / "events.jsonl"
-            e1 = append_event(log, action="run_start", candidate_id="c3e1-vector-pool-128", set_role="dev", git_head="0"*40, git_dirty=False, session_id="s1")
-            e2 = append_event(log, action="run_end", candidate_id="c3e1-vector-pool-128", set_role="dev", git_head="0"*40, git_dirty=False, session_id="s1")
-            e3 = append_event(log, action="run_start", candidate_id="c3e2-vector-pool-256", set_role="dev", git_head="0"*40, git_dirty=False, session_id="s1")
+            sha = "e" * 64
+            e1 = append_event(log, action="run_start", candidate_id="c3e1-vector-pool-128", set_role="dev", set_sha=sha, git_head="0"*40, git_dirty=False, session_id="s1")
+            e2 = append_event(log, action="run_end", candidate_id="c3e1-vector-pool-128", set_role="dev", set_sha=sha, git_head="0"*40, git_dirty=False, session_id="s1")
+            e3 = append_event(log, action="run_start", candidate_id="c3e2-vector-pool-256", set_role="dev", set_sha=sha, git_head="0"*40, git_dirty=False, session_id="s1")
             self.assertEqual(3, len(read_and_verify_chain(log)))
             # Truncate: remove last line, then try to append a new event that should reference e2 but writer will see truncated chain
             # First, simulate truncate by overwriting file with first 2 lines only
@@ -88,7 +91,8 @@ class Cycle3AuditTest(unittest.TestCase):
     def test_overwrite_non_json_fails(self):
         with tempfile.TemporaryDirectory() as td:
             log = pathlib.Path(td) / "events.jsonl"
-            append_event(log, action="run_start", candidate_id="c3e1-vector-pool-128", set_role="dev", git_head="0"*40, git_dirty=False, session_id="s1")
+            sha = "f" * 64
+            append_event(log, action="run_start", candidate_id="c3e1-vector-pool-128", set_role="dev", set_sha=sha, git_head="0"*40, git_dirty=False, session_id="s1")
             log.write_text("not json\n", encoding="utf-8")
             with self.assertRaises(AuditChainError):
                 read_and_verify_chain(log)
@@ -96,8 +100,9 @@ class Cycle3AuditTest(unittest.TestCase):
     def test_duplicate_event_id_fails(self):
         with tempfile.TemporaryDirectory() as td:
             log = pathlib.Path(td) / "events.jsonl"
+            sha = "a" * 64
             eid = str(uuid.uuid4())
-            append_event(log, action="run_start", candidate_id="c3e1-vector-pool-128", set_role="dev", git_head="0"*40, git_dirty=False, session_id="s1", event_id=eid)
+            append_event(log, action="run_start", candidate_id="c3e1-vector-pool-128", set_role="dev", set_sha=sha, git_head="0"*40, git_dirty=False, session_id="s1", event_id=eid)
             # Second event with same id but different hash chain — should be detected as duplicate after verify
             # Craft second event manually with same event_id
             existing = read_and_verify_chain(log)
@@ -113,7 +118,7 @@ class Cycle3AuditTest(unittest.TestCase):
                 "action": "run_end",
                 "candidate_id": "c3e1-vector-pool-128",
                 "set_role": "dev",
-                "set_sha": None,
+                "set_sha": sha,
                 "command": None,
                 "runner_id": None,
                 "outcome": "success",
@@ -129,28 +134,32 @@ class Cycle3AuditTest(unittest.TestCase):
     def test_holdout_access_gate_requires_event(self):
         with tempfile.TemporaryDirectory() as td:
             log = pathlib.Path(td) / "events.jsonl"
-            # No event yet → gate must deny
+            dev_sha = "a" * 64
+            holdout_sha = "b" * 64
+            # No event yet → gate must deny (requires exact sha+session)
             with self.assertRaises(AuditError):
-                verify_holdout_access_allowed(log, set_role="holdout")
-            # Dev event alone does not unlock holdout
-            append_event(log, action="run_start", candidate_id="c3e1-vector-pool-128", set_role="dev", git_head="0"*40, git_dirty=False, session_id="s1")
-            append_event(log, action="protected_access_start", candidate_id="c3e1-vector-pool-128", set_role="dev", set_sha="devsha", git_head="0"*40, git_dirty=False, session_id="s1", outcome="success")
+                verify_holdout_access_allowed(log, set_role="holdout", set_sha=holdout_sha, session_id="s1")
+            # Dev event alone does not unlock holdout (different role/sha)
+            append_event(log, action="protected_access_start", candidate_id="c3e1-vector-pool-128", set_role="dev", set_sha=dev_sha, git_head="0"*40, git_dirty=False, session_id="s1", outcome="success")
             with self.assertRaises(AuditError):
-                verify_holdout_access_allowed(log, set_role="holdout")
-            # Holdout protected_access_start unlocks
-            append_event(log, action="protected_access_start", candidate_id="c3e2-vector-pool-256", set_role="holdout", set_sha="holdoutsha", git_head="0"*40, git_dirty=False, session_id="s1", outcome="success")
-            # Should not raise
-            verify_holdout_access_allowed(log, set_role="holdout")
-            # Also works with outcome None (treated as success)
+                verify_holdout_access_allowed(log, set_role="holdout", set_sha=holdout_sha, session_id="s1")
+            # Holdout protected_access_start unlocks only with exact sha+session
+            ev = append_event(log, action="protected_access_start", candidate_id="c3e2-vector-pool-256", set_role="holdout", set_sha=holdout_sha, git_head="0"*40, git_dirty=False, session_id="s1", outcome="success")
+            # Should not raise with exact match
+            verify_holdout_access_allowed(log, set_role="holdout", set_sha=holdout_sha, session_id="s1")
+            # Also verify token path
+            verify_holdout_access_allowed(log, set_role="holdout", set_sha=holdout_sha, session_id="s1", expected_event_hash=ev["event_hash"])
+            # outcome None must NOT grant (strict success/allowed only)
             with tempfile.TemporaryDirectory() as td2:
                 log2 = pathlib.Path(td2) / "events.jsonl"
-                append_event(log2, action="protected_access_start", candidate_id="c3e1-vector-pool-128", set_role="holdout", git_head="0"*40, git_dirty=False, session_id="s1", outcome=None)
-                verify_holdout_access_allowed(log2, set_role="holdout")
-
+                append_event(log2, action="protected_access_start", candidate_id="c3e1-vector-pool-128", set_role="holdout", set_sha=holdout_sha, git_head="0"*40, git_dirty=False, session_id="s1", outcome=None)
+                with self.assertRaises(AuditError):
+                    verify_holdout_access_allowed(log2, set_role="holdout", set_sha=holdout_sha, session_id="s1")
     def test_holdout_gate_fails_on_tampered_chain(self):
         with tempfile.TemporaryDirectory() as td:
             log = pathlib.Path(td) / "events.jsonl"
-            append_event(log, action="protected_access_start", candidate_id="c3e1-vector-pool-128", set_role="holdout", git_head="0"*40, git_dirty=False, session_id="s1", outcome="success")
+            sha = "c" * 64
+            append_event(log, action="protected_access_start", candidate_id="c3e1-vector-pool-128", set_role="holdout", set_sha=sha, git_head="0"*40, git_dirty=False, session_id="s1", outcome="success")
             # Tamper the event
             text = log.read_text(encoding="utf-8").splitlines()
             obj = json.loads(text[0])
@@ -158,13 +167,13 @@ class Cycle3AuditTest(unittest.TestCase):
             text[0] = json.dumps(obj, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
             log.write_text("\n".join(text) + "\n", encoding="utf-8")
             with self.assertRaises(AuditChainError):
-                verify_holdout_access_allowed(log, set_role="holdout")
-
+                verify_holdout_access_allowed(log, set_role="holdout", set_sha=sha, session_id="s1")
     def test_action_and_role_validation(self):
         with tempfile.TemporaryDirectory() as td:
             log = pathlib.Path(td) / "events.jsonl"
+            sha = "a" * 64
             with self.assertRaises(Exception):
-                append_event(log, action="invalid_action", candidate_id="x", set_role="dev", git_head="0"*40, git_dirty=False, session_id="s1")
+                append_event(log, action="invalid_action", candidate_id="x", set_role="dev", set_sha=sha, git_head="0"*40, git_dirty=False, session_id="s1")
             with self.assertRaises(Exception):
                 append_event(log, action="run_start", candidate_id="x", set_role="invalid_role", git_head="0"*40, git_dirty=False, session_id="s1")
 

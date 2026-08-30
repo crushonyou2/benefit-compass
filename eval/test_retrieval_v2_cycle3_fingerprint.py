@@ -12,7 +12,20 @@ from retrieval_v2.cycle3_fingerprint import (
     gold_fingerprint,
     normalize_query,
     query_fingerprint,
+    validate_fingerprint_manifest,
+    manifest_with_fingerprints,
 )
+
+def _m(qfps, gfps, cases=None):
+    d = {
+        "fingerprint_version": FINGERPRINT_VERSION,
+        "normalization_spec": NORMALIZATION_SPEC,
+        "query_fingerprints": qfps,
+        "gold_fingerprints": gfps,
+    }
+    if cases is not None:
+        d["cases"] = cases
+    return d
 
 class Cycle3FingerprintTest(unittest.TestCase):
     def test_normalize_query_deterministic(self):
@@ -65,8 +78,8 @@ class Cycle3FingerprintTest(unittest.TestCase):
         self.assertEqual(1, len(frag2["query_fingerprints"]))
 
     def test_check_overlap_zero(self):
-        a = {"query_fingerprints": [query_fingerprint("q1"), query_fingerprint("q2")], "gold_fingerprints": [gold_fingerprint("youth","1"), gold_fingerprint("gov24","2")]}
-        b = {"query_fingerprints": [query_fingerprint("q3")], "gold_fingerprints": [gold_fingerprint("youth","3")]}
+        a = _m([query_fingerprint("q1"), query_fingerprint("q2")], [gold_fingerprint("youth","1"), gold_fingerprint("gov24","2")])
+        b = _m([query_fingerprint("q3")], [gold_fingerprint("youth","3")])
         res = check_overlap(a, b, strict=False)
         self.assertEqual(0, res["query_overlap"])
         self.assertEqual(0, res["gold_overlap"])
@@ -75,8 +88,8 @@ class Cycle3FingerprintTest(unittest.TestCase):
 
     def test_check_overlap_detects_query(self):
         q = query_fingerprint("동일 쿼리")
-        a = {"query_fingerprints": [q], "gold_fingerprints": [gold_fingerprint("youth","1")]}
-        b = {"query_fingerprints": [q], "gold_fingerprints": [gold_fingerprint("gov24","2")]}
+        a = _m([q], [gold_fingerprint("youth","1")])
+        b = _m([q], [gold_fingerprint("gov24","2")])
         res = check_overlap(a, b, strict=False)
         self.assertEqual(1, res["query_overlap"])
         self.assertEqual(0, res["gold_overlap"])
@@ -85,8 +98,8 @@ class Cycle3FingerprintTest(unittest.TestCase):
 
     def test_check_overlap_detects_gold(self):
         g = gold_fingerprint("youth", "SAME")
-        a = {"query_fingerprints": [query_fingerprint("q1")], "gold_fingerprints": [g]}
-        b = {"query_fingerprints": [query_fingerprint("q2")], "gold_fingerprints": [g]}
+        a = _m([query_fingerprint("q1")], [g])
+        b = _m([query_fingerprint("q2")], [g])
         res = check_overlap(a, b, strict=False)
         self.assertEqual(0, res["query_overlap"])
         self.assertEqual(1, res["gold_overlap"])
@@ -95,15 +108,15 @@ class Cycle3FingerprintTest(unittest.TestCase):
 
     def test_check_overlap_normalized(self):
         # "Hello   World" and "hello world" should collide after normalization
-        a = {"query_fingerprints": [query_fingerprint("Hello   World")], "gold_fingerprints": []}
-        b = {"query_fingerprints": [query_fingerprint("hello world")], "gold_fingerprints": []}
+        a = _m([query_fingerprint("Hello   World")], [])
+        b = _m([query_fingerprint("hello world")], [])
         res = check_overlap(a, b, strict=False)
         self.assertEqual(1, res["query_overlap"])
 
     def test_check_overlap_pure_no_file_access(self):
         # Ensure helper is pure: no file read, just dicts
-        a = {"query_fingerprints": [], "gold_fingerprints": []}
-        b = {"query_fingerprints": [], "gold_fingerprints": []}
+        a = _m([], [])
+        b = _m([], [])
         check_overlap(a, b, strict=True)
 
     def test_no_protected_plaintext_read_in_this_test(self):
@@ -116,3 +129,12 @@ class Cycle3FingerprintTest(unittest.TestCase):
     def test_fingerprint_version_present(self):
         self.assertEqual("v1", FINGERPRINT_VERSION)
         self.assertIn("casefold", NORMALIZATION_SPEC)
+
+    def test_validate_manifest_requires_version_and_spec(self):
+        # Missing version/spec should fail
+        with self.assertRaises(ValueError):
+            validate_fingerprint_manifest({"query_fingerprints": [], "gold_fingerprints": []})
+        with self.assertRaises(ValueError):
+            validate_fingerprint_manifest({"fingerprint_version": "v1", "query_fingerprints": [], "gold_fingerprints": []})
+        with self.assertRaises(ValueError):
+            validate_fingerprint_manifest({"fingerprint_version": "v1", "normalization_spec": NORMALIZATION_SPEC, "gold_fingerprints": []})

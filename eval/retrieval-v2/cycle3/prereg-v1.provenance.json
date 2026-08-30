@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "attestation_type": "prereg-v1 provenance + canonical freeze time clarification",
+  "cycle": 3,
+  "prereg_file": "eval/retrieval-v2/cycle3/prereg-v1.json",
+  "prereg_created_at_field": "2026-08-30T00:00:00Z",
+  "prereg_created_at_semantics": "nominal placeholder (bootstrap freeze day at midnight UTC); NOT the canonical freeze timestamp. Canonical freeze is defined by the peeled bootstrap commit time.",
+  "canonical_freeze": {
+    "branch": "codex/retrieval-v2-cycle3-start",
+    "base_commit": "5cabd2eecd78923da4751c5e60fa316e74f563fc",
+    "bootstrap_commit": "e4e56198ba3faef7ae687e356e41bf2d7543c198",
+    "bootstrap_commit_author_time": "2026-08-30T18:34:01+09:00",
+    "bootstrap_commit_committer_time": "2026-08-30T18:34:01+09:00",
+    "bootstrap_commit_epoch": 1788082441,
+    "bootstrap_commit_utc": "2026-08-30T09:34:01Z",
+    "verification_method": "git cat-file -p e4e56198ba3faef7ae687e356e41bf2d7543c198 + git log --format=%aI|%cI",
+    "note": "All cycle3 prereg semantics (candidate IDs, K, SQL, selection predicates, max=3, D-003/D-004/D-007/D-011) were frozen at this commit; created_at field was not updated to this timestamp to preserve bootstrap file immutability."
+  },
+  "prereg_file_sha256": {
+    "file": "eval/retrieval-v2/cycle3/prereg-v1.json",
+    "sha256_lower": "18b6c997eb71a8cdff36d84ff46b5bbb6b699874ff6d0fccd18636f00268e156",
+    "sha256_upper": "18B6C997EB71A8CDFF36D84FF46B5BBB6B699874FF6D0FCCD18636F00268E156",
+    "bytes": 10534,
+    "basis": "file bytes as stored (LF, UTF-8, includes trailing newline)",
+    "verification": "sha256sum + python hashlib.sha256(read_bytes()).hexdigest()",
+    "immutable": true,
+    "prereg_file_not_modified_in_infra_repair": true
+  },
+  "bootstrap_tag": {
+    "tag": "retrieval-v2-cycle3-start-v1",
+    "tag_object": "2a30e8d371b9892f29ebcc21a81ab48ed9614378",
+    "tag_object_type": "tag",
+    "peeled_commit": "e4e56198ba3faef7ae687e356e41bf2d7543c198",
+    "tagger": "crushonyou2 <jigwan.joe@gmail.com>",
+    "tagger_time": "1788082480 +0900",
+    "tagger_iso": "2026-08-30T18:34:40+09:00",
+    "tagger_utc": "2026-08-30T09:34:40Z",
+    "verification": "git rev-parse retrieval-v2-cycle3-start-v1 + git rev-parse retrieval-v2-cycle3-start-v1^{commit} + git cat-file -p <tag_object>",
+    "immutable": true,
+    "not_moved_or_deleted_in_infra_repair": true
+  },
+  "infra_repair": {
+    "tag": "retrieval-v2-cycle3-infra-v2",
+    "branch": "codex/retrieval-v2-cycle3-start",
+    "basis": "e4e56198ba3faef7ae687e356e41bf2d7543c198 + infra-repair commit only (no candidate/dev/holdout/retrieval)"
+  },
+  "verified_at": "2026-08-30T09:34:01Z (canonical) / 2026-08-30T00:00:00Z (nominal placeholder) — provenance addendum generated via git filesystem verification, not edited prereg file",
+  "generated_by": "infra-repair addendum (docs/RETRIEVAL_V2_CYCLE3_PREREG_ADDENDUM.md + this file) — no prereg semantics change"
+}
