@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "prereg_version": "v1",
+  "cycle": 3,
+  "status": "BOOTSTRAPPED",
+  "created_at": "2026-08-30T00:00:00Z",
+  "base_commit": "5cabd2eecd78923da4751c5e60fa316e74f563fc",
+  "base_branch": "codex/retrieval-v2-cycle2-candidate",
+  "bootstrap_branch": "codex/retrieval-v2-cycle3-start",
+  "bootstrap_tag": "retrieval-v2-cycle3-start-v1",
+  "decision": "D-011",
+  "contract": "D-007",
+  "production_contract": {
+    "RERANK": 0,
+    "CANDIDATES": 30,
+    "COSINE_MIN": 0.78,
+    "LEXICAL_BIAS": 0.01,
+    "strip_region": "ml-service/app.py:strip_region",
+    "lexical_terms": "eval/retrieval_v2/candidate_lexical_rewrite.py:lexical_overlap_terms_rewrite(strip_region(raw))",
+    "youth_bias": "ml-service/source_ranking.py:youth_source_bias(strip_region(raw))",
+    "embedding_model": "intfloat/multilingual-e5-base",
+    "expired_exclusion": true,
+    "global_threshold": null,
+    "public_region_search": false,
+    "rerank": false
+  },
+  "objective": "Reduce warm paired retrieval/search p95 (Cycle1 HOLD root cause) while preserving candidate-v2 lexical quality gain via bounded vector-pool lexical combination.",
+  "max_candidate_experiments": 3,
+  "immutable_after_dev_inspection": true,
+  "single_canonical_dev_batch": true,
+  "dev_set": {
+    "role": "dev",
+    "cases": 36,
+    "balance": {
+      "youth": 18,
+      "gov24": 18
+    },
+    "categories": [
+      "housing_finance",
+      "family_care",
+      "employment_education",
+      "welfare_health",
+      "culture_community",
+      "business_agriculture"
+    ],
+    "status": "PENDING_FRESH_CREATION",
+    "creation_policy": "independent builder session before tuning, overlap 0 vs P0/cycle1-dev+holdout/cycle2-dev+disqualified-holdout/hard-negative and mutual dev<->holdout"
+  },
+  "holdout_set": {
+    "role": "holdout",
+    "cases": 40,
+    "balance": {
+      "youth": 20,
+      "gov24": 20
+    },
+    "status": "PENDING_FRESH_CREATION",
+    "creation_policy": "independent builder session before tuning, overlap 0, plaintext sealed until candidate freeze + independent review + user approval"
+  },
+  "candidates": [
+    {
+      "candidate_id": "c3e1-vector-pool-128",
+      "pool_k": 128,
+      "final_n": 30,
+      "lexical_terms": "lexical_overlap_terms_rewrite(strip_region(raw))",
+      "youth_bias": "youth_source_bias(strip_region(raw))",
+      "lexical_bias": 0.01,
+      "cosine_min": 0.78,
+      "rerank": 0,
+      "region_search": false,
+      "base": "candidate-v2 lexical-rewrite-v1",
+      "description": "vector-pool 128: nearest → vector_pool 128 → lexical on 128 only → youth/lexical ordering → final 30"
+    },
+    {
+      "candidate_id": "c3e2-vector-pool-256",
+      "pool_k": 256,
+      "final_n": 30,
+      "lexical_terms": "lexical_overlap_terms_rewrite(strip_region(raw))",
+      "youth_bias": "youth_source_bias(strip_region(raw))",
+      "lexical_bias": 0.01,
+      "cosine_min": 0.78,
+      "rerank": 0,
+      "region_search": false,
+      "base": "candidate-v2 lexical-rewrite-v1",
+      "description": "vector-pool 256: nearest → vector_pool 256 → lexical on 256 only → youth/lexical ordering → final 30"
+    },
+    {
+      "candidate_id": "c3e3-vector-pool-512",
+      "pool_k": 512,
+      "final_n": 30,
+      "lexical_terms": "lexical_overlap_terms_rewrite(strip_region(raw))",
+      "youth_bias": "youth_source_bias(strip_region(raw))",
+      "lexical_bias": 0.01,
+      "cosine_min": 0.78,
+      "rerank": 0,
+      "region_search": false,
+      "base": "candidate-v2 lexical-rewrite-v1",
+      "description": "vector-pool 512: nearest → vector_pool 512 → lexical on 512 only → youth/lexical ordering → final 30"
+    }
+  ],
+  "sql_semantics": {
+    "description": "eligible/expired/age/rp conditions and per-policy nearest chunk (vector-pool: vector-distance pre-pool K) then lexical CTE on K only, existing youth/lexical ordering for final n=30; public region search / rerank / global threshold none; D-004 compliance; spec only in bootstrap",
+    "eligible_condition": "( %(age)s IS NULL OR p.age_limit_yn IS NOT TRUE OR %(age)s BETWEEN p.age_min AND p.age_max ) AND ( %(rp)s IS NULL OR EXISTS (SELECT 1 FROM unnest(p.region_codes) rc WHERE rc LIKE %(rp)s) ) AND ( p.biz_end IS NULL OR p.biz_end >= CURRENT_DATE )",
+    "nearest_cte": "SELECT DISTINCT ON (p.id) p.id, ... (c.embedding <=> %(vec)s::vector) AS dist FROM policy_chunk c JOIN policy p ON p.id=c.policy_id WHERE <eligible> ORDER BY p.id, c.embedding <=> %(vec)s::vector",
+    "vector_pool_cte": "SELECT * FROM nearest ORDER BY dist ASC LIMIT %(pool_k)s -- {128,256,512}",
+    "lexical_cte": "SELECT p.id, count(DISTINCT term) AS lexical_overlap FROM policy p JOIN vector_pool vp ON vp.id=p.id CROSS JOIN LATERAL unnest(%(lexical_terms)s::text[]) AS term WHERE concat_ws(' ', p.title, p.summary, p.support_content, p.add_qualify, p.keywords) ILIKE '%%' || term || '%%' GROUP BY p.id",
+    "final_order": "ORDER BY t.dist - CASE WHEN t.source='youth' THEN %(youth_bias)s ELSE 0 END - %(lexical_bias)s * coalesce(l.lexical_overlap,0), t.dist, t.source, t.source_id LIMIT %(n)s -- n=30",
+    "rp_binding": null,
+    "candidate_pool_ks": [
+      128,
+      256,
+      512
+    ],
+    "final_n": 30,
+    "rejected_alternatives": [
+      "cross-encoder rerank",
+      "global similarity threshold",
+      "public region search"
+    ],
+    "template_sql": "WITH nearest AS ( SELECT DISTINCT ON (p.id) p.id, p.source, p.source_id, p.title, p.org, p.support_content, p.apply_method, p.apply_url, p.age_min, p.age_max, p.income_etc, (c.embedding <=> %(vec)s::vector) AS dist FROM policy_chunk c JOIN policy p ON p.id = c.policy_id WHERE ( %(age)s IS NULL OR p.age_limit_yn IS NOT TRUE OR %(age)s BETWEEN p.age_min AND p.age_max ) AND ( %(rp)s IS NULL OR EXISTS (SELECT 1 FROM unnest(p.region_codes) rc WHERE rc LIKE %(rp)s) ) AND ( p.biz_end IS NULL OR p.biz_end >= CURRENT_DATE ) ORDER BY p.id, c.embedding <=> %(vec)s::vector ), vector_pool AS ( SELECT * FROM nearest ORDER BY dist ASC LIMIT %(pool_k)s ), lexical AS ( SELECT p.id, count(DISTINCT term) AS lexical_overlap FROM policy p JOIN vector_pool vp ON vp.id = p.id CROSS JOIN LATERAL unnest(%(lexical_terms)s::text[]) AS term WHERE concat_ws(' ', p.title, p.summary, p.support_content, p.add_qualify, p.keywords) ILIKE '%%' || term || '%%' GROUP BY p.id ) SELECT t.source, t.source_id, t.title, t.org, t.support_content, t.apply_method, t.apply_url, t.age_min, t.age_max, t.income_etc, 1 - t.dist AS score FROM vector_pool t LEFT JOIN lexical l ON l.id = t.id ORDER BY t.dist - CASE WHEN t.source = 'youth' THEN %(youth_bias)s ELSE 0 END - %(lexical_bias)s * coalesce(l.lexical_overlap, 0), t.dist, t.source, t.source_id LIMIT %(n)s"
+  },
+  "dev_selection_rule": {
+    "same_fresh_dev": 36,
+    "same_query_set_for_latency": true,
+    "quality_selectable_all_required": [
+      "candidate source-macro Recall@5 > baseline source-macro Recall@5",
+      "candidate net hit@5 >= +2 (baseline vs candidate on same fresh dev 36)",
+      "Youth hit@5 regression 0 (candidate Youth >= baseline Youth on same 18 Youth cases)",
+      "Gov24 hit@5 regression 0 (candidate Gov24 >= baseline Gov24 on same 18 Gov24 cases)"
+    ],
+    "latency_gate": {
+      "methodology": "same-process / same-DB / interleaved / warmup-excluded (D-007 warm paired, timed count fixed before inspection, cold/model-load excluded)",
+      "metric": "retrieval/search p95",
+      "required": "candidate p95 <= paired baseline p95 (same dev query set, same run/window)",
+      "applies_only_to": "quality-selectable candidates"
+    },
+    "dev_selectable": "quality_selectable AND latency_gate",
+    "tie_break": [
+      "higher net hit@5",
+      "higher source-macro R@5",
+      "lower candidate-baseline p95 delta",
+      "smaller pre-pool K (128 < 256 < 512)"
+    ],
+    "if_none_dev_selectable": "Cycle3 candidate search closes without holdout evaluation",
+    "freeze_only_one": true,
+    "holdout_gating": "P0/hard-negative/final holdout only after candidate freeze + independent review + user explicit approval; final holdout evaluated with D-007 7 mandatory gates without additional tuning"
+  },
+  "audit_log": {
+    "module": "eval/retrieval_v2/cycle3_audit.py",
+    "log_file": "eval/retrieval-v2/cycle3/audit/events.jsonl (configurable, temp file for bootstrap tests)",
+    "mode": "append-only JSONL, fail-closed",
+    "fields": [
+      "schema_version",
+      "event_id",
+      "utc_timestamp",
+      "git_head",
+      "git_dirty",
+      "process_id",
+      "session_id",
+      "action",
+      "candidate_id",
+      "set_role",
+      "set_sha",
+      "command",
+      "runner_id",
+      "outcome",
+      "previous_event_hash",
+      "event_hash"
+    ],
+    "actions": [
+      "run_start",
+      "run_end",
+      "protected_access_start",
+      "protected_access_end"
+    ],
+    "set_roles": [
+      "dev",
+      "holdout",
+      "none"
+    ],
+    "chain": "previous_event_hash + event_hash (SHA256 over canonical JSON excluding event_hash), truncate/overwrite or broken chain fails closed",
+    "holdout_access_contract": "event append (protected_access_start) must succeed before plaintext open; test enforces fail-closed"
+  },
+  "fingerprint": {
+    "module": "eval/retrieval_v2/cycle3_fingerprint.py",
+    "query_fingerprint": "SHA256(normalized_query) where normalized = strip + NFC + join-with-single-space + lower (pure helper; spec defines normalization variants but helper exposes deterministic function)",
+    "gold_fingerprint": "SHA256(source + NUL + source_id) where source in {youth,gov24}",
+    "manifest_fields": [
+      "query_fingerprints",
+      "gold_fingerprints",
+      "fingerprint_version",
+      "normalization_spec"
+    ],
+    "overlap_check": "pure helper check_overlap(manifest_a, manifest_b) → fail-closed overlap 0 for both query and gold; no plaintext read",
+    "bootstrap_prohibition": "no fresh dev/holdout generation, no existing cycle1/2 protected plaintext read to create new fingerprints"
+  },
+  "prohibitions_bootstrap": [
+    "no retrieval/DB/model/embedding/benchmark execution",
+    "no fresh dev/holdout plaintext generation or access",
+    "no existing cycle1/2 dev/holdout plaintext viewing",
+    "no production/ml-service modification",
+    "no existing eval result artifact modification",
+    "Web does not intervene before Paseo completes"
+  ]
+}
