@@ -1,4 +1,5 @@
 import json
+import os
 import pathlib
 import sys
 import hashlib
@@ -8,6 +9,8 @@ import unittest
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from retrieval_v2.schema import validate_file, validate_role_contract
 
+_HOLDOUT_AUDIT_ENV = "RETRIEVAL_V2_ALLOW_HOLDOUT_PLAINTEXT_AUDIT"
+
 
 def _load_holdout_items(ref):
     """Load holdout items via git show without leaking plaintext to stdout beyond test assertions.
@@ -15,7 +18,16 @@ def _load_holdout_items(ref):
     Fail-closed: any git failure, empty output, UTF-8 decode failure, or JSON failure
     raises AssertionError so overlap tests cannot silently PASS.
     subprocess uses binary capture with explicit UTF-8 decode to avoid cp949 locale issues.
+    HARD SEAL: requires explicit opt-in env RETRIEVAL_V2_ALLOW_HOLDOUT_PLAINTEXT_AUDIT=1;
+    default candidate-session runs must never call git show on holdout plaintext.
+    The check is performed BEFORE any subprocess invocation so default mode makes
+    zero git show calls and the calling test is marked skipped.
     """
+    if os.getenv(_HOLDOUT_AUDIT_ENV) != "1":
+        raise unittest.SkipTest(
+            f"holdout plaintext audit requires {_HOLDOUT_AUDIT_ENV}=1 (ref {ref}); "
+            "default candidate session must not read holdout plaintext"
+        )
     r = subprocess.run(["git", "show", ref], capture_output=True, check=False)
     if r.returncode != 0:
         err = r.stderr.decode("utf-8", errors="replace").strip()[:500]
