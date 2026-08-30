@@ -168,3 +168,19 @@ Cycle-2 evaluation structure:
 - Cycle-2 candidate must have its own separate freeze and ref (`retrieval-v2-candidate-*` independent of cycle-1).
 
 Scope for this cycle-2 start session (holdout-builder only): create and freeze cycle-2 holdout before tuning; do not run benchmark/retrieval/search/DB ranking, do not load embedding/model, do not modify cycle-1 artifacts, do not tune candidate, do not relax D-003/D-004/D-007/D-008. This holdout-builder session is not reused for candidate tuning.
+
+## D-010 · Disqualify Cycle2 holdout after HARD SEAL violation; bound Cycle2 to Exp4; defer future evaluation to new Cycle3 holdout — 2026-08-30 (Web/user-confirmed, standing decision)
+
+Web/user 확정. Standing decision.
+
+Reconciled base: branch `codex/retrieval-v2-cycle2-candidate` HEAD `13ba60c8872c6225dcaa8335293dd8c422083853` clean, `origin/codex/retrieval-v2-cycle2-candidate` 일치, actual remote `https://github.com/crushonyou2/benefit-compass.git` 일치. No retrieval/DB/model/embedding/holdout plaintext/`git show`/`checkout` executed in this decision-record session. Model `Muse Spark 1.2 Contributor / 매우 높음` verified.
+
+(1) Cycle2 holdout (`retrieval-v2-cycle2-holdout-v1` tag object `03da4cc28d1bb324f5176efb500dfeaa1684b3fa` → commit `9e2cd6ea4b8203b474d7d6a6a69a088763284043`, evalset `eval/retrieval-v2/cycle2/holdout/evalset.jsonl` LF SHA256 `cf003bab7713138fbd9c4622addeeb886c01f401aeab3d43b1144ae6e4c79727`) is **disqualified for final evaluation**. Post-tuning candidate session에서 HARD SEAL이 금지한 process-level plaintext read (`eval/test_retrieval_v2_cycle2_devset.py::_load_holdout_items()`의 고정 ref `git show`)가 실제 발생했으므로, 화면/agent-visible 노출이나 retrieval/rank/score가 0이었더라도 final evaluation에 사용하지 않는다. `44ce287 fix(test): gate holdout plaintext audit behind explicit opt-in (HARD SEAL)` repair는 **재발 방지**이며 과거 seal 위반을 **소급 무효화하지 않는다**.
+
+(2) Cycle2 frozen dev (`retrieval-v2-cycle2-dev-v1` tag object `500beadae11ddb423cc2ea4d46494c0a9f2b1173` → commit `372ed686579b4e8e2b9854d297e44fee18775352`, evalset `eval/retrieval-v2/cycle2/dev/evalset.jsonl` LF SHA256 `c8b66fef69bdfd0db053ac7cac0fb027fc3271c6072ab992b622cacdc71ace5e`, 36 cases Youth 18 / Gov24 18)는 **정상 tuning set으로 유지**하며 후보 개발에 계속 사용할 수 있다. Holdout disqualification은 dev의 tuning set 자격에 영향을 주지 않는다.
+
+(3) Cycle2 candidate search는 **Exp4를 마지막 bounded experiment로 제한**한다. Exp4 **REJECTED면 Cycle2 candidate search 종료** (추가 Exp 없이). Exp4가 dev selection 조건을 통과하면 해당 candidate를 **고정**하고, 별도 **Cycle3에서 완전히 새로운 holdout을 tuning 전에 생성/봉인**한 뒤 그 candidate에 **추가 tuning 없이 평가**한다. Cycle3 holdout은 Cycle2 holdout과 독립적으로 설계·동결되며, tuning 시작 전 봉인 원칙을 준수한다.
+
+(4) **D-003/D-004/D-007/D-008/D-009는 그대로 유지**; Cycle1 HOLD 불변; gate/threshold 완화 없음; 기존 Cycle2 holdout artifacts/tag는 **immutable history로 보존하되 final gate evidence로 사용 금지**. Cycle2 holdout 관련 tag/branch/commit(`retrieval-v2-cycle2-holdout-v1`, `codex/retrieval-v2-cycle2-holdout-freeze`, `9e2cd6e` commit)는 이력 보존이며, Cycle2/Cycle3 final holdout gate의 evidence가 될 수 없다.
+
+No production/ml-service, eval data/artifacts/test code 수정 없음. No retrieval/DB/model/embedding/holdout plaintext access in this session. No new holdout 생성·봉인·평가가 본 결정 세션에서 수행되지 않음.
