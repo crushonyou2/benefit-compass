@@ -1,0 +1,791 @@
+{
+  "generated_at": "2026-08-30T04:36:53.811076+00:00",
+  "phase": "phase1-baseline",
+  "role": "diagnostic_only",
+  "not_final_gate": true,
+  "git_commit": "5c5c5d933346a5a63e7878177bf15e0de46782eb",
+  "git_dirty": true,
+  "git_dirty_at_start": true,
+  "evaluator": "eval/retrieval_v2/run_cycle2_phase1_diagnostic.py",
+  "mode": "baseline",
+  "model": "intfloat/multilingual-e5-base",
+  "production_contract": {
+    "candidate_sql": "ml-service/app.py:SQL",
+    "request_region": null,
+    "query_preprocessing": "strip_region",
+    "expired_policies_excluded": true,
+    "candidates": 30,
+    "rerank": 0,
+    "bi_encoder_min_score": 0.78,
+    "lexical_bias": 0.01,
+    "lexical_terms": "lexical_overlap_terms",
+    "youth_intent_bias": 0.015,
+    "youth_intent_terms": [
+      "청년",
+      "대학생",
+      "사회초년생"
+    ],
+    "gov24_org_suppression": true,
+    "gov24_intent_terms": [
+      "국토교통부",
+      "중소벤처기업부",
+      "고용노동부",
+      "보건복지부",
+      "교육부",
+      "행정안전부",
+      "문화체육관광부",
+      "농림축산식품부",
+      "산업통상자원부",
+      "과학기술정보통신부",
+      "국가보훈부",
+      "해양수산부",
+      "통일부",
+      "법무부",
+      "국방부",
+      "기획재정부",
+      "여성가족부",
+      "환경부",
+      "국세청",
+      "산림청",
+      "국민연금공단",
+      "한국장학재단",
+      "한국주택금융공사",
+      "주택도시보증공사",
+      "근로복지공단",
+      "소상공인시장진흥공단"
+    ],
+    "strip_region": "unchanged",
+    "note": "D-003 production retrieval; RERANK=0, youth bias suppressed for Gov24 org queries"
+  },
+  "dev_set": "C:\\Users\\joji\\Documents\\취준자료\\project-repos\\benefit-compass\\eval\\retrieval-v2\\cycle2\\dev\\evalset.jsonl",
+  "dev_set_sha256": "c8b66fef69bdfd0db053ac7cac0fb027fc3271c6072ab992b622cacdc71ace5e",
+  "dev_set_freeze_commit": "372ed686579b4e8e2b9854d297e44fee18775352",
+  "expected_dev_sha256": "c8b66fef69bdfd0db053ac7cac0fb027fc3271c6072ab992b622cacdc71ace5e",
+  "candidate_reference_commit": "5745cc3144b519da456b21030d0e0752d1d018ae",
+  "candidate_reference_tag": "retrieval-v2-candidate-v2",
+  "corpus": {
+    "total_policies": 13589,
+    "total_chunks": 17609,
+    "by_source": {
+      "gov24": {
+        "policies": 10958,
+        "chunks": 14526
+      },
+      "youth": {
+        "policies": 2631,
+        "chunks": 3083
+      }
+    }
+  },
+  "n": 36,
+  "recall@1": 0.5833,
+  "recall@5": 0.7778,
+  "recall@10": 0.8056,
+  "mrr@10": 0.6577,
+  "source_macro_recall@5": 0.7778,
+  "by_source": {
+    "gov24": {
+      "n": 18,
+      "hit@1": 15,
+      "hit@5": 18,
+      "hit@10": 18,
+      "recall@1": 0.8333,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "mrr@10": 0.8769
+    },
+    "youth": {
+      "n": 18,
+      "hit@1": 6,
+      "hit@5": 10,
+      "hit@10": 11,
+      "recall@1": 0.3333,
+      "recall@5": 0.5556,
+      "recall@10": 0.6111,
+      "mrr@10": 0.4385
+    }
+  },
+  "by_category": {
+    "business_agriculture": {
+      "n": 6,
+      "hit@5": 5,
+      "recall@5": 0.8333
+    },
+    "culture_community": {
+      "n": 6,
+      "hit@5": 4,
+      "recall@5": 0.6667
+    },
+    "employment_education": {
+      "n": 6,
+      "hit@5": 4,
+      "recall@5": 0.6667
+    },
+    "family_care": {
+      "n": 6,
+      "hit@5": 6,
+      "recall@5": 1.0
+    },
+    "housing_finance": {
+      "n": 6,
+      "hit@5": 5,
+      "recall@5": 0.8333
+    },
+    "welfare_health": {
+      "n": 6,
+      "hit@5": 4,
+      "recall@5": 0.6667
+    }
+  },
+  "per_case": [
+    {
+      "case_id": "c2d-001",
+      "category": "housing_finance",
+      "gold_source": "youth",
+      "rank": 2,
+      "rank_top30": 2,
+      "score": 0.9122225150798373,
+      "hit@1": false,
+      "hit@5": true,
+      "lexical_terms": [
+        "에서",
+        "청년이",
+        "집으로",
+        "이사할",
+        "부동산",
+        "중개보수나",
+        "이사비를"
+      ]
+    },
+    {
+      "case_id": "c2d-002",
+      "category": "housing_finance",
+      "gold_source": "youth",
+      "rank": 2,
+      "rank_top30": 2,
+      "score": 0.8827340409696602,
+      "hit@1": false,
+      "hit@5": true,
+      "lexical_terms": [
+        "청년이",
+        "주택",
+        "마련을",
+        "위해",
+        "청년주택드림청약통장을",
+        "가입할",
+        "방법이"
+      ]
+    },
+    {
+      "case_id": "c2d-003",
+      "category": "housing_finance",
+      "gold_source": "youth",
+      "rank": 0,
+      "rank_top30": 0,
+      "score": null,
+      "hit@1": false,
+      "hit@5": false,
+      "lexical_terms": [
+        "사는",
+        "청년이",
+        "월세",
+        "부담을",
+        "덜기",
+        "위해",
+        "지원을"
+      ]
+    },
+    {
+      "case_id": "c2d-004",
+      "category": "housing_finance",
+      "gold_source": "gov24",
+      "rank": 1,
+      "rank_top30": 1,
+      "score": 0.9176602314508246,
+      "hit@1": true,
+      "hit@5": true,
+      "lexical_terms": [
+        "김포시에서",
+        "기초생활수급자가",
+        "이사할",
+        "이사비용",
+        "지원을"
+      ]
+    },
+    {
+      "case_id": "c2d-005",
+      "category": "housing_finance",
+      "gold_source": "gov24",
+      "rank": 4,
+      "rank_top30": 4,
+      "score": 0.8662848871097444,
+      "hit@1": false,
+      "hit@5": true,
+      "lexical_terms": [
+        "일하는",
+        "생계급여",
+        "수급자가",
+        "희망저축",
+        "으로",
+        "자산형성",
+        "지원을"
+      ]
+    },
+    {
+      "case_id": "c2d-006",
+      "category": "housing_finance",
+      "gold_source": "gov24",
+      "rank": 1,
+      "rank_top30": 1,
+      "score": 0.8807496647311656,
+      "hit@1": true,
+      "hit@5": true,
+      "lexical_terms": [
+        "중위소득",
+        "150퍼센트",
+        "이하",
+        "가구가",
+        "통합공공임대주택에",
+        "입주할",
+        "방법이"
+      ]
+    },
+    {
+      "case_id": "c2d-007",
+      "category": "family_care",
+      "gold_source": "youth",
+      "rank": 1,
+      "rank_top30": 1,
+      "score": 0.9154318390252594,
+      "hit@1": true,
+      "hit@5": true,
+      "lexical_terms": [
+        "완주군에서",
+        "청년",
+        "소상공인이나",
+        "농어업인이",
+        "출산하면",
+        "출산급여를"
+      ]
+    },
+    {
+      "case_id": "c2d-008",
+      "category": "family_care",
+      "gold_source": "youth",
+      "rank": 1,
+      "rank_top30": 1,
+      "score": 0.9254476472468998,
+      "hit@1": true,
+      "hit@5": true,
+      "lexical_terms": [
+        "광양시에서",
+        "아이가",
+        "태어나면",
+        "출생축하금",
+        "자동지급을"
+      ]
+    },
+    {
+      "case_id": "c2d-009",
+      "category": "family_care",
+      "gold_source": "youth",
+      "rank": 1,
+      "rank_top30": 1,
+      "score": 0.9410059733362325,
+      "hit@1": true,
+      "hit@5": true,
+      "lexical_terms": [
+        "서산시에서",
+        "아이를",
+        "낳으면",
+        "출산지원금과",
+        "둘째",
+        "이후",
+        "영유아",
+        "양육비를"
+      ]
+    },
+    {
+      "case_id": "c2d-010",
+      "category": "family_care",
+      "gold_source": "gov24",
+      "rank": 3,
+      "rank_top30": 3,
+      "score": 0.9027114489622697,
+      "hit@1": false,
+      "hit@5": true,
+      "lexical_terms": [
+        "완도군에서",
+        "모유수유를",
+        "위해",
+        "유축기를",
+        "빌릴",
+        "지원이"
+      ]
+    },
+    {
+      "case_id": "c2d-011",
+      "category": "family_care",
+      "gold_source": "gov24",
+      "rank": 5,
+      "rank_top30": 5,
+      "score": 0.8967924383231713,
+      "hit@1": false,
+      "hit@5": true,
+      "lexical_terms": [
+        "서산시에서",
+        "가정위탁으로",
+        "아이를",
+        "돌볼",
+        "양육보조금을"
+      ]
+    },
+    {
+      "case_id": "c2d-012",
+      "category": "family_care",
+      "gold_source": "gov24",
+      "rank": 1,
+      "rank_top30": 1,
+      "score": 0.8989039130244841,
+      "hit@1": true,
+      "hit@5": true,
+      "lexical_terms": [
+        "서구에서",
+        "아이를",
+        "출산한",
+        "산모가",
+        "산후관리비",
+        "지원을"
+      ]
+    },
+    {
+      "case_id": "c2d-013",
+      "category": "employment_education",
+      "gold_source": "youth",
+      "rank": 0,
+      "rank_top30": 0,
+      "score": null,
+      "hit@1": false,
+      "hit@5": false,
+      "lexical_terms": [
+        "삼척시에서",
+        "청년이",
+        "행정인턴으로",
+        "일할",
+        "지원사업이"
+      ]
+    },
+    {
+      "case_id": "c2d-014",
+      "category": "employment_education",
+      "gold_source": "youth",
+      "rank": 2,
+      "rank_top30": 2,
+      "score": 0.9067271296220096,
+      "hit@1": false,
+      "hit@5": true,
+      "lexical_terms": [
+        "청년이",
+        "국가기술자격",
+        "시험을",
+        "응시료를",
+        "정책이"
+      ]
+    },
+    {
+      "case_id": "c2d-015",
+      "category": "employment_education",
+      "gold_source": "youth",
+      "rank": 0,
+      "rank_top30": 0,
+      "score": null,
+      "hit@1": false,
+      "hit@5": false,
+      "lexical_terms": [
+        "삼척시에서",
+        "대학생이",
+        "방학",
+        "동안",
+        "아르바이트를",
+        "프로그램이"
+      ]
+    },
+    {
+      "case_id": "c2d-016",
+      "category": "employment_education",
+      "gold_source": "gov24",
+      "rank": 1,
+      "rank_top30": 1,
+      "score": 0.9334725538682613,
+      "hit@1": true,
+      "hit@5": true,
+      "lexical_terms": [
+        "고양시",
+        "중소기업이",
+        "데이터",
+        "분석",
+        "컨설팅을",
+        "지원이"
+      ]
+    },
+    {
+      "case_id": "c2d-017",
+      "category": "employment_education",
+      "gold_source": "gov24",
+      "rank": 1,
+      "rank_top30": 1,
+      "score": 0.9010409287493201,
+      "hit@1": true,
+      "hit@5": true,
+      "lexical_terms": [
+        "중소기업",
+        "취업을",
+        "희망하는",
+        "대학생이",
+        "등록금과",
+        "취창업",
+        "장려금을",
+        "희망사다리",
+        "장학금을"
+      ]
+    },
+    {
+      "case_id": "c2d-018",
+      "category": "employment_education",
+      "gold_source": "gov24",
+      "rank": 1,
+      "rank_top30": 1,
+      "score": 0.913212374470407,
+      "hit@1": true,
+      "hit@5": true,
+      "lexical_terms": [
+        "플랜트기자재를",
+        "수출하는",
+        "기업이",
+        "수출상담회나",
+        "국제인증",
+        "지원을"
+      ]
+    },
+    {
+      "case_id": "c2d-019",
+      "category": "welfare_health",
+      "gold_source": "youth",
+      "rank": 0,
+      "rank_top30": 0,
+      "score": null,
+      "hit@1": false,
+      "hit@5": false,
+      "lexical_terms": [
+        "에서",
+        "청년이",
+        "우울이나",
+        "자살",
+        "관련",
+        "정신건강",
+        "검진과",
+        "심리지원을"
+      ]
+    },
+    {
+      "case_id": "c2d-020",
+      "category": "welfare_health",
+      "gold_source": "youth",
+      "rank": 1,
+      "rank_top30": 1,
+      "score": 0.8896890613529401,
+      "hit@1": true,
+      "hit@5": true,
+      "lexical_terms": [
+        "에서",
+        "청년",
+        "한부모가",
+        "자녀",
+        "양육비를",
+        "방법이"
+      ]
+    },
+    {
+      "case_id": "c2d-021",
+      "category": "welfare_health",
+      "gold_source": "youth",
+      "rank": 0,
+      "rank_top30": 0,
+      "score": null,
+      "hit@1": false,
+      "hit@5": false,
+      "lexical_terms": [
+        "보호종료",
+        "예정인",
+        "청년이",
+        "자립지원전담기관을",
+        "통해",
+        "주거체험이나",
+        "사례관리를"
+      ]
+    },
+    {
+      "case_id": "c2d-022",
+      "category": "welfare_health",
+      "gold_source": "gov24",
+      "rank": 1,
+      "rank_top30": 1,
+      "score": 0.912314940967015,
+      "hit@1": true,
+      "hit@5": true,
+      "lexical_terms": [
+        "중구에",
+        "보건소에서",
+        "B형간염",
+        "예방접종을"
+      ]
+    },
+    {
+      "case_id": "c2d-023",
+      "category": "welfare_health",
+      "gold_source": "gov24",
+      "rank": 1,
+      "rank_top30": 1,
+      "score": 0.9242079935599761,
+      "hit@1": true,
+      "hit@5": true,
+      "lexical_terms": [
+        "강서구에서",
+        "저소득",
+        "장애인가구나",
+        "노인가구가",
+        "건강보험료를"
+      ]
+    },
+    {
+      "case_id": "c2d-024",
+      "category": "welfare_health",
+      "gold_source": "gov24",
+      "rank": 1,
+      "rank_top30": 1,
+      "score": 0.9116184852923265,
+      "hit@1": true,
+      "hit@5": true,
+      "lexical_terms": [
+        "함평군에서",
+        "소외계층이",
+        "밑반찬",
+        "지원을"
+      ]
+    },
+    {
+      "case_id": "c2d-025",
+      "category": "culture_community",
+      "gold_source": "youth",
+      "rank": 0,
+      "rank_top30": 14,
+      "score": 0.8684863087261379,
+      "hit@1": false,
+      "hit@5": false,
+      "lexical_terms": [
+        "시에서",
+        "청년이",
+        "청년센터를",
+        "이용해",
+        "네트워크나",
+        "프로그램에",
+        "참여할"
+      ]
+    },
+    {
+      "case_id": "c2d-026",
+      "category": "culture_community",
+      "gold_source": "youth",
+      "rank": 0,
+      "rank_top30": 0,
+      "score": null,
+      "hit@1": false,
+      "hit@5": false,
+      "lexical_terms": [
+        "청년이",
+        "청년참여기구를",
+        "통해",
+        "제안이나",
+        "모니터링에",
+        "참여할"
+      ]
+    },
+    {
+      "case_id": "c2d-027",
+      "category": "culture_community",
+      "gold_source": "youth",
+      "rank": 1,
+      "rank_top30": 1,
+      "score": 0.9232936363502043,
+      "hit@1": true,
+      "hit@5": true,
+      "lexical_terms": [
+        "북구에서",
+        "청년축제인",
+        "청춘페스타를",
+        "기획하는",
+        "추진단에",
+        "참여할"
+      ]
+    },
+    {
+      "case_id": "c2d-028",
+      "category": "culture_community",
+      "gold_source": "gov24",
+      "rank": 1,
+      "rank_top30": 1,
+      "score": 0.9071604234790372,
+      "hit@1": true,
+      "hit@5": true,
+      "lexical_terms": [
+        "양평에서",
+        "주민들이",
+        "생활문화공동체",
+        "활동을"
+      ]
+    },
+    {
+      "case_id": "c2d-029",
+      "category": "culture_community",
+      "gold_source": "gov24",
+      "rank": 1,
+      "rank_top30": 1,
+      "score": 0.8965247211769455,
+      "hit@1": true,
+      "hit@5": true,
+      "lexical_terms": [
+        "어촌에서",
+        "발생하는",
+        "폐패각을",
+        "친환경적으로",
+        "처리할",
+        "운반비",
+        "지원을"
+      ]
+    },
+    {
+      "case_id": "c2d-030",
+      "category": "culture_community",
+      "gold_source": "gov24",
+      "rank": 1,
+      "rank_top30": 1,
+      "score": 0.9379928465492072,
+      "hit@1": true,
+      "hit@5": true,
+      "lexical_terms": [
+        "음성군에서",
+        "지역화폐인",
+        "음성행복페이",
+        "인센티브를"
+      ]
+    },
+    {
+      "case_id": "c2d-031",
+      "category": "business_agriculture",
+      "gold_source": "youth",
+      "rank": 7,
+      "rank_top30": 7,
+      "score": 0.8951346778228453,
+      "hit@1": false,
+      "hit@5": false,
+      "lexical_terms": [
+        "에서",
+        "청년",
+        "후계농업경영인이",
+        "영농정착지원금을"
+      ]
+    },
+    {
+      "case_id": "c2d-032",
+      "category": "business_agriculture",
+      "gold_source": "youth",
+      "rank": 4,
+      "rank_top30": 4,
+      "score": 0.8882271380966039,
+      "hit@1": false,
+      "hit@5": true,
+      "lexical_terms": [
+        "에서",
+        "청년농업인이",
+        "시설",
+        "설치나",
+        "농기계",
+        "구입을"
+      ]
+    },
+    {
+      "case_id": "c2d-033",
+      "category": "business_agriculture",
+      "gold_source": "youth",
+      "rank": 1,
+      "rank_top30": 1,
+      "score": 0.9194637344989405,
+      "hit@1": true,
+      "hit@5": true,
+      "lexical_terms": [
+        "청년농업인이",
+        "역량강화",
+        "교육이나",
+        "온라인",
+        "마케팅",
+        "기술",
+        "지원을",
+        "방법이"
+      ]
+    },
+    {
+      "case_id": "c2d-034",
+      "category": "business_agriculture",
+      "gold_source": "gov24",
+      "rank": 1,
+      "rank_top30": 1,
+      "score": 0.9213487238025438,
+      "hit@1": true,
+      "hit@5": true,
+      "lexical_terms": [
+        "남원시에서",
+        "양봉",
+        "농가가",
+        "고품질",
+        "기자재나",
+        "꿀생산장비를"
+      ]
+    },
+    {
+      "case_id": "c2d-035",
+      "category": "business_agriculture",
+      "gold_source": "gov24",
+      "rank": 1,
+      "rank_top30": 1,
+      "score": 0.9101238793214363,
+      "hit@1": true,
+      "hit@5": true,
+      "lexical_terms": [
+        "장성군에서",
+        "소를",
+        "키우는",
+        "농가가",
+        "사양관리",
+        "개선제나",
+        "대체모유를"
+      ]
+    },
+    {
+      "case_id": "c2d-036",
+      "category": "business_agriculture",
+      "gold_source": "gov24",
+      "rank": 1,
+      "rank_top30": 1,
+      "score": 0.911047562593487,
+      "hit@1": true,
+      "hit@5": true,
+      "lexical_terms": [
+        "예천군에서",
+        "귀농인이",
+        "영농에",
+        "필요한",
+        "기반을"
+      ]
+    }
+  ]
+}

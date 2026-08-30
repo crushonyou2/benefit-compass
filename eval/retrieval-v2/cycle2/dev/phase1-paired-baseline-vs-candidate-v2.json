@@ -1,0 +1,4651 @@
+{
+  "generated_at": "2026-08-30T04:36:53.811076+00:00",
+  "phase": "phase1-paired",
+  "role": "diagnostic_only_reference",
+  "diagnostic_only": true,
+  "not_final_gate": true,
+  "git_commit": "5c5c5d933346a5a63e7878177bf15e0de46782eb",
+  "git_dirty": true,
+  "evaluator": "eval/retrieval_v2/run_cycle2_phase1_diagnostic.py",
+  "model": "intfloat/multilingual-e5-base",
+  "production_contract": {
+    "candidate_sql": "ml-service/app.py:SQL",
+    "request_region": null,
+    "query_preprocessing": "strip_region",
+    "expired_policies_excluded": true,
+    "candidates": 30,
+    "rerank": 0,
+    "bi_encoder_min_score": 0.78,
+    "lexical_bias": 0.01,
+    "lexical_terms_baseline": "lexical_overlap_terms",
+    "lexical_terms_candidate": "lexical_overlap_terms_rewrite",
+    "lexical_only_diff": true,
+    "qvec_shared": true,
+    "db_shared": true,
+    "corpus_shared": true,
+    "sql_shared": true,
+    "youth_intent_bias": 0.015,
+    "youth_intent_terms": [
+      "청년",
+      "대학생",
+      "사회초년생"
+    ],
+    "gov24_org_suppression": true,
+    "gov24_intent_terms": [
+      "국토교통부",
+      "중소벤처기업부",
+      "고용노동부",
+      "보건복지부",
+      "교육부",
+      "행정안전부",
+      "문화체육관광부",
+      "농림축산식품부",
+      "산업통상자원부",
+      "과학기술정보통신부",
+      "국가보훈부",
+      "해양수산부",
+      "통일부",
+      "법무부",
+      "국방부",
+      "기획재정부",
+      "여성가족부",
+      "환경부",
+      "국세청",
+      "산림청",
+      "국민연금공단",
+      "한국장학재단",
+      "한국주택금융공사",
+      "주택도시보증공사",
+      "근로복지공단",
+      "소상공인시장진흥공단"
+    ]
+  },
+  "candidate_config": {
+    "name": "lexical-rewrite-v1 (candidate-v2 frozen)",
+    "reference_tag": "retrieval-v2-candidate-v2",
+    "reference_commit": "5745cc3144b519da456b21030d0e0752d1d018ae",
+    "normalization_rule": "lexical rewrite replacement: original term replaced by particle-stripped stem (particles ['에게서', '으로부터', '에게', '한테', '께', '에서', '으로', '로', '은', '는', '이', '가', '을', '를', '의', '에', '와', '과', '도', '만', '부터', '까지'], MIN_STEM_LEN 2, deduped); residue dropped: pure josa + bare admin_units ['특별자치도', '특별자치시', '특별시', '광역시', '자치도', '도', '시', '군', '구'] + admin+['에서', '에', '의', '으로', '로'] only (no proper-noun prefix), checked only before particle strip (no post-strip re-check); stopword stems dropped; verb expansion none",
+    "min_stem_len": 2,
+    "particles": [
+      "에게서",
+      "으로부터",
+      "에게",
+      "한테",
+      "께",
+      "에서",
+      "으로",
+      "로",
+      "은",
+      "는",
+      "이",
+      "가",
+      "을",
+      "를",
+      "의",
+      "에",
+      "와",
+      "과",
+      "도",
+      "만",
+      "부터",
+      "까지"
+    ],
+    "residue_pure": [
+      "과",
+      "까지",
+      "께",
+      "도",
+      "로",
+      "만",
+      "부터",
+      "에",
+      "에게",
+      "에게서",
+      "에서",
+      "와",
+      "으로",
+      "으로부터",
+      "의",
+      "한테"
+    ],
+    "admin_units": [
+      "특별자치도",
+      "특별자치시",
+      "특별시",
+      "광역시",
+      "자치도",
+      "도",
+      "시",
+      "군",
+      "구"
+    ],
+    "admin_residue_particles": [
+      "에서",
+      "에",
+      "의",
+      "으로",
+      "로"
+    ],
+    "lexical_terms": "lexical_overlap_terms_rewrite"
+  },
+  "dev_set": "C:\\Users\\joji\\Documents\\취준자료\\project-repos\\benefit-compass\\eval\\retrieval-v2\\cycle2\\dev\\evalset.jsonl",
+  "dev_set_sha256": "c8b66fef69bdfd0db053ac7cac0fb027fc3271c6072ab992b622cacdc71ace5e",
+  "dev_set_freeze_commit": "372ed686579b4e8e2b9854d297e44fee18775352",
+  "expected_dev_sha256": "c8b66fef69bdfd0db053ac7cac0fb027fc3271c6072ab992b622cacdc71ace5e",
+  "corpus": {
+    "total_policies": 13589,
+    "total_chunks": 17609,
+    "by_source": {
+      "gov24": {
+        "policies": 10958,
+        "chunks": 14526
+      },
+      "youth": {
+        "policies": 2631,
+        "chunks": 3083
+      }
+    }
+  },
+  "n": 36,
+  "baseline": {
+    "n": 36,
+    "recall@1": 0.5833,
+    "recall@5": 0.7778,
+    "recall@10": 0.8056,
+    "mrr@10": 0.6577,
+    "hit@1": 21,
+    "hit@5": 28,
+    "hit@10": 29,
+    "by_source": {
+      "gov24": {
+        "n": 18,
+        "hit@1": 15,
+        "hit@5": 18,
+        "hit@10": 18,
+        "recall@1": 0.8333,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "mrr@10": 0.8769
+      },
+      "youth": {
+        "n": 18,
+        "hit@1": 6,
+        "hit@5": 10,
+        "hit@10": 11,
+        "recall@1": 0.3333,
+        "recall@5": 0.5556,
+        "recall@10": 0.6111,
+        "mrr@10": 0.4385
+      }
+    },
+    "source_macro_recall@5": 0.7778,
+    "source_macro_hit@5": {
+      "youth": 10,
+      "gov24": 18
+    },
+    "by_category": {
+      "business_agriculture": {
+        "n": 6,
+        "hit@5": 5,
+        "recall@5": 0.8333
+      },
+      "culture_community": {
+        "n": 6,
+        "hit@5": 4,
+        "recall@5": 0.6667
+      },
+      "employment_education": {
+        "n": 6,
+        "hit@5": 4,
+        "recall@5": 0.6667
+      },
+      "family_care": {
+        "n": 6,
+        "hit@5": 6,
+        "recall@5": 1.0
+      },
+      "housing_finance": {
+        "n": 6,
+        "hit@5": 5,
+        "recall@5": 0.8333
+      },
+      "welfare_health": {
+        "n": 6,
+        "hit@5": 4,
+        "recall@5": 0.6667
+      }
+    }
+  },
+  "candidate": {
+    "n": 36,
+    "recall@1": 0.5833,
+    "recall@5": 0.8333,
+    "recall@10": 0.8333,
+    "mrr@10": 0.6884,
+    "hit@1": 21,
+    "hit@5": 30,
+    "hit@10": 30,
+    "by_source": {
+      "gov24": {
+        "n": 18,
+        "hit@1": 16,
+        "hit@5": 18,
+        "hit@10": 18,
+        "recall@1": 0.8889,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "mrr@10": 0.9139
+      },
+      "youth": {
+        "n": 18,
+        "hit@1": 5,
+        "hit@5": 12,
+        "hit@10": 12,
+        "recall@1": 0.2778,
+        "recall@5": 0.6667,
+        "recall@10": 0.6667,
+        "mrr@10": 0.463
+      }
+    },
+    "source_macro_recall@5": 0.8333,
+    "source_macro_hit@5": {
+      "youth": 12,
+      "gov24": 18
+    },
+    "by_category": {
+      "business_agriculture": {
+        "n": 6,
+        "hit@5": 6,
+        "recall@5": 1.0
+      },
+      "culture_community": {
+        "n": 6,
+        "hit@5": 5,
+        "recall@5": 0.8333
+      },
+      "employment_education": {
+        "n": 6,
+        "hit@5": 4,
+        "recall@5": 0.6667
+      },
+      "family_care": {
+        "n": 6,
+        "hit@5": 6,
+        "recall@5": 1.0
+      },
+      "housing_finance": {
+        "n": 6,
+        "hit@5": 5,
+        "recall@5": 0.8333
+      },
+      "welfare_health": {
+        "n": 6,
+        "hit@5": 4,
+        "recall@5": 0.6667
+      }
+    }
+  },
+  "vector_only": {
+    "n": 36,
+    "recall@1": 0.5833,
+    "recall@5": 0.75,
+    "recall@10": 0.7778,
+    "mrr@10": 0.6468,
+    "hit@1": 21,
+    "hit@5": 27,
+    "hit@10": 28,
+    "by_source": {
+      "gov24": {
+        "n": 18,
+        "hit@1": 16,
+        "hit@5": 17,
+        "hit@10": 17,
+        "recall@1": 0.8889,
+        "recall@5": 0.9444,
+        "recall@10": 0.9444,
+        "mrr@10": 0.9
+      },
+      "youth": {
+        "n": 18,
+        "hit@1": 5,
+        "hit@5": 10,
+        "hit@10": 11,
+        "recall@1": 0.2778,
+        "recall@5": 0.5556,
+        "recall@10": 0.6111,
+        "mrr@10": 0.3935
+      }
+    },
+    "source_macro_recall@5": 0.75,
+    "source_macro_hit@5": {
+      "youth": 10,
+      "gov24": 17
+    },
+    "by_category": {
+      "business_agriculture": {
+        "n": 6,
+        "hit@5": 5,
+        "recall@5": 0.8333
+      },
+      "culture_community": {
+        "n": 6,
+        "hit@5": 4,
+        "recall@5": 0.6667
+      },
+      "employment_education": {
+        "n": 6,
+        "hit@5": 4,
+        "recall@5": 0.6667
+      },
+      "family_care": {
+        "n": 6,
+        "hit@5": 6,
+        "recall@5": 1.0
+      },
+      "housing_finance": {
+        "n": 6,
+        "hit@5": 4,
+        "recall@5": 0.6667
+      },
+      "welfare_health": {
+        "n": 6,
+        "hit@5": 4,
+        "recall@5": 0.6667
+      }
+    }
+  },
+  "net_hit@5": 2,
+  "per_source_delta": {
+    "gov24": {
+      "baseline_hit@5": 18,
+      "candidate_hit@5": 18,
+      "delta": 0,
+      "regression": false
+    },
+    "youth": {
+      "baseline_hit@5": 10,
+      "candidate_hit@5": 12,
+      "delta": 2,
+      "regression": false
+    }
+  },
+  "gains": [
+    {
+      "case_id": "c2d-025",
+      "query": "세종시에서 청년이 청년센터를 이용해 정책 네트워크나 프로그램에 참여할 수 있나요?",
+      "query_stripped": "시에서 청년이 청년센터를 이용해 정책 네트워크나 프로그램에 참여할 수 있나요?",
+      "gold_source": "youth",
+      "gold_source_id": "20250904005400211654",
+      "gold_title": " 세종 청년센터 운영",
+      "category": "culture_community",
+      "youth_bias": 0.015,
+      "baseline": {
+        "lexical_terms": [
+          "시에서",
+          "청년이",
+          "청년센터를",
+          "이용해",
+          "네트워크나",
+          "프로그램에",
+          "참여할"
+        ],
+        "rank": 0,
+        "rank_top30": 14,
+        "hit@1": false,
+        "hit@5": false,
+        "hit@10": false,
+        "score": 0.8684863087261379,
+        "in_top30": true,
+        "filtered_by_cosine": true,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20250122005400110348",
+            "title": "청년성장프로젝트(청년카페)\t",
+            "score": 0.8530199790561251
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "청년",
+          "청년센터",
+          "이용해",
+          "네트워크나",
+          "참여할"
+        ],
+        "rank": 3,
+        "rank_top30": 3,
+        "hit@1": false,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.8684863087261379,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260504005400213055",
+            "title": "청년센터 운영",
+            "score": 0.8782949274133992
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 6,
+        "rank_top30": 6,
+        "hit@5": false,
+        "score": 0.8684863087261379,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "시에서",
+        "청년이",
+        "청년센터를",
+        "프로그램에"
+      ],
+      "added_terms": [
+        "청년",
+        "청년센터"
+      ],
+      "delta_hit@5": 1,
+      "delta_rank": 996,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-031",
+      "query": "광주에서 청년 후계농업경영인이 영농정착지원금을 받을 수 있나요?",
+      "query_stripped": "에서 청년 후계농업경영인이 영농정착지원금을 받을 수 있나요?",
+      "gold_source": "youth",
+      "gold_source_id": "20260513005400213183",
+      "gold_title": "2026년 청년농업인(청년창업형 후계농업경영인) 영농정착지원사업(2차)",
+      "category": "business_agriculture",
+      "youth_bias": 0.015,
+      "baseline": {
+        "lexical_terms": [
+          "에서",
+          "청년",
+          "후계농업경영인이",
+          "영농정착지원금을"
+        ],
+        "rank": 7,
+        "rank_top30": 7,
+        "hit@1": false,
+        "hit@5": false,
+        "hit@10": true,
+        "score": 0.8951346778228453,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20251211005400211960",
+            "title": "청년후계농업인 영농정착 지원",
+            "score": 0.9120211143317526
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "청년",
+          "후계농업경영인",
+          "영농정착지원금"
+        ],
+        "rank": 2,
+        "rank_top30": 2,
+        "hit@1": false,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.8951346778228453,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20251211005400211960",
+            "title": "청년후계농업인 영농정착 지원",
+            "score": 0.9120211143317526
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 0,
+        "rank_top30": 13,
+        "hit@5": false,
+        "score": 0.8951346778228453,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "에서",
+        "후계농업경영인이",
+        "영농정착지원금을"
+      ],
+      "added_terms": [
+        "후계농업경영인",
+        "영농정착지원금"
+      ],
+      "delta_hit@5": 1,
+      "delta_rank": 5,
+      "lexical_terms_identical": false
+    }
+  ],
+  "losses": [],
+  "per_case": [
+    {
+      "case_id": "c2d-001",
+      "query": "서울에서 청년이 새 집으로 이사할 때 부동산 중개보수나 이사비를 지원받을 수 있나요?",
+      "query_stripped": "에서 청년이 새 집으로 이사할 때 부동산 중개보수나 이사비를 지원받을 수 있나요?",
+      "gold_source": "youth",
+      "gold_source_id": "20260618005400213241",
+      "gold_title": "청년 부동산 중개보수 및 이사비 지원사업",
+      "category": "housing_finance",
+      "youth_bias": 0.015,
+      "baseline": {
+        "lexical_terms": [
+          "에서",
+          "청년이",
+          "집으로",
+          "이사할",
+          "부동산",
+          "중개보수나",
+          "이사비를"
+        ],
+        "rank": 2,
+        "rank_top30": 2,
+        "hit@1": false,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9122225150798373,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260614005400213232",
+            "title": "청년 부동산 중개보수 및 이사비 지원사업",
+            "score": 0.9122225150798373
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "청년",
+          "집으로",
+          "이사할",
+          "부동산",
+          "중개보수나",
+          "이사비"
+        ],
+        "rank": 2,
+        "rank_top30": 2,
+        "hit@1": false,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9122225150798373,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260614005400213232",
+            "title": "청년 부동산 중개보수 및 이사비 지원사업",
+            "score": 0.9122225150798373
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 3,
+        "rank_top30": 3,
+        "hit@5": true,
+        "score": 0.9122225150798373,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "에서",
+        "청년이",
+        "이사비를"
+      ],
+      "added_terms": [
+        "청년",
+        "이사비"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-002",
+      "query": "청년이 주택 마련을 위해 청년주택드림청약통장을 가입할 수 있는 방법이 있을까요?",
+      "query_stripped": "청년이 주택 마련을 위해 청년주택드림청약통장을 가입할 수 있는 방법이 있을까요?",
+      "gold_source": "youth",
+      "gold_source_id": "20260616005400113238",
+      "gold_title": "청년주택드림청약통장",
+      "category": "housing_finance",
+      "youth_bias": 0.015,
+      "baseline": {
+        "lexical_terms": [
+          "청년이",
+          "주택",
+          "마련을",
+          "위해",
+          "청년주택드림청약통장을",
+          "가입할",
+          "방법이"
+        ],
+        "rank": 2,
+        "rank_top30": 2,
+        "hit@1": false,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.8827340409696602,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20250514005400110811",
+            "title": "청년 주택드림 디딤돌 대출",
+            "score": 0.8835151750969115
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "청년",
+          "주택",
+          "마련",
+          "위해",
+          "청년주택드림청약통장",
+          "가입할"
+        ],
+        "rank": 2,
+        "rank_top30": 2,
+        "hit@1": false,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.8827340409696602,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20250514005400110811",
+            "title": "청년 주택드림 디딤돌 대출",
+            "score": 0.8835151750969115
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 2,
+        "rank_top30": 2,
+        "hit@5": true,
+        "score": 0.8827340409696602,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "청년이",
+        "마련을",
+        "청년주택드림청약통장을",
+        "방법이"
+      ],
+      "added_terms": [
+        "청년",
+        "마련",
+        "청년주택드림청약통장"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-003",
+      "query": "부산에 사는 청년이 월세 부담을 덜기 위해 월세 지원을 받을 수 있나요?",
+      "query_stripped": "에 사는 청년이 월세 부담을 덜기 위해 월세 지원을 받을 수 있나요?",
+      "gold_source": "youth",
+      "gold_source_id": "20260513005400213199",
+      "gold_title": "부산 청년 월세 지원",
+      "category": "housing_finance",
+      "youth_bias": 0.015,
+      "baseline": {
+        "lexical_terms": [
+          "사는",
+          "청년이",
+          "월세",
+          "부담을",
+          "덜기",
+          "위해",
+          "지원을"
+        ],
+        "rank": 0,
+        "rank_top30": 0,
+        "hit@1": false,
+        "hit@5": false,
+        "hit@10": false,
+        "score": null,
+        "in_top30": false,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20250903005400211614",
+            "title": "청년월세 지원사업",
+            "score": 0.8712985669018608
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "사는",
+          "청년",
+          "월세",
+          "부담",
+          "덜기",
+          "위해"
+        ],
+        "rank": 0,
+        "rank_top30": 0,
+        "hit@1": false,
+        "hit@5": false,
+        "hit@10": false,
+        "score": null,
+        "in_top30": false,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260409005400212654",
+            "title": "청년 월세 지원",
+            "score": 0.880172200192692
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 0,
+        "rank_top30": 0,
+        "hit@5": false,
+        "score": null,
+        "in_top30": false
+      },
+      "dropped_terms": [
+        "청년이",
+        "부담을",
+        "지원을"
+      ],
+      "added_terms": [
+        "청년",
+        "부담"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-004",
+      "query": "김포시에서 기초생활수급자가 이사할 때 이사비용 지원을 받을 수 있나요?",
+      "query_stripped": "김포시에서 기초생활수급자가 이사할 때 이사비용 지원을 받을 수 있나요?",
+      "gold_source": "gov24",
+      "gold_source_id": "409000000103",
+      "gold_title": "저소득층 이사비용 지원",
+      "category": "housing_finance",
+      "youth_bias": 0.0,
+      "baseline": {
+        "lexical_terms": [
+          "김포시에서",
+          "기초생활수급자가",
+          "이사할",
+          "이사비용",
+          "지원을"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9176602314508246,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "409000000103",
+            "title": "저소득층 이사비용 지원",
+            "score": 0.9176602314508246
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "김포시",
+          "기초생활수급자",
+          "이사할",
+          "이사비용"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9176602314508246,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "409000000103",
+            "title": "저소득층 이사비용 지원",
+            "score": 0.9176602314508246
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@5": true,
+        "score": 0.9176602314508246,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "김포시에서",
+        "기초생활수급자가",
+        "지원을"
+      ],
+      "added_terms": [
+        "김포시",
+        "기초생활수급자"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-005",
+      "query": "일하는 생계급여 수급자가 희망저축Ⅰ으로 자산형성 지원을 받을 수 있나요?",
+      "query_stripped": "일하는 생계급여 수급자가 희망저축Ⅰ으로 자산형성 지원을 받을 수 있나요?",
+      "gold_source": "gov24",
+      "gold_source_id": "135200005010",
+      "gold_title": "자산형성지원사업(희망저축Ⅰ)",
+      "category": "housing_finance",
+      "youth_bias": 0.0,
+      "baseline": {
+        "lexical_terms": [
+          "일하는",
+          "생계급여",
+          "수급자가",
+          "희망저축",
+          "으로",
+          "자산형성",
+          "지원을"
+        ],
+        "rank": 4,
+        "rank_top30": 4,
+        "hit@1": false,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.8662848871097444,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260430005400113009",
+            "title": "청년내일저축계좌",
+            "score": 0.8793987179519275
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "일하",
+          "생계급여",
+          "수급자",
+          "희망저축",
+          "자산형성"
+        ],
+        "rank": 5,
+        "rank_top30": 5,
+        "hit@1": false,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.8662848871097444,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "449000000101",
+            "title": "수급자 및 차상위계층 자산형성지원",
+            "score": 0.8803452253341737
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 0,
+        "rank_top30": 15,
+        "hit@5": false,
+        "score": 0.8662848871097444,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "일하는",
+        "수급자가",
+        "으로",
+        "지원을"
+      ],
+      "added_terms": [
+        "일하",
+        "수급자"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": -1,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-006",
+      "query": "중위소득 150퍼센트 이하 가구가 통합공공임대주택에 입주할 수 있는 방법이 있을까요?",
+      "query_stripped": "중위소득 150퍼센트 이하 가구가 통합공공임대주택에 입주할 수 있는 방법이 있을까요?",
+      "gold_source": "gov24",
+      "gold_source_id": "161300000101",
+      "gold_title": "통합공공임대주택 공급",
+      "category": "housing_finance",
+      "youth_bias": 0.0,
+      "baseline": {
+        "lexical_terms": [
+          "중위소득",
+          "150퍼센트",
+          "이하",
+          "가구가",
+          "통합공공임대주택에",
+          "입주할",
+          "방법이"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.8807496647311656,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "161300000101",
+            "title": "통합공공임대주택 공급",
+            "score": 0.8807496647311656
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "중위소득",
+          "150퍼센트",
+          "이하",
+          "가구",
+          "통합공공임대주택",
+          "입주할"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.8807496647311656,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "161300000101",
+            "title": "통합공공임대주택 공급",
+            "score": 0.8807496647311656
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@5": true,
+        "score": 0.8807496647311656,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "가구가",
+        "통합공공임대주택에",
+        "방법이"
+      ],
+      "added_terms": [
+        "가구",
+        "통합공공임대주택"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-007",
+      "query": "전북 완주군에서 청년 소상공인이나 농어업인이 출산하면 출산급여를 받을 수 있나요?",
+      "query_stripped": "완주군에서 청년 소상공인이나 농어업인이 출산하면 출산급여를 받을 수 있나요?",
+      "gold_source": "youth",
+      "gold_source_id": "20260330005400212344",
+      "gold_title": "전북 청년 1인 소상공인·농어업인 출산급여 지원",
+      "category": "family_care",
+      "youth_bias": 0.015,
+      "baseline": {
+        "lexical_terms": [
+          "완주군에서",
+          "청년",
+          "소상공인이나",
+          "농어업인이",
+          "출산하면",
+          "출산급여를"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9154318390252594,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260330005400212344",
+            "title": "전북 청년 1인 소상공인·농어업인 출산급여 지원",
+            "score": 0.9154318390252594
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "완주군",
+          "청년",
+          "소상공인이나",
+          "농어업인",
+          "출산하면",
+          "출산급여"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9154318390252594,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260330005400212344",
+            "title": "전북 청년 1인 소상공인·농어업인 출산급여 지원",
+            "score": 0.9154318390252594
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@5": true,
+        "score": 0.9154318390252594,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "완주군에서",
+        "농어업인이",
+        "출산급여를"
+      ],
+      "added_terms": [
+        "완주군",
+        "농어업인",
+        "출산급여"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-008",
+      "query": "광양시에서 아이가 태어나면 출생축하금 자동지급을 받을 수 있나요?",
+      "query_stripped": "광양시에서 아이가 태어나면 출생축하금 자동지급을 받을 수 있나요?",
+      "gold_source": "youth",
+      "gold_source_id": "20260319005400212213",
+      "gold_title": "(광양시)출생축하금 자동지급제 시행",
+      "category": "family_care",
+      "youth_bias": 0.0,
+      "baseline": {
+        "lexical_terms": [
+          "광양시에서",
+          "아이가",
+          "태어나면",
+          "출생축하금",
+          "자동지급을"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9254476472468998,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260319005400212213",
+            "title": "(광양시)출생축하금 자동지급제 시행",
+            "score": 0.9254476472468998
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "광양시",
+          "아이",
+          "태어나면",
+          "출생축하금",
+          "자동지급"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9254476472468998,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260319005400212213",
+            "title": "(광양시)출생축하금 자동지급제 시행",
+            "score": 0.9254476472468998
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@5": true,
+        "score": 0.9254476472468998,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "광양시에서",
+        "아이가",
+        "자동지급을"
+      ],
+      "added_terms": [
+        "광양시",
+        "아이",
+        "자동지급"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-009",
+      "query": "충남 서산시에서 아이를 낳으면 출산지원금과 둘째 이후 영유아 양육비를 지원받을 수 있나요?",
+      "query_stripped": "서산시에서 아이를 낳으면 출산지원금과 둘째 이후 영유아 양육비를 지원받을 수 있나요?",
+      "gold_source": "youth",
+      "gold_source_id": "20260504005400213037",
+      "gold_title": "서산시 출산지원금 및 둘째 이후 영유아 양육비 지원",
+      "category": "family_care",
+      "youth_bias": 0.0,
+      "baseline": {
+        "lexical_terms": [
+          "서산시에서",
+          "아이를",
+          "낳으면",
+          "출산지원금과",
+          "둘째",
+          "이후",
+          "영유아",
+          "양육비를"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9410059733362325,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260504005400213037",
+            "title": "서산시 출산지원금 및 둘째 이후 영유아 양육비 지원",
+            "score": 0.9410059733362325
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "서산시",
+          "아이",
+          "낳으면",
+          "출산지원금",
+          "둘째",
+          "이후",
+          "영유아",
+          "양육비"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9410059733362325,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260504005400213037",
+            "title": "서산시 출산지원금 및 둘째 이후 영유아 양육비 지원",
+            "score": 0.9410059733362325
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@5": true,
+        "score": 0.9410059733362325,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "서산시에서",
+        "아이를",
+        "출산지원금과",
+        "양육비를"
+      ],
+      "added_terms": [
+        "서산시",
+        "아이",
+        "출산지원금",
+        "양육비"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-010",
+      "query": "전남 완도군에서 모유수유를 위해 유축기를 빌릴 수 있는 지원이 있나요?",
+      "query_stripped": "완도군에서 모유수유를 위해 유축기를 빌릴 수 있는 지원이 있나요?",
+      "gold_source": "gov24",
+      "gold_source_id": "499000000151",
+      "gold_title": "모유수유용 유축기 대여",
+      "category": "family_care",
+      "youth_bias": 0.0,
+      "baseline": {
+        "lexical_terms": [
+          "완도군에서",
+          "모유수유를",
+          "위해",
+          "유축기를",
+          "빌릴",
+          "지원이"
+        ],
+        "rank": 3,
+        "rank_top30": 3,
+        "hit@1": false,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9027114489622697,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "490000000118",
+            "title": "모유수유를 위한 유축기 대여",
+            "score": 0.8842822200077125
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "완도군",
+          "모유수유",
+          "위해",
+          "유축기",
+          "빌릴"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9027114489622697,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "499000000151",
+            "title": "모유수유용 유축기 대여",
+            "score": 0.9027114489622697
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@5": true,
+        "score": 0.9027114489622697,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "완도군에서",
+        "모유수유를",
+        "유축기를",
+        "지원이"
+      ],
+      "added_terms": [
+        "완도군",
+        "모유수유",
+        "유축기"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 2,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-011",
+      "query": "충남 서산시에서 가정위탁으로 아이를 돌볼 때 양육보조금을 받을 수 있나요?",
+      "query_stripped": "서산시에서 가정위탁으로 아이를 돌볼 때 양육보조금을 받을 수 있나요?",
+      "gold_source": "gov24",
+      "gold_source_id": "453000000180",
+      "gold_title": "가정위탁보호아동 양육보조금 지원",
+      "category": "family_care",
+      "youth_bias": 0.0,
+      "baseline": {
+        "lexical_terms": [
+          "서산시에서",
+          "가정위탁으로",
+          "아이를",
+          "돌볼",
+          "양육보조금을"
+        ],
+        "rank": 5,
+        "rank_top30": 5,
+        "hit@1": false,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.8967924383231713,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "458000000106",
+            "title": "가정위탁아동 양육보조금 지원",
+            "score": 0.897755916131193
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "서산시",
+          "가정위탁",
+          "아이",
+          "돌볼",
+          "양육보조금"
+        ],
+        "rank": 4,
+        "rank_top30": 4,
+        "hit@1": false,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.8967924383231713,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "458000000106",
+            "title": "가정위탁아동 양육보조금 지원",
+            "score": 0.897755916131193
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 5,
+        "rank_top30": 5,
+        "hit@5": true,
+        "score": 0.8967924383231713,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "서산시에서",
+        "가정위탁으로",
+        "아이를",
+        "양육보조금을"
+      ],
+      "added_terms": [
+        "서산시",
+        "가정위탁",
+        "아이",
+        "양육보조금"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 1,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-012",
+      "query": "광주 서구에서 아이를 출산한 산모가 산후관리비 지원을 받을 수 있나요?",
+      "query_stripped": "서구에서 아이를 출산한 산모가 산후관리비 지원을 받을 수 있나요?",
+      "gold_source": "gov24",
+      "gold_source_id": "360000000112",
+      "gold_title": "희망 아이출생 산모 산후관리비 지원",
+      "category": "family_care",
+      "youth_bias": 0.0,
+      "baseline": {
+        "lexical_terms": [
+          "서구에서",
+          "아이를",
+          "출산한",
+          "산모가",
+          "산후관리비",
+          "지원을"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.8989039130244841,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "360000000112",
+            "title": "희망 아이출생 산모 산후관리비 지원",
+            "score": 0.8989039130244841
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "서구",
+          "아이",
+          "출산한",
+          "산모",
+          "산후관리비"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.8989039130244841,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "360000000112",
+            "title": "희망 아이출생 산모 산후관리비 지원",
+            "score": 0.8989039130244841
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@5": true,
+        "score": 0.8989039130244841,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "서구에서",
+        "아이를",
+        "산모가",
+        "지원을"
+      ],
+      "added_terms": [
+        "서구",
+        "아이",
+        "산모"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-013",
+      "query": "강원 삼척시에서 청년이 행정인턴으로 일할 수 있는 지원사업이 있나요?",
+      "query_stripped": "삼척시에서 청년이 행정인턴으로 일할 수 있는 지원사업이 있나요?",
+      "gold_source": "youth",
+      "gold_source_id": "20260522005400213218",
+      "gold_title": "삼척형 청년인턴 지원사업",
+      "category": "employment_education",
+      "youth_bias": 0.015,
+      "baseline": {
+        "lexical_terms": [
+          "삼척시에서",
+          "청년이",
+          "행정인턴으로",
+          "일할",
+          "지원사업이"
+        ],
+        "rank": 0,
+        "rank_top30": 0,
+        "hit@1": false,
+        "hit@5": false,
+        "hit@10": false,
+        "score": null,
+        "in_top30": false,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260402005400212383",
+            "title": "행정 체험형 청년인턴 채용사업",
+            "score": 0.8839366185859691
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "삼척시",
+          "청년",
+          "행정인턴",
+          "일할",
+          "지원사업"
+        ],
+        "rank": 0,
+        "rank_top30": 0,
+        "hit@1": false,
+        "hit@5": false,
+        "hit@10": false,
+        "score": null,
+        "in_top30": false,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260522005400213215",
+            "title": "삼척형 청년스타트업 창업지원사업",
+            "score": 0.8732684674236197
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 0,
+        "rank_top30": 0,
+        "hit@5": false,
+        "score": null,
+        "in_top30": false
+      },
+      "dropped_terms": [
+        "삼척시에서",
+        "청년이",
+        "행정인턴으로",
+        "지원사업이"
+      ],
+      "added_terms": [
+        "삼척시",
+        "청년",
+        "행정인턴",
+        "지원사업"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-014",
+      "query": "청년이 국가기술자격 시험을 볼 때 응시료를 지원받을 수 있는 정책이 있을까요?",
+      "query_stripped": "청년이 국가기술자격 시험을 볼 때 응시료를 지원받을 수 있는 정책이 있을까요?",
+      "gold_source": "youth",
+      "gold_source_id": "20260527005400113224",
+      "gold_title": "청년 국가기술자격 응시료 지원 사업",
+      "category": "employment_education",
+      "youth_bias": 0.015,
+      "baseline": {
+        "lexical_terms": [
+          "청년이",
+          "국가기술자격",
+          "시험을",
+          "응시료를",
+          "정책이"
+        ],
+        "rank": 2,
+        "rank_top30": 2,
+        "hit@1": false,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9067271296220096,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20250204005400110409",
+            "title": "청년 국가기술자격시험 응시료 지원사업",
+            "score": 0.9089704425632785
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "청년",
+          "국가기술자격",
+          "시험",
+          "응시료"
+        ],
+        "rank": 2,
+        "rank_top30": 2,
+        "hit@1": false,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9067271296220096,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20250204005400110409",
+            "title": "청년 국가기술자격시험 응시료 지원사업",
+            "score": 0.9089704425632785
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 2,
+        "rank_top30": 2,
+        "hit@5": true,
+        "score": 0.9067271296220096,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "청년이",
+        "시험을",
+        "응시료를",
+        "정책이"
+      ],
+      "added_terms": [
+        "청년",
+        "시험",
+        "응시료"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-015",
+      "query": "삼척시에서 대학생이 방학 동안 아르바이트를 할 수 있는 프로그램이 있나요?",
+      "query_stripped": "삼척시에서 대학생이 방학 동안 아르바이트를 할 수 있는 프로그램이 있나요?",
+      "gold_source": "youth",
+      "gold_source_id": "20260522005400213219",
+      "gold_title": "대학생 아르바이트 운영",
+      "category": "employment_education",
+      "youth_bias": 0.015,
+      "baseline": {
+        "lexical_terms": [
+          "삼척시에서",
+          "대학생이",
+          "방학",
+          "동안",
+          "아르바이트를",
+          "프로그램이"
+        ],
+        "rank": 0,
+        "rank_top30": 0,
+        "hit@1": false,
+        "hit@5": false,
+        "hit@10": false,
+        "score": null,
+        "in_top30": false,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260413005400212716",
+            "title": "서귀포시 대학생·청년 아르바이트",
+            "score": 0.8613815107001969
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "삼척시",
+          "대학생",
+          "방학",
+          "동안",
+          "아르바이트"
+        ],
+        "rank": 0,
+        "rank_top30": 0,
+        "hit@1": false,
+        "hit@5": false,
+        "hit@10": false,
+        "score": null,
+        "in_top30": false,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260413005400212716",
+            "title": "서귀포시 대학생·청년 아르바이트",
+            "score": 0.8613815107001969
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 0,
+        "rank_top30": 0,
+        "hit@5": false,
+        "score": null,
+        "in_top30": false
+      },
+      "dropped_terms": [
+        "삼척시에서",
+        "대학생이",
+        "아르바이트를",
+        "프로그램이"
+      ],
+      "added_terms": [
+        "삼척시",
+        "대학생",
+        "아르바이트"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-016",
+      "query": "고양시 중소기업이 데이터 분석 컨설팅을 받을 수 있는 지원이 있나요?",
+      "query_stripped": "고양시 중소기업이 데이터 분석 컨설팅을 받을 수 있는 지원이 있나요?",
+      "gold_source": "gov24",
+      "gold_source_id": "O00046700016",
+      "gold_title": "중소기업 데이터 컨설팅 지원",
+      "category": "employment_education",
+      "youth_bias": 0.0,
+      "baseline": {
+        "lexical_terms": [
+          "고양시",
+          "중소기업이",
+          "데이터",
+          "분석",
+          "컨설팅을",
+          "지원이"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9334725538682613,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "O00046700016",
+            "title": "중소기업 데이터 컨설팅 지원",
+            "score": 0.9334725538682613
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "고양시",
+          "중소기업",
+          "데이터",
+          "분석",
+          "컨설팅"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9334725538682613,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "O00046700016",
+            "title": "중소기업 데이터 컨설팅 지원",
+            "score": 0.9334725538682613
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@5": true,
+        "score": 0.9334725538682613,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "중소기업이",
+        "컨설팅을",
+        "지원이"
+      ],
+      "added_terms": [
+        "중소기업",
+        "컨설팅"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-017",
+      "query": "중소기업 취업을 희망하는 대학생이 등록금과 취창업 장려금을 지원하는 희망사다리 장학금을 받을 수 있나요?",
+      "query_stripped": "중소기업 취업을 희망하는 대학생이 등록금과 취창업 장려금을 지원하는 희망사다리 장학금을 받을 수 있나요?",
+      "gold_source": "gov24",
+      "gold_source_id": "134200000046",
+      "gold_title": "중소기업 취업연계 장학금 (희망사다리Ⅰ유형)",
+      "category": "employment_education",
+      "youth_bias": 0.015,
+      "baseline": {
+        "lexical_terms": [
+          "중소기업",
+          "취업을",
+          "희망하는",
+          "대학생이",
+          "등록금과",
+          "취창업",
+          "장려금을",
+          "희망사다리",
+          "장학금을"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9010409287493201,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "134200000046",
+            "title": "중소기업 취업연계 장학금 (희망사다리Ⅰ유형)",
+            "score": 0.9010409287493201
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "중소기업",
+          "취업",
+          "희망하",
+          "대학생",
+          "등록금",
+          "취창업",
+          "장려금",
+          "희망사다리",
+          "장학금"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9010409287493201,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "134200000046",
+            "title": "중소기업 취업연계 장학금 (희망사다리Ⅰ유형)",
+            "score": 0.9010409287493201
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@5": true,
+        "score": 0.9010409287493201,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "취업을",
+        "희망하는",
+        "대학생이",
+        "등록금과",
+        "장려금을",
+        "장학금을"
+      ],
+      "added_terms": [
+        "취업",
+        "희망하",
+        "대학생",
+        "등록금",
+        "장려금",
+        "장학금"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-018",
+      "query": "플랜트기자재를 수출하는 기업이 수출상담회나 국제인증 지원을 받을 수 있나요?",
+      "query_stripped": "플랜트기자재를 수출하는 기업이 수출상담회나 국제인증 지원을 받을 수 있나요?",
+      "gold_source": "gov24",
+      "gold_source_id": "145000000100",
+      "gold_title": "플랜트기자재 수출 지원",
+      "category": "employment_education",
+      "youth_bias": 0.0,
+      "baseline": {
+        "lexical_terms": [
+          "플랜트기자재를",
+          "수출하는",
+          "기업이",
+          "수출상담회나",
+          "국제인증",
+          "지원을"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.913212374470407,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "145000000100",
+            "title": "플랜트기자재 수출 지원",
+            "score": 0.913212374470407
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "플랜트기자재",
+          "수출하",
+          "기업",
+          "수출상담회나",
+          "국제인증"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.913212374470407,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "145000000100",
+            "title": "플랜트기자재 수출 지원",
+            "score": 0.913212374470407
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@5": true,
+        "score": 0.913212374470407,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "플랜트기자재를",
+        "수출하는",
+        "기업이",
+        "지원을"
+      ],
+      "added_terms": [
+        "플랜트기자재",
+        "수출하",
+        "기업"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-019",
+      "query": "충남에서 청년이 우울이나 자살 관련 정신건강 검진과 심리지원을 받을 수 있나요?",
+      "query_stripped": "에서 청년이 우울이나 자살 관련 정신건강 검진과 심리지원을 받을 수 있나요?",
+      "gold_source": "youth",
+      "gold_source_id": "20251112005400211866",
+      "gold_title": "청년 자살예방 조기검진 및 심리지원",
+      "category": "welfare_health",
+      "youth_bias": 0.015,
+      "baseline": {
+        "lexical_terms": [
+          "에서",
+          "청년이",
+          "우울이나",
+          "자살",
+          "관련",
+          "정신건강",
+          "검진과",
+          "심리지원을"
+        ],
+        "rank": 0,
+        "rank_top30": 0,
+        "hit@1": false,
+        "hit@5": false,
+        "hit@10": false,
+        "score": null,
+        "in_top30": false,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20251214005400211991",
+            "title": "청년 자살예방 조기검진 및 심리지원",
+            "score": 0.9012744073657079
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "청년",
+          "우울이나",
+          "자살",
+          "관련",
+          "정신건강",
+          "검진",
+          "심리지원"
+        ],
+        "rank": 0,
+        "rank_top30": 0,
+        "hit@1": false,
+        "hit@5": false,
+        "hit@10": false,
+        "score": null,
+        "in_top30": false,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20251214005400211991",
+            "title": "청년 자살예방 조기검진 및 심리지원",
+            "score": 0.9012744073657079
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 0,
+        "rank_top30": 0,
+        "hit@5": false,
+        "score": null,
+        "in_top30": false
+      },
+      "dropped_terms": [
+        "에서",
+        "청년이",
+        "검진과",
+        "심리지원을"
+      ],
+      "added_terms": [
+        "청년",
+        "검진",
+        "심리지원"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-020",
+      "query": "경북에서 청년 한부모가 자녀 양육비를 지원받을 수 있는 방법이 있을까요?",
+      "query_stripped": "에서 청년 한부모가 자녀 양육비를 지원받을 수 있는 방법이 있을까요?",
+      "gold_source": "youth",
+      "gold_source_id": "20260317005400212183",
+      "gold_title": "청년한부모 자녀양육비 지원",
+      "category": "welfare_health",
+      "youth_bias": 0.015,
+      "baseline": {
+        "lexical_terms": [
+          "에서",
+          "청년",
+          "한부모가",
+          "자녀",
+          "양육비를",
+          "방법이"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.8896890613529401,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260317005400212183",
+            "title": "청년한부모 자녀양육비 지원",
+            "score": 0.8896890613529401
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "청년",
+          "한부모",
+          "자녀",
+          "양육비"
+        ],
+        "rank": 2,
+        "rank_top30": 2,
+        "hit@1": false,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.8896890613529401,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260504005400113101",
+            "title": "청소년 한부모 복지급여 지원",
+            "score": 0.8959411544555571
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 4,
+        "rank_top30": 4,
+        "hit@5": true,
+        "score": 0.8896890613529401,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "에서",
+        "한부모가",
+        "양육비를",
+        "방법이"
+      ],
+      "added_terms": [
+        "한부모",
+        "양육비"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": -1,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-021",
+      "query": "보호종료 예정인 청년이 자립지원전담기관을 통해 주거체험이나 사례관리를 받을 수 있나요?",
+      "query_stripped": "보호종료 예정인 청년이 자립지원전담기관을 통해 주거체험이나 사례관리를 받을 수 있나요?",
+      "gold_source": "youth",
+      "gold_source_id": "20250916005400211698",
+      "gold_title": "자립지원전담기관 운영",
+      "category": "welfare_health",
+      "youth_bias": 0.015,
+      "baseline": {
+        "lexical_terms": [
+          "보호종료",
+          "예정인",
+          "청년이",
+          "자립지원전담기관을",
+          "통해",
+          "주거체험이나",
+          "사례관리를"
+        ],
+        "rank": 0,
+        "rank_top30": 0,
+        "hit@1": false,
+        "hit@5": false,
+        "hit@10": false,
+        "score": null,
+        "in_top30": false,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260504005400113094",
+            "title": "자립지원 사업비",
+            "score": 0.8784339661699448
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "보호종료",
+          "예정인",
+          "청년",
+          "자립지원전담기관",
+          "통해",
+          "주거체험이나",
+          "사례관리"
+        ],
+        "rank": 0,
+        "rank_top30": 0,
+        "hit@1": false,
+        "hit@5": false,
+        "hit@10": false,
+        "score": null,
+        "in_top30": false,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20250718005400211452",
+            "title": "자립지원전담기관 운영",
+            "score": 0.8803094602461237
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 0,
+        "rank_top30": 0,
+        "hit@5": false,
+        "score": null,
+        "in_top30": false
+      },
+      "dropped_terms": [
+        "청년이",
+        "자립지원전담기관을",
+        "사례관리를"
+      ],
+      "added_terms": [
+        "청년",
+        "자립지원전담기관",
+        "사례관리"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-022",
+      "query": "울산 중구에 살 때 보건소에서 B형간염 예방접종을 지원받을 수 있나요?",
+      "query_stripped": "중구에 살 때 보건소에서 B형간염 예방접종을 지원받을 수 있나요?",
+      "gold_source": "gov24",
+      "gold_source_id": "369000000102",
+      "gold_title": "유료 예방접종(B형간염) 자체지원",
+      "category": "welfare_health",
+      "youth_bias": 0.0,
+      "baseline": {
+        "lexical_terms": [
+          "중구에",
+          "보건소에서",
+          "B형간염",
+          "예방접종을"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.912314940967015,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "369000000102",
+            "title": "유료 예방접종(B형간염) 자체지원",
+            "score": 0.912314940967015
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "중구",
+          "보건소",
+          "B형간염",
+          "예방접종"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.912314940967015,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "369000000102",
+            "title": "유료 예방접종(B형간염) 자체지원",
+            "score": 0.912314940967015
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@5": true,
+        "score": 0.912314940967015,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "중구에",
+        "보건소에서",
+        "예방접종을"
+      ],
+      "added_terms": [
+        "중구",
+        "보건소",
+        "예방접종"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-023",
+      "query": "서울 강서구에서 저소득 장애인가구나 노인가구가 건강보험료를 지원받을 수 있나요?",
+      "query_stripped": "강서구에서 저소득 장애인가구나 노인가구가 건강보험료를 지원받을 수 있나요?",
+      "gold_source": "gov24",
+      "gold_source_id": "315000000109",
+      "gold_title": "저소득주민 국민건강보험료 등 지원",
+      "category": "welfare_health",
+      "youth_bias": 0.0,
+      "baseline": {
+        "lexical_terms": [
+          "강서구에서",
+          "저소득",
+          "장애인가구나",
+          "노인가구가",
+          "건강보험료를"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9242079935599761,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "315000000109",
+            "title": "저소득주민 국민건강보험료 등 지원",
+            "score": 0.9242079935599761
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "강서구",
+          "저소득",
+          "장애인가구나",
+          "노인가구",
+          "건강보험료"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9242079935599761,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "315000000109",
+            "title": "저소득주민 국민건강보험료 등 지원",
+            "score": 0.9242079935599761
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@5": true,
+        "score": 0.9242079935599761,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "강서구에서",
+        "노인가구가",
+        "건강보험료를"
+      ],
+      "added_terms": [
+        "강서구",
+        "노인가구",
+        "건강보험료"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-024",
+      "query": "전남 함평군에서 소외계층이 밑반찬 지원을 받을 수 있나요?",
+      "query_stripped": "함평군에서 소외계층이 밑반찬 지원을 받을 수 있나요?",
+      "gold_source": "gov24",
+      "gold_source_id": "496000000115",
+      "gold_title": "소외계층 밑반찬 지원",
+      "category": "welfare_health",
+      "youth_bias": 0.0,
+      "baseline": {
+        "lexical_terms": [
+          "함평군에서",
+          "소외계층이",
+          "밑반찬",
+          "지원을"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9116184852923265,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "496000000115",
+            "title": "소외계층 밑반찬 지원",
+            "score": 0.9116184852923265
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "함평군",
+          "소외계층",
+          "밑반찬"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9116184852923265,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "496000000115",
+            "title": "소외계층 밑반찬 지원",
+            "score": 0.9116184852923265
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@5": true,
+        "score": 0.9116184852923265,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "함평군에서",
+        "소외계층이",
+        "지원을"
+      ],
+      "added_terms": [
+        "함평군",
+        "소외계층"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-025",
+      "query": "세종시에서 청년이 청년센터를 이용해 정책 네트워크나 프로그램에 참여할 수 있나요?",
+      "query_stripped": "시에서 청년이 청년센터를 이용해 정책 네트워크나 프로그램에 참여할 수 있나요?",
+      "gold_source": "youth",
+      "gold_source_id": "20250904005400211654",
+      "gold_title": " 세종 청년센터 운영",
+      "category": "culture_community",
+      "youth_bias": 0.015,
+      "baseline": {
+        "lexical_terms": [
+          "시에서",
+          "청년이",
+          "청년센터를",
+          "이용해",
+          "네트워크나",
+          "프로그램에",
+          "참여할"
+        ],
+        "rank": 0,
+        "rank_top30": 14,
+        "hit@1": false,
+        "hit@5": false,
+        "hit@10": false,
+        "score": 0.8684863087261379,
+        "in_top30": true,
+        "filtered_by_cosine": true,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20250122005400110348",
+            "title": "청년성장프로젝트(청년카페)\t",
+            "score": 0.8530199790561251
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "청년",
+          "청년센터",
+          "이용해",
+          "네트워크나",
+          "참여할"
+        ],
+        "rank": 3,
+        "rank_top30": 3,
+        "hit@1": false,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.8684863087261379,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260504005400213055",
+            "title": "청년센터 운영",
+            "score": 0.8782949274133992
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 6,
+        "rank_top30": 6,
+        "hit@5": false,
+        "score": 0.8684863087261379,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "시에서",
+        "청년이",
+        "청년센터를",
+        "프로그램에"
+      ],
+      "added_terms": [
+        "청년",
+        "청년센터"
+      ],
+      "delta_hit@5": 1,
+      "delta_rank": 996,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-026",
+      "query": "경기도 청년이 청년참여기구를 통해 정책 제안이나 모니터링에 참여할 수 있을까요?",
+      "query_stripped": "도 청년이 청년참여기구를 통해 정책 제안이나 모니터링에 참여할 수 있을까요?",
+      "gold_source": "youth",
+      "gold_source_id": "20251231005400212067",
+      "gold_title": "경기도 청년참여기구 운영",
+      "category": "culture_community",
+      "youth_bias": 0.015,
+      "baseline": {
+        "lexical_terms": [
+          "청년이",
+          "청년참여기구를",
+          "통해",
+          "제안이나",
+          "모니터링에",
+          "참여할"
+        ],
+        "rank": 0,
+        "rank_top30": 0,
+        "hit@1": false,
+        "hit@5": false,
+        "hit@10": false,
+        "score": null,
+        "in_top30": false,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20250804005400211509",
+            "title": "대구청년정책네트워크",
+            "score": 0.8593471897818302
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "청년",
+          "청년참여기구",
+          "통해",
+          "제안이나",
+          "모니터링",
+          "참여할"
+        ],
+        "rank": 0,
+        "rank_top30": 0,
+        "hit@1": false,
+        "hit@5": false,
+        "hit@10": false,
+        "score": null,
+        "in_top30": false,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260430005400212991",
+            "title": "청년정책네트워크 운영",
+            "score": 0.8652310244488267
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 0,
+        "rank_top30": 0,
+        "hit@5": false,
+        "score": null,
+        "in_top30": false
+      },
+      "dropped_terms": [
+        "청년이",
+        "청년참여기구를",
+        "모니터링에"
+      ],
+      "added_terms": [
+        "청년",
+        "청년참여기구",
+        "모니터링"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-027",
+      "query": "광주 북구에서 청년축제인 청춘페스타를 기획하는 추진단에 참여할 수 있나요?",
+      "query_stripped": "북구에서 청년축제인 청춘페스타를 기획하는 추진단에 참여할 수 있나요?",
+      "gold_source": "youth",
+      "gold_source_id": "20260615005400213234",
+      "gold_title": "2026 북구청춘페스타 추진기획단 모집(~6.14.)",
+      "category": "culture_community",
+      "youth_bias": 0.015,
+      "baseline": {
+        "lexical_terms": [
+          "북구에서",
+          "청년축제인",
+          "청춘페스타를",
+          "기획하는",
+          "추진단에",
+          "참여할"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9232936363502043,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260615005400213234",
+            "title": "2026 북구청춘페스타 추진기획단 모집(~6.14.)",
+            "score": 0.9232936363502043
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "북구",
+          "청년축제인",
+          "청춘페스타",
+          "기획하",
+          "추진단",
+          "참여할"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9232936363502043,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260615005400213234",
+            "title": "2026 북구청춘페스타 추진기획단 모집(~6.14.)",
+            "score": 0.9232936363502043
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@5": true,
+        "score": 0.9232936363502043,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "북구에서",
+        "청춘페스타를",
+        "기획하는",
+        "추진단에"
+      ],
+      "added_terms": [
+        "북구",
+        "청춘페스타",
+        "기획하",
+        "추진단"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-028",
+      "query": "경기 양평에서 주민들이 생활문화공동체 활동을 지원받을 수 있나요?",
+      "query_stripped": "양평에서 주민들이 생활문화공동체 활동을 지원받을 수 있나요?",
+      "gold_source": "gov24",
+      "gold_source_id": "O00053500002",
+      "gold_title": "생활문화공동체 지원",
+      "category": "culture_community",
+      "youth_bias": 0.0,
+      "baseline": {
+        "lexical_terms": [
+          "양평에서",
+          "주민들이",
+          "생활문화공동체",
+          "활동을"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9071604234790372,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "O00053500002",
+            "title": "생활문화공동체 지원",
+            "score": 0.9071604234790372
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "양평",
+          "주민들",
+          "생활문화공동체",
+          "활동"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9071604234790372,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "O00053500002",
+            "title": "생활문화공동체 지원",
+            "score": 0.9071604234790372
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@5": true,
+        "score": 0.9071604234790372,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "양평에서",
+        "주민들이",
+        "활동을"
+      ],
+      "added_terms": [
+        "양평",
+        "주민들",
+        "활동"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-029",
+      "query": "어촌에서 발생하는 폐패각을 친환경적으로 처리할 때 운반비 지원을 받을 수 있나요?",
+      "query_stripped": "어촌에서 발생하는 폐패각을 친환경적으로 처리할 때 운반비 지원을 받을 수 있나요?",
+      "gold_source": "gov24",
+      "gold_source_id": "119200000110",
+      "gold_title": "패각 친환경 처리 지원",
+      "category": "culture_community",
+      "youth_bias": 0.0,
+      "baseline": {
+        "lexical_terms": [
+          "어촌에서",
+          "발생하는",
+          "폐패각을",
+          "친환경적으로",
+          "처리할",
+          "운반비",
+          "지원을"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.8965247211769455,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "119200000110",
+            "title": "패각 친환경 처리 지원",
+            "score": 0.8965247211769455
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "어촌",
+          "발생하",
+          "폐패각",
+          "친환경적",
+          "처리할",
+          "운반비"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.8965247211769455,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "119200000110",
+            "title": "패각 친환경 처리 지원",
+            "score": 0.8965247211769455
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@5": true,
+        "score": 0.8965247211769455,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "어촌에서",
+        "발생하는",
+        "폐패각을",
+        "친환경적으로",
+        "지원을"
+      ],
+      "added_terms": [
+        "어촌",
+        "발생하",
+        "폐패각",
+        "친환경적"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-030",
+      "query": "충북 음성군에서 지역화폐인 음성행복페이 인센티브를 받을 수 있나요?",
+      "query_stripped": "음성군에서 지역화폐인 음성행복페이 인센티브를 받을 수 있나요?",
+      "gold_source": "gov24",
+      "gold_source_id": "447000000112",
+      "gold_title": "지역화폐(음성행복페이)",
+      "category": "culture_community",
+      "youth_bias": 0.0,
+      "baseline": {
+        "lexical_terms": [
+          "음성군에서",
+          "지역화폐인",
+          "음성행복페이",
+          "인센티브를"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9379928465492072,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "447000000112",
+            "title": "지역화폐(음성행복페이)",
+            "score": 0.9379928465492072
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "음성군",
+          "지역화폐인",
+          "음성행복페",
+          "인센티브"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9379928465492072,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "447000000112",
+            "title": "지역화폐(음성행복페이)",
+            "score": 0.9379928465492072
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@5": true,
+        "score": 0.9379928465492072,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "음성군에서",
+        "음성행복페이",
+        "인센티브를"
+      ],
+      "added_terms": [
+        "음성군",
+        "음성행복페",
+        "인센티브"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-031",
+      "query": "광주에서 청년 후계농업경영인이 영농정착지원금을 받을 수 있나요?",
+      "query_stripped": "에서 청년 후계농업경영인이 영농정착지원금을 받을 수 있나요?",
+      "gold_source": "youth",
+      "gold_source_id": "20260513005400213183",
+      "gold_title": "2026년 청년농업인(청년창업형 후계농업경영인) 영농정착지원사업(2차)",
+      "category": "business_agriculture",
+      "youth_bias": 0.015,
+      "baseline": {
+        "lexical_terms": [
+          "에서",
+          "청년",
+          "후계농업경영인이",
+          "영농정착지원금을"
+        ],
+        "rank": 7,
+        "rank_top30": 7,
+        "hit@1": false,
+        "hit@5": false,
+        "hit@10": true,
+        "score": 0.8951346778228453,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20251211005400211960",
+            "title": "청년후계농업인 영농정착 지원",
+            "score": 0.9120211143317526
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "청년",
+          "후계농업경영인",
+          "영농정착지원금"
+        ],
+        "rank": 2,
+        "rank_top30": 2,
+        "hit@1": false,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.8951346778228453,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20251211005400211960",
+            "title": "청년후계농업인 영농정착 지원",
+            "score": 0.9120211143317526
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 0,
+        "rank_top30": 13,
+        "hit@5": false,
+        "score": 0.8951346778228453,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "에서",
+        "후계농업경영인이",
+        "영농정착지원금을"
+      ],
+      "added_terms": [
+        "후계농업경영인",
+        "영농정착지원금"
+      ],
+      "delta_hit@5": 1,
+      "delta_rank": 5,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-032",
+      "query": "인천에서 청년농업인이 시설 설치나 농기계 구입을 지원받을 수 있나요?",
+      "query_stripped": "에서 청년농업인이 시설 설치나 농기계 구입을 지원받을 수 있나요?",
+      "gold_source": "youth",
+      "gold_source_id": "20260506005400213146",
+      "gold_title": "청년농업인 영농 스타트업 지원",
+      "category": "business_agriculture",
+      "youth_bias": 0.015,
+      "baseline": {
+        "lexical_terms": [
+          "에서",
+          "청년농업인이",
+          "시설",
+          "설치나",
+          "농기계",
+          "구입을"
+        ],
+        "rank": 4,
+        "rank_top30": 4,
+        "hit@1": false,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.8882271380966039,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260422005400212843",
+            "title": "소규모 농가 경영안정 지원사업",
+            "score": 0.8861569030471987
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "청년농업인",
+          "시설",
+          "설치나",
+          "농기계",
+          "구입"
+        ],
+        "rank": 2,
+        "rank_top30": 2,
+        "hit@1": false,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.8882271380966039,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20250718005400211393",
+            "title": "청년농업인 영농 스타트업 지원",
+            "score": 0.8952529430389659
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 3,
+        "rank_top30": 3,
+        "hit@5": true,
+        "score": 0.8882271380966039,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "에서",
+        "청년농업인이",
+        "구입을"
+      ],
+      "added_terms": [
+        "청년농업인",
+        "구입"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 2,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-033",
+      "query": "청년농업인이 역량강화 교육이나 온라인 마케팅 기술 지원을 받을 수 있는 방법이 있을까요?",
+      "query_stripped": "청년농업인이 역량강화 교육이나 온라인 마케팅 기술 지원을 받을 수 있는 방법이 있을까요?",
+      "gold_source": "youth",
+      "gold_source_id": "20260504005400113119",
+      "gold_title": "청년농업인 역량강화 지원",
+      "category": "business_agriculture",
+      "youth_bias": 0.015,
+      "baseline": {
+        "lexical_terms": [
+          "청년농업인이",
+          "역량강화",
+          "교육이나",
+          "온라인",
+          "마케팅",
+          "기술",
+          "지원을",
+          "방법이"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9194637344989405,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260504005400113119",
+            "title": "청년농업인 역량강화 지원",
+            "score": 0.9194637344989405
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "청년농업인",
+          "역량강화",
+          "교육이나",
+          "온라인",
+          "마케팅",
+          "기술"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9194637344989405,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "youth",
+            "source_id": "20260504005400113119",
+            "title": "청년농업인 역량강화 지원",
+            "score": 0.9194637344989405
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@5": true,
+        "score": 0.9194637344989405,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "청년농업인이",
+        "지원을",
+        "방법이"
+      ],
+      "added_terms": [
+        "청년농업인"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-034",
+      "query": "전북 남원시에서 양봉 농가가 고품질 기자재나 꿀생산장비를 지원받을 수 있나요?",
+      "query_stripped": "남원시에서 양봉 농가가 고품질 기자재나 꿀생산장비를 지원받을 수 있나요?",
+      "gold_source": "gov24",
+      "gold_source_id": "470000000112",
+      "gold_title": "고품질 양봉기자재 지원",
+      "category": "business_agriculture",
+      "youth_bias": 0.0,
+      "baseline": {
+        "lexical_terms": [
+          "남원시에서",
+          "양봉",
+          "농가가",
+          "고품질",
+          "기자재나",
+          "꿀생산장비를"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9213487238025438,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "470000000112",
+            "title": "고품질 양봉기자재 지원",
+            "score": 0.9213487238025438
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "남원시",
+          "양봉",
+          "농가",
+          "고품질",
+          "기자재나",
+          "꿀생산장비"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9213487238025438,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "470000000112",
+            "title": "고품질 양봉기자재 지원",
+            "score": 0.9213487238025438
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@5": true,
+        "score": 0.9213487238025438,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "남원시에서",
+        "농가가",
+        "꿀생산장비를"
+      ],
+      "added_terms": [
+        "남원시",
+        "농가",
+        "꿀생산장비"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-035",
+      "query": "전남 장성군에서 소를 키우는 농가가 사양관리 개선제나 대체모유를 지원받을 수 있나요?",
+      "query_stripped": "장성군에서 소를 키우는 농가가 사양관리 개선제나 대체모유를 지원받을 수 있나요?",
+      "gold_source": "gov24",
+      "gold_source_id": "498000000101",
+      "gold_title": "소 사육농가 사양관리 개선제 지원",
+      "category": "business_agriculture",
+      "youth_bias": 0.0,
+      "baseline": {
+        "lexical_terms": [
+          "장성군에서",
+          "소를",
+          "키우는",
+          "농가가",
+          "사양관리",
+          "개선제나",
+          "대체모유를"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9101238793214363,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "498000000101",
+            "title": "소 사육농가 사양관리 개선제 지원",
+            "score": 0.9101238793214363
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "장성군",
+          "소를",
+          "키우",
+          "농가",
+          "사양관리",
+          "개선제나",
+          "대체모유"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.9101238793214363,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "498000000101",
+            "title": "소 사육농가 사양관리 개선제 지원",
+            "score": 0.9101238793214363
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@5": true,
+        "score": 0.9101238793214363,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "장성군에서",
+        "키우는",
+        "농가가",
+        "대체모유를"
+      ],
+      "added_terms": [
+        "장성군",
+        "키우",
+        "농가",
+        "대체모유"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    },
+    {
+      "case_id": "c2d-036",
+      "query": "경북 예천군에서 귀농인이 영농에 필요한 기반을 지원받을 수 있나요?",
+      "query_stripped": "예천군에서 귀농인이 영농에 필요한 기반을 지원받을 수 있나요?",
+      "gold_source": "gov24",
+      "gold_source_id": "523000000185",
+      "gold_title": "귀농인 영농기반 지원",
+      "category": "business_agriculture",
+      "youth_bias": 0.0,
+      "baseline": {
+        "lexical_terms": [
+          "예천군에서",
+          "귀농인이",
+          "영농에",
+          "필요한",
+          "기반을"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.911047562593487,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "523000000185",
+            "title": "귀농인 영농기반 지원",
+            "score": 0.911047562593487
+          }
+        ]
+      },
+      "candidate": {
+        "lexical_terms": [
+          "예천군",
+          "귀농인",
+          "영농",
+          "필요한",
+          "기반"
+        ],
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@1": true,
+        "hit@5": true,
+        "hit@10": true,
+        "score": 0.911047562593487,
+        "in_top30": true,
+        "filtered_by_cosine": false,
+        "top1": [
+          {
+            "source": "gov24",
+            "source_id": "523000000185",
+            "title": "귀농인 영농기반 지원",
+            "score": 0.911047562593487
+          }
+        ]
+      },
+      "vector_only": {
+        "rank": 1,
+        "rank_top30": 1,
+        "hit@5": true,
+        "score": 0.911047562593487,
+        "in_top30": true
+      },
+      "dropped_terms": [
+        "예천군에서",
+        "귀농인이",
+        "영농에",
+        "기반을"
+      ],
+      "added_terms": [
+        "예천군",
+        "귀농인",
+        "영농",
+        "기반"
+      ],
+      "delta_hit@5": 0,
+      "delta_rank": 0,
+      "lexical_terms_identical": false
+    }
+  ],
+  "failure_summary": {
+    "baseline_misses": [
+      {
+        "case_id": "c2d-003",
+        "query": "부산에 사는 청년이 월세 부담을 덜기 위해 월세 지원을 받을 수 있나요?",
+        "query_stripped": "에 사는 청년이 월세 부담을 덜기 위해 월세 지원을 받을 수 있나요?",
+        "gold_source": "youth",
+        "gold_source_id": "20260513005400213199",
+        "gold_title": "부산 청년 월세 지원",
+        "category": "housing_finance",
+        "youth_bias": 0.015,
+        "baseline": {
+          "lexical_terms": [
+            "사는",
+            "청년이",
+            "월세",
+            "부담을",
+            "덜기",
+            "위해",
+            "지원을"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20250903005400211614",
+              "title": "청년월세 지원사업",
+              "score": 0.8712985669018608
+            }
+          ]
+        },
+        "candidate": {
+          "lexical_terms": [
+            "사는",
+            "청년",
+            "월세",
+            "부담",
+            "덜기",
+            "위해"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20260409005400212654",
+              "title": "청년 월세 지원",
+              "score": 0.880172200192692
+            }
+          ]
+        },
+        "vector_only": {
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@5": false,
+          "score": null,
+          "in_top30": false
+        },
+        "dropped_terms": [
+          "청년이",
+          "부담을",
+          "지원을"
+        ],
+        "added_terms": [
+          "청년",
+          "부담"
+        ],
+        "delta_hit@5": 0,
+        "delta_rank": 0,
+        "lexical_terms_identical": false
+      },
+      {
+        "case_id": "c2d-013",
+        "query": "강원 삼척시에서 청년이 행정인턴으로 일할 수 있는 지원사업이 있나요?",
+        "query_stripped": "삼척시에서 청년이 행정인턴으로 일할 수 있는 지원사업이 있나요?",
+        "gold_source": "youth",
+        "gold_source_id": "20260522005400213218",
+        "gold_title": "삼척형 청년인턴 지원사업",
+        "category": "employment_education",
+        "youth_bias": 0.015,
+        "baseline": {
+          "lexical_terms": [
+            "삼척시에서",
+            "청년이",
+            "행정인턴으로",
+            "일할",
+            "지원사업이"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20260402005400212383",
+              "title": "행정 체험형 청년인턴 채용사업",
+              "score": 0.8839366185859691
+            }
+          ]
+        },
+        "candidate": {
+          "lexical_terms": [
+            "삼척시",
+            "청년",
+            "행정인턴",
+            "일할",
+            "지원사업"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20260522005400213215",
+              "title": "삼척형 청년스타트업 창업지원사업",
+              "score": 0.8732684674236197
+            }
+          ]
+        },
+        "vector_only": {
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@5": false,
+          "score": null,
+          "in_top30": false
+        },
+        "dropped_terms": [
+          "삼척시에서",
+          "청년이",
+          "행정인턴으로",
+          "지원사업이"
+        ],
+        "added_terms": [
+          "삼척시",
+          "청년",
+          "행정인턴",
+          "지원사업"
+        ],
+        "delta_hit@5": 0,
+        "delta_rank": 0,
+        "lexical_terms_identical": false
+      },
+      {
+        "case_id": "c2d-015",
+        "query": "삼척시에서 대학생이 방학 동안 아르바이트를 할 수 있는 프로그램이 있나요?",
+        "query_stripped": "삼척시에서 대학생이 방학 동안 아르바이트를 할 수 있는 프로그램이 있나요?",
+        "gold_source": "youth",
+        "gold_source_id": "20260522005400213219",
+        "gold_title": "대학생 아르바이트 운영",
+        "category": "employment_education",
+        "youth_bias": 0.015,
+        "baseline": {
+          "lexical_terms": [
+            "삼척시에서",
+            "대학생이",
+            "방학",
+            "동안",
+            "아르바이트를",
+            "프로그램이"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20260413005400212716",
+              "title": "서귀포시 대학생·청년 아르바이트",
+              "score": 0.8613815107001969
+            }
+          ]
+        },
+        "candidate": {
+          "lexical_terms": [
+            "삼척시",
+            "대학생",
+            "방학",
+            "동안",
+            "아르바이트"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20260413005400212716",
+              "title": "서귀포시 대학생·청년 아르바이트",
+              "score": 0.8613815107001969
+            }
+          ]
+        },
+        "vector_only": {
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@5": false,
+          "score": null,
+          "in_top30": false
+        },
+        "dropped_terms": [
+          "삼척시에서",
+          "대학생이",
+          "아르바이트를",
+          "프로그램이"
+        ],
+        "added_terms": [
+          "삼척시",
+          "대학생",
+          "아르바이트"
+        ],
+        "delta_hit@5": 0,
+        "delta_rank": 0,
+        "lexical_terms_identical": false
+      },
+      {
+        "case_id": "c2d-019",
+        "query": "충남에서 청년이 우울이나 자살 관련 정신건강 검진과 심리지원을 받을 수 있나요?",
+        "query_stripped": "에서 청년이 우울이나 자살 관련 정신건강 검진과 심리지원을 받을 수 있나요?",
+        "gold_source": "youth",
+        "gold_source_id": "20251112005400211866",
+        "gold_title": "청년 자살예방 조기검진 및 심리지원",
+        "category": "welfare_health",
+        "youth_bias": 0.015,
+        "baseline": {
+          "lexical_terms": [
+            "에서",
+            "청년이",
+            "우울이나",
+            "자살",
+            "관련",
+            "정신건강",
+            "검진과",
+            "심리지원을"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20251214005400211991",
+              "title": "청년 자살예방 조기검진 및 심리지원",
+              "score": 0.9012744073657079
+            }
+          ]
+        },
+        "candidate": {
+          "lexical_terms": [
+            "청년",
+            "우울이나",
+            "자살",
+            "관련",
+            "정신건강",
+            "검진",
+            "심리지원"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20251214005400211991",
+              "title": "청년 자살예방 조기검진 및 심리지원",
+              "score": 0.9012744073657079
+            }
+          ]
+        },
+        "vector_only": {
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@5": false,
+          "score": null,
+          "in_top30": false
+        },
+        "dropped_terms": [
+          "에서",
+          "청년이",
+          "검진과",
+          "심리지원을"
+        ],
+        "added_terms": [
+          "청년",
+          "검진",
+          "심리지원"
+        ],
+        "delta_hit@5": 0,
+        "delta_rank": 0,
+        "lexical_terms_identical": false
+      },
+      {
+        "case_id": "c2d-021",
+        "query": "보호종료 예정인 청년이 자립지원전담기관을 통해 주거체험이나 사례관리를 받을 수 있나요?",
+        "query_stripped": "보호종료 예정인 청년이 자립지원전담기관을 통해 주거체험이나 사례관리를 받을 수 있나요?",
+        "gold_source": "youth",
+        "gold_source_id": "20250916005400211698",
+        "gold_title": "자립지원전담기관 운영",
+        "category": "welfare_health",
+        "youth_bias": 0.015,
+        "baseline": {
+          "lexical_terms": [
+            "보호종료",
+            "예정인",
+            "청년이",
+            "자립지원전담기관을",
+            "통해",
+            "주거체험이나",
+            "사례관리를"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20260504005400113094",
+              "title": "자립지원 사업비",
+              "score": 0.8784339661699448
+            }
+          ]
+        },
+        "candidate": {
+          "lexical_terms": [
+            "보호종료",
+            "예정인",
+            "청년",
+            "자립지원전담기관",
+            "통해",
+            "주거체험이나",
+            "사례관리"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20250718005400211452",
+              "title": "자립지원전담기관 운영",
+              "score": 0.8803094602461237
+            }
+          ]
+        },
+        "vector_only": {
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@5": false,
+          "score": null,
+          "in_top30": false
+        },
+        "dropped_terms": [
+          "청년이",
+          "자립지원전담기관을",
+          "사례관리를"
+        ],
+        "added_terms": [
+          "청년",
+          "자립지원전담기관",
+          "사례관리"
+        ],
+        "delta_hit@5": 0,
+        "delta_rank": 0,
+        "lexical_terms_identical": false
+      },
+      {
+        "case_id": "c2d-025",
+        "query": "세종시에서 청년이 청년센터를 이용해 정책 네트워크나 프로그램에 참여할 수 있나요?",
+        "query_stripped": "시에서 청년이 청년센터를 이용해 정책 네트워크나 프로그램에 참여할 수 있나요?",
+        "gold_source": "youth",
+        "gold_source_id": "20250904005400211654",
+        "gold_title": " 세종 청년센터 운영",
+        "category": "culture_community",
+        "youth_bias": 0.015,
+        "baseline": {
+          "lexical_terms": [
+            "시에서",
+            "청년이",
+            "청년센터를",
+            "이용해",
+            "네트워크나",
+            "프로그램에",
+            "참여할"
+          ],
+          "rank": 0,
+          "rank_top30": 14,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": 0.8684863087261379,
+          "in_top30": true,
+          "filtered_by_cosine": true,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20250122005400110348",
+              "title": "청년성장프로젝트(청년카페)\t",
+              "score": 0.8530199790561251
+            }
+          ]
+        },
+        "candidate": {
+          "lexical_terms": [
+            "청년",
+            "청년센터",
+            "이용해",
+            "네트워크나",
+            "참여할"
+          ],
+          "rank": 3,
+          "rank_top30": 3,
+          "hit@1": false,
+          "hit@5": true,
+          "hit@10": true,
+          "score": 0.8684863087261379,
+          "in_top30": true,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20260504005400213055",
+              "title": "청년센터 운영",
+              "score": 0.8782949274133992
+            }
+          ]
+        },
+        "vector_only": {
+          "rank": 6,
+          "rank_top30": 6,
+          "hit@5": false,
+          "score": 0.8684863087261379,
+          "in_top30": true
+        },
+        "dropped_terms": [
+          "시에서",
+          "청년이",
+          "청년센터를",
+          "프로그램에"
+        ],
+        "added_terms": [
+          "청년",
+          "청년센터"
+        ],
+        "delta_hit@5": 1,
+        "delta_rank": 996,
+        "lexical_terms_identical": false
+      },
+      {
+        "case_id": "c2d-026",
+        "query": "경기도 청년이 청년참여기구를 통해 정책 제안이나 모니터링에 참여할 수 있을까요?",
+        "query_stripped": "도 청년이 청년참여기구를 통해 정책 제안이나 모니터링에 참여할 수 있을까요?",
+        "gold_source": "youth",
+        "gold_source_id": "20251231005400212067",
+        "gold_title": "경기도 청년참여기구 운영",
+        "category": "culture_community",
+        "youth_bias": 0.015,
+        "baseline": {
+          "lexical_terms": [
+            "청년이",
+            "청년참여기구를",
+            "통해",
+            "제안이나",
+            "모니터링에",
+            "참여할"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20250804005400211509",
+              "title": "대구청년정책네트워크",
+              "score": 0.8593471897818302
+            }
+          ]
+        },
+        "candidate": {
+          "lexical_terms": [
+            "청년",
+            "청년참여기구",
+            "통해",
+            "제안이나",
+            "모니터링",
+            "참여할"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20260430005400212991",
+              "title": "청년정책네트워크 운영",
+              "score": 0.8652310244488267
+            }
+          ]
+        },
+        "vector_only": {
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@5": false,
+          "score": null,
+          "in_top30": false
+        },
+        "dropped_terms": [
+          "청년이",
+          "청년참여기구를",
+          "모니터링에"
+        ],
+        "added_terms": [
+          "청년",
+          "청년참여기구",
+          "모니터링"
+        ],
+        "delta_hit@5": 0,
+        "delta_rank": 0,
+        "lexical_terms_identical": false
+      },
+      {
+        "case_id": "c2d-031",
+        "query": "광주에서 청년 후계농업경영인이 영농정착지원금을 받을 수 있나요?",
+        "query_stripped": "에서 청년 후계농업경영인이 영농정착지원금을 받을 수 있나요?",
+        "gold_source": "youth",
+        "gold_source_id": "20260513005400213183",
+        "gold_title": "2026년 청년농업인(청년창업형 후계농업경영인) 영농정착지원사업(2차)",
+        "category": "business_agriculture",
+        "youth_bias": 0.015,
+        "baseline": {
+          "lexical_terms": [
+            "에서",
+            "청년",
+            "후계농업경영인이",
+            "영농정착지원금을"
+          ],
+          "rank": 7,
+          "rank_top30": 7,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": true,
+          "score": 0.8951346778228453,
+          "in_top30": true,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20251211005400211960",
+              "title": "청년후계농업인 영농정착 지원",
+              "score": 0.9120211143317526
+            }
+          ]
+        },
+        "candidate": {
+          "lexical_terms": [
+            "청년",
+            "후계농업경영인",
+            "영농정착지원금"
+          ],
+          "rank": 2,
+          "rank_top30": 2,
+          "hit@1": false,
+          "hit@5": true,
+          "hit@10": true,
+          "score": 0.8951346778228453,
+          "in_top30": true,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20251211005400211960",
+              "title": "청년후계농업인 영농정착 지원",
+              "score": 0.9120211143317526
+            }
+          ]
+        },
+        "vector_only": {
+          "rank": 0,
+          "rank_top30": 13,
+          "hit@5": false,
+          "score": 0.8951346778228453,
+          "in_top30": true
+        },
+        "dropped_terms": [
+          "에서",
+          "후계농업경영인이",
+          "영농정착지원금을"
+        ],
+        "added_terms": [
+          "후계농업경영인",
+          "영농정착지원금"
+        ],
+        "delta_hit@5": 1,
+        "delta_rank": 5,
+        "lexical_terms_identical": false
+      }
+    ],
+    "candidate_misses": [
+      {
+        "case_id": "c2d-003",
+        "query": "부산에 사는 청년이 월세 부담을 덜기 위해 월세 지원을 받을 수 있나요?",
+        "query_stripped": "에 사는 청년이 월세 부담을 덜기 위해 월세 지원을 받을 수 있나요?",
+        "gold_source": "youth",
+        "gold_source_id": "20260513005400213199",
+        "gold_title": "부산 청년 월세 지원",
+        "category": "housing_finance",
+        "youth_bias": 0.015,
+        "baseline": {
+          "lexical_terms": [
+            "사는",
+            "청년이",
+            "월세",
+            "부담을",
+            "덜기",
+            "위해",
+            "지원을"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20250903005400211614",
+              "title": "청년월세 지원사업",
+              "score": 0.8712985669018608
+            }
+          ]
+        },
+        "candidate": {
+          "lexical_terms": [
+            "사는",
+            "청년",
+            "월세",
+            "부담",
+            "덜기",
+            "위해"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20260409005400212654",
+              "title": "청년 월세 지원",
+              "score": 0.880172200192692
+            }
+          ]
+        },
+        "vector_only": {
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@5": false,
+          "score": null,
+          "in_top30": false
+        },
+        "dropped_terms": [
+          "청년이",
+          "부담을",
+          "지원을"
+        ],
+        "added_terms": [
+          "청년",
+          "부담"
+        ],
+        "delta_hit@5": 0,
+        "delta_rank": 0,
+        "lexical_terms_identical": false
+      },
+      {
+        "case_id": "c2d-013",
+        "query": "강원 삼척시에서 청년이 행정인턴으로 일할 수 있는 지원사업이 있나요?",
+        "query_stripped": "삼척시에서 청년이 행정인턴으로 일할 수 있는 지원사업이 있나요?",
+        "gold_source": "youth",
+        "gold_source_id": "20260522005400213218",
+        "gold_title": "삼척형 청년인턴 지원사업",
+        "category": "employment_education",
+        "youth_bias": 0.015,
+        "baseline": {
+          "lexical_terms": [
+            "삼척시에서",
+            "청년이",
+            "행정인턴으로",
+            "일할",
+            "지원사업이"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20260402005400212383",
+              "title": "행정 체험형 청년인턴 채용사업",
+              "score": 0.8839366185859691
+            }
+          ]
+        },
+        "candidate": {
+          "lexical_terms": [
+            "삼척시",
+            "청년",
+            "행정인턴",
+            "일할",
+            "지원사업"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20260522005400213215",
+              "title": "삼척형 청년스타트업 창업지원사업",
+              "score": 0.8732684674236197
+            }
+          ]
+        },
+        "vector_only": {
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@5": false,
+          "score": null,
+          "in_top30": false
+        },
+        "dropped_terms": [
+          "삼척시에서",
+          "청년이",
+          "행정인턴으로",
+          "지원사업이"
+        ],
+        "added_terms": [
+          "삼척시",
+          "청년",
+          "행정인턴",
+          "지원사업"
+        ],
+        "delta_hit@5": 0,
+        "delta_rank": 0,
+        "lexical_terms_identical": false
+      },
+      {
+        "case_id": "c2d-015",
+        "query": "삼척시에서 대학생이 방학 동안 아르바이트를 할 수 있는 프로그램이 있나요?",
+        "query_stripped": "삼척시에서 대학생이 방학 동안 아르바이트를 할 수 있는 프로그램이 있나요?",
+        "gold_source": "youth",
+        "gold_source_id": "20260522005400213219",
+        "gold_title": "대학생 아르바이트 운영",
+        "category": "employment_education",
+        "youth_bias": 0.015,
+        "baseline": {
+          "lexical_terms": [
+            "삼척시에서",
+            "대학생이",
+            "방학",
+            "동안",
+            "아르바이트를",
+            "프로그램이"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20260413005400212716",
+              "title": "서귀포시 대학생·청년 아르바이트",
+              "score": 0.8613815107001969
+            }
+          ]
+        },
+        "candidate": {
+          "lexical_terms": [
+            "삼척시",
+            "대학생",
+            "방학",
+            "동안",
+            "아르바이트"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20260413005400212716",
+              "title": "서귀포시 대학생·청년 아르바이트",
+              "score": 0.8613815107001969
+            }
+          ]
+        },
+        "vector_only": {
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@5": false,
+          "score": null,
+          "in_top30": false
+        },
+        "dropped_terms": [
+          "삼척시에서",
+          "대학생이",
+          "아르바이트를",
+          "프로그램이"
+        ],
+        "added_terms": [
+          "삼척시",
+          "대학생",
+          "아르바이트"
+        ],
+        "delta_hit@5": 0,
+        "delta_rank": 0,
+        "lexical_terms_identical": false
+      },
+      {
+        "case_id": "c2d-019",
+        "query": "충남에서 청년이 우울이나 자살 관련 정신건강 검진과 심리지원을 받을 수 있나요?",
+        "query_stripped": "에서 청년이 우울이나 자살 관련 정신건강 검진과 심리지원을 받을 수 있나요?",
+        "gold_source": "youth",
+        "gold_source_id": "20251112005400211866",
+        "gold_title": "청년 자살예방 조기검진 및 심리지원",
+        "category": "welfare_health",
+        "youth_bias": 0.015,
+        "baseline": {
+          "lexical_terms": [
+            "에서",
+            "청년이",
+            "우울이나",
+            "자살",
+            "관련",
+            "정신건강",
+            "검진과",
+            "심리지원을"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20251214005400211991",
+              "title": "청년 자살예방 조기검진 및 심리지원",
+              "score": 0.9012744073657079
+            }
+          ]
+        },
+        "candidate": {
+          "lexical_terms": [
+            "청년",
+            "우울이나",
+            "자살",
+            "관련",
+            "정신건강",
+            "검진",
+            "심리지원"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20251214005400211991",
+              "title": "청년 자살예방 조기검진 및 심리지원",
+              "score": 0.9012744073657079
+            }
+          ]
+        },
+        "vector_only": {
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@5": false,
+          "score": null,
+          "in_top30": false
+        },
+        "dropped_terms": [
+          "에서",
+          "청년이",
+          "검진과",
+          "심리지원을"
+        ],
+        "added_terms": [
+          "청년",
+          "검진",
+          "심리지원"
+        ],
+        "delta_hit@5": 0,
+        "delta_rank": 0,
+        "lexical_terms_identical": false
+      },
+      {
+        "case_id": "c2d-021",
+        "query": "보호종료 예정인 청년이 자립지원전담기관을 통해 주거체험이나 사례관리를 받을 수 있나요?",
+        "query_stripped": "보호종료 예정인 청년이 자립지원전담기관을 통해 주거체험이나 사례관리를 받을 수 있나요?",
+        "gold_source": "youth",
+        "gold_source_id": "20250916005400211698",
+        "gold_title": "자립지원전담기관 운영",
+        "category": "welfare_health",
+        "youth_bias": 0.015,
+        "baseline": {
+          "lexical_terms": [
+            "보호종료",
+            "예정인",
+            "청년이",
+            "자립지원전담기관을",
+            "통해",
+            "주거체험이나",
+            "사례관리를"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20260504005400113094",
+              "title": "자립지원 사업비",
+              "score": 0.8784339661699448
+            }
+          ]
+        },
+        "candidate": {
+          "lexical_terms": [
+            "보호종료",
+            "예정인",
+            "청년",
+            "자립지원전담기관",
+            "통해",
+            "주거체험이나",
+            "사례관리"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20250718005400211452",
+              "title": "자립지원전담기관 운영",
+              "score": 0.8803094602461237
+            }
+          ]
+        },
+        "vector_only": {
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@5": false,
+          "score": null,
+          "in_top30": false
+        },
+        "dropped_terms": [
+          "청년이",
+          "자립지원전담기관을",
+          "사례관리를"
+        ],
+        "added_terms": [
+          "청년",
+          "자립지원전담기관",
+          "사례관리"
+        ],
+        "delta_hit@5": 0,
+        "delta_rank": 0,
+        "lexical_terms_identical": false
+      },
+      {
+        "case_id": "c2d-026",
+        "query": "경기도 청년이 청년참여기구를 통해 정책 제안이나 모니터링에 참여할 수 있을까요?",
+        "query_stripped": "도 청년이 청년참여기구를 통해 정책 제안이나 모니터링에 참여할 수 있을까요?",
+        "gold_source": "youth",
+        "gold_source_id": "20251231005400212067",
+        "gold_title": "경기도 청년참여기구 운영",
+        "category": "culture_community",
+        "youth_bias": 0.015,
+        "baseline": {
+          "lexical_terms": [
+            "청년이",
+            "청년참여기구를",
+            "통해",
+            "제안이나",
+            "모니터링에",
+            "참여할"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20250804005400211509",
+              "title": "대구청년정책네트워크",
+              "score": 0.8593471897818302
+            }
+          ]
+        },
+        "candidate": {
+          "lexical_terms": [
+            "청년",
+            "청년참여기구",
+            "통해",
+            "제안이나",
+            "모니터링",
+            "참여할"
+          ],
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@1": false,
+          "hit@5": false,
+          "hit@10": false,
+          "score": null,
+          "in_top30": false,
+          "filtered_by_cosine": false,
+          "top1": [
+            {
+              "source": "youth",
+              "source_id": "20260430005400212991",
+              "title": "청년정책네트워크 운영",
+              "score": 0.8652310244488267
+            }
+          ]
+        },
+        "vector_only": {
+          "rank": 0,
+          "rank_top30": 0,
+          "hit@5": false,
+          "score": null,
+          "in_top30": false
+        },
+        "dropped_terms": [
+          "청년이",
+          "청년참여기구를",
+          "모니터링에"
+        ],
+        "added_terms": [
+          "청년",
+          "청년참여기구",
+          "모니터링"
+        ],
+        "delta_hit@5": 0,
+        "delta_rank": 0,
+        "lexical_terms_identical": false
+      }
+    ],
+    "baseline_miss_count": 8,
+    "candidate_miss_count": 6,
+    "vector_miss_count": 9
+  },
+  "code_diff_verification": {
+    "verified": "candidate diff is only lexical_overlap_terms -> lexical_overlap_terms_rewrite; SQL/CANDIDATES/COSINE_MIN/LEXICAL_BIAS/RERANK/strip_region/expired exclusion/youth bias all identical and shared qvec",
+    "production_code_unchanged": true,
+    "lexical_only_diff": true
+  }
+}

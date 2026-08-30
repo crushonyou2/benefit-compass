@@ -1,0 +1,2208 @@
+{
+  "generated_at": "2026-08-30T04:40:08.040024+00:00",
+  "phase": "phase1-latency-diagnostic",
+  "diagnostic_only": true,
+  "not_final_gate": true,
+  "is_final_gate": false,
+  "git_commit": "5c5c5d933346a5a63e7878177bf15e0de46782eb",
+  "git_dirty": true,
+  "dev_set_sha256": "c8b66fef69bdfd0db053ac7cac0fb027fc3271c6072ab992b622cacdc71ace5e",
+  "production_contract": {
+    "candidates": 30,
+    "cosine_min": 0.78,
+    "lexical_bias": 0.01,
+    "rerank": 0,
+    "model": "intfloat/multilingual-e5-base"
+  },
+  "measurement": {
+    "warmup_per_variant": 18,
+    "rounds": 5,
+    "sample_count_per_variant": 180,
+    "total_samples": 360,
+    "shuffle_seed": 20260830,
+    "order_strategy": "(round+query_index)%2 alternation, deterministic seed shuffle, paired interleaved",
+    "timed_scope": "lexical_term generation + SQL execute/fetch + region_filter + COSINE_MIN filter (model load/embedding excluded)",
+    "same_process_db_qvec": true,
+    "interleaved": true,
+    "warmup_excluded": true
+  },
+  "baseline": {
+    "count": 180,
+    "p50_ms": 410.14,
+    "p95_ms": 487.315,
+    "p95_raw": 487.3146
+  },
+  "candidate": {
+    "count": 180,
+    "p50_ms": 386.006,
+    "p95_ms": 546.498,
+    "p95_raw": 546.4982
+  },
+  "delta": {
+    "p50_ms": -24.134,
+    "p95_ms": 59.184
+  },
+  "pass_diagnostic_impression": "candidate p95 <= baseline p95 (diagnostic only, not gate) => FAIL",
+  "samples": [
+    {
+      "query_id": "c2d-008",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 383.7663
+    },
+    {
+      "query_id": "c2d-008",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 379.2337
+    },
+    {
+      "query_id": "c2d-036",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 378.2693
+    },
+    {
+      "query_id": "c2d-036",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 383.3829
+    },
+    {
+      "query_id": "c2d-024",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 398.8844
+    },
+    {
+      "query_id": "c2d-024",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 339.8362
+    },
+    {
+      "query_id": "c2d-023",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 310.5403
+    },
+    {
+      "query_id": "c2d-023",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 312.0052
+    },
+    {
+      "query_id": "c2d-035",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 436.0636
+    },
+    {
+      "query_id": "c2d-035",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 434.677
+    },
+    {
+      "query_id": "c2d-022",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 464.3025
+    },
+    {
+      "query_id": "c2d-022",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 468.1102
+    },
+    {
+      "query_id": "c2d-002",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 438.4469
+    },
+    {
+      "query_id": "c2d-002",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 417.797
+    },
+    {
+      "query_id": "c2d-013",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 318.5511
+    },
+    {
+      "query_id": "c2d-013",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 327.4022
+    },
+    {
+      "query_id": "c2d-034",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 331.1647
+    },
+    {
+      "query_id": "c2d-034",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 382.3436
+    },
+    {
+      "query_id": "c2d-012",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 673.5378
+    },
+    {
+      "query_id": "c2d-012",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 605.4771
+    },
+    {
+      "query_id": "c2d-021",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 689.1087
+    },
+    {
+      "query_id": "c2d-021",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 658.1564
+    },
+    {
+      "query_id": "c2d-032",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 546.4982
+    },
+    {
+      "query_id": "c2d-032",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 594.9656
+    },
+    {
+      "query_id": "c2d-005",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 655.2589
+    },
+    {
+      "query_id": "c2d-005",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 566.1956
+    },
+    {
+      "query_id": "c2d-009",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 714.91
+    },
+    {
+      "query_id": "c2d-009",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 716.7208
+    },
+    {
+      "query_id": "c2d-014",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 550.4206
+    },
+    {
+      "query_id": "c2d-014",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 813.9246
+    },
+    {
+      "query_id": "c2d-006",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 596.198
+    },
+    {
+      "query_id": "c2d-006",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 650.8102
+    },
+    {
+      "query_id": "c2d-029",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 672.8945
+    },
+    {
+      "query_id": "c2d-029",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 483.2327
+    },
+    {
+      "query_id": "c2d-025",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 317.0525
+    },
+    {
+      "query_id": "c2d-025",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 371.0559
+    },
+    {
+      "query_id": "c2d-017",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 492.8003
+    },
+    {
+      "query_id": "c2d-017",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 497.3476
+    },
+    {
+      "query_id": "c2d-028",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 466.5746
+    },
+    {
+      "query_id": "c2d-028",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 465.6158
+    },
+    {
+      "query_id": "c2d-020",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 410.8422
+    },
+    {
+      "query_id": "c2d-020",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 465.4234
+    },
+    {
+      "query_id": "c2d-016",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 310.5847
+    },
+    {
+      "query_id": "c2d-016",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 412.8183
+    },
+    {
+      "query_id": "c2d-033",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 400.0299
+    },
+    {
+      "query_id": "c2d-033",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 339.567
+    },
+    {
+      "query_id": "c2d-001",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 418.2613
+    },
+    {
+      "query_id": "c2d-001",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 441.8651
+    },
+    {
+      "query_id": "c2d-011",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 314.6993
+    },
+    {
+      "query_id": "c2d-011",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 310.8669
+    },
+    {
+      "query_id": "c2d-031",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 408.6098
+    },
+    {
+      "query_id": "c2d-031",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 462.2766
+    },
+    {
+      "query_id": "c2d-010",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 346.1458
+    },
+    {
+      "query_id": "c2d-010",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 381.965
+    },
+    {
+      "query_id": "c2d-026",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 340.8501
+    },
+    {
+      "query_id": "c2d-026",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 342.9107
+    },
+    {
+      "query_id": "c2d-019",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 465.3329
+    },
+    {
+      "query_id": "c2d-019",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 435.9639
+    },
+    {
+      "query_id": "c2d-027",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 344.2276
+    },
+    {
+      "query_id": "c2d-027",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 410.8465
+    },
+    {
+      "query_id": "c2d-018",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 410.0087
+    },
+    {
+      "query_id": "c2d-018",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 305.8152
+    },
+    {
+      "query_id": "c2d-003",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 408.8207
+    },
+    {
+      "query_id": "c2d-003",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 438.318
+    },
+    {
+      "query_id": "c2d-007",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 348.3168
+    },
+    {
+      "query_id": "c2d-007",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 412.5097
+    },
+    {
+      "query_id": "c2d-030",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 405.7893
+    },
+    {
+      "query_id": "c2d-030",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 403.6194
+    },
+    {
+      "query_id": "c2d-015",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 334.0539
+    },
+    {
+      "query_id": "c2d-015",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 310.0445
+    },
+    {
+      "query_id": "c2d-004",
+      "round": 0,
+      "variant": "candidate",
+      "latency_ms": 460.9765
+    },
+    {
+      "query_id": "c2d-004",
+      "round": 0,
+      "variant": "baseline",
+      "latency_ms": 387.1294
+    },
+    {
+      "query_id": "c2d-029",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 410.5894
+    },
+    {
+      "query_id": "c2d-029",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 380.5415
+    },
+    {
+      "query_id": "c2d-018",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 408.0346
+    },
+    {
+      "query_id": "c2d-018",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 304.5825
+    },
+    {
+      "query_id": "c2d-011",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 314.066
+    },
+    {
+      "query_id": "c2d-011",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 312.1083
+    },
+    {
+      "query_id": "c2d-007",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 410.9168
+    },
+    {
+      "query_id": "c2d-007",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 413.0401
+    },
+    {
+      "query_id": "c2d-008",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 387.1752
+    },
+    {
+      "query_id": "c2d-008",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 382.1769
+    },
+    {
+      "query_id": "c2d-002",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 434.6124
+    },
+    {
+      "query_id": "c2d-002",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 428.4869
+    },
+    {
+      "query_id": "c2d-021",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 374.0185
+    },
+    {
+      "query_id": "c2d-021",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 439.9908
+    },
+    {
+      "query_id": "c2d-014",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 384.9246
+    },
+    {
+      "query_id": "c2d-014",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 475.4559
+    },
+    {
+      "query_id": "c2d-031",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 337.0756
+    },
+    {
+      "query_id": "c2d-031",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 463.1649
+    },
+    {
+      "query_id": "c2d-034",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 336.5485
+    },
+    {
+      "query_id": "c2d-034",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 331.5326
+    },
+    {
+      "query_id": "c2d-028",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 467.2556
+    },
+    {
+      "query_id": "c2d-028",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 469.571
+    },
+    {
+      "query_id": "c2d-025",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 368.4706
+    },
+    {
+      "query_id": "c2d-025",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 389.743
+    },
+    {
+      "query_id": "c2d-017",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 516.1512
+    },
+    {
+      "query_id": "c2d-017",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 487.3146
+    },
+    {
+      "query_id": "c2d-026",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 339.33
+    },
+    {
+      "query_id": "c2d-026",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 342.7129
+    },
+    {
+      "query_id": "c2d-020",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 464.1978
+    },
+    {
+      "query_id": "c2d-020",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 407.4065
+    },
+    {
+      "query_id": "c2d-036",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 378.0145
+    },
+    {
+      "query_id": "c2d-036",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 478.1844
+    },
+    {
+      "query_id": "c2d-001",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 432.9993
+    },
+    {
+      "query_id": "c2d-001",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 441.6646
+    },
+    {
+      "query_id": "c2d-010",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 344.1087
+    },
+    {
+      "query_id": "c2d-010",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 383.5047
+    },
+    {
+      "query_id": "c2d-003",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 431.5479
+    },
+    {
+      "query_id": "c2d-003",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 441.061
+    },
+    {
+      "query_id": "c2d-019",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 469.5297
+    },
+    {
+      "query_id": "c2d-019",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 368.08
+    },
+    {
+      "query_id": "c2d-033",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 336.943
+    },
+    {
+      "query_id": "c2d-033",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 463.7645
+    },
+    {
+      "query_id": "c2d-030",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 472.5882
+    },
+    {
+      "query_id": "c2d-030",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 474.9829
+    },
+    {
+      "query_id": "c2d-015",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 310.8986
+    },
+    {
+      "query_id": "c2d-015",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 336.8206
+    },
+    {
+      "query_id": "c2d-035",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 437.0273
+    },
+    {
+      "query_id": "c2d-035",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 440.2137
+    },
+    {
+      "query_id": "c2d-032",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 403.4761
+    },
+    {
+      "query_id": "c2d-032",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 450.8015
+    },
+    {
+      "query_id": "c2d-009",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 407.1354
+    },
+    {
+      "query_id": "c2d-009",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 468.0721
+    },
+    {
+      "query_id": "c2d-022",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 462.3709
+    },
+    {
+      "query_id": "c2d-022",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 463.9351
+    },
+    {
+      "query_id": "c2d-027",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 340.962
+    },
+    {
+      "query_id": "c2d-027",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 340.1277
+    },
+    {
+      "query_id": "c2d-006",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 401.4568
+    },
+    {
+      "query_id": "c2d-006",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 428.8406
+    },
+    {
+      "query_id": "c2d-013",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 320.4569
+    },
+    {
+      "query_id": "c2d-013",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 391.1465
+    },
+    {
+      "query_id": "c2d-024",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 405.9445
+    },
+    {
+      "query_id": "c2d-024",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 465.2854
+    },
+    {
+      "query_id": "c2d-016",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 411.4603
+    },
+    {
+      "query_id": "c2d-016",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 310.4306
+    },
+    {
+      "query_id": "c2d-012",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 389.2548
+    },
+    {
+      "query_id": "c2d-012",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 339.9896
+    },
+    {
+      "query_id": "c2d-004",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 383.3748
+    },
+    {
+      "query_id": "c2d-004",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 391.8667
+    },
+    {
+      "query_id": "c2d-005",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 317.6673
+    },
+    {
+      "query_id": "c2d-005",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 368.4578
+    },
+    {
+      "query_id": "c2d-023",
+      "round": 1,
+      "variant": "baseline",
+      "latency_ms": 314.3872
+    },
+    {
+      "query_id": "c2d-023",
+      "round": 1,
+      "variant": "candidate",
+      "latency_ms": 315.4617
+    },
+    {
+      "query_id": "c2d-009",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 469.087
+    },
+    {
+      "query_id": "c2d-009",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 473.4895
+    },
+    {
+      "query_id": "c2d-008",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 381.9746
+    },
+    {
+      "query_id": "c2d-008",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 381.5974
+    },
+    {
+      "query_id": "c2d-021",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 370.4973
+    },
+    {
+      "query_id": "c2d-021",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 369.0427
+    },
+    {
+      "query_id": "c2d-035",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 363.9059
+    },
+    {
+      "query_id": "c2d-035",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 366.1284
+    },
+    {
+      "query_id": "c2d-027",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 342.4645
+    },
+    {
+      "query_id": "c2d-027",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 342.9871
+    },
+    {
+      "query_id": "c2d-022",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 466.2563
+    },
+    {
+      "query_id": "c2d-022",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 458.9798
+    },
+    {
+      "query_id": "c2d-015",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 336.789
+    },
+    {
+      "query_id": "c2d-015",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 311.5296
+    },
+    {
+      "query_id": "c2d-004",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 467.3317
+    },
+    {
+      "query_id": "c2d-004",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 389.9014
+    },
+    {
+      "query_id": "c2d-006",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 442.3393
+    },
+    {
+      "query_id": "c2d-006",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 341.2231
+    },
+    {
+      "query_id": "c2d-014",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 401.183
+    },
+    {
+      "query_id": "c2d-014",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 326.1149
+    },
+    {
+      "query_id": "c2d-002",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 439.1073
+    },
+    {
+      "query_id": "c2d-002",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 411.6565
+    },
+    {
+      "query_id": "c2d-007",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 344.2786
+    },
+    {
+      "query_id": "c2d-007",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 341.4879
+    },
+    {
+      "query_id": "c2d-032",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 416.7835
+    },
+    {
+      "query_id": "c2d-032",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 312.3312
+    },
+    {
+      "query_id": "c2d-033",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 338.2107
+    },
+    {
+      "query_id": "c2d-033",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 464.7146
+    },
+    {
+      "query_id": "c2d-012",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 470.4508
+    },
+    {
+      "query_id": "c2d-012",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 388.3635
+    },
+    {
+      "query_id": "c2d-034",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 332.9747
+    },
+    {
+      "query_id": "c2d-034",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 331.8181
+    },
+    {
+      "query_id": "c2d-013",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 312.2121
+    },
+    {
+      "query_id": "c2d-013",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 310.492
+    },
+    {
+      "query_id": "c2d-024",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 336.5127
+    },
+    {
+      "query_id": "c2d-024",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 464.9618
+    },
+    {
+      "query_id": "c2d-018",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 409.3489
+    },
+    {
+      "query_id": "c2d-018",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 383.6459
+    },
+    {
+      "query_id": "c2d-020",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 471.3784
+    },
+    {
+      "query_id": "c2d-020",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 410.0865
+    },
+    {
+      "query_id": "c2d-029",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 438.8934
+    },
+    {
+      "query_id": "c2d-029",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 406.5719
+    },
+    {
+      "query_id": "c2d-030",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 402.8448
+    },
+    {
+      "query_id": "c2d-030",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 402.7927
+    },
+    {
+      "query_id": "c2d-019",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 462.7651
+    },
+    {
+      "query_id": "c2d-019",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 443.5415
+    },
+    {
+      "query_id": "c2d-005",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 318.0985
+    },
+    {
+      "query_id": "c2d-005",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 442.2176
+    },
+    {
+      "query_id": "c2d-017",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 414.9579
+    },
+    {
+      "query_id": "c2d-017",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 489.158
+    },
+    {
+      "query_id": "c2d-001",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 344.698
+    },
+    {
+      "query_id": "c2d-001",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 448.6947
+    },
+    {
+      "query_id": "c2d-011",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 321.9187
+    },
+    {
+      "query_id": "c2d-011",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 391.2825
+    },
+    {
+      "query_id": "c2d-025",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 318.7229
+    },
+    {
+      "query_id": "c2d-025",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 368.8704
+    },
+    {
+      "query_id": "c2d-026",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 407.0475
+    },
+    {
+      "query_id": "c2d-026",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 341.1554
+    },
+    {
+      "query_id": "c2d-028",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 465.8676
+    },
+    {
+      "query_id": "c2d-028",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 467.641
+    },
+    {
+      "query_id": "c2d-023",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 310.1579
+    },
+    {
+      "query_id": "c2d-023",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 309.6801
+    },
+    {
+      "query_id": "c2d-010",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 384.9069
+    },
+    {
+      "query_id": "c2d-010",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 413.6867
+    },
+    {
+      "query_id": "c2d-031",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 464.8783
+    },
+    {
+      "query_id": "c2d-031",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 430.8499
+    },
+    {
+      "query_id": "c2d-036",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 724.5062
+    },
+    {
+      "query_id": "c2d-036",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 382.0204
+    },
+    {
+      "query_id": "c2d-016",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 335.3381
+    },
+    {
+      "query_id": "c2d-016",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 308.7492
+    },
+    {
+      "query_id": "c2d-003",
+      "round": 2,
+      "variant": "candidate",
+      "latency_ms": 410.6583
+    },
+    {
+      "query_id": "c2d-003",
+      "round": 2,
+      "variant": "baseline",
+      "latency_ms": 367.097
+    },
+    {
+      "query_id": "c2d-032",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 380.2584
+    },
+    {
+      "query_id": "c2d-032",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 413.0116
+    },
+    {
+      "query_id": "c2d-017",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 423.4407
+    },
+    {
+      "query_id": "c2d-017",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 492.4386
+    },
+    {
+      "query_id": "c2d-004",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 394.7473
+    },
+    {
+      "query_id": "c2d-004",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 392.1479
+    },
+    {
+      "query_id": "c2d-015",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 427.1188
+    },
+    {
+      "query_id": "c2d-015",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 385.6532
+    },
+    {
+      "query_id": "c2d-011",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 385.7662
+    },
+    {
+      "query_id": "c2d-011",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 384.2693
+    },
+    {
+      "query_id": "c2d-023",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 312.7098
+    },
+    {
+      "query_id": "c2d-023",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 311.7898
+    },
+    {
+      "query_id": "c2d-016",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 380.9295
+    },
+    {
+      "query_id": "c2d-016",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 410.1401
+    },
+    {
+      "query_id": "c2d-019",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 466.8547
+    },
+    {
+      "query_id": "c2d-019",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 366.7186
+    },
+    {
+      "query_id": "c2d-022",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 461.4972
+    },
+    {
+      "query_id": "c2d-022",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 469.1309
+    },
+    {
+      "query_id": "c2d-024",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 404.8583
+    },
+    {
+      "query_id": "c2d-024",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 341.1991
+    },
+    {
+      "query_id": "c2d-029",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 416.4694
+    },
+    {
+      "query_id": "c2d-029",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 439.6335
+    },
+    {
+      "query_id": "c2d-030",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 402.8959
+    },
+    {
+      "query_id": "c2d-030",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 406.1753
+    },
+    {
+      "query_id": "c2d-008",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 381.3069
+    },
+    {
+      "query_id": "c2d-008",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 309.9829
+    },
+    {
+      "query_id": "c2d-036",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 378.0503
+    },
+    {
+      "query_id": "c2d-036",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 377.9779
+    },
+    {
+      "query_id": "c2d-009",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 393.7946
+    },
+    {
+      "query_id": "c2d-009",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 393.7468
+    },
+    {
+      "query_id": "c2d-031",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 394.3623
+    },
+    {
+      "query_id": "c2d-031",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 340.6471
+    },
+    {
+      "query_id": "c2d-006",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 405.629
+    },
+    {
+      "query_id": "c2d-006",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 431.1752
+    },
+    {
+      "query_id": "c2d-021",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 367.8678
+    },
+    {
+      "query_id": "c2d-021",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 374.4581
+    },
+    {
+      "query_id": "c2d-027",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 340.1945
+    },
+    {
+      "query_id": "c2d-027",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 408.6625
+    },
+    {
+      "query_id": "c2d-010",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 339.9537
+    },
+    {
+      "query_id": "c2d-010",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 311.9183
+    },
+    {
+      "query_id": "c2d-033",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 334.8416
+    },
+    {
+      "query_id": "c2d-033",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 461.9544
+    },
+    {
+      "query_id": "c2d-012",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 410.1693
+    },
+    {
+      "query_id": "c2d-012",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 384.9833
+    },
+    {
+      "query_id": "c2d-035",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 365.2578
+    },
+    {
+      "query_id": "c2d-035",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 426.8537
+    },
+    {
+      "query_id": "c2d-002",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 436.5125
+    },
+    {
+      "query_id": "c2d-002",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 410.031
+    },
+    {
+      "query_id": "c2d-014",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 470.5401
+    },
+    {
+      "query_id": "c2d-014",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 318.276
+    },
+    {
+      "query_id": "c2d-020",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 414.8752
+    },
+    {
+      "query_id": "c2d-020",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 463.4485
+    },
+    {
+      "query_id": "c2d-034",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 333.6698
+    },
+    {
+      "query_id": "c2d-034",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 401.436
+    },
+    {
+      "query_id": "c2d-026",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 414.1534
+    },
+    {
+      "query_id": "c2d-026",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 342.0213
+    },
+    {
+      "query_id": "c2d-007",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 415.1648
+    },
+    {
+      "query_id": "c2d-007",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 424.7475
+    },
+    {
+      "query_id": "c2d-028",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 467.3609
+    },
+    {
+      "query_id": "c2d-028",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 467.6897
+    },
+    {
+      "query_id": "c2d-005",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 390.1878
+    },
+    {
+      "query_id": "c2d-005",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 441.4797
+    },
+    {
+      "query_id": "c2d-013",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 314.3836
+    },
+    {
+      "query_id": "c2d-013",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 385.4113
+    },
+    {
+      "query_id": "c2d-001",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 413.8263
+    },
+    {
+      "query_id": "c2d-001",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 447.552
+    },
+    {
+      "query_id": "c2d-025",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 366.8759
+    },
+    {
+      "query_id": "c2d-025",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 318.0893
+    },
+    {
+      "query_id": "c2d-003",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 410.9238
+    },
+    {
+      "query_id": "c2d-003",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 450.3988
+    },
+    {
+      "query_id": "c2d-018",
+      "round": 3,
+      "variant": "baseline",
+      "latency_ms": 408.2346
+    },
+    {
+      "query_id": "c2d-018",
+      "round": 3,
+      "variant": "candidate",
+      "latency_ms": 949.6791
+    },
+    {
+      "query_id": "c2d-009",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 466.6855
+    },
+    {
+      "query_id": "c2d-009",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 466.9133
+    },
+    {
+      "query_id": "c2d-022",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 471.9178
+    },
+    {
+      "query_id": "c2d-022",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 470.5885
+    },
+    {
+      "query_id": "c2d-014",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 320.9374
+    },
+    {
+      "query_id": "c2d-014",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 464.9726
+    },
+    {
+      "query_id": "c2d-021",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 373.1925
+    },
+    {
+      "query_id": "c2d-021",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 452.3347
+    },
+    {
+      "query_id": "c2d-019",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 462.6139
+    },
+    {
+      "query_id": "c2d-019",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 439.5
+    },
+    {
+      "query_id": "c2d-008",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 310.6869
+    },
+    {
+      "query_id": "c2d-008",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 313.041
+    },
+    {
+      "query_id": "c2d-003",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 438.749
+    },
+    {
+      "query_id": "c2d-003",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 409.1907
+    },
+    {
+      "query_id": "c2d-004",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 391.0917
+    },
+    {
+      "query_id": "c2d-004",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 314.7172
+    },
+    {
+      "query_id": "c2d-031",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 391.7166
+    },
+    {
+      "query_id": "c2d-031",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 338.0464
+    },
+    {
+      "query_id": "c2d-028",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 464.8071
+    },
+    {
+      "query_id": "c2d-028",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 464.9236
+    },
+    {
+      "query_id": "c2d-005",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 443.898
+    },
+    {
+      "query_id": "c2d-005",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 316.4395
+    },
+    {
+      "query_id": "c2d-011",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 313.6749
+    },
+    {
+      "query_id": "c2d-011",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 316.5621
+    },
+    {
+      "query_id": "c2d-006",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 432.8353
+    },
+    {
+      "query_id": "c2d-006",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 404.4377
+    },
+    {
+      "query_id": "c2d-035",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 363.9199
+    },
+    {
+      "query_id": "c2d-035",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 366.3651
+    },
+    {
+      "query_id": "c2d-007",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 410.8598
+    },
+    {
+      "query_id": "c2d-007",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 412.0639
+    },
+    {
+      "query_id": "c2d-025",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 319.5549
+    },
+    {
+      "query_id": "c2d-025",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 373.6681
+    },
+    {
+      "query_id": "c2d-018",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 415.3846
+    },
+    {
+      "query_id": "c2d-018",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 319.5632
+    },
+    {
+      "query_id": "c2d-017",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 594.966
+    },
+    {
+      "query_id": "c2d-017",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 419.9769
+    },
+    {
+      "query_id": "c2d-024",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 396.3097
+    },
+    {
+      "query_id": "c2d-024",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 336.0607
+    },
+    {
+      "query_id": "c2d-002",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 408.2132
+    },
+    {
+      "query_id": "c2d-002",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 437.3883
+    },
+    {
+      "query_id": "c2d-013",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 316.6189
+    },
+    {
+      "query_id": "c2d-013",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 316.0408
+    },
+    {
+      "query_id": "c2d-023",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 312.2458
+    },
+    {
+      "query_id": "c2d-023",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 311.5263
+    },
+    {
+      "query_id": "c2d-020",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 411.8116
+    },
+    {
+      "query_id": "c2d-020",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 470.6599
+    },
+    {
+      "query_id": "c2d-016",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 319.9618
+    },
+    {
+      "query_id": "c2d-016",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 409.6838
+    },
+    {
+      "query_id": "c2d-015",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 340.6193
+    },
+    {
+      "query_id": "c2d-015",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 311.9717
+    },
+    {
+      "query_id": "c2d-001",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 418.794
+    },
+    {
+      "query_id": "c2d-001",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 443.5428
+    },
+    {
+      "query_id": "c2d-027",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 342.2895
+    },
+    {
+      "query_id": "c2d-027",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 343.6501
+    },
+    {
+      "query_id": "c2d-029",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 410.3611
+    },
+    {
+      "query_id": "c2d-029",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 440.6652
+    },
+    {
+      "query_id": "c2d-010",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 342.0401
+    },
+    {
+      "query_id": "c2d-010",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 313.3005
+    },
+    {
+      "query_id": "c2d-032",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 386.006
+    },
+    {
+      "query_id": "c2d-032",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 422.3363
+    },
+    {
+      "query_id": "c2d-034",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 344.3117
+    },
+    {
+      "query_id": "c2d-034",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 338.1894
+    },
+    {
+      "query_id": "c2d-036",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 380.101
+    },
+    {
+      "query_id": "c2d-036",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 380.2185
+    },
+    {
+      "query_id": "c2d-026",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 341.0648
+    },
+    {
+      "query_id": "c2d-026",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 342.7946
+    },
+    {
+      "query_id": "c2d-012",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 384.4494
+    },
+    {
+      "query_id": "c2d-012",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 415.0616
+    },
+    {
+      "query_id": "c2d-033",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 461.433
+    },
+    {
+      "query_id": "c2d-033",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 341.6479
+    },
+    {
+      "query_id": "c2d-030",
+      "round": 4,
+      "variant": "candidate",
+      "latency_ms": 473.8265
+    },
+    {
+      "query_id": "c2d-030",
+      "round": 4,
+      "variant": "baseline",
+      "latency_ms": 473.183
+    }
+  ]
+}
