@@ -10,14 +10,33 @@ from retrieval_v2.schema import validate_file, validate_role_contract
 
 
 def _load_holdout_items(ref):
-    """Load holdout items via git show without leaking plaintext to stdout beyond test assertions."""
+    """Load holdout items via git show without leaking plaintext to stdout beyond test assertions.
+
+    Fail-closed: any git failure, empty output, UTF-8 decode failure, or JSON failure
+    raises AssertionError so overlap tests cannot silently PASS.
+    subprocess uses binary capture with explicit UTF-8 decode to avoid cp949 locale issues.
+    """
+    r = subprocess.run(["git", "show", ref], capture_output=True, check=False)
+    if r.returncode != 0:
+        err = r.stderr.decode("utf-8", errors="replace").strip()[:500]
+        raise AssertionError(f"git show failed for {ref}: {err}")
+    if not r.stdout or not r.stdout.strip():
+        raise AssertionError(f"git show empty output for {ref}")
     try:
-        r = subprocess.run(["git", "show", ref], capture_output=True, text=True, check=False)
-        if r.returncode != 0 or not r.stdout.strip():
-            return []
-        return [json.loads(l) for l in r.stdout.splitlines() if l.strip()]
-    except Exception:
-        return []
+        text = r.stdout.decode("utf-8")
+    except UnicodeDecodeError as e:
+        raise AssertionError(f"UTF-8 decode failed for {ref}: {e}") from e
+    items = []
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        try:
+            items.append(json.loads(line))
+        except json.JSONDecodeError as e:
+            raise AssertionError(f"JSON decode failed for {ref}: {e}") from e
+    if not items:
+        raise AssertionError(f"no holdout items parsed for {ref}")
+    return items
 
 
 class Cycle2DevSetTest(unittest.TestCase):
@@ -99,58 +118,52 @@ class Cycle2DevSetTest(unittest.TestCase):
             self.assertEqual(set(), cur_gold & dev_gold)
 
     def test_no_query_overlap_with_cycle1_holdout(self):
-        # try filesystem first, then git
-        c1h_items = []
         p = pathlib.Path("eval/retrieval-v2/holdout/evalset.jsonl")
         if p.exists():
             c1h_items = [json.loads(l) for l in p.read_text(encoding="utf-8").splitlines() if l.strip()]
+            self.assertGreater(len(c1h_items), 0, "cycle1 holdout filesystem exists but empty")
         else:
             c1h_items = _load_holdout_items("12515a20758265b0b5a5f52acef5aa40de3b6253:eval/retrieval-v2/holdout/evalset.jsonl")
-            if not c1h_items:
-                c1h_items = _load_holdout_items("HEAD:eval/retrieval-v2/holdout/evalset.jsonl")
-        if c1h_items:
-            c1h_q = set(x["query"].strip() for x in c1h_items)
-            cur_q = set(x["query"].strip() for x in self.items)
-            self.assertEqual(set(), cur_q & c1h_q)
+        self.assertGreater(len(c1h_items), 0, "cycle1 holdout must be loaded for leakage check")
+        c1h_q = set(x["query"].strip() for x in c1h_items)
+        cur_q = set(x["query"].strip() for x in self.items)
+        self.assertEqual(set(), cur_q & c1h_q)
 
     def test_no_gold_overlap_with_cycle1_holdout(self):
-        c1h_items = []
         p = pathlib.Path("eval/retrieval-v2/holdout/evalset.jsonl")
         if p.exists():
             c1h_items = [json.loads(l) for l in p.read_text(encoding="utf-8").splitlines() if l.strip()]
+            self.assertGreater(len(c1h_items), 0, "cycle1 holdout filesystem exists but empty")
         else:
             c1h_items = _load_holdout_items("12515a20758265b0b5a5f52acef5aa40de3b6253:eval/retrieval-v2/holdout/evalset.jsonl")
-        if c1h_items:
-            c1h_gold = set(str(x["gold_source_id"]) for x in c1h_items)
-            cur_gold = set(str(x["gold_source_id"]) for x in self.items)
-            self.assertEqual(set(), cur_gold & c1h_gold)
+        self.assertGreater(len(c1h_items), 0, "cycle1 holdout must be loaded for leakage check")
+        c1h_gold = set(str(x["gold_source_id"]) for x in c1h_items)
+        cur_gold = set(str(x["gold_source_id"]) for x in self.items)
+        self.assertEqual(set(), cur_gold & c1h_gold)
 
     def test_no_query_overlap_with_cycle2_holdout(self):
-        # filesystem absent on candidate branch; use git
-        c2h_items = []
         p = pathlib.Path("eval/retrieval-v2/cycle2/holdout/evalset.jsonl")
         if p.exists():
             c2h_items = [json.loads(l) for l in p.read_text(encoding="utf-8").splitlines() if l.strip()]
+            self.assertGreater(len(c2h_items), 0, "cycle2 holdout filesystem exists but empty")
         else:
             c2h_items = _load_holdout_items("9e2cd6ea4b8203b474d7d6a6a69a088763284043:eval/retrieval-v2/cycle2/holdout/evalset.jsonl")
-            if not c2h_items:
-                c2h_items = _load_holdout_items("origin/codex/retrieval-v2-cycle2-holdout-freeze:eval/retrieval-v2/cycle2/holdout/evalset.jsonl")
-        if c2h_items:
-            c2h_q = set(x["query"].strip() for x in c2h_items)
-            cur_q = set(x["query"].strip() for x in self.items)
-            self.assertEqual(set(), cur_q & c2h_q)
+        self.assertGreater(len(c2h_items), 0, "cycle2 holdout must be loaded for leakage check")
+        c2h_q = set(x["query"].strip() for x in c2h_items)
+        cur_q = set(x["query"].strip() for x in self.items)
+        self.assertEqual(set(), cur_q & c2h_q)
 
     def test_no_gold_overlap_with_cycle2_holdout(self):
-        c2h_items = []
         p = pathlib.Path("eval/retrieval-v2/cycle2/holdout/evalset.jsonl")
         if p.exists():
             c2h_items = [json.loads(l) for l in p.read_text(encoding="utf-8").splitlines() if l.strip()]
+            self.assertGreater(len(c2h_items), 0, "cycle2 holdout filesystem exists but empty")
         else:
             c2h_items = _load_holdout_items("9e2cd6ea4b8203b474d7d6a6a69a088763284043:eval/retrieval-v2/cycle2/holdout/evalset.jsonl")
-        if c2h_items:
-            c2h_gold = set(str(x["gold_source_id"]) for x in c2h_items)
-            cur_gold = set(str(x["gold_source_id"]) for x in self.items)
-            self.assertEqual(set(), cur_gold & c2h_gold)
+        self.assertGreater(len(c2h_items), 0, "cycle2 holdout must be loaded for leakage check")
+        c2h_gold = set(str(x["gold_source_id"]) for x in c2h_items)
+        cur_gold = set(str(x["gold_source_id"]) for x in self.items)
+        self.assertEqual(set(), cur_gold & c2h_gold)
 
     def test_no_query_overlap_with_hard_negative(self):
         hn_q = set()
@@ -284,6 +297,18 @@ class Cycle2DevSetTest(unittest.TestCase):
             self.assertTrue(x["category"].strip())
             self.assertTrue(x["query"].strip())
             self.assertTrue(x.get("gold_title", "").strip() if "gold_title" in x else True)
+
+    def test_holdout_helper_fail_closed_on_invalid_ref(self):
+        # invalid object and missing path must raise, not silently return []
+        with self.assertRaises(AssertionError):
+            _load_holdout_items("deadbeef:eval/retrieval-v2/holdout/evalset.jsonl")
+        with self.assertRaises(AssertionError):
+            _load_holdout_items("HEAD:eval/retrieval-v2/cycle2/holdout/evalset.jsonl")
+        # also verify valid fixed refs load with expected aggregate counts (no plaintext)
+        c1 = _load_holdout_items("12515a20758265b0b5a5f52acef5aa40de3b6253:eval/retrieval-v2/holdout/evalset.jsonl")
+        self.assertEqual(40, len(c1), "cycle1 holdout fixed ref must yield 40 cases")
+        c2 = _load_holdout_items("9e2cd6ea4b8203b474d7d6a6a69a088763284043:eval/retrieval-v2/cycle2/holdout/evalset.jsonl")
+        self.assertEqual(40, len(c2), "cycle2 holdout fixed ref must yield 40 cases")
 
 
 if __name__ == "__main__":
