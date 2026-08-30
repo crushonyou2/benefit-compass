@@ -184,3 +184,26 @@ Reconciled base: branch `codex/retrieval-v2-cycle2-candidate` HEAD `13ba60c8872c
 (4) **D-003/D-004/D-007/D-008/D-009는 그대로 유지**; Cycle1 HOLD 불변; gate/threshold 완화 없음; 기존 Cycle2 holdout artifacts/tag는 **immutable history로 보존하되 final gate evidence로 사용 금지**. Cycle2 holdout 관련 tag/branch/commit(`retrieval-v2-cycle2-holdout-v1`, `codex/retrieval-v2-cycle2-holdout-freeze`, `9e2cd6e` commit)는 이력 보존이며, Cycle2/Cycle3 final holdout gate의 evidence가 될 수 없다.
 
 No production/ml-service, eval data/artifacts/test code 수정 없음. No retrieval/DB/model/embedding/holdout plaintext access in this session. No new holdout 생성·봉인·평가가 본 결정 세션에서 수행되지 않음.
+## D-011 · Adopt Retrieval v2 Cycle3 clean evaluation/candidate-search — fresh dev+holdout, pre-registration, isolation, audit log — close Q-005 — 2026-08-30 (user-confirmed standing decision)
+
+사용자가 직전 Web 제안에 대해 '진행해라'라고 명시적으로 승인했다. 이를 Q-005 해결 및 D-011 사용자-confirmed standing decision으로 기록한다. Web cross-validation addendum(Exp1 post-result extra retrieval, Exp2 2회 premature+steering·폐기, Exp3/Exp4 premature+steering 확정, Cycle2 전체 `PROCESS_CONTAMINATED`)을 근거로 Cycle3를 clean cycle로 시작한다.
+
+Reconciled base: branch `codex/retrieval-v2-cycle2-candidate` HEAD `d21c838b0cbd7da44dec3142d1de10a304e8c781` clean, `origin/codex/retrieval-v2-cycle2-candidate` 일치, actual remote `https://github.com/crushonyou2/benefit-compass.git` 일치, `git status --porcelain` clean, `git diff --check` PASS, working tree clean, local==origin==actual remote. No retrieval/DB/model/embedding/benchmark/holdout plaintext/`git show`/`checkout`/final holdout 실행 0 in this decision-record session. Model `Muse Spark 1.2 Contributor / 매우 높음(xhigh)` verified — HARD GATE 통과. decision/docs-only, no branch/tag/dev/holdout creation, no eval artifact/production/ml-service modification in this session.
+
+(1) Retrieval v2 Cycle3를 **clean evaluation/candidate-search cycle**로 시작한다.
+
+(2) Cycle2의 canonical metric/artifact(Phase1 28→30, Exp1~Exp4 30/36 REJECTED, `VALID_CANONICAL_RESULT`, 각 dev SHA `c8b66fef…`, holdout SHA `cf003bab…`, corpus `13589/17609`, production diff 0)는 **immutable historical diagnostic evidence로 보존**하되, Cycle2 candidate-search는 `PROCESS_CONTAMINATED`였으므로 **Cycle3의 candidate selection/final evaluation 근거로 재사용하지 않는다**. "충분히 탐색했다/더 좋은 후보 없음" 결론은 무효.
+
+(3) D-010의 'Cycle2 dev 36(SHA `c8b66fef…`)를 tuning set으로 유지 가능'은 **역사적 결정으로 불변이나**, Cycle3에서는 더 보수적인 hygiene 경로를 채택하여 **Cycle2 dev 36을 재사용하지 않는다**. Cycle3에는 **fresh dev 36과 fresh holdout 40을 모두 새로 생성·동결**한다. Cycle2 dev/holdout artifacts/tag는 immutable history로만 보존.
+
+(4) fresh dev와 fresh holdout은 모두 **candidate tuning 전에 독립적으로 생성·동결**하고, P0/cycle1 dev+holdout/cycle2 dev+disqualified holdout/hard-negative 및 서로 간 query+gold overlap 0을 **fail-closed 검증**한다. Holdout builder와 dev builder 세션은 candidate-tuning 세션과 분리한다. 본 결정 세션에서는 fresh dev/holdout 생성·봉인·평가·plaintext 접근을 수행하지 않는다.
+
+(5) candidate 개발 전에 **후보 설계 공간과 최대 실험 수를 pre-register**한다. 이후 Web은 Paseo 작업 중 중간 steering/검증을 하지 않고 **Paseo의 체크리스트와 최종 보고가 모두 완료된 뒤에만 독립 교차검증**한다. **HARD GATE/보안·seal 위반만 예외적으로 즉시 중단 가능**하다.
+
+(6) Cycle3부터 retrieval 실행 및 protected-set 접근에 대해 **append-only run/access audit log**를 도입하여 프로세스 실행 횟수, 시작/종료, candidate id, dev/holdout access 여부를 durable하게 남긴다. **final holdout plaintext는 candidate freeze + independent review + 사용자 명시 승인 전 접근 금지**한다.
+
+(7) **dev에서 사전등록 selection 조건을 통과한 후보만 freeze**하고 independent review 후 **fresh holdout에서 추가 tuning 없이 D-007의 7 mandatory gates**(quality improvement, +2 net, no Youth/Gov24 regression, P0 PASS, hard-negative PASS, latency non-regression, holdout integrity)를 평가한다.
+
+(8) **D-003/D-004/D-007/D-008/D-009/D-010 및 Cycle1 HOLD는 역사/계약으로 유지**한다. gate/threshold 완화 없음. production rollout은 별도 결정이다.
+
+No production/ml-service, eval data/artifacts/test code 수정 없음. No retrieval/DB/model/embedding/benchmark/holdout plaintext 생성·접근·`git show`/`checkout` in this session. No new branch/tag/dev/holdout 생성·봉인·평가가 본 결정 세션에서 수행되지 않음. Q-005 closed → D-011.
