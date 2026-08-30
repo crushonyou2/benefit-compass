@@ -1,7 +1,8 @@
 # Retrieval v2 — Status (SSOT)
 
-> This page is the current SSOT/status page for Retrieval v2. It does not rerun evaluations and does not propose a new candidate.
+> **Process audit (2026-08-30):** [Cycle2 PROCESS AUDIT — durable evidence only (read-only)](./RETRIEVAL_V2_CYCLE2_PROCESS_AUDIT.md) — 본 SSOT의 `single execution` 표현은 `canonical accepted execution 1회`로 정정 해석해야 하며, `28/30/30` 등 dev 수치는 기술적으로 유효하나 “충분히 탐색했다/더 좋은 후보가 없다”는 완전성 결론은 durable 증거 없이 성립하지 않음. 최종 후보 선정은 반드시 fresh holdout에서만 판정.
 
+> This page is the current SSOT/status page for Retrieval v2. It does not rerun evaluations and does not propose a new candidate.
 ## Contract
 
 - **D-003** — production retrieval contract (`RERANK=0`, `CANDIDATES=30`, `COSINE_MIN=0.78`, `LEXICAL_OVERLAP_BIAS=0.01`, `strip_region`, expired-policy exclusion, `intfloat/multilingual-e5-base`, source-aware youth bias).
