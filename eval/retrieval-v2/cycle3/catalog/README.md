@@ -78,7 +78,8 @@ check_overlap(fresh, union, strict=True)  # raises ValueError if any overlap, fa
 - No query, no gold_title, no reversible raw identifiers.
 - Verified via `plaintext leak` check (search for known query substrings) in builder and tests.
 
-## Next
+## Next (historical at catalog-freeze; as of D-012 `a6a232c` + closure commit, current closure state)
 
-- Fresh Cycle3 holdout 40 builder (isolated session, plaintext not reused from this catalog builder).
-- This catalog builder workspace must not be reused for candidate tuning/fresh builder/final evaluation (isolation).
+- Historical next at catalog-freeze: Fresh Cycle3 holdout 40 builder (isolated session, plaintext not reused from this catalog builder) — **now completed**; holdout 40 (`4c631ce7...`) and dev 36 (`3791368f...`) are frozen, audited, and canonical dev batch executed (count=1, `DEV_SELECTABLE []` closes without holdout per D-012). This Next list is preserved as historical sequence, not current.
+- This catalog builder workspace must not be reused for candidate tuning/fresh builder/final evaluation (isolation) — remains in force.
+- **Current closure (D-012, 2026-09-01):** Cycle3 closed without holdout; no candidate freeze, no holdout evaluation; archival tag `retrieval-v2-cycle3-closure-v1` will point to D-012 closure commit; next logical stage is Git hygiene with fresh CAS checks (no deletion in this stage).
