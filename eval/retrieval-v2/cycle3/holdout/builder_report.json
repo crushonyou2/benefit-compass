@@ -1,0 +1,121 @@
+{
+  "plan_version": "cycle3-holdout-v1",
+  "seed": "benefit-compass-cycle3-holdout-v1-2026-08-31",
+  "generated_at": "2026-08-31T02:20:42.611596Z",
+  "cases": 40,
+  "source_totals": {
+    "youth": 20,
+    "gov24": 20
+  },
+  "category_totals": {
+    "housing_finance": 7,
+    "family_care": 7,
+    "employment_education": 7,
+    "welfare_health": 7,
+    "culture_community": 6,
+    "business_agriculture": 6
+  },
+  "source_category_quota": {
+    "housing_finance": {
+      "youth": 4,
+      "gov24": 3
+    },
+    "family_care": {
+      "youth": 3,
+      "gov24": 4
+    },
+    "employment_education": {
+      "youth": 4,
+      "gov24": 3
+    },
+    "welfare_health": {
+      "youth": 3,
+      "gov24": 4
+    },
+    "culture_community": {
+      "youth": 3,
+      "gov24": 3
+    },
+    "business_agriculture": {
+      "youth": 3,
+      "gov24": 3
+    }
+  },
+  "stable_order": "sha256(seed + NUL + source + NUL + source_id), ascending",
+  "classifier": {
+    "precedence": [
+      "family_care",
+      "housing_finance",
+      "business_agriculture",
+      "employment_education",
+      "welfare_health",
+      "culture_community"
+    ],
+    "keywords_hash": "3e59a3d048c11b64b3e0ea42b3fb7ba322be5b82832fcb561a628d769c53a64f",
+    "text_fields": [
+      "category_large",
+      "category_mid",
+      "title",
+      "keywords",
+      "summary"
+    ],
+    "normalization": "NFC + casefold + whitespace collapse"
+  },
+  "selection_rule": "for each category/source quota, take first rows in stable_order classified to that category; no result/metric comparison",
+  "query_authoring": "single-pass natural Korean user query from selected row source truth only; include jurisdiction/scope and distinguishing eligibility terms where needed; do not inspect retrieval outputs",
+  "source_truth_meta": {
+    "as_of": "2026-08-31",
+    "rows_kept": 11903,
+    "by_source": {
+      "gov24": 10411,
+      "youth": 1492
+    },
+    "historical_gold_excluded": 198,
+    "sha256": "67acd53304669208ad205bc79d119951b8e5ace3e881378a56d99390242d6144",
+    "historical_catalog_sha256": "42e8534d578bc45808d6546bee9f59a49564ad455cd3b693d23853676d169454"
+  },
+  "historical_union": {
+    "query_count": 248,
+    "gold_count": 248
+  },
+  "validation": {
+    "internal_query_fingerprints_unique": true,
+    "internal_query_duplicate": 0,
+    "internal_gold_fingerprints_unique": true,
+    "internal_gold_duplicate": 0,
+    "historical_query_overlap": 0,
+    "historical_gold_overlap": 0,
+    "well_posed": 40,
+    "ambiguous": 0,
+    "fingerprint_version": "v1",
+    "normalization_spec": "NFC + strip + collapse_whitespace + casefold(lower)",
+    "gold_corresponds_to_source_truth": true,
+    "gold_unique": true,
+    "quotas_match": true
+  },
+  "files": {
+    "evalset.jsonl": {
+      "sha256": "4c631ce7cdcc03374bb1861d0a27e0ebbacf35a691fb6f54543b96c7f051c350",
+      "cases": 40
+    },
+    "fingerprints.json": {
+      "sha256": "93be481e3c4fee700615b8f66c0c9289472ea3315c46287a91174d278c625a89",
+      "cases": 40
+    },
+    "annotation_audit.json": {
+      "sha256": "739a72cb8d9e1eb67fdb6e73ebc3842ffad9efc9b0586cab57d5a3879e372ee6",
+      "cases": 40
+    },
+    "manifest.json": {
+      "sha256": "f8a836ed6913e915de439e528cd4216c22122fa2bbb8ee9938dcbf5dec7aaf39",
+      "cases": null
+    }
+  },
+  "hashes": {
+    "evalset.jsonl": "4c631ce7cdcc03374bb1861d0a27e0ebbacf35a691fb6f54543b96c7f051c350",
+    "fingerprints.json": "93be481e3c4fee700615b8f66c0c9289472ea3315c46287a91174d278c625a89",
+    "annotation_audit.json": "739a72cb8d9e1eb67fdb6e73ebc3842ffad9efc9b0586cab57d5a3879e372ee6",
+    "manifest.json": "f8a836ed6913e915de439e528cd4216c22122fa2bbb8ee9938dcbf5dec7aaf39"
+  },
+  "notes": "Deterministic stable hash ordering; single-pass query authoring; no retrieval/embedding/metrics retuning; fail-closed fingerprint validation. DAG: core -> manifest -> builder_report -> SEALED"
+}

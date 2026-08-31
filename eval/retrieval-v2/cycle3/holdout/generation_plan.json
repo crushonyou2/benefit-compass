@@ -1,0 +1,43 @@
+{
+  "plan_version": "cycle3-holdout-v1",
+  "seed": "benefit-compass-cycle3-holdout-v1-2026-08-31",
+  "cases": 40,
+  "source_totals": {"youth": 20, "gov24": 20},
+  "category_totals": {
+    "housing_finance": 7,
+    "family_care": 7,
+    "employment_education": 7,
+    "welfare_health": 7,
+    "culture_community": 6,
+    "business_agriculture": 6
+  },
+  "source_category_quota": {
+    "housing_finance": {"youth": 4, "gov24": 3},
+    "family_care": {"youth": 3, "gov24": 4},
+    "employment_education": {"youth": 4, "gov24": 3},
+    "welfare_health": {"youth": 3, "gov24": 4},
+    "culture_community": {"youth": 3, "gov24": 3},
+    "business_agriculture": {"youth": 3, "gov24": 3}
+  },
+  "stable_order": "sha256(seed + NUL + source + NUL + source_id), ascending",
+  "historical_gold_filter": "already applied to source_truth.jsonl using historical catalog union gold fingerprints",
+  "classifier": {
+    "text_fields": ["category_large", "category_mid", "title", "keywords", "summary"],
+    "normalization": "NFC + casefold + whitespace collapse",
+    "precedence": ["family_care", "housing_finance", "business_agriculture", "employment_education", "welfare_health", "culture_community"],
+    "keywords": {
+      "family_care": ["임신", "출산", "육아", "보육", "아동", "가족", "돌봄", "다자녀", "한부모", "양육"],
+      "housing_finance": ["주거", "주택", "전세", "월세", "임대", "보증금", "주거비", "이사", "금융", "대출", "이자", "저축", "자산형성", "생활안정"],
+      "business_agriculture": ["창업", "사업", "경영", "소상공인", "중소기업", "기업", "농업", "농림", "어업", "수산", "축산", "귀농", "귀어"],
+      "employment_education": ["고용", "일자리", "취업", "구직", "채용", "직업", "직업훈련", "교육", "학업", "장학", "학자금", "진로"],
+      "welfare_health": ["복지", "보건", "의료", "건강", "치료", "질병", "장애", "정신건강", "보험", "재활", "요양"],
+      "culture_community": ["문화", "예술", "체육", "스포츠", "관광", "여가", "환경", "공동체", "참여", "권리", "지역활동", "청년활동"]
+    },
+    "no_match": "exclude",
+    "multi_match": "use precedence; record all matched categories in annotation evidence"
+  },
+  "selection": "for each category/source quota, take first rows in stable_order classified to that category; no result/metric comparison",
+  "query_authoring": "single-pass natural Korean user query from selected row source truth only; include jurisdiction/scope and distinguishing eligibility terms where needed; do not inspect retrieval outputs",
+  "case_ids": "c3h-001..c3h-040 assigned category order as listed above, youth then gov24 within each quota",
+  "forbidden": ["historical eval plaintext", "retrieval/ranking", "policy_chunk", "embedding/vector", "candidate metrics", "fresh dev"]
+}

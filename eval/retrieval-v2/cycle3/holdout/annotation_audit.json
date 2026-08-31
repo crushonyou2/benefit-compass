@@ -1,0 +1,1053 @@
+{
+  "generated_at": "2026-08-31T02:20:42.611596Z",
+  "cases": 40,
+  "well_posed": 40,
+  "ambiguous": 0,
+  "fingerprint_version": "v1",
+  "normalization_spec": "NFC + strip + collapse_whitespace + casefold(lower)",
+  "category_totals": {
+    "housing_finance": 7,
+    "family_care": 7,
+    "employment_education": 7,
+    "welfare_health": 7,
+    "culture_community": 6,
+    "business_agriculture": 6
+  },
+  "source_totals": {
+    "youth": 20,
+    "gov24": 20
+  },
+  "cases_audit": [
+    {
+      "case_id": "c3h-001",
+      "category": "housing_finance",
+      "gold_source": "youth",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "housing_finance",
+          "business_agriculture",
+          "welfare_health",
+          "culture_community"
+        ],
+        "chosen_category_by_precedence": "housing_finance",
+        "matched_keyword_by_category": {
+          "housing_finance": "금융",
+          "business_agriculture": "사업",
+          "welfare_health": "복지",
+          "culture_community": "문화"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-002",
+      "category": "housing_finance",
+      "gold_source": "youth",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "housing_finance"
+        ],
+        "chosen_category_by_precedence": "housing_finance",
+        "matched_keyword_by_category": {
+          "housing_finance": "주거"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-003",
+      "category": "housing_finance",
+      "gold_source": "youth",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "housing_finance",
+          "welfare_health",
+          "culture_community"
+        ],
+        "chosen_category_by_precedence": "housing_finance",
+        "matched_keyword_by_category": {
+          "housing_finance": "금융",
+          "welfare_health": "복지",
+          "culture_community": "문화"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-004",
+      "category": "housing_finance",
+      "gold_source": "youth",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "housing_finance",
+          "business_agriculture",
+          "welfare_health",
+          "culture_community"
+        ],
+        "chosen_category_by_precedence": "housing_finance",
+        "matched_keyword_by_category": {
+          "housing_finance": "금융",
+          "business_agriculture": "중소기업",
+          "welfare_health": "복지",
+          "culture_community": "문화"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-005",
+      "category": "housing_finance",
+      "gold_source": "gov24",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "housing_finance"
+        ],
+        "chosen_category_by_precedence": "housing_finance",
+        "matched_keyword_by_category": {
+          "housing_finance": "생활안정"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-006",
+      "category": "housing_finance",
+      "gold_source": "gov24",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "housing_finance"
+        ],
+        "chosen_category_by_precedence": "housing_finance",
+        "matched_keyword_by_category": {
+          "housing_finance": "생활안정"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": false,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-007",
+      "category": "housing_finance",
+      "gold_source": "gov24",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "housing_finance",
+          "welfare_health"
+        ],
+        "chosen_category_by_precedence": "housing_finance",
+        "matched_keyword_by_category": {
+          "housing_finance": "생활안정",
+          "welfare_health": "의료"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-008",
+      "category": "family_care",
+      "gold_source": "youth",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "family_care",
+          "housing_finance",
+          "welfare_health",
+          "culture_community"
+        ],
+        "chosen_category_by_precedence": "family_care",
+        "matched_keyword_by_category": {
+          "family_care": "아동",
+          "housing_finance": "금융",
+          "welfare_health": "복지",
+          "culture_community": "문화"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-009",
+      "category": "family_care",
+      "gold_source": "youth",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "family_care",
+          "housing_finance",
+          "welfare_health",
+          "culture_community"
+        ],
+        "chosen_category_by_precedence": "family_care",
+        "matched_keyword_by_category": {
+          "family_care": "임신",
+          "housing_finance": "금융",
+          "welfare_health": "복지",
+          "culture_community": "문화"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-010",
+      "category": "family_care",
+      "gold_source": "youth",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "family_care",
+          "housing_finance",
+          "welfare_health",
+          "culture_community"
+        ],
+        "chosen_category_by_precedence": "family_care",
+        "matched_keyword_by_category": {
+          "family_care": "출산",
+          "housing_finance": "금융",
+          "welfare_health": "복지",
+          "culture_community": "문화"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-011",
+      "category": "family_care",
+      "gold_source": "gov24",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "family_care",
+          "employment_education"
+        ],
+        "chosen_category_by_precedence": "family_care",
+        "matched_keyword_by_category": {
+          "family_care": "보육",
+          "employment_education": "교육"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-012",
+      "category": "family_care",
+      "gold_source": "gov24",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "family_care"
+        ],
+        "chosen_category_by_precedence": "family_care",
+        "matched_keyword_by_category": {
+          "family_care": "돌봄"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": false,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-013",
+      "category": "family_care",
+      "gold_source": "gov24",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "family_care",
+          "employment_education"
+        ],
+        "chosen_category_by_precedence": "family_care",
+        "matched_keyword_by_category": {
+          "family_care": "보육",
+          "employment_education": "교육"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": false,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-014",
+      "category": "family_care",
+      "gold_source": "gov24",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "family_care",
+          "welfare_health"
+        ],
+        "chosen_category_by_precedence": "family_care",
+        "matched_keyword_by_category": {
+          "family_care": "임신",
+          "welfare_health": "의료"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": false,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-015",
+      "category": "employment_education",
+      "gold_source": "youth",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "employment_education"
+        ],
+        "chosen_category_by_precedence": "employment_education",
+        "matched_keyword_by_category": {
+          "employment_education": "일자리"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-016",
+      "category": "employment_education",
+      "gold_source": "youth",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "employment_education"
+        ],
+        "chosen_category_by_precedence": "employment_education",
+        "matched_keyword_by_category": {
+          "employment_education": "교육"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-017",
+      "category": "employment_education",
+      "gold_source": "youth",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "employment_education",
+          "culture_community"
+        ],
+        "chosen_category_by_precedence": "employment_education",
+        "matched_keyword_by_category": {
+          "employment_education": "교육",
+          "culture_community": "참여"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-018",
+      "category": "employment_education",
+      "gold_source": "youth",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "employment_education",
+          "welfare_health",
+          "culture_community"
+        ],
+        "chosen_category_by_precedence": "employment_education",
+        "matched_keyword_by_category": {
+          "employment_education": "교육",
+          "welfare_health": "복지",
+          "culture_community": "문화"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-019",
+      "category": "employment_education",
+      "gold_source": "gov24",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "employment_education",
+          "culture_community"
+        ],
+        "chosen_category_by_precedence": "employment_education",
+        "matched_keyword_by_category": {
+          "employment_education": "교육",
+          "culture_community": "문화"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": false
+      }
+    },
+    {
+      "case_id": "c3h-020",
+      "category": "employment_education",
+      "gold_source": "gov24",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "employment_education",
+          "culture_community"
+        ],
+        "chosen_category_by_precedence": "employment_education",
+        "matched_keyword_by_category": {
+          "employment_education": "교육",
+          "culture_community": "문화"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": false
+      }
+    },
+    {
+      "case_id": "c3h-021",
+      "category": "employment_education",
+      "gold_source": "gov24",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "employment_education",
+          "culture_community"
+        ],
+        "chosen_category_by_precedence": "employment_education",
+        "matched_keyword_by_category": {
+          "employment_education": "교육",
+          "culture_community": "문화"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-022",
+      "category": "welfare_health",
+      "gold_source": "youth",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "welfare_health",
+          "culture_community"
+        ],
+        "chosen_category_by_precedence": "welfare_health",
+        "matched_keyword_by_category": {
+          "welfare_health": "복지",
+          "culture_community": "문화"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-023",
+      "category": "welfare_health",
+      "gold_source": "youth",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "welfare_health",
+          "culture_community"
+        ],
+        "chosen_category_by_precedence": "welfare_health",
+        "matched_keyword_by_category": {
+          "welfare_health": "복지",
+          "culture_community": "문화"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-024",
+      "category": "welfare_health",
+      "gold_source": "youth",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "welfare_health",
+          "culture_community"
+        ],
+        "chosen_category_by_precedence": "welfare_health",
+        "matched_keyword_by_category": {
+          "welfare_health": "복지",
+          "culture_community": "문화"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-025",
+      "category": "welfare_health",
+      "gold_source": "gov24",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "welfare_health"
+        ],
+        "chosen_category_by_precedence": "welfare_health",
+        "matched_keyword_by_category": {
+          "welfare_health": "보건"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-026",
+      "category": "welfare_health",
+      "gold_source": "gov24",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "welfare_health"
+        ],
+        "chosen_category_by_precedence": "welfare_health",
+        "matched_keyword_by_category": {
+          "welfare_health": "복지"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": false,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-027",
+      "category": "welfare_health",
+      "gold_source": "gov24",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "welfare_health"
+        ],
+        "chosen_category_by_precedence": "welfare_health",
+        "matched_keyword_by_category": {
+          "welfare_health": "보건"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-028",
+      "category": "welfare_health",
+      "gold_source": "gov24",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "welfare_health"
+        ],
+        "chosen_category_by_precedence": "welfare_health",
+        "matched_keyword_by_category": {
+          "welfare_health": "보건"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": false,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-029",
+      "category": "culture_community",
+      "gold_source": "youth",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "culture_community"
+        ],
+        "chosen_category_by_precedence": "culture_community",
+        "matched_keyword_by_category": {
+          "culture_community": "참여"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-030",
+      "category": "culture_community",
+      "gold_source": "youth",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "culture_community"
+        ],
+        "chosen_category_by_precedence": "culture_community",
+        "matched_keyword_by_category": {
+          "culture_community": "참여"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-031",
+      "category": "culture_community",
+      "gold_source": "youth",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "culture_community"
+        ],
+        "chosen_category_by_precedence": "culture_community",
+        "matched_keyword_by_category": {
+          "culture_community": "참여"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-032",
+      "category": "culture_community",
+      "gold_source": "gov24",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "culture_community"
+        ],
+        "chosen_category_by_precedence": "culture_community",
+        "matched_keyword_by_category": {
+          "culture_community": "문화"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": false,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-033",
+      "category": "culture_community",
+      "gold_source": "gov24",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "culture_community"
+        ],
+        "chosen_category_by_precedence": "culture_community",
+        "matched_keyword_by_category": {
+          "culture_community": "문화"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": false
+      }
+    },
+    {
+      "case_id": "c3h-034",
+      "category": "culture_community",
+      "gold_source": "gov24",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "culture_community"
+        ],
+        "chosen_category_by_precedence": "culture_community",
+        "matched_keyword_by_category": {
+          "culture_community": "문화"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": false,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-035",
+      "category": "business_agriculture",
+      "gold_source": "youth",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "business_agriculture",
+          "employment_education"
+        ],
+        "chosen_category_by_precedence": "business_agriculture",
+        "matched_keyword_by_category": {
+          "business_agriculture": "사업",
+          "employment_education": "일자리"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-036",
+      "category": "business_agriculture",
+      "gold_source": "youth",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "business_agriculture",
+          "employment_education",
+          "welfare_health",
+          "culture_community"
+        ],
+        "chosen_category_by_precedence": "business_agriculture",
+        "matched_keyword_by_category": {
+          "business_agriculture": "사업",
+          "employment_education": "일자리",
+          "welfare_health": "복지",
+          "culture_community": "참여"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-037",
+      "category": "business_agriculture",
+      "gold_source": "youth",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "business_agriculture",
+          "employment_education"
+        ],
+        "chosen_category_by_precedence": "business_agriculture",
+        "matched_keyword_by_category": {
+          "business_agriculture": "창업",
+          "employment_education": "일자리"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": true,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-038",
+      "category": "business_agriculture",
+      "gold_source": "gov24",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "business_agriculture"
+        ],
+        "chosen_category_by_precedence": "business_agriculture",
+        "matched_keyword_by_category": {
+          "business_agriculture": "농림"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": false,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-039",
+      "category": "business_agriculture",
+      "gold_source": "gov24",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "business_agriculture"
+        ],
+        "chosen_category_by_precedence": "business_agriculture",
+        "matched_keyword_by_category": {
+          "business_agriculture": "농림"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": false,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    },
+    {
+      "case_id": "c3h-040",
+      "category": "business_agriculture",
+      "gold_source": "gov24",
+      "verdict": "well_posed",
+      "evidence": {
+        "matched_categories": [
+          "business_agriculture"
+        ],
+        "chosen_category_by_precedence": "business_agriculture",
+        "matched_keyword_by_category": {
+          "business_agriculture": "농업"
+        },
+        "distinguishing_terms": {
+          "title_present": true,
+          "org_present": true,
+          "age_present": false,
+          "summary_keyword_present": true
+        },
+        "jurisdiction_included": true,
+        "scope_included": true,
+        "eligibility_included": true
+      }
+    }
+  ],
+  "notes": "All queries well-posed from source truth only, include jurisdiction/scope and distinguishing eligibility terms; single-pass no retune."
+}
