@@ -1,18 +1,26 @@
 {
-  "correction": {
+  "corrected_reaudit": {
     "adjudicated": "adjudicated_labels.jsonl",
+    "adjudicated_sha256": "a153ac27a48e57445074d581b844b4eaeec7f0f0118797015ada8849d95cedd4",
+    "adjudication_log": "adjudication_log.json",
     "disagreement_matrix": "disagreement_matrix.json",
-    "provenance": "reviewer_A_provenance.json, reviewer_B_provenance.json, reaudit_protocol.json",
+    "log_sha256": "8d9df15d610f88860d14680b902b7268dd5fef9315856b02ee4dc7f18d000e86",
+    "matrix_sha256": "739fd050120849a5cd82b5b4c2a2f0973c5fdca8d0f93b4901ffa7f2533841",
+    "provenance": "reviewer_A_provenance.json, reviewer_B_provenance.json, adjudicator_provenance.json, reaudit_protocol.json",
     "raw_A": "reviewer_A_raw_labels.jsonl",
+    "raw_A_sha256": "15e976bbb8f5f89690e397a4349793304326f44fd4bae9448da36d947a8ec848",
     "raw_B": "reviewer_B_raw_labels.jsonl",
+    "raw_B_sha256": "d7a303378b5661d79be1286b5f1c98933fa5f262961a4e1caf2146a149d23bef",
     "re_audit_directory": "eval/retrieval-v3/pilot/re-audit/",
     "sanitized_input": "pilot_reaudit_input.jsonl",
+    "sanitized_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
     "terminology": "pilot answerability is CONCEPTUAL/INTENT only; final benchmark answerability is source-truth grounded"
   },
-  "correction_id": "pilot-correction-2026-09-01-web-hold-A-B",
+  "correction_id": "pilot-correction-2026-09-01-web-hold-A-B-corrected",
   "hold_findings": {
-    "A_provenance_not_auditable": "Original pilot_tasks.jsonl contains final labels only; no raw reviewer labels/session provenance; 7% disagreement claim cannot be independently reconstructed",
-    "B_answerability_not_corpus_grounded": "Existing '85% answerable' is concept-level intuition (CONCEPTUAL/INTENT), not corpus-grounded source-truth; pilot gold schema has no source/source_id; must NOT be used as corpus-grounded sizing evidence"
+    "A_provenance_not_genuine": "f1322cb reviewer A was 100% copy of pilot_tasks.jsonl (100/100 stratum/golds renamed, 19% designed B, 15:00 timestamp later than commit, Luna model mismatch, alternating adjudication) -- not genuine independent evidence",
+    "B_answerability_not_corpus_grounded": "Existing '85% answerable' is concept-level intuition (CONCEPTUAL/INTENT), not corpus-grounded source-truth; must NOT be used as sizing evidence",
+    "corrected_provenance_is_genuine": "New re-audit uses genuinely isolated A/B (sanitized input only, separate delegated sessions, blind to original/counterpart, Luna xhigh truthful, unavailable session explicit, 27/100 recomputable, rubric-based adjudication)"
   },
   "original_pilot_preserved": {
     "pilot_provenance_path": "eval/retrieval-v3/pilot/pilot_provenance.json",
@@ -23,5 +31,14 @@
     "pilot_tasks_sha256": "b3250e592d4c80099e29d20d1bf87594f2bac11a59907ac8067d3e1ddbd65da3",
     "preservation": "immutable historical evidence; not rewritten"
   },
-  "timestamp": "2026-09-01T15:00:00+09:00"
+  "superseded_flawed_reaudit": {
+    "adjudicated_sha256": "fe198a28676f5b628f803a2cf60a2ecce0aaa0bccae262389363ed82c58d3f2a",
+    "disagreement_matrix_sha256": "f6b7a5ae1ae2aebaf9b1eb6a42894016b7f79c39a56aa2ec207d6127c6dc1f40",
+    "preservation": "superseded historical evidence via git history at f1322cb; not deleted, but corrected by this append-only supersession",
+    "reviewer_A_sha256": "2d8a84b93d1e62870d42978d1d51ddef18373da6b6809d65d33d069929eba1eb",
+    "reviewer_B_sha256": "15b98f3522ed9acd560aa5bb75f7fc30991fb2815f6521bfbeadbb171f5fcb89",
+    "timestamp": "2026-09-01T15:00:00+09:00"
+  },
+  "supersedes": "pilot-correction-2026-09-01-web-hold-A-B (f1322cb 15:00+09 flawed)",
+  "timestamp": "2026-08-31T23:01:16Z"
 }

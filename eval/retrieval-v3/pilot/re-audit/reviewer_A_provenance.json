@@ -1,6 +1,6 @@
 {
-  "agent_label": "AnnotatorA",
-  "annotation_protocol": "independent retrieval-blind re-audit, no system output, sanitized input (task_id+query_text) only, no access to original pilot_tasks labels or other reviewer's labels",
+  "agent_label": "AnnotatorA-isolated",
+  "annotation_protocol": "retrieval-blind independent annotation in a separate delegated task; read only sanitized task_id/query_text plus frozen rubric (RETRIEVAL_V3_PREREG §2-§4, pilot_report §2/§5/§6, D-015/D-016 conceptual correction); no pilot_tasks.jsonl labels, no counterpart output, no retrieval/DB/model/embedding or ml-service access, no system output; isolation enforced via separate delegated task with isolated input confinement",
   "dimensions_reviewed": [
     "stratum (8-way)",
     "location_bearing",
@@ -13,15 +13,25 @@
     "source_hint",
     "golds grade 3/2/1 + equivalence_group (all 100 tasks)"
   ],
-  "instruction_version": "RETRIEVAL_V3_PREREG FINAL REPAIR — conceptual answerability only; ambiguous safety-only; grade 3/2/1 with equivalence groups",
-  "model_role": "Muse Spark 1.2 Contributor (root); delegated annotator task via OMP task subagent (modelRoles follow actual OMP config; root gate Muse Spark 1.2 / xhigh verified, child not gated)",
-  "note": "OMP session identifiers not durably obtainable beyond agent_label; independence guaranteed via separate delegated annotator with no shared state; sanitized input excludes all label fields",
+  "files_not_read": [
+    "eval/retrieval-v3/pilot/pilot_tasks.jsonl",
+    "eval/retrieval-v3/pilot/re-audit/reviewer_B_raw_labels.jsonl"
+  ],
+  "files_read": [
+    "eval/retrieval-v3/pilot/re-audit/pilot_reaudit_input.jsonl",
+    "docs/RETRIEVAL_V3_PREREG.md §2-§4",
+    "eval/retrieval-v3/pilot/pilot_report.md §2/§5/§6",
+    "memory/DECISIONS.md D-015"
+  ],
+  "instruction_version": "RETRIEVAL_V3_PREREG FINAL REPAIR §§2-4 + pilot_report §2/§5/§6 + D-015 (conceptual_answerable correction)",
+  "isolation_note": "Did not access eval/retrieval-v3/pilot/pilot_tasks.jsonl labels or any reviewer_B output; files read were only sanitized input + permitted rubric files; no system retrieval or protected data",
+  "model_role": "Muse Spark 1.2 Contributor delegated via openai-codex/gpt-5.6-luna:xhigh (task Luna xhigh per OMP modelRoles; root opencode-go/muse-spark-1.2-contributor:xhigh HARD GATE, child not gated)",
   "output_file": "reviewer_A_raw_labels.jsonl",
-  "output_sha256": "2d8a84b93d1e62870d42978d1d51ddef18373da6b6809d65d33d069929eba1eb",
+  "output_sha256": "15e976bbb8f5f89690e397a4349793304326f44fd4bae9448da36d947a8ec848",
   "reviewer_id": "A",
   "sanitized_input_path": "eval/retrieval-v3/pilot/re-audit/pilot_reaudit_input.jsonl",
   "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
-  "session_id": "re-audit-2026-09-01-A (no durable OMP session identifier exposed via file system; recorded as available)",
-  "timestamp": "2026-09-01T15:00:00+09:00",
+  "session_id": "unavailable -- OMP session identifiers not durably persisted via filesystem; independence enforced via separate delegated task with isolated input confinement (no shared state between A/B)",
+  "timestamp": "2026-08-31T23:00:20.231752Z",
   "total_tasks": 100
 }

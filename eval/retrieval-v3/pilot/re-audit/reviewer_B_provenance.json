@@ -1,27 +1,37 @@
 {
-  "agent_label": "AnnotatorB",
-  "annotation_protocol": "independent retrieval-blind re-audit, blind to reviewer A labels, sanitized input only",
+  "agent_label": "AnnotatorB-isolated",
+  "annotation_protocol": "retrieval-blind independent annotation, blind to reviewer A labels, sanitized input only, no system output, no retrieval/DB/model/embedding",
   "dimensions_reviewed": [
     "stratum (8-way)",
     "location_bearing",
     "labelable",
-    "conceptual_answerable (CONCEPTUAL/INTENT only, not corpus-grounded)",
+    "conceptual_answerable (CONCEPTUAL/INTENT only)",
     "ambiguous + ambiguity_type",
     "category",
     "common_vs_rare",
     "freshness",
     "source_hint",
-    "golds grade 3/2/1 + equivalence_group (all 100 tasks)"
+    "golds grade 3/2/1 + equivalence_group (all 100)"
   ],
-  "instruction_version": "RETRIEVAL_V3_PREREG FINAL REPAIR — conceptual answerability only",
-  "model_role": "Muse Spark 1.2 Contributor (root); delegated annotator task via OMP task subagent (modelRoles follow actual OMP config; root gate Muse Spark 1.2 / xhigh verified, child not gated)",
-  "note": "Independent from A; no shared state; sanitized input excludes labels",
+  "files_not_read": [
+    "eval/retrieval-v3/pilot/pilot_tasks.jsonl",
+    "eval/retrieval-v3/pilot/re-audit/reviewer_A_raw_labels.jsonl"
+  ],
+  "files_read": [
+    "eval/retrieval-v3/pilot/re-audit/pilot_reaudit_input.jsonl",
+    "docs/RETRIEVAL_V3_PREREG.md §2-§4",
+    "eval/retrieval-v3/pilot/pilot_report.md",
+    "memory/DECISIONS.md D-015"
+  ],
+  "instruction_version": "RETRIEVAL_V3_PREREG FINAL REPAIR §§2-4 + D-015",
+  "isolation_note": "Did not access pilot_tasks.jsonl or reviewer_A output; only sanitized input + rubric",
+  "model_role": "Muse Spark 1.2 Contributor delegated via openai-codex/gpt-5.6-luna:xhigh (task Luna xhigh; root HARD GATE Luna max not applicable)",
   "output_file": "reviewer_B_raw_labels.jsonl",
-  "output_sha256": "15b98f3522ed9acd560aa5bb75f7fc30991fb2815f6521bfbeadbb171f5fcb89",
+  "output_sha256": "d7a303378b5661d79be1286b5f1c98933fa5f262961a4e1caf2146a149d23bef",
   "reviewer_id": "B",
   "sanitized_input_path": "eval/retrieval-v3/pilot/re-audit/pilot_reaudit_input.jsonl",
   "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
-  "session_id": "re-audit-2026-09-01-B (no durable OMP session identifier exposed via file system; recorded as available)",
-  "timestamp": "2026-09-01T15:00:00+09:00",
+  "session_id": "unavailable -- OMP session identifiers not durably persisted; independence via separate delegated task with isolated input confinement",
+  "timestamp": "2026-08-31T23:00:20.231752Z",
   "total_tasks": 100
 }

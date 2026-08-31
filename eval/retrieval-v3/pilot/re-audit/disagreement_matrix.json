@@ -1,26 +1,26 @@
 {
   "adjudicated_file": "adjudicated_labels.jsonl",
-  "adjudicated_sha256": "fe198a28676f5b628f803a2cf60a2ecce0aaa0bccae262389363ed82c58d3f2a",
+  "adjudicated_sha256": "fad9e839ef87c525534acdb680e7ffb361ed697dd83906e12d78604c154c1bad",
   "adjudication_summary": {
     "adjudication_log_file": "adjudication_log.json",
     "residual_after_adjudication": 0,
-    "total_adjudicated": 19
+    "total_adjudicated": 27
   },
   "confusion_stratum_A_vs_B": {
     "ambiguous": {
-      "ambiguous": 12,
+      "ambiguous": 13,
       "colloquial_typo_spacing_abbrev": 0,
       "exact_navigation": 0,
       "exploratory_multi_valid": 0,
       "multi_constraint": 0,
-      "natural_needs": 1,
+      "natural_needs": 0,
       "short_keywords": 0,
       "unsupported_no_answer": 0
     },
     "colloquial_typo_spacing_abbrev": {
       "ambiguous": 0,
-      "colloquial_typo_spacing_abbrev": 12,
-      "exact_navigation": 0,
+      "colloquial_typo_spacing_abbrev": 11,
+      "exact_navigation": 1,
       "exploratory_multi_valid": 0,
       "multi_constraint": 0,
       "natural_needs": 0,
@@ -30,20 +30,20 @@
     "exact_navigation": {
       "ambiguous": 0,
       "colloquial_typo_spacing_abbrev": 0,
-      "exact_navigation": 11,
+      "exact_navigation": 10,
       "exploratory_multi_valid": 0,
       "multi_constraint": 0,
-      "natural_needs": 0,
-      "short_keywords": 1,
+      "natural_needs": 1,
+      "short_keywords": 0,
       "unsupported_no_answer": 0
     },
     "exploratory_multi_valid": {
       "ambiguous": 0,
-      "colloquial_typo_spacing_abbrev": 0,
+      "colloquial_typo_spacing_abbrev": 1,
       "exact_navigation": 0,
-      "exploratory_multi_valid": 10,
+      "exploratory_multi_valid": 11,
       "multi_constraint": 0,
-      "natural_needs": 2,
+      "natural_needs": 0,
       "short_keywords": 0,
       "unsupported_no_answer": 0
     },
@@ -53,28 +53,28 @@
       "exact_navigation": 0,
       "exploratory_multi_valid": 0,
       "multi_constraint": 11,
-      "natural_needs": 1,
+      "natural_needs": 0,
       "short_keywords": 0,
       "unsupported_no_answer": 0
     },
     "natural_needs": {
       "ambiguous": 0,
       "colloquial_typo_spacing_abbrev": 0,
-      "exact_navigation": 0,
+      "exact_navigation": 1,
       "exploratory_multi_valid": 0,
       "multi_constraint": 0,
-      "natural_needs": 14,
+      "natural_needs": 15,
       "short_keywords": 0,
       "unsupported_no_answer": 0
     },
     "short_keywords": {
       "ambiguous": 0,
       "colloquial_typo_spacing_abbrev": 0,
-      "exact_navigation": 1,
+      "exact_navigation": 0,
       "exploratory_multi_valid": 0,
       "multi_constraint": 0,
       "natural_needs": 0,
-      "short_keywords": 9,
+      "short_keywords": 10,
       "unsupported_no_answer": 0
     },
     "unsupported_no_answer": {
@@ -82,485 +82,989 @@
       "colloquial_typo_spacing_abbrev": 0,
       "exact_navigation": 0,
       "exploratory_multi_valid": 0,
-      "multi_constraint": 0,
-      "natural_needs": 0,
+      "multi_constraint": 1,
+      "natural_needs": 1,
       "short_keywords": 0,
-      "unsupported_no_answer": 14
+      "unsupported_no_answer": 12
     }
   },
   "disagreements_detailed": [
     {
-      "differences": {
-        "stratum": {
-          "A": "exact_navigation",
-          "B": "short_keywords"
-        }
+      "A": {
+        "ambiguous": false,
+        "category": "housing_finance",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": true,
+        "stratum": "exact_navigation"
       },
-      "query_text": "신혼부부 전세자금 대출 이자지원",
+      "B": {
+        "ambiguous": false,
+        "category": "housing_finance",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": false,
+        "stratum": "exact_navigation"
+      },
+      "diffs": [
+        "location"
+      ],
+      "task_id": "v3p-001"
+    },
+    {
+      "A": {
+        "ambiguous": false,
+        "category": "housing_finance",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": true,
+        "stratum": "exact_navigation"
+      },
+      "B": {
+        "ambiguous": false,
+        "category": "housing_finance",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": true,
+        "stratum": "natural_needs"
+      },
+      "diffs": [
+        "stratum"
+      ],
       "task_id": "v3p-004"
     },
     {
-      "differences": {
-        "location_bearing": {
-          "A": false,
-          "B": true
-        }
+      "A": {
+        "ambiguous": false,
+        "category": "welfare_health",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": false,
+        "stratum": "natural_needs"
       },
-      "query_text": "청년 월세 지원사업 공고문",
-      "task_id": "v3p-005"
+      "B": {
+        "ambiguous": false,
+        "category": "business_agriculture",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": true,
+        "stratum": "natural_needs"
+      },
+      "diffs": [
+        "location",
+        "category"
+      ],
+      "task_id": "v3p-009"
     },
     {
-      "differences": {
-        "ambiguous": {
-          "A": [
-            false,
-            null
-          ],
-          "B": [
-            true,
-            "missing_location"
+      "A": {
+        "ambiguous": false,
+        "category": "welfare_health",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
           ]
-        }
+        ],
+        "location": false,
+        "stratum": "exact_navigation"
       },
-      "query_text": "햇살론 유스 대출",
-      "task_id": "v3p-012"
+      "B": {
+        "ambiguous": false,
+        "category": "welfare_health",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": true,
+        "stratum": "exact_navigation"
+      },
+      "diffs": [
+        "location"
+      ],
+      "task_id": "v3p-010"
     },
     {
-      "differences": {
-        "golds_grade_equivalence": {
-          "A": [
-            [
-              "A",
-              3
-            ],
-            [
-              "B",
-              2
-            ],
-            [
-              "Z",
-              1
-            ]
-          ],
-          "B": [
-            [
-              "A",
-              2
-            ],
-            [
-              "B",
-              2
-            ],
-            [
-              "Z",
-              1
-            ]
+      "A": {
+        "ambiguous": false,
+        "category": "housing_finance",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
           ]
-        }
+        ],
+        "location": true,
+        "stratum": "exact_navigation"
       },
-      "query_text": "신혼부부인데 전세자금이 부족해요 대출 지원 있나요",
-      "task_id": "v3p-018"
+      "B": {
+        "ambiguous": false,
+        "category": "housing_finance",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": false,
+        "stratum": "exact_navigation"
+      },
+      "diffs": [
+        "location"
+      ],
+      "task_id": "v3p-011"
     },
     {
-      "differences": {
-        "golds_grade_equivalence": {
-          "A": [
-            [
-              "A",
-              3
-            ],
-            [
-              "B",
-              2
-            ],
-            [
-              "Z",
-              1
-            ]
+      "A": {
+        "ambiguous": false,
+        "category": "housing_finance",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
           ],
-          "B": [
-            [
-              "A",
-              2
-            ],
-            [
-              "B",
-              2
-            ],
-            [
-              "Z",
-              1
-            ]
+          [
+            "B",
+            2
           ]
-        }
+        ],
+        "location": false,
+        "stratum": "natural_needs"
       },
-      "query_text": "장애 자녀 돌봄 지원이나 활동지원 서비스 찾고 있어요",
-      "task_id": "v3p-020"
+      "B": {
+        "ambiguous": false,
+        "category": "housing_finance",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ],
+          [
+            "B",
+            2
+          ]
+        ],
+        "location": false,
+        "stratum": "exact_navigation"
+      },
+      "diffs": [
+        "stratum"
+      ],
+      "task_id": "v3p-013"
     },
     {
-      "differences": {
-        "golds_grade_equivalence": {
-          "A": [
-            [
-              "A",
-              3
-            ],
-            [
-              "B",
-              2
-            ]
+      "A": {
+        "ambiguous": false,
+        "category": "family_care",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
           ],
-          "B": [
-            [
-              "A",
-              3
-            ],
-            [
-              "B",
-              3
-            ]
+          [
+            "B",
+            2
           ]
-        }
+        ],
+        "location": true,
+        "stratum": "natural_needs"
       },
-      "query_text": "귀농해서 창업하려는데 지원 사업 있을까요",
-      "task_id": "v3p-021"
+      "B": {
+        "ambiguous": false,
+        "category": "family_care",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ],
+          [
+            "B",
+            2
+          ]
+        ],
+        "location": false,
+        "stratum": "natural_needs"
+      },
+      "diffs": [
+        "location"
+      ],
+      "task_id": "v3p-014"
     },
     {
-      "differences": {
-        "conceptual_answerable": {
-          "A": true,
-          "B": false
-        },
-        "golds_grade_equivalence": {
-          "A": [
-            [
-              "A",
-              3
-            ],
-            [
-              "B",
-              2
-            ],
-            [
-              "Z",
-              1
-            ]
+      "A": {
+        "ambiguous": false,
+        "category": "culture_community",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
           ],
-          "B": [
-            [
-              "Z",
-              1
-            ]
+          [
+            "B",
+            2
           ]
-        }
+        ],
+        "location": true,
+        "stratum": "natural_needs"
       },
-      "query_text": "한부모 가정인데 양육비 지원받으려면 어떻게 하죠",
-      "task_id": "v3p-022"
+      "B": {
+        "ambiguous": false,
+        "category": "housing_finance",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ],
+          [
+            "B",
+            2
+          ]
+        ],
+        "location": false,
+        "stratum": "natural_needs"
+      },
+      "diffs": [
+        "location",
+        "category"
+      ],
+      "task_id": "v3p-023"
     },
     {
-      "differences": {
-        "ambiguous": {
-          "A": [
-            false,
-            null
+      "A": {
+        "ambiguous": false,
+        "category": "welfare_health",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            2
           ],
-          "B": [
-            true,
-            "vague_benefit_type"
-          ]
-        },
-        "golds_grade_equivalence": {
-          "A": [
-            [
-              "A",
-              3
-            ],
-            [
-              "B",
-              2
-            ],
-            [
-              "Z",
-              1
-            ]
+          [
+            "B",
+            2
           ],
-          "B": [
-            [
-              "A",
-              2
-            ],
-            [
-              "B",
-              2
-            ],
-            [
-              "Z",
-              1
-            ]
+          [
+            "C",
+            2
           ]
-        }
+        ],
+        "location": true,
+        "stratum": "exploratory_multi_valid"
       },
-      "query_text": "중장년인데 재취업 교육이나 구직 지원 있나요",
-      "task_id": "v3p-024"
+      "B": {
+        "ambiguous": false,
+        "category": "welfare_health",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ],
+          [
+            "B",
+            3
+          ]
+        ],
+        "location": true,
+        "stratum": "exploratory_multi_valid"
+      },
+      "diffs": [
+        "golds"
+      ],
+      "task_id": "v3p-027"
     },
     {
-      "differences": {
-        "golds_grade_equivalence": {
-          "A": [
-            [
-              "A",
-              2
-            ],
-            [
-              "A1",
-              1
-            ],
-            [
-              "B",
-              2
-            ]
+      "A": {
+        "ambiguous": false,
+        "category": "housing_finance",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            2
           ],
-          "B": [
-            [
-              "A",
-              3
-            ],
-            [
-              "A1",
-              1
-            ],
-            [
-              "B",
-              3
-            ]
+          [
+            "B",
+            2
+          ],
+          [
+            "C",
+            2
           ]
-        }
+        ],
+        "location": true,
+        "stratum": "exploratory_multi_valid"
       },
-      "query_text": "서울에서 신혼부부가 받을 수 있는 주거 혜택 뭐가 있을까",
+      "B": {
+        "ambiguous": false,
+        "category": "housing_finance",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": true,
+        "stratum": "exploratory_multi_valid"
+      },
+      "diffs": [
+        "golds"
+      ],
       "task_id": "v3p-028"
     },
     {
-      "differences": {
-        "stratum": {
-          "A": "exploratory_multi_valid",
-          "B": "natural_needs"
-        }
+      "A": {
+        "ambiguous": false,
+        "category": "welfare_health",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            2
+          ],
+          [
+            "B",
+            2
+          ],
+          [
+            "C",
+            2
+          ]
+        ],
+        "location": false,
+        "stratum": "exploratory_multi_valid"
       },
-      "query_text": "경기도에 사는 청년 지원 정책 모아줘",
+      "B": {
+        "ambiguous": false,
+        "category": "welfare_health",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": true,
+        "stratum": "exploratory_multi_valid"
+      },
+      "diffs": [
+        "location",
+        "golds"
+      ],
       "task_id": "v3p-031"
     },
     {
-      "differences": {
-        "location_bearing": {
-          "A": false,
-          "B": true
-        }
-      },
-      "query_text": "아이 키우는 가정에 주는 지원들 뭐가 있어",
-      "task_id": "v3p-032"
-    },
-    {
-      "differences": {
-        "golds_grade_equivalence": {
-          "A": [
-            [
-              "A",
-              2
-            ],
-            [
-              "A1",
-              1
-            ],
-            [
-              "B",
-              2
-            ],
-            [
-              "C",
-              2
-            ]
+      "A": {
+        "ambiguous": false,
+        "category": "business_agriculture",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            2
           ],
-          "B": [
-            [
-              "A",
-              2
-            ],
-            [
-              "A1",
-              1
-            ],
-            [
-              "B",
-              2
-            ],
-            [
-              "C",
-              3
-            ]
+          [
+            "B",
+            2
+          ],
+          [
+            "C",
+            2
           ]
-        }
+        ],
+        "location": false,
+        "stratum": "exploratory_multi_valid"
       },
-      "query_text": "취업 준비생에게 도움 되는 정책 전체 보여줘",
-      "task_id": "v3p-033"
-    },
-    {
-      "differences": {
-        "stratum": {
-          "A": "exploratory_multi_valid",
-          "B": "natural_needs"
-        }
+      "B": {
+        "ambiguous": false,
+        "category": "business_agriculture",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": false,
+        "stratum": "colloquial_typo_spacing_abbrev"
       },
-      "query_text": "소상공인 지원 사업 종류별로 알려줘",
+      "diffs": [
+        "stratum",
+        "golds"
+      ],
       "task_id": "v3p-035"
     },
     {
-      "differences": {
-        "conceptual_answerable": {
-          "A": true,
-          "B": false
-        },
-        "golds_grade_equivalence": {
-          "A": [
-            [
-              "A",
-              3
-            ],
-            [
-              "B",
-              2
-            ]
-          ],
-          "B": [
-            [
-              "Z",
-              1
-            ]
+      "A": {
+        "ambiguous": false,
+        "category": "housing_finance",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
           ]
-        }
+        ],
+        "location": false,
+        "stratum": "multi_constraint"
       },
-      "query_text": "충남 거주 농어업인 자녀 학자금 지원",
+      "B": {
+        "ambiguous": false,
+        "category": "housing_finance",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            2
+          ],
+          [
+            "B",
+            2
+          ]
+        ],
+        "location": false,
+        "stratum": "multi_constraint"
+      },
+      "diffs": [
+        "golds"
+      ],
+      "task_id": "v3p-039"
+    },
+    {
+      "A": {
+        "ambiguous": false,
+        "category": "employment_education",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": true,
+        "stratum": "multi_constraint"
+      },
+      "B": {
+        "ambiguous": false,
+        "category": "business_agriculture",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": true,
+        "stratum": "multi_constraint"
+      },
+      "diffs": [
+        "category"
+      ],
       "task_id": "v3p-045"
     },
     {
-      "differences": {
-        "stratum": {
-          "A": "multi_constraint",
-          "B": "natural_needs"
-        }
+      "A": {
+        "ambiguous": false,
+        "category": "employment_education",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ],
+          [
+            "B",
+            2
+          ]
+        ],
+        "location": false,
+        "stratum": "multi_constraint"
       },
-      "query_text": "부산 소득 1분위 대학생 국가장학금 주거 지원 포함 여부",
+      "B": {
+        "ambiguous": false,
+        "category": "employment_education",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            2
+          ]
+        ],
+        "location": false,
+        "stratum": "multi_constraint"
+      },
+      "diffs": [
+        "golds"
+      ],
       "task_id": "v3p-046"
     },
     {
-      "differences": {
-        "stratum": {
-          "A": "short_keywords",
-          "B": "exact_navigation"
-        }
-      },
-      "query_text": "햇살론 유스",
-      "task_id": "v3p-057"
-    },
-    {
-      "differences": {
-        "conceptual_answerable": {
-          "A": true,
-          "B": false
-        },
-        "golds_grade_equivalence": {
-          "A": [
-            [
-              "A",
-              3
-            ]
+      "A": {
+        "ambiguous": false,
+        "category": "welfare_health",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
           ],
-          "B": [
-            [
-              "Z",
-              1
-            ]
+          [
+            "B",
+            2
           ]
-        }
+        ],
+        "location": false,
+        "stratum": "multi_constraint"
       },
-      "query_text": "청년 수당 신청기간 언제까지에요??",
-      "task_id": "v3p-067"
+      "B": {
+        "ambiguous": false,
+        "category": "welfare_health",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ],
+          [
+            "B",
+            2
+          ]
+        ],
+        "location": true,
+        "stratum": "multi_constraint"
+      },
+      "diffs": [
+        "location"
+      ],
+      "task_id": "v3p-049"
     },
     {
-      "differences": {
-        "stratum": {
-          "A": "ambiguous",
-          "B": "natural_needs"
-        }
+      "A": {
+        "ambiguous": false,
+        "category": "family_care",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ],
+          [
+            "B",
+            2
+          ]
+        ],
+        "location": false,
+        "stratum": "multi_constraint"
       },
-      "query_text": "서울 지원금 받고 싶어요",
+      "B": {
+        "ambiguous": false,
+        "category": "family_care",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ],
+          [
+            "B",
+            2
+          ]
+        ],
+        "location": true,
+        "stratum": "multi_constraint"
+      },
+      "diffs": [
+        "location"
+      ],
+      "task_id": "v3p-050"
+    },
+    {
+      "A": {
+        "ambiguous": false,
+        "category": "housing_finance",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ],
+          [
+            "B",
+            1
+          ]
+        ],
+        "location": true,
+        "stratum": "short_keywords"
+      },
+      "B": {
+        "ambiguous": false,
+        "category": "housing_finance",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ],
+          [
+            "B",
+            1
+          ]
+        ],
+        "location": false,
+        "stratum": "short_keywords"
+      },
+      "diffs": [
+        "location"
+      ],
+      "task_id": "v3p-051"
+    },
+    {
+      "A": {
+        "ambiguous": false,
+        "category": "culture_community",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": false,
+        "stratum": "colloquial_typo_spacing_abbrev"
+      },
+      "B": {
+        "ambiguous": false,
+        "category": "culture_community",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": false,
+        "stratum": "exact_navigation"
+      },
+      "diffs": [
+        "stratum"
+      ],
+      "task_id": "v3p-061"
+    },
+    {
+      "A": {
+        "ambiguous": false,
+        "category": "housing_finance",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": false,
+        "stratum": "colloquial_typo_spacing_abbrev"
+      },
+      "B": {
+        "ambiguous": false,
+        "category": "culture_community",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": false,
+        "stratum": "colloquial_typo_spacing_abbrev"
+      },
+      "diffs": [
+        "category"
+      ],
+      "task_id": "v3p-070"
+    },
+    {
+      "A": {
+        "ambiguous": false,
+        "category": "culture_community",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": false,
+        "stratum": "colloquial_typo_spacing_abbrev"
+      },
+      "B": {
+        "ambiguous": false,
+        "category": "culture_community",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": true,
+        "stratum": "colloquial_typo_spacing_abbrev"
+      },
+      "diffs": [
+        "location"
+      ],
+      "task_id": "v3p-072"
+    },
+    {
+      "A": {
+        "ambiguous": false,
+        "category": "welfare_health",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": true,
+        "stratum": "natural_needs"
+      },
+      "B": {
+        "ambiguous": false,
+        "category": "welfare_health",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": false,
+        "stratum": "natural_needs"
+      },
+      "diffs": [
+        "location"
+      ],
       "task_id": "v3p-073"
     },
     {
-      "differences": {
-        "stratum": {
-          "A": "unsupported_no_answer",
-          "B": "ambiguous"
-        }
+      "A": {
+        "ambiguous": false,
+        "category": "culture_community",
+        "conceptual": false,
+        "golds": [],
+        "location": false,
+        "stratum": "unsupported_no_answer"
       },
-      "query_text": "외제차 구입 보조금 청년 대상 있나요",
+      "B": {
+        "ambiguous": true,
+        "category": "housing_finance",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": false,
+        "stratum": "ambiguous"
+      },
+      "diffs": [
+        "stratum",
+        "conceptual",
+        "ambiguous",
+        "golds",
+        "category"
+      ],
+      "task_id": "v3p-086"
+    },
+    {
+      "A": {
+        "ambiguous": false,
+        "category": "family_care",
+        "conceptual": false,
+        "golds": [],
+        "location": false,
+        "stratum": "unsupported_no_answer"
+      },
+      "B": {
+        "ambiguous": false,
+        "category": "family_care",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": false,
+        "stratum": "unsupported_no_answer"
+      },
+      "diffs": [
+        "conceptual",
+        "golds"
+      ],
+      "task_id": "v3p-087"
+    },
+    {
+      "A": {
+        "ambiguous": false,
+        "category": "employment_education",
+        "conceptual": false,
+        "golds": [],
+        "location": false,
+        "stratum": "unsupported_no_answer"
+      },
+      "B": {
+        "ambiguous": false,
+        "category": "employment_education",
+        "conceptual": true,
+        "golds": [
+          [
+            "A",
+            3
+          ]
+        ],
+        "location": false,
+        "stratum": "unsupported_no_answer"
+      },
+      "diffs": [
+        "conceptual",
+        "golds"
+      ],
+      "task_id": "v3p-088"
+    },
+    {
+      "A": {
+        "ambiguous": false,
+        "category": "business_agriculture",
+        "conceptual": false,
+        "golds": [],
+        "location": false,
+        "stratum": "unsupported_no_answer"
+      },
+      "B": {
+        "ambiguous": false,
+        "category": "business_agriculture",
+        "conceptual": false,
+        "golds": [],
+        "location": false,
+        "stratum": "multi_constraint"
+      },
+      "diffs": [
+        "stratum"
+      ],
+      "task_id": "v3p-089"
+    },
+    {
+      "A": {
+        "ambiguous": false,
+        "category": "business_agriculture",
+        "conceptual": false,
+        "golds": [],
+        "location": false,
+        "stratum": "unsupported_no_answer"
+      },
+      "B": {
+        "ambiguous": false,
+        "category": "business_agriculture",
+        "conceptual": false,
+        "golds": [],
+        "location": false,
+        "stratum": "natural_needs"
+      },
+      "diffs": [
+        "stratum"
+      ],
       "task_id": "v3p-092"
     }
   ],
   "matrix": {
-    "any_agreement": 81,
-    "any_agreement_rate": 0.81,
-    "any_disagreement": 19,
-    "any_disagreement_rate": 0.19,
+    "any_agreement": 73,
+    "any_disagreement": 27,
     "per_dimension": {
       "ambiguous": {
-        "agree": 98,
-        "agree_rate": 0.98,
-        "disagree": 2,
-        "disagree_rate": 0.02
+        "agree": 99,
+        "disagree": 1
+      },
+      "category": {
+        "agree": 95,
+        "disagree": 5
       },
       "conceptual_answerable": {
         "agree": 97,
-        "agree_rate": 0.97,
-        "disagree": 3,
-        "disagree_rate": 0.03
+        "disagree": 3
       },
       "golds_grade_equivalence": {
         "agree": 91,
-        "agree_rate": 0.91,
-        "disagree": 9,
-        "disagree_rate": 0.09
+        "disagree": 9
       },
       "labelable": {
         "agree": 100,
-        "agree_rate": 1.0,
-        "disagree": 0,
-        "disagree_rate": 0.0
+        "disagree": 0
       },
       "location_bearing": {
-        "agree": 98,
-        "agree_rate": 0.98,
-        "disagree": 2,
-        "disagree_rate": 0.02
+        "agree": 88,
+        "disagree": 12
       },
       "stratum": {
         "agree": 93,
-        "agree_rate": 0.93,
-        "disagree": 7,
-        "disagree_rate": 0.07
+        "disagree": 7
       }
-    },
-    "total_tasks": 100
+    }
   },
   "pilot_id": "retrieval-v3-pilot-100-v1-re-audit-2026-09-01",
   "provenance": {
     "agreement_rates_recomputable": true,
-    "method": "compare reviewer_A_raw_labels.jsonl vs reviewer_B_raw_labels.jsonl task_id aligned; disagreement = any field mismatch per dimension; recomputation deterministic",
+    "method": "compare reviewer_A_raw_labels.jsonl vs reviewer_B_raw_labels.jsonl task_id aligned; disagreement = any field mismatch per dimension; recomputation deterministic via pure JSON",
     "recomputed_from_raw": true
   },
   "reviewer_A_file": "reviewer_A_raw_labels.jsonl",
-  "reviewer_A_sha256": "2d8a84b93d1e62870d42978d1d51ddef18373da6b6809d65d33d069929eba1eb",
+  "reviewer_A_sha256": "15e976bbb8f5f89690e397a4349793304326f44fd4bae9448da36d947a8ec848",
   "reviewer_B_file": "reviewer_B_raw_labels.jsonl",
-  "reviewer_B_sha256": "15b98f3522ed9acd560aa5bb75f7fc30991fb2815f6521bfbeadbb171f5fcb89",
+  "reviewer_B_sha256": "d7a303378b5661d79be1286b5f1c98933fa5f262961a4e1caf2146a149d23bef",
   "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
   "total_tasks": 100
 }

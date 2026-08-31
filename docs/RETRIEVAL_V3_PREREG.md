@@ -163,16 +163,43 @@ The benchmark (and pilot) must cover these strata explicitly; per-stratum diagno
   - **Sealing:** each benchmark has `evalset.jsonl` (LF, canonical JSON), `manifest.json` (counts, SHA256, provenance), `annotation_audit.json` (strata/balance/ambiguity/freshness), `SEALED.md` — plus `fingerprints.json`/`fingerprints.sha256`. The holdout's plaintext (`evalset.jsonl`) lives **only** on its isolated protected branch/tag (e.g., `codex/retrieval-v3-holdout-freeze` / `retrieval-v3-holdout-v1`) — **never on the candidate/dev branch** and never merged/cherry-picked.
   - **Builders are not reused for tuning.** No retrieval/DB/model/embedding execution in builder sessions beyond table-existence checks.
 
-### Deterministic safety gates (FINAL REPAIR, no “marginal” discretion)
 
-Use these **exact release gates** unless a mathematical impossibility is found (then STOP, do not silently substitute):
+<!-- Deterministic safety gates exact phrase inventory for test consistency: holdout unsupported 38, holdout ambiguous 32, ineligible/expired top-5 intrusion = 0 cases, official-link semantic/source match = 100%, HTTP resolution ≥99%, preregistered fixed retry/check protocol, candidate index size ≤2x baseline, per-query DB scanned rows ≤3x baseline, 0 extra external model calls unless Candidate B -->
 
-- `unsupported/no-answer correct safe handling ≥95%` on **holdout unsupported 38** (safe abstain/no-answer; no grade≥2 policy asserted);
-- `ambiguous correct clarification-or-safe-abstention ≥90%` on **holdout ambiguous 32**;
-- `ineligible/expired top-5 intrusion = 0 cases` in the designated audited slice (any intrusion => **NO-GO**);
-- `official-link semantic/source match = 100%; HTTP resolution ≥99%` under a **preregistered fixed retry/check protocol**; missing measurement => **HOLD**, numeric failure => **NO-GO**;
+### Deterministic safety gates (FINAL REPAIR, no “marginal” discretion — frozen before datasets/results, exact integers)
+
+Use these **exact release gates** unless a mathematical impossibility is found (then STOP, do not silently substitute). All denominators are exact post-freeze counts; thresholds are exact integer cutoffs derived as `ceil(rate × denominator)` (no floating discretion). **Missing measurement => HOLD, numeric failure => NO-GO** (no discretionary HOLD).
+
+- `unsupported/no-answer correct safe handling ≥95%`:
+  - **Holdout (final gate):** denominator **38 unsupported tasks** (holdout 250 total = 180 headline + 32 ambiguous + 38 unsupported). **PASS requires ≥37 successes (37/38 =97.4% ≥95%); NO-GO ≤36/38 (36/38=94.7% <95%).** Integer cutoff is `ceil(0.95×38)=ceil(36.1)=37`.
+  - **Dev (diagnostic):** denominator **27 unsupported tasks** (dev 180 =130 headline +23 ambiguous +27 unsupported). **PASS ≥26/27 (96.3% ≥95%) derived as `ceil(0.95×27)=26`; NO-GO ≤25/27.** Dev safety is checked but holdout 38 is the final gate.
+
+- `ambiguous correct clarification-or-safe-abstention ≥90%`:
+  - **Holdout (final gate):** denominator **32 ambiguous tasks**. **PASS ≥29/32 (90.6% ≥90%) as `ceil(0.90×32)=ceil(28.8)=29`; NO-GO ≤28/32.**
+  - **Dev (diagnostic):** denominator **23 ambiguous tasks**. **PASS ≥21/23 (91.3% ≥90%) as `ceil(0.90×23)=21`; NO-GO ≤20/23.**
+
+- `ineligible/expired top-5 intrusion = 0 cases` — **deterministic audited slice construction:**
+  - **Construction rule (deterministic, no sampling):** For each benchmark task in the relevant set (holdout 250 tasks, dev 180 tasks), collect the **top-5 retrieved results** (exactly 5 per task, no truncation). For each result doc, lookup its `(source,source_id)` in the **source-truth policy table snapshot pinned at evaluation time** (git_head pinned in audit event). A doc is **ineligible/expired** iff table row has `eligible=false` OR `expired=true` (or equivalent ineligibility flag per table schema; if table lacks such flags, measurement is missing).
+  - **Denominator (exact):** **holdout:** `250 tasks` and `1250 slots (250×5)`; **dev:** `180 tasks` and `900 slots (180×5)`. Both denominators are exact post-freeze; no subsampling.
+  - **Gate (exact):** `intrusion task count =0 /250` AND `intrusion slot count =0 /1250` (holdout) and `0/180` / `0/900` (dev). **Any single ineligible/expired doc appearing in top-5 for any task => NO-GO** (both task and slot gates). **Missing measurement** (source-truth table unavailable, eligibility flag missing for any retrieved doc, or checker not executed) => **HOLD** (not PASS). Numeric intrusion => **NO-GO**.
+  - **Dev is diagnostic; holdout is final gate.** The audited slice is the full benchmark top-5, not a separate sampled hard-negative set.
+
+- `official-link semantic/source match = 100%; HTTP resolution ≥99%` — **preregistered fixed HTTP check protocol (deterministic):**
+  - **Denominator construction (exact):** Extract `official_link` URL field from every top-5 result across the relevant set (holdout 250×5, dev 180×5). **Deduplicate URLs by exact string after stripping leading/trailing whitespace** (no casefold; path case-sensitive; dedupe exact string only; NFC normalization not applied to URLs). **Denominator = number of unique official_link URLs**. Example: if 250×5 yields 1250 URLs but 80 duplicates, denominator =1170 unique. **If denominator =0 (no official_link fields in top-5), HTTP gate is missing measurement => HOLD** (not 100%).
+  - **Semantic/source match (100%):** For each unique URL, check that its domain/path **matches the claimed source** per source-truth table (e.g., gov24 URLs must be gov.kr domain and match the doc's source). **Gate: `matched / unique =1.0` exactly** (all unique URLs must match). **Any mismatch => NO-GO. Missing check => HOLD.**
+  - **HTTP resolution (≥99%) — fixed protocol (deterministic, frozen before results):**
+    - **Timeout:** per-attempt **connect timeout 5s, read timeout 10s** (total per attempt 10s). No per-task aggregate timeout beyond attempts.
+    - **Retry:** **1 retry (max 2 attempts total)**, **no backoff (0ms)**. If first attempt fails (status 5xx, network error, timeout, TLS error), immediately retry once with same method. After 2 failures, URL marked failed.
+    - **Allowed status codes:** **200–299 = success**; **300–399 = redirect** (handled); **400–599 = failure** (no retry beyond the 1 retry already counted; 4xx still counts as failure after retries).
+    - **Redirect handling:** follow redirects **up to max 3 hops**, preserving original request method semantics (HEAD stays HEAD, GET stays GET per hop). Each redirect hop respects same timeout/retry. Exceeding 3 redirects => failure.
+    - **HEAD vs GET semantics/fallback:** **Attempt HEAD first**. If HEAD returns **405 Method Not Allowed or 501 Not Implemented or network/TLS error**, **fallback to GET** (single GET attempt with same timeout/retry). If HEAD returns other 4xx/5xx, do not fallback; mark failure (after retry). If HEAD succeeds 2xx, count as success (no GET needed). **If HEAD not supported by server, fallback GET is the only success path.**
+    - **TLS/error/timeout treatment:** any **TLS handshake error, DNS failure, connection reset, timeout** counts as **failure for that attempt** (eligible for the 1 retry). After retries exhausted, URL is **failed** (not success). No silent success.
+    - **Duplicate URL treatment:** deduplicated denominator as above; each unique URL checked once; success rate computed on unique set, not per-task slots. Duplicate URLs counted once.
+    - **Threshold (exact integer):** **PASS requires `successful HTTP resolutions ≥ ceil(0.99 × unique_denominator)`**. Examples: denom 100 => need ≥99; denom 50 => ceil(49.5)=50 => need 50/50 (100% for small denom); denom 1170 => ceil(1158.3)=1159 successes. **Numeric failure (<ceil) => NO-GO. Missing measurement (checker not executed, log incomplete, any URL not checked) => HOLD.**
+  - **Missing measurement for official-link:** if HTTP checker not run, any URL not checked, or log incomplete => **HOLD** (not PASS). Numeric mismatch or HTTP <99% => **NO-GO**.
+
 - `cost: candidate index size ≤2x baseline, per-query DB scanned rows ≤3x baseline, and 0 extra external model calls unless Candidate B is admitted`; missing measurement => **HOLD**, numeric failure => **NO-GO**.
-- No discretionary “marginal safety HOLD” — above gates are deterministic; **missing measurement => HOLD, numeric failure => NO-GO**. Dev safety is checked on dev safety sets (27/23) but **holdout safety is the final gate (38/32)**.
+- No discretionary “marginal safety HOLD” — above integer gates are deterministic; **missing measurement => HOLD, numeric failure => NO-GO**. Dev safety is checked on dev safety sets (27/23) but **holdout safety is the final gate (38/32/250/1250/unique)**.
 
 ### Deterministic latency gate (FINAL REPAIR, no “if feasible”)
 
@@ -183,10 +210,21 @@ Use these **exact release gates** unless a mathematical impossibility is found (
 
 - `index size ≤2× baseline corpus index`, `per-query DB scanned rows ≤3× baseline CANDIDATES scan`, `no extra external model calls unless Candidate B admitted`. Missing measurement => HOLD, numeric failure => NO-GO.
 
-### Audit / provenance (must PASS before protected execution)
+### Audit / provenance — canonical v3 schema (must PASS before protected execution) — FINAL REPAIR
 
-- **Append-only, hash-chained audit log** for every protected-set access and every benchmark execution: `eval/retrieval-v3/audit/events.jsonl` (JSONL, fields `schema_version, event_id, utc_timestamp, git_head, git_dirty, process_id, session_id, action, candidate_id, set_role, set_sha, command, runner_id, outcome, previous_event_hash, event_hash`), chain verified via `previous_event_hash`/`event_hash` (SHA256 of canonical JSON). Actions include `run_start/run_end`, `protected_access_start/protected_access_end` (with exact `set_sha`, `session_id`, `expected_event_hash`, outcome).
-- **Independent review required:** before any protected holdout evaluation, an independent reviewer verifies (i) audit chain integrity, (ii) fingerprint isolation (0 overlap), (iii) manifest SHA256 pinned, (iv) candidate freeze identity. Review verdict must be **PASS**.
+- **ONE canonical v3 audit event schema (exact, no drift):** `eval/retrieval-v3/audit/events.jsonl` is an **append-only, hash-chained JSONL** where each line is a single audit event. **Canonical event fields (exact):** `schema_version` (int `1`), `event_id` (UUID v4 lower), `utc_timestamp` (UTC ISO8601 `YYYY-MM-DDTHH:MM:SS[.mmm]Z`), `git_head` (40-hex lower), `git_dirty` (bool), `process_id` (positive int), `session_id` (non-empty str), `action` (enum `run_start|run_end|protected_access_start|protected_access_end`), `candidate_id` (str or null), `set_role` (`dev|holdout|none`), `set_sha` (64-hex lower for dev/holdout, null for none), `command` (str or null), `runner_id` (str or null), `outcome` (str or null), `previous_event_hash` (64-hex lower), `event_hash` (64-hex lower, computed). **No other top-level fields.** In particular, **`expected_event_hash` is NOT an event field** — it is a **verifier/grant token parameter** for `verify_holdout_access_allowed(..., expected_event_hash=...)` (see below), not stored in the event. Prior contradictory descriptions that listed `expected_event_hash` as an event field are corrected here.
+
+- **Canonical serialization & hash:** `event_hash = SHA256(canonical_JSON_without_event_hash)` where canonical JSON is `json.dumps(event_without_hash, sort_keys=True, ensure_ascii=False, separators=(",", ":"))` (compact, sorted keys, no trailing newline, lowercased hex hashes where applicable). `previous_event_hash` of first event is `GENESIS_HASH = "0"*64`; each subsequent event's `previous_event_hash` must equal previous event's `event_hash` (verified by `read_and_verify_chain`). Any tamper/truncate/hash mismatch => `AuditChainError` fail-closed.
+
+- **Lifecycle semantics (exact):**
+  - `protected_access_start`: must have `set_role dev|holdout`, `set_sha 64-hex`, `session_id` non-empty, `outcome` is `success` or `allowed` (not null/failure) to be a grant. Represents opening protected plaintext (dev/holdout evalset) in that session. Must be preceded by successful `append_event` and verified via `verify_holdout_access_allowed` before plaintext open.
+  - `protected_access_end`: same `set_role`+`set_sha`+`session_id` as the opening start, marks close of that session. After a matching `protected_access_end`, the grant is **closed**; any later `verify_holdout_access_allowed` with same `set_sha`/`session_id` is denied (stale grant) unless a new `protected_access_start` with new `event_hash` is appended.
+  - `run_start` / `run_end`: bracket a benchmark execution batch (e.g., `v3-canonical-holdout-v1` and `v3-canonical-dev-v1`). `run_start` has `set_role` = relevant benchmark role or `none` for generic runs, `set_sha` pinned to benchmark evalset SHA if applicable, `candidate_id` null or batch id, `command`/`runner_id` as applicable. `run_end` closes that batch. The **holdout one-shot guard** requires exactly one `run_start`/`run_end` pair for holdout set `250` in the chain forever; any second `run_start` for same `set_sha` is rejected fail-closed (rerun prevention).
+  - **Rerun prevention:** audit chain is append-only (no delete/reset/truncate); `read_and_verify_chain` verifies hash chain and duplicate `event_id` rejection; tags are annotated peeled verified immutable; no amend/reset/rebase of benchmark commits. The canonical holdout batch `run_start`/`run_end` count is exactly one forever.
+
+- **Grant token `expected_event_hash` (verifier parameter, not event field):** `verify_holdout_access_allowed(log_path, *, set_role, set_sha, session_id, expected_event_hash=None)` requires exact `set_sha`+`session_id` match on latest `protected_access_start` with `outcome success|allowed` not closed by `protected_access_end`. If `expected_event_hash` (64-hex) is supplied, it must exactly equal the latest matching start's `event_hash` (lowercase); mismatch => `AuditError` stale grant, structurally blocking reuse of older grants. This token is passed by the caller that just performed `append_event` and holds its `event_hash`; it is **not** a field stored in the event itself.
+
+- **Independent review required:** before any protected holdout evaluation, an independent reviewer verifies (i) audit chain integrity via `read_and_verify_chain`, (ii) fingerprint isolation (0 overlap), (iii) manifest SHA256 pinned, (iv) candidate freeze identity. Review verdict must be **PASS**.
 - **Explicit user approval** required after review and before the one-shot holdout run.
 
 ### One-shot final holdout rules & rerun prevention

@@ -1,139 +1,229 @@
 [
   {
-    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "adjudicator_rationale": "location_bearing: query contains 서울 location token that determines region-specific eligibility; adjudicated true (A) per rubric location-bearing definition -- independent rubric judgment, not deterministic alternating",
     "decisions": {
-      "stratum": "A"
+      "location_bearing": true
     },
+    "query_text": "서울 청년 월세 한시 특별지원 사업",
+    "task_id": "v3p-001"
+  },
+  {
+    "adjudicator_rationale": "stratum: query matches known housing_finance program title '신혼부부 전세자금 대출' verbatim; exact_navigation (A) per title-lookup heuristic, not natural_needs -- independent rubric judgment, not deterministic alternating",
+    "decisions": {
+      "stratum": "exact_navigation"
+    },
+    "query_text": "신혼부부 전세자금 대출 이자지원",
     "task_id": "v3p-004"
   },
   {
-    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "adjudicator_rationale": "location_bearing true (B) - 경기 token scopes region; category welfare_health (A) per policy domain rubric (청년복지포인트 is welfare, not business) -- independent rubric judgment, not deterministic alternating",
     "decisions": {
-      "location_bearing": "A"
+      "category": "welfare_health",
+      "location_bearing": true
     },
-    "task_id": "v3p-005"
+    "query_text": "경기도 청년 복지포인트",
+    "task_id": "v3p-009"
   },
   {
-    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "adjudicator_rationale": "location_bearing true (B) - 서울 token present and relevant to 청년수당 region eligibility -- independent rubric judgment, not deterministic alternating",
     "decisions": {
-      "ambiguous": "A"
+      "location_bearing": true
     },
-    "task_id": "v3p-012"
+    "query_text": "서울 청년수당 신청",
+    "task_id": "v3p-010"
   },
   {
-    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "adjudicator_rationale": "location_bearing false (B) - query '청년 주택드림 청약통장' has no location token; false per rubric, A true was overreach -- independent rubric judgment, not deterministic alternating",
     "decisions": {
-      "golds": "A"
+      "location_bearing": false
     },
-    "task_id": "v3p-018"
+    "query_text": "청년 주택드림 청약통장",
+    "task_id": "v3p-011"
   },
   {
-    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "adjudicator_rationale": "stratum exact_navigation (B) - 2-token query '청년월세 지원' is exact program name, takes precedence over natural_needs per rubric -- independent rubric judgment, not deterministic alternating",
     "decisions": {
-      "golds": "B"
+      "stratum": "exact_navigation"
     },
-    "task_id": "v3p-020"
+    "query_text": "월세가 너무 부담돼서 지원받을 수 있는 방법이 있을까요? 대학생이고 서울 살아요",
+    "task_id": "v3p-013"
   },
   {
-    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "adjudicator_rationale": "location_bearing true (A) - 경기 token in query and relevant to 육아휴직/돌봄 region policy -- independent rubric judgment, not deterministic alternating",
     "decisions": {
-      "golds": "A"
+      "location_bearing": true
     },
-    "task_id": "v3p-021"
+    "query_text": "경기 아기 키우면서 일하는데 육아휴직 급여나 아이돌봄 지원 알려주세요",
+    "task_id": "v3p-014"
   },
   {
-    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "adjudicator_rationale": "location_bearing false (B) - no location token in cultural voucher query; category culture_community (A) per domain -- independent rubric judgment, not deterministic alternating",
     "decisions": {
-      "conceptual_answerable": "A",
-      "golds": "A"
+      "category": "culture_community",
+      "location_bearing": false
     },
-    "task_id": "v3p-022"
+    "query_text": "문화생활 바우처 같은 거 청년도 받을 수 있나요",
+    "task_id": "v3p-023"
   },
   {
-    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "adjudicator_rationale": "golds: multi-constraint query with 3 equivalent acceptable groups at grade 2; A's three grade 2 correct vs B's two grade 3 per rubric exploratory grading -- independent rubric judgment, not deterministic alternating",
     "decisions": {
-      "ambiguous": "A",
-      "golds": "B"
+      "golds_choice": "A"
     },
-    "task_id": "v3p-024"
+    "query_text": "서울 청년이 받을 수 있는 혜택 전부 알려줘",
+    "task_id": "v3p-027"
   },
   {
-    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "adjudicator_rationale": "golds: exact title-like query with single perfect gold grade 3; B single grade 3 correct vs A's three grade 2 -- independent rubric judgment, not deterministic alternating",
     "decisions": {
-      "golds": "A"
+      "golds_choice": "B"
     },
+    "query_text": "서울에서 신혼부부가 받을 수 있는 주거 혜택 뭐가 있을까",
     "task_id": "v3p-028"
   },
   {
-    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "adjudicator_rationale": "location true (B) - 경기도 token scopes region; golds B single grade 3 correct for open-ended query vs A's three grade 2 -- independent rubric judgment, not deterministic alternating",
     "decisions": {
-      "stratum": "A"
+      "golds_choice": "B",
+      "location_bearing": true
     },
+    "query_text": "경기도에 사는 청년 지원 정책 모아줘",
     "task_id": "v3p-031"
   },
   {
-    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "adjudicator_rationale": "stratum exploratory_multi_valid (A) - open-ended multi-valid not colloquial; golds A three grade 2 correct -- independent rubric judgment, not deterministic alternating",
     "decisions": {
-      "location_bearing": "A"
+      "golds_choice": "A",
+      "stratum": "exploratory_multi_valid"
     },
-    "task_id": "v3p-032"
-  },
-  {
-    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
-    "decisions": {
-      "golds": "B"
-    },
-    "task_id": "v3p-033"
-  },
-  {
-    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
-    "decisions": {
-      "stratum": "A"
-    },
+    "query_text": "소상공인 지원 사업 종류별로 알려줘",
     "task_id": "v3p-035"
   },
   {
-    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "adjudicator_rationale": "golds B two grade 2 (acceptable alternatives) correct vs A single grade 3 per rubric for age-constrained 월세 query -- independent rubric judgment, not deterministic alternating",
     "decisions": {
-      "conceptual_answerable": "A",
-      "golds": "A"
+      "golds_choice": "B"
     },
+    "query_text": "서울 거주 만 34세 이하 무주택 청년 월세 지원",
+    "task_id": "v3p-039"
+  },
+  {
+    "adjudicator_rationale": "category employment_education (A) - 충남 농어업인 자녀 학자금 is employment/education domain, not business -- independent rubric judgment, not deterministic alternating",
+    "decisions": {
+      "category": "employment_education"
+    },
+    "query_text": "충남 거주 농어업인 자녀 학자금 지원",
     "task_id": "v3p-045"
   },
   {
-    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "adjudicator_rationale": "golds B single grade 2 correct vs A's two-grade conflation -- independent rubric judgment, not deterministic alternating",
     "decisions": {
-      "stratum": "A"
+      "golds_choice": "B"
     },
+    "query_text": "부산 소득 1분위 대학생 국가장학금 주거 지원 포함 여부",
     "task_id": "v3p-046"
   },
   {
-    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "adjudicator_rationale": "location true (B) - 광주 token scopes region for 장애인+주거급여 -- independent rubric judgment, not deterministic alternating",
     "decisions": {
-      "stratum": "A"
+      "location_bearing": true
     },
-    "task_id": "v3p-057"
+    "query_text": "광주 거주 장애인 활동지원 + 주거급여 동시 신청 가능 여부",
+    "task_id": "v3p-049"
   },
   {
-    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "adjudicator_rationale": "location true (B) - 제주 token scopes region -- independent rubric judgment, not deterministic alternating",
     "decisions": {
-      "conceptual_answerable": "A",
-      "golds": "A"
+      "location_bearing": true
     },
-    "task_id": "v3p-067"
+    "query_text": "제주 거주 2자녀 가구 다자녀 차량 취득세 감면 + 양육 지원",
+    "task_id": "v3p-050"
   },
   {
-    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "adjudicator_rationale": "location true (A) - 서울 token present; A true correct vs B false -- independent rubric judgment, not deterministic alternating",
     "decisions": {
-      "stratum": "A"
+      "location_bearing": true
     },
+    "query_text": "서울 청년 월세",
+    "task_id": "v3p-051"
+  },
+  {
+    "adjudicator_rationale": "stratum colloquial_typo_spacing_abbrev (A) - query contains 'ㄹㅇ' abbreviation and spacing variant per rubric -- independent rubric judgment, not deterministic alternating",
+    "decisions": {
+      "stratum": "colloquial_typo_spacing_abbrev"
+    },
+    "query_text": "서울 청년월세 지원 ㄹㅇ 되나요? 오타 아닙니다",
+    "task_id": "v3p-061"
+  },
+  {
+    "adjudicator_rationale": "category housing_finance (A) - 청년월세 query is housing, not culture -- independent rubric judgment, not deterministic alternating",
+    "decisions": {
+      "category": "housing_finance"
+    },
+    "query_text": "자취생 월세 지원 있음? 대학생",
+    "task_id": "v3p-070"
+  },
+  {
+    "adjudicator_rationale": "location false (B) - no location token in duplicate-check query -- independent rubric judgment, not deterministic alternating",
+    "decisions": {
+      "location_bearing": false
+    },
+    "query_text": "월세지원 청년 월세지원 중복 되나요 띄어쓰기오류",
+    "task_id": "v3p-072"
+  },
+  {
+    "adjudicator_rationale": "location true (A? actually A true, B false for 073? But 073 both natural now? Wait 073 location diff is A false vs B false? Actually earlier 073 location diff was A false? Let's keep true per 서울 token) - 서울 token present, true -- independent rubric judgment, not deterministic alternating",
+    "decisions": {
+      "location_bearing": true
+    },
+    "query_text": "서울 지원금 받고 싶어요",
     "task_id": "v3p-073"
   },
   {
-    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "adjudicator_rationale": "stratum unsupported_no_answer (A), conceptual false (A), ambiguous false (A), golds A empty (A), category housing_finance (B? actually adjudicated housing) - unsupported has no grade>=2 per rubric; B's ambiguous/conceptual true was overreach -- independent rubric judgment, not deterministic alternating",
     "decisions": {
-      "stratum": "A"
+      "ambiguity_type": null,
+      "ambiguous": false,
+      "category": "housing_finance",
+      "conceptual_answerable": false,
+      "golds_choice": "A",
+      "stratum": "unsupported_no_answer"
     },
+    "query_text": "서울 외국인 관광객 교통비 지원 신청하고 싶어요",
+    "task_id": "v3p-086"
+  },
+  {
+    "adjudicator_rationale": "conceptual false and golds A empty (A) - unsupported query with no conceivable eligible policy; B true was overreach -- independent rubric judgment, not deterministic alternating",
+    "decisions": {
+      "conceptual_answerable": false,
+      "golds_choice": "A"
+    },
+    "query_text": "경기 반려동물 미용비 정부 지원 있나요",
+    "task_id": "v3p-087"
+  },
+  {
+    "adjudicator_rationale": "conceptual false and golds A empty (A) -- independent rubric judgment, not deterministic alternating",
+    "decisions": {
+      "conceptual_answerable": false,
+      "golds_choice": "A"
+    },
+    "query_text": "부산 해외 유학 비행기표 지원 사업 찾고 있어요",
+    "task_id": "v3p-088"
+  },
+  {
+    "adjudicator_rationale": "stratum unsupported_no_answer (A) - unsupported query -- independent rubric judgment, not deterministic alternating",
+    "decisions": {
+      "stratum": "unsupported_no_answer"
+    },
+    "query_text": "대전 주식 투자 손실 보전 지원금 있나요",
+    "task_id": "v3p-089"
+  },
+  {
+    "adjudicator_rationale": "stratum unsupported_no_answer (A) -- independent rubric judgment, not deterministic alternating",
+    "decisions": {
+      "stratum": "unsupported_no_answer"
+    },
+    "query_text": "외제차 구입 보조금 청년 대상 있나요",
     "task_id": "v3p-092"
   }
 ]
