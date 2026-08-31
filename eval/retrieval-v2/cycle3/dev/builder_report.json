@@ -1,0 +1,225 @@
+{
+  "cases": 36,
+  "generated_at": "2026-08-31T03:00:33Z",
+  "hashes": {
+    "annotation_audit.json": "7a44be39779674c0d3076ba80cae46f43fef2c07a4504cef40ea8c82d35666e9",
+    "evalset.jsonl": "3791368f4722b612058b7a005e17bf5f1caae4ac0437daa9d44ff28f28ca260c",
+    "fingerprints.json": "e0ed52f257601e9c8ded2abe58950c49622f352cb135a71fdca4fb2ae0f4c120",
+    "manifest.json": "e35432ac43903216c4b56d2758717013929f6bf575cd22a652b7e28d436927b8"
+  },
+  "plan_version": "cycle3-dev-v1",
+  "provenance": {
+    "core": {
+      "annotation_sha256": "7a44be39779674c0d3076ba80cae46f43fef2c07a4504cef40ea8c82d35666e9",
+      "evalset_sha256": "3791368f4722b612058b7a005e17bf5f1caae4ac0437daa9d44ff28f28ca260c",
+      "fingerprints_sha256": "e0ed52f257601e9c8ded2abe58950c49622f352cb135a71fdca4fb2ae0f4c120"
+    },
+    "manifest_sha256": "e35432ac43903216c4b56d2758717013929f6bf575cd22a652b7e28d436927b8"
+  },
+  "quotas": {
+    "category_totals": {
+      "business_agriculture": 6,
+      "culture_community": 6,
+      "employment_education": 6,
+      "family_care": 6,
+      "housing_finance": 6,
+      "welfare_health": 6
+    },
+    "source_category_quota": {
+      "business_agriculture": {
+        "gov24": 3,
+        "youth": 3
+      },
+      "culture_community": {
+        "gov24": 3,
+        "youth": 3
+      },
+      "employment_education": {
+        "gov24": 3,
+        "youth": 3
+      },
+      "family_care": {
+        "gov24": 3,
+        "youth": 3
+      },
+      "housing_finance": {
+        "gov24": 3,
+        "youth": 3
+      },
+      "welfare_health": {
+        "gov24": 3,
+        "youth": 3
+      }
+    },
+    "source_totals": {
+      "gov24": 18,
+      "youth": 18
+    }
+  },
+  "seed": "benefit-compass-cycle3-dev-v1-2026-08-31",
+  "selection": {
+    "case_ids": [
+      "c3d-001",
+      "c3d-002",
+      "c3d-003",
+      "c3d-004",
+      "c3d-005",
+      "c3d-006",
+      "c3d-007",
+      "c3d-008",
+      "c3d-009",
+      "c3d-010",
+      "c3d-011",
+      "c3d-012",
+      "c3d-013",
+      "c3d-014",
+      "c3d-015",
+      "c3d-016",
+      "c3d-017",
+      "c3d-018",
+      "c3d-019",
+      "c3d-020",
+      "c3d-021",
+      "c3d-022",
+      "c3d-023",
+      "c3d-024",
+      "c3d-025",
+      "c3d-026",
+      "c3d-027",
+      "c3d-028",
+      "c3d-029",
+      "c3d-030",
+      "c3d-031",
+      "c3d-032",
+      "c3d-033",
+      "c3d-034",
+      "c3d-035",
+      "c3d-036"
+    ],
+    "classifier": {
+      "keywords": {
+        "business_agriculture": [
+          "창업",
+          "사업",
+          "경영",
+          "소상공인",
+          "중소기업",
+          "기업",
+          "농업",
+          "농림",
+          "어업",
+          "수산",
+          "축산",
+          "귀농",
+          "귀어"
+        ],
+        "culture_community": [
+          "문화",
+          "예술",
+          "체육",
+          "스포츠",
+          "관광",
+          "여가",
+          "환경",
+          "공동체",
+          "참여",
+          "권리",
+          "지역활동",
+          "청년활동"
+        ],
+        "employment_education": [
+          "고용",
+          "일자리",
+          "취업",
+          "구직",
+          "채용",
+          "직업",
+          "직업훈련",
+          "교육",
+          "학업",
+          "장학",
+          "학자금",
+          "진로"
+        ],
+        "family_care": [
+          "임신",
+          "출산",
+          "육아",
+          "보육",
+          "아동",
+          "가족",
+          "돌봄",
+          "다자녀",
+          "한부모",
+          "양육"
+        ],
+        "housing_finance": [
+          "주거",
+          "주택",
+          "전세",
+          "월세",
+          "임대",
+          "보증금",
+          "주거비",
+          "이사",
+          "금융",
+          "대출",
+          "이자",
+          "저축",
+          "자산형성",
+          "생활안정"
+        ],
+        "welfare_health": [
+          "복지",
+          "보건",
+          "의료",
+          "건강",
+          "치료",
+          "질병",
+          "장애",
+          "정신건강",
+          "보험",
+          "재활",
+          "요양"
+        ]
+      },
+      "multi_match": "use precedence; record all matched categories in annotation evidence",
+      "no_match": "exclude",
+      "normalization": "NFC + casefold + whitespace collapse",
+      "precedence": [
+        "family_care",
+        "housing_finance",
+        "business_agriculture",
+        "employment_education",
+        "welfare_health",
+        "culture_community"
+      ],
+      "text_fields": [
+        "category_large",
+        "category_mid",
+        "title",
+        "keywords",
+        "summary"
+      ]
+    },
+    "stable_order": "sha256(seed + NUL + source + NUL + source_id), ascending"
+  },
+  "validation": {
+    "ambiguous": 0,
+    "cases": 36,
+    "historical_overlap": {
+      "gold": 0,
+      "query": 0
+    },
+    "holdout_overlap": {
+      "gold": 0,
+      "query": 0
+    },
+    "internal_duplicate": {
+      "gold": 0,
+      "query": 0
+    },
+    "quota_ok": true,
+    "well_posed": 36
+  }
+}

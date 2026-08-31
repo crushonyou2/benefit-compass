@@ -1,0 +1,19 @@
+{
+  "cases": 36,
+  "core": {
+    "annotation_sha256": "7a44be39779674c0d3076ba80cae46f43fef2c07a4504cef40ea8c82d35666e9",
+    "evalset_sha256": "3791368f4722b612058b7a005e17bf5f1caae4ac0437daa9d44ff28f28ca260c",
+    "fingerprints_sha256": "e0ed52f257601e9c8ded2abe58950c49622f352cb135a71fdca4fb2ae0f4c120"
+  },
+  "generated_at": "2026-08-31T03:00:33Z",
+  "hashes": {
+    "annotation_audit.json": "7a44be39779674c0d3076ba80cae46f43fef2c07a4504cef40ea8c82d35666e9",
+    "evalset.jsonl": "3791368f4722b612058b7a005e17bf5f1caae4ac0437daa9d44ff28f28ca260c",
+    "fingerprints.json": "e0ed52f257601e9c8ded2abe58950c49622f352cb135a71fdca4fb2ae0f4c120"
+  },
+  "historical_catalog_sha256": "42e8534d578bc45808d6546bee9f59a49564ad455cd3b693d23853676d169454",
+  "holdout_fingerprints_sha256": "93be481e3c4fee700615b8f66c0c9289472ea3315c46287a91174d278c625a89",
+  "plan_version": "cycle3-dev-v1",
+  "seed": "benefit-compass-cycle3-dev-v1-2026-08-31",
+  "source_truth_sha256": "cd2554748a56d23b6613d38d15d8488b6d73566a68e3acbe10b79219627c9716"
+}

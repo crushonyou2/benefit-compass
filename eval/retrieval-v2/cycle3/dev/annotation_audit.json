@@ -1,0 +1,369 @@
+{
+  "ambiguous": 0,
+  "cases": 36,
+  "fingerprint_version": "v1",
+  "generated_at": "2026-08-31T03:00:33Z",
+  "items": [
+    {
+      "case_id": "c3d-001",
+      "category": "housing_finance",
+      "evidence": "jurisdiction=아동정책과; region_codes=['28110', '28140', '28177', '28185', '28200', '28237', '28245', '28260', '28710', '28720']; matched=['housing_finance', 'employment_education']; query includes distinguishing terms",
+      "matched_categories": [
+        "housing_finance",
+        "employment_education"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-002",
+      "category": "housing_finance",
+      "evidence": "jurisdiction=문화정책과; region_codes=['44130', '44150', '44180', '44200', '44230', '44250', '44270', '44710', '44760', '44770', '44790', '44800', '44810', '44825']; matched=['housing_finance', 'welfare_health', 'culture_community']; query includes distinguishing terms",
+      "matched_categories": [
+        "housing_finance",
+        "welfare_health",
+        "culture_community"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-003",
+      "category": "housing_finance",
+      "evidence": "jurisdiction=울산광역시; region_codes=['31110', '31140', '31170', '31200', '31710']; matched=['housing_finance', 'business_agriculture', 'welfare_health', 'culture_community']; query includes distinguishing terms",
+      "matched_categories": [
+        "housing_finance",
+        "business_agriculture",
+        "welfare_health",
+        "culture_community"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-004",
+      "category": "housing_finance",
+      "evidence": "jurisdiction=충청남도 태안군; region_codes=[]; matched=['housing_finance', 'welfare_health']; query includes distinguishing terms",
+      "matched_categories": [
+        "housing_finance",
+        "welfare_health"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-005",
+      "category": "housing_finance",
+      "evidence": "jurisdiction=서울특별시 성북구; region_codes=[]; matched=['housing_finance', 'welfare_health']; query includes distinguishing terms",
+      "matched_categories": [
+        "housing_finance",
+        "welfare_health"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-006",
+      "category": "housing_finance",
+      "evidence": "jurisdiction=전북특별자치도 익산시; region_codes=[]; matched=['housing_finance', 'business_agriculture']; query includes distinguishing terms",
+      "matched_categories": [
+        "housing_finance",
+        "business_agriculture"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-007",
+      "category": "family_care",
+      "evidence": "jurisdiction=전라남도 광양시 보건소; region_codes=['46230']; matched=['family_care', 'housing_finance', 'business_agriculture', 'welfare_health', 'culture_community']; query includes distinguishing terms",
+      "matched_categories": [
+        "family_care",
+        "housing_finance",
+        "business_agriculture",
+        "welfare_health",
+        "culture_community"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-008",
+      "category": "family_care",
+      "evidence": "jurisdiction=경상북도 의성군 관광복지국; region_codes=['47730']; matched=['family_care', 'employment_education', 'welfare_health']; query includes distinguishing terms",
+      "matched_categories": [
+        "family_care",
+        "employment_education",
+        "welfare_health"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-009",
+      "category": "family_care",
+      "evidence": "jurisdiction=제천시; region_codes=['43150']; matched=['family_care', 'business_agriculture', 'employment_education', 'culture_community']; query includes distinguishing terms",
+      "matched_categories": [
+        "family_care",
+        "business_agriculture",
+        "employment_education",
+        "culture_community"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-010",
+      "category": "family_care",
+      "evidence": "jurisdiction=경상남도 고성군; region_codes=[]; matched=['family_care', 'employment_education']; query includes distinguishing terms",
+      "matched_categories": [
+        "family_care",
+        "employment_education"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-011",
+      "category": "family_care",
+      "evidence": "jurisdiction=인천광역시 강화군; region_codes=[]; matched=['family_care', 'employment_education']; query includes distinguishing terms",
+      "matched_categories": [
+        "family_care",
+        "employment_education"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-012",
+      "category": "family_care",
+      "evidence": "jurisdiction=충청북도 영동군; region_codes=[]; matched=['family_care', 'employment_education']; query includes distinguishing terms",
+      "matched_categories": [
+        "family_care",
+        "employment_education"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-013",
+      "category": "employment_education",
+      "evidence": "jurisdiction=인천광역시 행정국 자치행정과; region_codes=['28110', '28140', '28177', '28185', '28200', '28237', '28245', '28260', '28710', '28720']; matched=['employment_education']; query includes distinguishing terms",
+      "matched_categories": [
+        "employment_education"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-014",
+      "category": "employment_education",
+      "evidence": "jurisdiction=경상남도 진주시 우주항공경제국; region_codes=['48170']; matched=['employment_education']; query includes distinguishing terms",
+      "matched_categories": [
+        "employment_education"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-015",
+      "category": "employment_education",
+      "evidence": "jurisdiction=고등교육정책담당관; region_codes=['44130', '44150', '44180', '44200', '44230', '44250', '44270', '44710', '44760', '44770', '44790', '44800', '44810', '44825']; matched=['employment_education']; query includes distinguishing terms",
+      "matched_categories": [
+        "employment_education"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-016",
+      "category": "employment_education",
+      "evidence": "jurisdiction=서울특별시 중랑구; region_codes=[]; matched=['employment_education', 'culture_community']; query includes distinguishing terms",
+      "matched_categories": [
+        "employment_education",
+        "culture_community"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-017",
+      "category": "employment_education",
+      "evidence": "jurisdiction=기후에너지환경부; region_codes=[]; matched=['employment_education', 'culture_community']; query includes distinguishing terms",
+      "matched_categories": [
+        "employment_education",
+        "culture_community"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-018",
+      "category": "employment_education",
+      "evidence": "jurisdiction=경기도 구리시; region_codes=[]; matched=['employment_education', 'welfare_health']; query includes distinguishing terms",
+      "matched_categories": [
+        "employment_education",
+        "welfare_health"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-019",
+      "category": "welfare_health",
+      "evidence": "jurisdiction=괴산군; region_codes=['43760']; matched=['welfare_health', 'culture_community']; query includes distinguishing terms",
+      "matched_categories": [
+        "welfare_health",
+        "culture_community"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-020",
+      "category": "welfare_health",
+      "evidence": "jurisdiction=서산시; region_codes=['44210']; matched=['welfare_health', 'culture_community']; query includes distinguishing terms",
+      "matched_categories": [
+        "welfare_health",
+        "culture_community"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-021",
+      "category": "welfare_health",
+      "evidence": "jurisdiction=문화체육관광부; region_codes=['28110', '28140', '28177', '28185', '28200', '28237', '28245', '28260', '28710', '28720']; matched=['welfare_health', 'culture_community']; query includes distinguishing terms",
+      "matched_categories": [
+        "welfare_health",
+        "culture_community"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-022",
+      "category": "welfare_health",
+      "evidence": "jurisdiction=전북특별자치도 고창군; region_codes=[]; matched=['welfare_health']; query includes distinguishing terms",
+      "matched_categories": [
+        "welfare_health"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-023",
+      "category": "welfare_health",
+      "evidence": "jurisdiction=경기도 용인시; region_codes=[]; matched=['welfare_health']; query includes distinguishing terms",
+      "matched_categories": [
+        "welfare_health"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-024",
+      "category": "welfare_health",
+      "evidence": "jurisdiction=경상북도 김천시; region_codes=[]; matched=['welfare_health']; query includes distinguishing terms",
+      "matched_categories": [
+        "welfare_health"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-025",
+      "category": "culture_community",
+      "evidence": "jurisdiction=인천광역시 청년정책담당관; region_codes=['28110', '28140', '28177', '28185', '28200', '28237', '28245', '28260', '28710', '28720']; matched=['culture_community']; query includes distinguishing terms",
+      "matched_categories": [
+        "culture_community"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-026",
+      "category": "culture_community",
+      "evidence": "jurisdiction=중남미국; region_codes=['11110', '11140', '11170', '11200', '11215', '11230', '11260', '11290', '11305', '11320', '11350', '11380', '11410', '11440', '11470', '11500', '11530', '11545', '11560', '11590', '11620', '11650', '11680', '11710', '11740', '26110', '26140', '26170', '26200', '26230', '26260', '26290', '26320', '26350', '26380', '26410', '26440', '26470', '26500', '26530', '26710', '27110', '27140', '27170', '27200', '27230', '27260', '27290', '27710', '27720', '28110', '28140', '28177', '28185', '28200', '28237', '28245', '28260', '28710', '28720', '29110', '29140', '29155', '29170', '29200', '30110', '30140', '30170', '30200', '30230', '31110', '31140', '31170', '31200', '31710', '36110', '41111', '41113', '41115', '41117', '41131', '41133', '41135', '41150', '41171', '41173', '41192', '41194', '41196', '41210', '41220', '41250', '41271', '41273', '41281', '41285', '41287', '41290', '41310', '41360', '41370', '41390', '41410', '41430', '41450', '41461', '41463', '41465', '41480', '41500', '41550', '41570', '41590', '41610', '41630', '41650', '41670', '41800', '41820', '41830', '43111', '43112', '43113', '43114', '43130', '43150', '43720', '43730', '43740', '43745', '43750', '43760', '43770', '43800', '44131', '44133', '44150', '44180', '44200', '44210', '44230', '44250', '44270', '44710', '44760', '44770', '44790', '44800', '44810', '44825', '46110', '46130', '46150', '46170', '46230', '46710', '46720', '46730', '46770', '46780', '46790', '46800', '46810', '46820', '46830', '46840', '46860', '46870', '46880', '46890', '46900', '46910', '47111', '47113', '47130', '47150', '47170', '47190', '47210', '47230', '47250', '47280', '47290', '47730', '47750', '47760', '47770', '47820', '47830', '47840', '47850', '47900', '47920', '47930', '47940', '48121', '48123', '48125', '48127', '48129', '48170', '48220', '48240', '48250', '48270', '48310', '48330', '48720', '48730', '48740', '48820', '48840', '48850', '48860', '48870', '48880', '48890', '50110', '50130', '51110', '51130', '51150', '51170', '51190', '51210', '51230', '51720', '51730', '51750', '51760', '51770', '51780', '51790', '51800', '51810', '51820', '51830', '52111', '52113', '52130', '52140', '52180', '52190', '52210', '52710', '52720', '52730', '52740', '52750', '52770', '52790', '52800']; matched=['culture_community']; query includes distinguishing terms",
+      "matched_categories": [
+        "culture_community"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-027",
+      "category": "culture_community",
+      "evidence": "jurisdiction=울산광역시; region_codes=['31110', '31140', '31170', '31200', '31710']; matched=['culture_community']; query includes distinguishing terms",
+      "matched_categories": [
+        "culture_community"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-028",
+      "category": "culture_community",
+      "evidence": "jurisdiction=산림청; region_codes=[]; matched=['culture_community']; query includes distinguishing terms",
+      "matched_categories": [
+        "culture_community"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-029",
+      "category": "culture_community",
+      "evidence": "jurisdiction=충청남도; region_codes=[]; matched=['culture_community']; query includes distinguishing terms",
+      "matched_categories": [
+        "culture_community"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-030",
+      "category": "culture_community",
+      "evidence": "jurisdiction=인천시설공단; region_codes=[]; matched=['culture_community']; query includes distinguishing terms",
+      "matched_categories": [
+        "culture_community"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-031",
+      "category": "business_agriculture",
+      "evidence": "jurisdiction=해양수산부; region_codes=['11110', '11140', '11170', '11200', '11215', '11230', '11260', '11290', '11305', '11320', '11350', '11380', '11410', '11440', '11470', '11500', '11530', '11545', '11560', '11590', '11620', '11650', '11680', '11710', '11740', '26110', '26140', '26170', '26200', '26230', '26260', '26290', '26320', '26350', '26380', '26410', '26440', '26470', '26500', '26530', '26710', '27110', '27140', '27170', '27200', '27230', '27260', '27290', '27710', '27720', '28110', '28140', '28177', '28185', '28200', '28237', '28245', '28260', '28710', '28720', '29110', '29140', '29155', '29170', '29200', '30110', '30140', '30170', '30200', '30230', '31110', '31140', '31170', '31200', '31710', '36110', '41111', '41113', '41115', '41117', '41131', '41133', '41135', '41150', '41171', '41173', '41192', '41194', '41196', '41210', '41220', '41250', '41271', '41273', '41281', '41285', '41287', '41290', '41310', '41360', '41370', '41390', '41410', '41430', '41450', '41461', '41463', '41465', '41480', '41500', '41550', '41570', '41590', '41610', '41630', '41650', '41670', '41800', '41820', '41830', '43111', '43112', '43113', '43114', '43130', '43150', '43720', '43730', '43740', '43745', '43750', '43760', '43770', '43800', '44131', '44133', '44150', '44180', '44200', '44210', '44230', '44250', '44270', '44710', '44760', '44770', '44790', '44800', '44810', '44825', '46110', '46130', '46150', '46170', '46230', '46710', '46720', '46730', '46770', '46780', '46790', '46800', '46810', '46820', '46830', '46840', '46860', '46870', '46880', '46890', '46900', '46910', '47111', '47113', '47130', '47150', '47170', '47190', '47210', '47230', '47250', '47280', '47290', '47730', '47750', '47760', '47770', '47820', '47830', '47840', '47850', '47900', '47920', '47930', '47940', '48121', '48123', '48125', '48127', '48129', '48170', '48220', '48240', '48250', '48270', '48310', '48330', '48720', '48730', '48740', '48820', '48840', '48850', '48860', '48870', '48880', '48890', '50110', '50130', '51110', '51130', '51150', '51170', '51190', '51210', '51230', '51720', '51730', '51750', '51760', '51770', '51780', '51790', '51800', '51810', '51820', '51830', '52111', '52113', '52130', '52140', '52180', '52190', '52210', '52710', '52720', '52730', '52740', '52750', '52770', '52790', '52800']; matched=['business_agriculture', 'employment_education']; query includes distinguishing terms",
+      "matched_categories": [
+        "business_agriculture",
+        "employment_education"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-032",
+      "category": "business_agriculture",
+      "evidence": "jurisdiction=전라남도 인구청년이민국 청년희망과; region_codes=['46110', '46130', '46150', '46170', '46230', '46710', '46720', '46730', '46770', '46780', '46790', '46800', '46810', '46820', '46830', '46840', '46860', '46870', '46880', '46890', '46900', '46910']; matched=['business_agriculture', 'employment_education']; query includes distinguishing terms",
+      "matched_categories": [
+        "business_agriculture",
+        "employment_education"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-033",
+      "category": "business_agriculture",
+      "evidence": "jurisdiction=교육부; region_codes=['11110', '11140', '11170', '11200', '11215', '11230', '11260', '11290', '11305', '11320', '11350', '11380', '11410', '11440', '11470', '11500', '11530', '11545', '11560', '11590', '11620', '11650', '11680', '11710', '11740', '26110', '26140', '26170', '26200', '26230', '26260', '26290', '26320', '26350', '26380', '26410', '26440', '26470', '26500', '26530', '26710', '27110', '27140', '27170', '27200', '27230', '27260', '27290', '27710', '27720', '28110', '28140', '28177', '28185', '28200', '28237', '28245', '28260', '28710', '28720', '29110', '29140', '29155', '29170', '29200', '30110', '30140', '30170', '30200', '30230', '31110', '31140', '31170', '31200', '31710', '36110', '41111', '41113', '41115', '41117', '41131', '41133', '41135', '41150', '41171', '41173', '41192', '41194', '41196', '41210', '41220', '41250', '41271', '41273', '41281', '41285', '41287', '41290', '41310', '41360', '41370', '41390', '41410', '41430', '41450', '41461', '41463', '41465', '41480', '41500', '41550', '41570', '41590', '41610', '41630', '41650', '41670', '41800', '41820', '41830', '43111', '43112', '43113', '43114', '43130', '43150', '43720', '43730', '43740', '43745', '43750', '43760', '43770', '43800', '44131', '44133', '44150', '44180', '44200', '44210', '44230', '44250', '44270', '44710', '44760', '44770', '44790', '44800', '44810', '44825', '46110', '46130', '46150', '46170', '46230', '46710', '46720', '46730', '46770', '46780', '46790', '46800', '46810', '46820', '46830', '46840', '46860', '46870', '46880', '46890', '46900', '46910', '47111', '47113', '47130', '47150', '47170', '47190', '47210', '47230', '47250', '47280', '47290', '47730', '47750', '47760', '47770', '47820', '47830', '47840', '47850', '47900', '47920', '47930', '47940', '48121', '48123', '48125', '48127', '48129', '48170', '48220', '48240', '48250', '48270', '48310', '48330', '48720', '48730', '48740', '48820', '48840', '48850', '48860', '48870', '48880', '48890', '50110', '50130', '51110', '51130', '51150', '51170', '51190', '51210', '51230', '51720', '51730', '51750', '51760', '51770', '51780', '51790', '51800', '51810', '51820', '51830', '52111', '52113', '52130', '52140', '52180', '52190', '52210', '52710', '52720', '52730', '52740', '52750', '52770', '52790', '52800']; matched=['business_agriculture', 'employment_education']; query includes distinguishing terms",
+      "matched_categories": [
+        "business_agriculture",
+        "employment_education"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-034",
+      "category": "business_agriculture",
+      "evidence": "jurisdiction=충청북도 보은군; region_codes=[]; matched=['business_agriculture']; query includes distinguishing terms",
+      "matched_categories": [
+        "business_agriculture"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-035",
+      "category": "business_agriculture",
+      "evidence": "jurisdiction=고용노동부; region_codes=[]; matched=['business_agriculture', 'employment_education', 'welfare_health']; query includes distinguishing terms",
+      "matched_categories": [
+        "business_agriculture",
+        "employment_education",
+        "welfare_health"
+      ],
+      "verdict": "well_posed"
+    },
+    {
+      "case_id": "c3d-036",
+      "category": "business_agriculture",
+      "evidence": "jurisdiction=기술보증기금; region_codes=[]; matched=['business_agriculture', 'employment_education']; query includes distinguishing terms",
+      "matched_categories": [
+        "business_agriculture",
+        "employment_education"
+      ],
+      "verdict": "well_posed"
+    }
+  ],
+  "normalization_spec": "NFC + strip + collapse_whitespace + casefold(lower)",
+  "plan_version": "cycle3-dev-v1",
+  "seed": "benefit-compass-cycle3-dev-v1-2026-08-31",
+  "well_posed": 36
+}
