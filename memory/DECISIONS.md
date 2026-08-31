@@ -224,3 +224,30 @@ Reconciled base: branch `codex/retrieval-v2-cycle3-candidate` HEAD `a6a232c93115
 (5) Production retrieval/adoption is **NOT changed** by this closure; `D-003`/`D-004`/`D-007`/`D-008`/`D-010`/`D-011` history/contracts remain in force as applicable (no threshold/gate relaxation, no production rollout authorized, no candidate adoption). **D-012 does not authorize deletion of provenance refs**; Git cleanup (branch deletion, remote ref deletion, worktree deletion/prune, baseline archive tags) is a **separate** future stage and requires fresh Git-metadata-only CAS checks. No canonical result or audit events are modified (bytes/SHA/event count immutable).
 
 No production/`ml-service`, eval data/artifacts, prereg, test code modified beyond this decision record + docs/SESSION-LOG durability entries and the archival closure tag `retrieval-v2-cycle3-closure-v1` (separate step, points to D-012 closure commit, not to `a6a232c`). No new branch/tag/dev/holdout creation, no eval execution, no holdout plaintext `git show`/`cat-file`/`checkout`/`restore` in this stage.
+
+## D-013 · Start Retrieval v3 User Search Quality — user-satisfying search program — 2026-09-01 (user-confirmed)
+
+User explicitly confirmed start of Retrieval v3 User Search Quality on branch `codex/retrieval-v3-user-search-quality` from base `5327661445c37191a3fd61db195f3af4d2cf893a` / tag `retrieval-v2-cycle3-closure-v1` (D-012 closure). This is a user-satisfying search program bootstrapped from the durable v2/Cycle3 closure. V3 evaluation contract was open at bootstrap and is now defined as a standing decision via this D-013 plus bootstrap prereg `docs/RETRIEVAL_V3_PREREG.md`.
+
+Reconciled base for this decision: branch `codex/retrieval-v3-user-search-quality` HEAD `257183f106c39ffee4aae1e52b8587c1d9db97c0` clean (prior HOLD commit), base `5327661`, remote v3 branch absent, Web HOLD for wrong file scope and omitted D-013/Q-006/prereg verified; this repair is append-only (no rewrite/amend/reset/rebase/squash of `257183f`).
+
+Goal: user-satisfying search — representative answerable user-intent Success@5.
+
+Release gates:
+
+- Headline (answerable tasks on representative user intent): **Success@5 >=85% is the release floor; >=90% is a strong/stretch target, not promised.** Both thresholds apply to headline answerable Success@5 (grade>=2) on a representative held-out benchmark.
+- Supporting gates (diagnostic / required before release, not headline): Top1 / Top3 / MRR / NDCG; no-answer / ambiguity safety; ineligible / expired intrusion; official-link validity; latency / cost.
+
+Evaluation design / pilot before implementation: no candidate tuning or protected evaluation begins before evaluation design is fixed and a retrieval-blind pilot validates labelability/answerability/ambiguity/strata/annotation disagreement (see prereg). Final benchmark frozen before tuning.
+
+Primary candidate family (fielded): **sparse+dense hybrid + exact title/org/entity + field weighting + duplicate/diversity**. This is the primary family to be fielded and tuned (sparse+dense union/hybrid — Postgres FTS / BM25-equivalent as feasible — plus exact title/org/entity plus field weighting plus duplicate/diversification). No v2 K/threshold/source-bias sweep continuation.
+
+Optional lightweight reranking: **only after materially new v3 evidence shows high first-stage recall yet ranking still limits, not an old cross-encoder re-enable.** Candidate B — optional lightweight ranker — is permitted only if first-stage oracle Recall@100 >=95–97% and ranking still limits. Embedding replacement / LLM rewrite / judge is last resort / out of initial scope.
+
+Decision scope and supersession:
+
+- D-013 supersedes D-004 **only for conditional reranking reconsideration** (lightweight reranking may be reconsidered only under the high-recall condition above); global abstention / public region search remain not adopted (D-004 otherwise in force).
+- No rollout is authorized by D-013.
+- v2 / Cycle3 sets/results (frozen devs/holdouts, canonical results, tags, audit chains) are **immutable history / regression only, not v3 tuning data**. They must not be reused as v3 tuning/selection evidence. D-003 / D-007 / D-008 / D-010 / D-011 / D-012 remain history/contracts as applicable; D-007 is historical v2 contract, v3 latency budget pending Q-006.
+
+No production/`ml-service`, eval data/artifacts, retrieval/DB/model/embedding/benchmark/latency execution, or protected dev/holdout/canonical plaintext per-case access in this decision session. No branch/tag deletion, no history rewrite.
