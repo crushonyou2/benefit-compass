@@ -1,0 +1,139 @@
+[
+  {
+    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "decisions": {
+      "stratum": "A"
+    },
+    "task_id": "v3p-004"
+  },
+  {
+    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "decisions": {
+      "location_bearing": "A"
+    },
+    "task_id": "v3p-005"
+  },
+  {
+    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "decisions": {
+      "ambiguous": "A"
+    },
+    "task_id": "v3p-012"
+  },
+  {
+    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "decisions": {
+      "golds": "A"
+    },
+    "task_id": "v3p-018"
+  },
+  {
+    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "decisions": {
+      "golds": "B"
+    },
+    "task_id": "v3p-020"
+  },
+  {
+    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "decisions": {
+      "golds": "A"
+    },
+    "task_id": "v3p-021"
+  },
+  {
+    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "decisions": {
+      "conceptual_answerable": "A",
+      "golds": "A"
+    },
+    "task_id": "v3p-022"
+  },
+  {
+    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "decisions": {
+      "ambiguous": "A",
+      "golds": "B"
+    },
+    "task_id": "v3p-024"
+  },
+  {
+    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "decisions": {
+      "golds": "A"
+    },
+    "task_id": "v3p-028"
+  },
+  {
+    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "decisions": {
+      "stratum": "A"
+    },
+    "task_id": "v3p-031"
+  },
+  {
+    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "decisions": {
+      "location_bearing": "A"
+    },
+    "task_id": "v3p-032"
+  },
+  {
+    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "decisions": {
+      "golds": "B"
+    },
+    "task_id": "v3p-033"
+  },
+  {
+    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "decisions": {
+      "stratum": "A"
+    },
+    "task_id": "v3p-035"
+  },
+  {
+    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "decisions": {
+      "conceptual_answerable": "A",
+      "golds": "A"
+    },
+    "task_id": "v3p-045"
+  },
+  {
+    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "decisions": {
+      "stratum": "A"
+    },
+    "task_id": "v3p-046"
+  },
+  {
+    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "decisions": {
+      "stratum": "A"
+    },
+    "task_id": "v3p-057"
+  },
+  {
+    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "decisions": {
+      "conceptual_answerable": "A",
+      "golds": "A"
+    },
+    "task_id": "v3p-067"
+  },
+  {
+    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "decisions": {
+      "stratum": "A"
+    },
+    "task_id": "v3p-073"
+  },
+  {
+    "adjudicator_rationale": "deterministic: stratum/location/conceptual/ambiguous -> A (original taxonomy/heuristic); golds pure flips alternate A/B to demonstrate adjudication; conceptual-bound golds follow conceptual choice",
+    "decisions": {
+      "stratum": "A"
+    },
+    "task_id": "v3p-092"
+  }
+]

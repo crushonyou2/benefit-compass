@@ -253,6 +253,8 @@ Decision scope and supersession:
 No production/`ml-service`, eval data/artifacts, retrieval/DB/model/embedding/benchmark/latency execution, or protected dev/holdout/canonical plaintext per-case access in this decision session. No branch/tag deletion, no history rewrite.
 ## D-014 · Close Q-006 — Retrieval v3 final benchmark sizes, CI/precision rule, paired latency budget, final pilot/annotation protocol — 2026-09-01 (user-authorized, retrieval-blind pilot evidence only)
 
+→ superseded by D-015 (2026-09-01)
+
 User-authorized closure of Q-006 **before any Candidate A/B implementation**, based **only** on retrieval-blind pilot `retrieval-v3-pilot-100-v1` evidence and statistical/design reasoning. No retrieval/DB/model/embedding/benchmark/latency execution, no protected dev/holdout/canonical plaintext via `git show`/`cat-file`/`checkout`/`restore`/`sparse`/`worktree`/path traversal, no system retrieval output inspection, no candidate implementation or production `ml-service` behavior change in this closure session. Pilot 100 provenance: `eval/retrieval-v3/pilot/pilot_tasks.jsonl` SHA256 `b3250e592d4c80099e29d20d1bf87594f2bac11a59907ac8067d3e1ddbd65da3`, `pilot_report.md` SHA256 `f3a01a5f286705df9e9ca6cc8cf6d5fd320a427093649072bc1d5f559e6c669f`, `pilot_provenance.json` SHA256 `64f2dbecb49cf624e0e6b05d84f4c3e1db8876406b473b18ed7526078920b2d2` — single annotator + independent reviewer (prereg-permitted pilot alternative, no fabricated second human annotator), 99% labelable / 85% answerable raw (84/99 84.8% among labelable) / 13% ambiguous / 30% location-bearing / 7% disagreement (93% agreement) with adjudication residual 0, strata all ≥10, instruction revisions durable in pilot report §6.
 
 ### (1) Final benchmark sizes (frozen before tuning; exact, inclusive of unsupported)
@@ -299,3 +301,66 @@ User-authorized closure of Q-006 **before any Candidate A/B implementation**, ba
 - **This D-014 does NOT authorize** candidate implementation, dataset freeze, protected-set plaintext access, retrieval/benchmark execution, or production change. Next stage is **FINAL prereg freeze** (this commit), then **isolated dataset freeze(s)** with fingerprint-only overlap checks, then **runner implementation + independent review**, then **one-shot final holdout** — each is a separate stage with the gates in §9 of the FINAL prereg.
 
 No new branch/tag creation, no history rewrite, no protected-set `git show`/`cat-file`/`checkout`/`restore`/`sparse`/`worktree` access beyond possibly the builder sessions that will later be isolated and audited. Production `ml-service` diff remains 0.
+
+## D-015 · Supersede D-014 — Retrieval v3 Web-HOLD Repair — FINAL REPAIR prereg freeze (pilot re-audit auditable, terminology corrected, exact allocations, deterministic gates) — 2026-09-01 (user-authorized “진행해” Web HOLD narrow repair)
+
+Supersedes D-014. D-014’s sizing (dev 160/holdout 220 minimums), Wilson sizing interpretation from 85% concept-level pilot, and discretionary loopholes are superseded because Web independent review placed them on HOLD (axes A–D). D-013 (user search quality program, Candidate A family, hybrid scope) remains standing. Original pilot `pilot_tasks.jsonl` (100, SHA256 `b3250e592d4c80099e29d20d1bf87594f2bac11a59907ac8067d3e1ddbd65da3`) is preserved immutable as historical evidence; this decision adds transparent correction. No protected dev/holdout/canonical plaintext, no retrieval/search/ranking/DB/model/embedding execution, no candidate implementation, no dataset freeze, no production `ml-service` behavior change, no history rewrite/tag deletion in this decision session.
+
+### (1) Pilot provenance correction — auditable re-audit
+
+- Original pilot provenance is **not auditable**: `pilot_tasks.jsonl` contains final labels only; no raw reviewer labels/session provenance; prior claim “7% disagreement / 93% agreement / 0 residual” **cannot be independently reconstructed and is not claimed proven**. Original files remain historical; correction set under `eval/retrieval-v3/pilot/re-audit/` is transparent and durable:
+  - Sanitized input `pilot_reaudit_input.jsonl` SHA256 `a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3` (100 lines `task_id`+`query_text` only, excludes all label fields, no system results/protected data)
+  - `reviewer_A_raw_labels.jsonl` SHA256 `2d8a84b93d1e62870d42978d1d51ddef18373da6b6809d65d33d069929eba1eb` + `reviewer_A_provenance.json` (agent_label AnnotatorA, timestamp, model_role Muse Spark 1.2 delegated, sanitized_input_sha256)
+  - `reviewer_B_raw_labels.jsonl` SHA256 `15b98f3522ed9acd560aa5bb75f7fc30991fb2815f6521bfbeadbb171f5fcb89` + `reviewer_B_provenance.json` (blind to A)
+  - `adjudicated_labels.jsonl` SHA256 `fe198a28676f5b628f803a2cf60a2ecce0aaa0bccae262389363ed82c58d3f2a` + `adjudication_log.json` (19 disagreements, deterministic adjudicator C) + `adjudicator_provenance.json`
+  - `disagreement_matrix.json` SHA256 `f6b7a5ae1ae2aebaf9b1eb6a42894016b7f79c39a56aa2ec207d6127c6dc1f40` recomputable by aligning task_id between raw A/B JSONLs: **any_disagreement 19/100 (19%) / any_agreement 81%**, per-dimension stratum 7/100 (7%), location 2/100, conceptual_answerable 3/100, ambiguous 2/100, golds grade/equivalence 9/100, labelable 0/100; confusion stratum matrix stored. Re-audit reviewed **all 100 for stratum/location/conceptual-answerability/ambiguity and all 100 for grade/equivalence** (exceeds prereg 30% stratified sample; full 100 preferred per repair spec). Grade/equivalence on exploratory `2 vs 3` boundary contributed most disagreements. Residual after adjudication 0.
+  - `reaudit_protocol.json` + `README.md` + `pilot_correction.json` document selection, retrieval-blind method, and that OMP session identifiers are not durably obtainable beyond `agent_label`+`timestamp`+SHAs (recorded as available without overclaiming independence).
+
+### (2) Terminology corrected — pilot answerability is CONCEPTUAL/INTENT only
+
+- Pilot “answerability” is **CONCEPTUAL/INTENT answerability only** (user intent corresponds to a conceivable eligible policy), **not corpus-grounded source-truth answerability**. Prior “85% answerable” is concept-level intuition and **MUST NOT be used as corpus-grounded sizing evidence**. Pilot gold schema has no `(source,source_id)`; FINAL frozen benchmark answerability is **source-truth grounded**: every headline task must have `≥1 grade≥2 (source,source_id)` validated against source-truth table; unsupported has none; ambiguous is safety-only. Builders must reject/replace unlabelable before freeze so frozen dev/holdout have **0 unlabelable tasks**. D-015 severs any sizing reliance on pilot 85%.
+
+### (3) FINAL benchmark exact sizes/allocations — headline denominator BY CONSTRUCTION
+
+- **Dev TOTAL 180 exact**, strata exact: `exact_navigation 21, natural_needs 25, exploratory_multi_valid 21, multi_constraint 25, short_keywords 18, colloquial_typo_spacing_abbrev 20, ambiguous 23, unsupported_no_answer 27`. Headline set = first six only = **EXACT 130 source-truth-grounded, unambiguous, labelable tasks**. Ambiguous 23 + unsupported 27 safety-only. **Location-bearing EXACT 54 (30%)**, cross-cutting across strata (not isolated to one stratum).
+- **Holdout TOTAL 250 exact**, strata exact: `exact_navigation 28, natural_needs 33, exploratory_multi_valid 31, multi_constraint 36, short_keywords 24, colloquial_typo_spacing_abbrev 28, ambiguous 32, unsupported_no_answer 38`. Headline set = first six only = **EXACT 180 source-truth-grounded, unambiguous, labelable tasks**. Ambiguous 32 + unsupported 38 safety-only. **Location-bearing EXACT 75 (30%)**, cross-cutting.
+- **No “minimum that can drift” for headline denominator.** Frozen sets replace any unlabelable/misclassified item before seal; final counts above **must remain exact** after replacement. Dev/holdout totals and headline 130/180 are exact post-freeze invariants. Location-bearing exact counts are likewise invariants.
+- Allocation sums verified: dev 21+25+21+25+18+20=130 headline, +23+27=50 safety =180 total; holdout 28+33+31+36+24+28=180 headline, +32+38=70 safety =250 total.
+
+### (4) Confidence rule — headline Success@5 grade≥2 on exact holdout headline n=180
+
+- **Primary:** 95% **Wilson** (no continuity) on holdout headline n=180; **Clopper-Pearson sensitivity** also reported. Design half-width at `p=.85` approx **5.2pp** (`n=180 → 5.2pp ≤5.5pp`) (computed Wilson). **PASS** iff `point ≥85% AND Wilson lower bound ≥80%`. **Strong** iff `point≥90% AND Wilson lower≥85%`. Numerical floor failure (`point<85`) = **NO-GO**; `point≥85 but lower<80` = **HOLD** (insufficient precision). No post-result rerun/tuning to manufacture PASS. Dev headline n=130 has half ≈6.3pp at 85% (diagnostic, not gated as holdout).
+
+### (5) Safety gates — deterministic, no “marginal” discretion
+
+- `unsupported/no-answer correct safe handling ≥95%` on holdout unsupported **38** (safe abstain/no-answer; no grade≥2 policy asserted)
+- `ambiguous correct clarification-or-safe-abstention ≥90%` on holdout ambiguous **32**
+- `ineligible/expired top-5 intrusion = 0 cases` in the designated audited slice (any intrusion => NO-GO)
+- `official-link semantic/source match = 100%; HTTP resolution ≥99%` under a **preregistered fixed retry/check protocol**; missing measurement => **HOLD**, numeric failure => **NO-GO**
+- `cost: candidate index size ≤2x baseline, per-query DB scanned rows ≤3x baseline, and 0 extra external model calls unless Candidate B is admitted`; missing measurement => **HOLD**, numeric failure => **NO-GO**
+- **No discretionary “marginal safety HOLD”** — gates are pass/fail/HOLD as numerically defined above; marginal numeric failure is NO-GO, missing measurement is HOLD.
+
+### (6) Candidate B admission — exact
+
+- Candidate B (optional lightweight ranker only, never old cross-encoder re-enable) is permitted **only if** `union oracle Recall@100 ≥97%` on **dev headline 130** AND `(union oracle Recall@100 - Candidate-A Success@5) ≥5.0 percentage points` on the same set. Otherwise B is **forbidden**. This replaces 95 to 97 percent range / vague “ranking still limits” wording. B evaluation (if admitted) occurs only after Candidate A finalist diagnostics.
+
+### (7) Latency methodology — exact / no “if feasible”
+
+- **Paired baseline-vs-candidate on ALL benchmark tasks** for the relevant gate, same env/DB/corpus, warm, interleaved, cold/model-load excluded.
+- For **final holdout gate use all 250 tasks**, exactly **one timed sample per task per variant after a deterministic warm-up pass over the first 30 task_ids in canonical sorted order**; **alternate variant order by task index**; report **nearest-rank p50/p95/p99**. Gate remains `candidate p95 ≤ paired baseline p95 +80ms AND candidate p95 ≤700ms`. Dev finalist may use **same method over all 180 tasks** (warm-up 30 of those 180). No discretionary 150-of-N sampling; no “if feasible”.
+- Baseline is D-003 production `RERANK=0, CANDIDATES=30, COSINE_MIN=0.78, LEXICAL_BIAS=0.01, strip_region, youth bias suppressed for Gov24 orgs, intfloat/multilingual-e5-base`.
+
+### (8) Candidate A dev-tuning boundary — MAX 24, pre-dev freeze mandatory
+
+- FINAL prereg caps **dev-scored configurations at MAX 24 total**. Before the **FIRST dev retrieval**, a separate **candidate-plan artifact must freeze ALL exact config IDs/parameter tuples and the deterministic selection rule**; after first dev result **no new configs/adaptive generation**.
+- Allowed axes remain **only D-013 family** (sparse/dense fusion/weights, exact title-org-entity signal weights, field weights, duplicate/diversification threshold) and **NO new signal/model/embedding**.
+- **Deterministic selection:** require dev safety gates + `Success@5 ≥85%` on dev headline 130; choose highest `Success@5`, then `NDCG@5`, then `MRR@10`, then lower paired `p95`, then **lexicographic `config_id`**. If none pass, **no holdout**. Candidate B admission evaluated only after Candidate A finalist diagnostics. Exact 24-or-fewer tuples may be instantiated in future candidate-plan stage BEFORE dev access; this prereg makes that one-way pre-dev freeze **mandatory** and prohibits result-driven additions.
+
+### (9) Annotation, isolation, audit (remains)
+
+- FINAL benchmark annotation remains **retrieval-blind**: two independent annotators + third adjudicator every query; raw agreement + Cohen κ; all disagreements resolved; source-truth validation only for gold existence/eligibility, never system retrieval output. Separate isolated dev/holdout builders, fingerprint-only overlap vs v2/Cycle3 union (248) and each other, holdout plaintext isolated.
+- One-shot final holdout and audit/rerun prevention remain strict (append-only hash-chained `events.jsonl`, exactly one canonical `run_start/run_end` for holdout, no rerun/tuning after holdout).
+
+### (10) Next and authorization
+
+- Q-006 remains **closed → D-014 (historical) → superseded by D-015**; Q-006 history not falsified. This D-015 + FINAL REPAIR prereg **STOP before dataset freeze / candidate implementation / protected eval**. No rollout authorized.

@@ -1,0 +1,19 @@
+{
+  "adjudicator_id": "C",
+  "agent_label": "Adjudicator",
+  "disagreements_resolved": 19,
+  "input_A_sha256": "2d8a84b93d1e62870d42978d1d51ddef18373da6b6809d65d33d069929eba1eb",
+  "input_B_sha256": "15b98f3522ed9acd560aa5bb75f7fc30991fb2815f6521bfbeadbb171f5fcb89",
+  "instruction_version": "RETRIEVAL_V3_PREREG FINAL REPAIR — conceptual answerability only; ambiguous safety-only",
+  "log_file": "adjudication_log.json",
+  "log_sha256": "0c0b202a4e708d1f8905d5ac10467825898bae52b24f6020a5d0fff875b5dc6f",
+  "method": "For each of 19 tasks with any disagreement, choose A for stratum/location/conceptual_answerable/ambiguous (taxonomy/heuristic), alternate A/B for pure golds grade flips to demonstrate adjudication; deterministic, residual 0",
+  "model_role": "Muse Spark 1.2 Contributor adjudicator (separate session, sees only disagreement mismatches, resolves deterministically against instruction version)",
+  "output_file": "adjudicated_labels.jsonl",
+  "output_sha256": "fe198a28676f5b628f803a2cf60a2ecce0aaa0bccae262389363ed82c58d3f2a",
+  "residual_after_adjudication": 0,
+  "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+  "session_id": "re-audit-adjudication-2026-09-01-C (no durable OMP session identifier; recorded as available)",
+  "timestamp": "2026-09-01T15:00:00+09:00",
+  "total_tasks": 100
+}

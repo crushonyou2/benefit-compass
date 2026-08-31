@@ -1,0 +1,27 @@
+{
+  "agent_label": "AnnotatorB",
+  "annotation_protocol": "independent retrieval-blind re-audit, blind to reviewer A labels, sanitized input only",
+  "dimensions_reviewed": [
+    "stratum (8-way)",
+    "location_bearing",
+    "labelable",
+    "conceptual_answerable (CONCEPTUAL/INTENT only, not corpus-grounded)",
+    "ambiguous + ambiguity_type",
+    "category",
+    "common_vs_rare",
+    "freshness",
+    "source_hint",
+    "golds grade 3/2/1 + equivalence_group (all 100 tasks)"
+  ],
+  "instruction_version": "RETRIEVAL_V3_PREREG FINAL REPAIR — conceptual answerability only",
+  "model_role": "Muse Spark 1.2 Contributor (root); delegated annotator task via OMP task subagent (modelRoles follow actual OMP config; root gate Muse Spark 1.2 / xhigh verified, child not gated)",
+  "note": "Independent from A; no shared state; sanitized input excludes labels",
+  "output_file": "reviewer_B_raw_labels.jsonl",
+  "output_sha256": "15b98f3522ed9acd560aa5bb75f7fc30991fb2815f6521bfbeadbb171f5fcb89",
+  "reviewer_id": "B",
+  "sanitized_input_path": "eval/retrieval-v3/pilot/re-audit/pilot_reaudit_input.jsonl",
+  "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+  "session_id": "re-audit-2026-09-01-B (no durable OMP session identifier exposed via file system; recorded as available)",
+  "timestamp": "2026-09-01T15:00:00+09:00",
+  "total_tasks": 100
+}

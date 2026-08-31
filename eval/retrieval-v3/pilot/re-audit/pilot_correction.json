@@ -1,0 +1,27 @@
+{
+  "correction": {
+    "adjudicated": "adjudicated_labels.jsonl",
+    "disagreement_matrix": "disagreement_matrix.json",
+    "provenance": "reviewer_A_provenance.json, reviewer_B_provenance.json, reaudit_protocol.json",
+    "raw_A": "reviewer_A_raw_labels.jsonl",
+    "raw_B": "reviewer_B_raw_labels.jsonl",
+    "re_audit_directory": "eval/retrieval-v3/pilot/re-audit/",
+    "sanitized_input": "pilot_reaudit_input.jsonl",
+    "terminology": "pilot answerability is CONCEPTUAL/INTENT only; final benchmark answerability is source-truth grounded"
+  },
+  "correction_id": "pilot-correction-2026-09-01-web-hold-A-B",
+  "hold_findings": {
+    "A_provenance_not_auditable": "Original pilot_tasks.jsonl contains final labels only; no raw reviewer labels/session provenance; 7% disagreement claim cannot be independently reconstructed",
+    "B_answerability_not_corpus_grounded": "Existing '85% answerable' is concept-level intuition (CONCEPTUAL/INTENT), not corpus-grounded source-truth; pilot gold schema has no source/source_id; must NOT be used as corpus-grounded sizing evidence"
+  },
+  "original_pilot_preserved": {
+    "pilot_provenance_path": "eval/retrieval-v3/pilot/pilot_provenance.json",
+    "pilot_provenance_sha256": "64f2dbecb49cf624e0e6b05d84f4c3e1db8876406b473b18ed7526078920b2d2",
+    "pilot_report_path": "eval/retrieval-v3/pilot/pilot_report.md",
+    "pilot_report_sha256": "f3a01a5f286705df9e9ca6cc8cf6d5fd320a427093649072bc1d5f559e6c669f",
+    "pilot_tasks_path": "eval/retrieval-v3/pilot/pilot_tasks.jsonl",
+    "pilot_tasks_sha256": "b3250e592d4c80099e29d20d1bf87594f2bac11a59907ac8067d3e1ddbd65da3",
+    "preservation": "immutable historical evidence; not rewritten"
+  },
+  "timestamp": "2026-09-01T15:00:00+09:00"
+}

@@ -1,0 +1,566 @@
+{
+  "adjudicated_file": "adjudicated_labels.jsonl",
+  "adjudicated_sha256": "fe198a28676f5b628f803a2cf60a2ecce0aaa0bccae262389363ed82c58d3f2a",
+  "adjudication_summary": {
+    "adjudication_log_file": "adjudication_log.json",
+    "residual_after_adjudication": 0,
+    "total_adjudicated": 19
+  },
+  "confusion_stratum_A_vs_B": {
+    "ambiguous": {
+      "ambiguous": 12,
+      "colloquial_typo_spacing_abbrev": 0,
+      "exact_navigation": 0,
+      "exploratory_multi_valid": 0,
+      "multi_constraint": 0,
+      "natural_needs": 1,
+      "short_keywords": 0,
+      "unsupported_no_answer": 0
+    },
+    "colloquial_typo_spacing_abbrev": {
+      "ambiguous": 0,
+      "colloquial_typo_spacing_abbrev": 12,
+      "exact_navigation": 0,
+      "exploratory_multi_valid": 0,
+      "multi_constraint": 0,
+      "natural_needs": 0,
+      "short_keywords": 0,
+      "unsupported_no_answer": 0
+    },
+    "exact_navigation": {
+      "ambiguous": 0,
+      "colloquial_typo_spacing_abbrev": 0,
+      "exact_navigation": 11,
+      "exploratory_multi_valid": 0,
+      "multi_constraint": 0,
+      "natural_needs": 0,
+      "short_keywords": 1,
+      "unsupported_no_answer": 0
+    },
+    "exploratory_multi_valid": {
+      "ambiguous": 0,
+      "colloquial_typo_spacing_abbrev": 0,
+      "exact_navigation": 0,
+      "exploratory_multi_valid": 10,
+      "multi_constraint": 0,
+      "natural_needs": 2,
+      "short_keywords": 0,
+      "unsupported_no_answer": 0
+    },
+    "multi_constraint": {
+      "ambiguous": 0,
+      "colloquial_typo_spacing_abbrev": 0,
+      "exact_navigation": 0,
+      "exploratory_multi_valid": 0,
+      "multi_constraint": 11,
+      "natural_needs": 1,
+      "short_keywords": 0,
+      "unsupported_no_answer": 0
+    },
+    "natural_needs": {
+      "ambiguous": 0,
+      "colloquial_typo_spacing_abbrev": 0,
+      "exact_navigation": 0,
+      "exploratory_multi_valid": 0,
+      "multi_constraint": 0,
+      "natural_needs": 14,
+      "short_keywords": 0,
+      "unsupported_no_answer": 0
+    },
+    "short_keywords": {
+      "ambiguous": 0,
+      "colloquial_typo_spacing_abbrev": 0,
+      "exact_navigation": 1,
+      "exploratory_multi_valid": 0,
+      "multi_constraint": 0,
+      "natural_needs": 0,
+      "short_keywords": 9,
+      "unsupported_no_answer": 0
+    },
+    "unsupported_no_answer": {
+      "ambiguous": 1,
+      "colloquial_typo_spacing_abbrev": 0,
+      "exact_navigation": 0,
+      "exploratory_multi_valid": 0,
+      "multi_constraint": 0,
+      "natural_needs": 0,
+      "short_keywords": 0,
+      "unsupported_no_answer": 14
+    }
+  },
+  "disagreements_detailed": [
+    {
+      "differences": {
+        "stratum": {
+          "A": "exact_navigation",
+          "B": "short_keywords"
+        }
+      },
+      "query_text": "신혼부부 전세자금 대출 이자지원",
+      "task_id": "v3p-004"
+    },
+    {
+      "differences": {
+        "location_bearing": {
+          "A": false,
+          "B": true
+        }
+      },
+      "query_text": "청년 월세 지원사업 공고문",
+      "task_id": "v3p-005"
+    },
+    {
+      "differences": {
+        "ambiguous": {
+          "A": [
+            false,
+            null
+          ],
+          "B": [
+            true,
+            "missing_location"
+          ]
+        }
+      },
+      "query_text": "햇살론 유스 대출",
+      "task_id": "v3p-012"
+    },
+    {
+      "differences": {
+        "golds_grade_equivalence": {
+          "A": [
+            [
+              "A",
+              3
+            ],
+            [
+              "B",
+              2
+            ],
+            [
+              "Z",
+              1
+            ]
+          ],
+          "B": [
+            [
+              "A",
+              2
+            ],
+            [
+              "B",
+              2
+            ],
+            [
+              "Z",
+              1
+            ]
+          ]
+        }
+      },
+      "query_text": "신혼부부인데 전세자금이 부족해요 대출 지원 있나요",
+      "task_id": "v3p-018"
+    },
+    {
+      "differences": {
+        "golds_grade_equivalence": {
+          "A": [
+            [
+              "A",
+              3
+            ],
+            [
+              "B",
+              2
+            ],
+            [
+              "Z",
+              1
+            ]
+          ],
+          "B": [
+            [
+              "A",
+              2
+            ],
+            [
+              "B",
+              2
+            ],
+            [
+              "Z",
+              1
+            ]
+          ]
+        }
+      },
+      "query_text": "장애 자녀 돌봄 지원이나 활동지원 서비스 찾고 있어요",
+      "task_id": "v3p-020"
+    },
+    {
+      "differences": {
+        "golds_grade_equivalence": {
+          "A": [
+            [
+              "A",
+              3
+            ],
+            [
+              "B",
+              2
+            ]
+          ],
+          "B": [
+            [
+              "A",
+              3
+            ],
+            [
+              "B",
+              3
+            ]
+          ]
+        }
+      },
+      "query_text": "귀농해서 창업하려는데 지원 사업 있을까요",
+      "task_id": "v3p-021"
+    },
+    {
+      "differences": {
+        "conceptual_answerable": {
+          "A": true,
+          "B": false
+        },
+        "golds_grade_equivalence": {
+          "A": [
+            [
+              "A",
+              3
+            ],
+            [
+              "B",
+              2
+            ],
+            [
+              "Z",
+              1
+            ]
+          ],
+          "B": [
+            [
+              "Z",
+              1
+            ]
+          ]
+        }
+      },
+      "query_text": "한부모 가정인데 양육비 지원받으려면 어떻게 하죠",
+      "task_id": "v3p-022"
+    },
+    {
+      "differences": {
+        "ambiguous": {
+          "A": [
+            false,
+            null
+          ],
+          "B": [
+            true,
+            "vague_benefit_type"
+          ]
+        },
+        "golds_grade_equivalence": {
+          "A": [
+            [
+              "A",
+              3
+            ],
+            [
+              "B",
+              2
+            ],
+            [
+              "Z",
+              1
+            ]
+          ],
+          "B": [
+            [
+              "A",
+              2
+            ],
+            [
+              "B",
+              2
+            ],
+            [
+              "Z",
+              1
+            ]
+          ]
+        }
+      },
+      "query_text": "중장년인데 재취업 교육이나 구직 지원 있나요",
+      "task_id": "v3p-024"
+    },
+    {
+      "differences": {
+        "golds_grade_equivalence": {
+          "A": [
+            [
+              "A",
+              2
+            ],
+            [
+              "A1",
+              1
+            ],
+            [
+              "B",
+              2
+            ]
+          ],
+          "B": [
+            [
+              "A",
+              3
+            ],
+            [
+              "A1",
+              1
+            ],
+            [
+              "B",
+              3
+            ]
+          ]
+        }
+      },
+      "query_text": "서울에서 신혼부부가 받을 수 있는 주거 혜택 뭐가 있을까",
+      "task_id": "v3p-028"
+    },
+    {
+      "differences": {
+        "stratum": {
+          "A": "exploratory_multi_valid",
+          "B": "natural_needs"
+        }
+      },
+      "query_text": "경기도에 사는 청년 지원 정책 모아줘",
+      "task_id": "v3p-031"
+    },
+    {
+      "differences": {
+        "location_bearing": {
+          "A": false,
+          "B": true
+        }
+      },
+      "query_text": "아이 키우는 가정에 주는 지원들 뭐가 있어",
+      "task_id": "v3p-032"
+    },
+    {
+      "differences": {
+        "golds_grade_equivalence": {
+          "A": [
+            [
+              "A",
+              2
+            ],
+            [
+              "A1",
+              1
+            ],
+            [
+              "B",
+              2
+            ],
+            [
+              "C",
+              2
+            ]
+          ],
+          "B": [
+            [
+              "A",
+              2
+            ],
+            [
+              "A1",
+              1
+            ],
+            [
+              "B",
+              2
+            ],
+            [
+              "C",
+              3
+            ]
+          ]
+        }
+      },
+      "query_text": "취업 준비생에게 도움 되는 정책 전체 보여줘",
+      "task_id": "v3p-033"
+    },
+    {
+      "differences": {
+        "stratum": {
+          "A": "exploratory_multi_valid",
+          "B": "natural_needs"
+        }
+      },
+      "query_text": "소상공인 지원 사업 종류별로 알려줘",
+      "task_id": "v3p-035"
+    },
+    {
+      "differences": {
+        "conceptual_answerable": {
+          "A": true,
+          "B": false
+        },
+        "golds_grade_equivalence": {
+          "A": [
+            [
+              "A",
+              3
+            ],
+            [
+              "B",
+              2
+            ]
+          ],
+          "B": [
+            [
+              "Z",
+              1
+            ]
+          ]
+        }
+      },
+      "query_text": "충남 거주 농어업인 자녀 학자금 지원",
+      "task_id": "v3p-045"
+    },
+    {
+      "differences": {
+        "stratum": {
+          "A": "multi_constraint",
+          "B": "natural_needs"
+        }
+      },
+      "query_text": "부산 소득 1분위 대학생 국가장학금 주거 지원 포함 여부",
+      "task_id": "v3p-046"
+    },
+    {
+      "differences": {
+        "stratum": {
+          "A": "short_keywords",
+          "B": "exact_navigation"
+        }
+      },
+      "query_text": "햇살론 유스",
+      "task_id": "v3p-057"
+    },
+    {
+      "differences": {
+        "conceptual_answerable": {
+          "A": true,
+          "B": false
+        },
+        "golds_grade_equivalence": {
+          "A": [
+            [
+              "A",
+              3
+            ]
+          ],
+          "B": [
+            [
+              "Z",
+              1
+            ]
+          ]
+        }
+      },
+      "query_text": "청년 수당 신청기간 언제까지에요??",
+      "task_id": "v3p-067"
+    },
+    {
+      "differences": {
+        "stratum": {
+          "A": "ambiguous",
+          "B": "natural_needs"
+        }
+      },
+      "query_text": "서울 지원금 받고 싶어요",
+      "task_id": "v3p-073"
+    },
+    {
+      "differences": {
+        "stratum": {
+          "A": "unsupported_no_answer",
+          "B": "ambiguous"
+        }
+      },
+      "query_text": "외제차 구입 보조금 청년 대상 있나요",
+      "task_id": "v3p-092"
+    }
+  ],
+  "matrix": {
+    "any_agreement": 81,
+    "any_agreement_rate": 0.81,
+    "any_disagreement": 19,
+    "any_disagreement_rate": 0.19,
+    "per_dimension": {
+      "ambiguous": {
+        "agree": 98,
+        "agree_rate": 0.98,
+        "disagree": 2,
+        "disagree_rate": 0.02
+      },
+      "conceptual_answerable": {
+        "agree": 97,
+        "agree_rate": 0.97,
+        "disagree": 3,
+        "disagree_rate": 0.03
+      },
+      "golds_grade_equivalence": {
+        "agree": 91,
+        "agree_rate": 0.91,
+        "disagree": 9,
+        "disagree_rate": 0.09
+      },
+      "labelable": {
+        "agree": 100,
+        "agree_rate": 1.0,
+        "disagree": 0,
+        "disagree_rate": 0.0
+      },
+      "location_bearing": {
+        "agree": 98,
+        "agree_rate": 0.98,
+        "disagree": 2,
+        "disagree_rate": 0.02
+      },
+      "stratum": {
+        "agree": 93,
+        "agree_rate": 0.93,
+        "disagree": 7,
+        "disagree_rate": 0.07
+      }
+    },
+    "total_tasks": 100
+  },
+  "pilot_id": "retrieval-v3-pilot-100-v1-re-audit-2026-09-01",
+  "provenance": {
+    "agreement_rates_recomputable": true,
+    "method": "compare reviewer_A_raw_labels.jsonl vs reviewer_B_raw_labels.jsonl task_id aligned; disagreement = any field mismatch per dimension; recomputation deterministic",
+    "recomputed_from_raw": true
+  },
+  "reviewer_A_file": "reviewer_A_raw_labels.jsonl",
+  "reviewer_A_sha256": "2d8a84b93d1e62870d42978d1d51ddef18373da6b6809d65d33d069929eba1eb",
+  "reviewer_B_file": "reviewer_B_raw_labels.jsonl",
+  "reviewer_B_sha256": "15b98f3522ed9acd560aa5bb75f7fc30991fb2815f6521bfbeadbb171f5fcb89",
+  "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+  "total_tasks": 100
+}
