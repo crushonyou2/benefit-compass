@@ -1376,38 +1376,60 @@ def atomic_write_result(result: dict[str, Any], output_path: str | pathlib.Path)
             pass
         raise FileExistsError(f"canonical dev result already exists at {out} — concurrent publish race (link)")
     except OSError as e:
-        # Fallback for cross-device or link not supported: check again and use exclusive create via 'xb'
-        # If out now exists, fail
+        # Fallback for cross-device (EXDEV) or link not supported: must not use replace-overwrite path.
+        # Use exclusive-create + direct payload write to preserve no-overwrite semantics.
+        # If out now exists, fail (another writer published between pre-check and link).
         if out.exists():
             try:
                 tmp.unlink()
             except Exception:
                 pass
-            raise FileExistsError(f"canonical dev result already exists at {out} — concurrent race (fallback) : {e}") from e
-        # Try exclusive file creation then copy payload atomically via replace with check
-        # As fallback, use os.replace but we already checked existence; however replace would overwrite if race happened after check.
-        # We instead attempt to create empty exclusive file first as a lock.
+            raise FileExistsError(f"canonical dev result already exists at {out} — concurrent race (fallback pre-exists) : {e}") from e
+        created_by_us = False
         try:
-            # Try to create out exclusively with O_CREAT|O_EXCL
             fd = os.open(str(out), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            created_by_us = True
             try:
-                # Write payload via fd (already validated) — we already have tmp with payload, but we can copy
-                # Instead, close empty file and then replace via tmp: but we now own the exclusive creation, so it's safe to replace
-                os.close(fd)
-                # Remove the empty exclusive placeholder and retry link/replace path
+                data = payload.encode("utf-8")
+                written = 0
+                while written < len(data):
+                    n = os.write(fd, data[written:])
+                    if n == 0:
+                        raise RuntimeError("short write in atomic fallback")
+                    written += n
                 try:
-                    out.unlink()
-                except Exception:
-                    pass
-                # Now retry link after owning slot? Simpler: just move tmp to out via replace after exclusive guard
-                # Since we held exclusive creation briefly, no other process could have created in that window; now safe to replace
-                tmp.replace(out)
-            except Exception:
+                    os.fsync(fd)
+                except Exception as fe:
+                    raise RuntimeError(f"fsync failed for fallback {out}: {fe}") from fe
+            finally:
                 try:
                     os.close(fd)
                 except Exception:
                     pass
-                raise
+            # Verify fallback file content is exactly our payload (ownership + integrity)
+            try:
+                actual_text = out.read_text(encoding="utf-8")
+                if actual_text != payload:
+                    raise RuntimeError(f"fallback content mismatch (foreign replacement or partial write): expected payload hash {hashlib.sha256(payload.encode()).hexdigest()[:8]} got {hashlib.sha256(actual_text.encode()).hexdigest()[:8]}")
+                loaded_fb = json.loads(actual_text)
+                validate_complete_result(loaded_fb)
+            except Exception as ve:
+                # Cleanup owned file on validation/content mismatch (we own it via exclusive create)
+                if created_by_us:
+                    try:
+                        out.unlink()
+                    except Exception:
+                        pass
+                try:
+                    tmp.unlink()
+                except Exception:
+                    pass
+                raise RuntimeError(f"fallback validation failed for {out}: {ve}") from ve
+            # Success: remove tmp (no link needed)
+            try:
+                tmp.unlink()
+            except Exception:
+                pass
         except FileExistsError:
             try:
                 tmp.unlink()
@@ -1415,12 +1437,20 @@ def atomic_write_result(result: dict[str, Any], output_path: str | pathlib.Path)
                 pass
             raise FileExistsError(f"canonical dev result already exists at {out} — concurrent exclusive-create race")
         except Exception as ee:
+            # Only unlink out if we created it (ownership-safe)
+            if created_by_us:
+                try:
+                    if out.exists():
+                        out.unlink()
+                except Exception:
+                    pass
             try:
                 tmp.unlink()
             except Exception:
                 pass
+            if isinstance(ee, FileExistsError):
+                raise
             raise RuntimeError(f"atomic publish failed for {out}: {ee}") from ee
-    # Ensure out exists and fsync dir
     try:
         dir_fd = os.open(str(out.parent), os.O_DIRECTORY)
         try:

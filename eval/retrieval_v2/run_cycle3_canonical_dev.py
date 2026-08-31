@@ -445,6 +445,15 @@ def main(
         if not re.fullmatch(r"[0-9a-f]{64}", str(expected_token).strip().lower()):
             _fail_closed(f"CYCLE3_GRANT_TOKEN ({token_source}) must be 64-hex, got {expected_token!r}")
         expected_token = str(expected_token).strip().lower()
+    # Non-sensitive execution gate BEFORE grant acquisition (fail-closed, no grant lifecycle on this path)
+    if os.getenv("CYCLE3_CANONICAL_EXECUTION") != "1":
+        _fail_closed(
+            "canonical dev batch execution is not allowed in the implementation stage — "
+            "this runner is code-complete but must be invoked only after Web static review "
+            "in a dedicated canonical execution session (single batch, audit grant required). "
+            f"batch_id={BATCH_ID} dev_sha={EXPECTED_DEV_SHA256[:8]}... session={session_id!r} token_source={token_source}"
+        )
+
     try:
         grant = require_protected_dev_access_grant(
             audit_log,
@@ -458,36 +467,64 @@ def main(
             f"for set_role=dev set_sha={EXPECTED_DEV_SHA256[:8]}... session_id={session_id!r} token_source={token_source} token={expected_token[:8] + '...' if expected_token else 'None'} in {audit_log}: {e}"
         )
 
-    # Implementation-stage gate: do NOT open dev plaintext or execute retrieval.
-    # Real canonical execution requires explicit opt-in env.
-    if os.getenv("CYCLE3_CANONICAL_EXECUTION") != "1":
-        _fail_closed(
-            "canonical dev batch execution is not allowed in the implementation stage — "
-            "this runner is code-complete but must be invoked only after Web static review "
-            "in a dedicated canonical execution session (single batch, audit grant required). "
-            f"batch_id={BATCH_ID} dev_sha={EXPECTED_DEV_SHA256[:8]}... session={session_id!r} grant={grant['event_hash'][:8]}... token_source={token_source}"
-        )
+    # --- Grant acquired: every exit before/at run_start must close exact dev grant with protected_access_end failure if not proceeding ---
+    # Track grant hash for diagnostics
+    _grant_hash = grant.get("event_hash", "") if isinstance(grant, dict) else ""
+    # Verify dev evalset sha matches expected (canonical bytes LF) and run_start guarded
+    # Wrap pre-run_start failures to ensure protected_access_end failure appended exactly once.
+    _pre_run_start_closed = False
+    def _close_grant_on_pre_failure(orig_exc: Exception):
+        nonlocal _pre_run_start_closed
+        if _pre_run_start_closed:
+            return
+        try:
+            from retrieval_v2.cycle3_audit import append_event  # type: ignore
 
-    # --- ONLY below this line would real execution open plaintext ---
-    # We are now in canonical execution mode (gate passed). Wire audit lifecycle fail-closed.
-    # Verify dev evalset sha matches expected (canonical bytes LF)
+            append_event(
+                audit_log,
+                action="protected_access_end",
+                candidate_id=None,
+                set_role="dev",
+                set_sha=EXPECTED_DEV_SHA256,
+                outcome="failure",
+                session_id=session_id,
+            )
+            _pre_run_start_closed = True
+        except Exception as ce:
+            _fail_closed(f"audit protected_access_end append failed after pre-run failure (fail-closed): {ce!r} original={orig_exc!r}")
+
     dev_path_resolved = pathlib.Path(dev_path)
     if not dev_path_resolved.exists():
-        _fail_closed(f"dev evalset not found: {dev_path_resolved} (sparse isolated worktree must provide dev plaintext via grant)")
-    _sha_fn = _canonical_sha_fn or canonical_text_sha256
-    actual_sha = _sha_fn(dev_path_resolved)
+        exc = RuntimeError(f"dev evalset not found: {dev_path_resolved} (sparse isolated worktree must provide dev plaintext via grant)")
+        _close_grant_on_pre_failure(exc)
+        _fail_closed(str(exc))
+    try:
+        _sha_fn = _canonical_sha_fn or canonical_text_sha256
+        actual_sha = _sha_fn(dev_path_resolved)
+    except Exception as ce:
+        exc = RuntimeError(f"dev evalset sha helper failed: {ce!r}")
+        _close_grant_on_pre_failure(exc)
+        _fail_closed(str(exc))
+    if not isinstance(actual_sha, str) or not actual_sha.strip():
+        exc = RuntimeError(f"dev evalset sha invalid return: {actual_sha!r} (helper must return 64-hex string)")
+        _close_grant_on_pre_failure(exc)
+        _fail_closed(str(exc))
     if actual_sha.lower() != EXPECTED_DEV_SHA256.lower():
-        _fail_closed(f"dev evalset sha mismatch: got {actual_sha} expected {EXPECTED_DEV_SHA256}")
+        exc = RuntimeError(f"dev evalset sha mismatch: got {actual_sha} expected {EXPECTED_DEV_SHA256}")
+        _close_grant_on_pre_failure(exc)
+        _fail_closed(str(exc))
 
     # Durable one-shot re-check immediately before run_start (detect concurrent race after grant)
     try:
         assert_no_prior_canonical_attempt(audit_log)
     except Exception as e:
         if not isinstance(e, FileNotFoundError):
+            exc = RuntimeError(str(e))
+            _close_grant_on_pre_failure(exc)
             _fail_closed(str(e))
 
     # --- Audit run_start (must be appended atomically and verified) ---
-    # This is the first real canonical event for this batch; preserve existing 16 events chain.
+    # This is the first real canonical event for this batch; preserve existing chain.
     run_start_event = None
     try:
         run_start_event = append_canonical_run_start(
@@ -497,17 +534,21 @@ def main(
             session_id=session_id,
         )
     except Exception as e:
-        _fail_closed(f"audit run_start append failed (fail-closed): {e}")
+        exc = RuntimeError(f"audit run_start append failed (fail-closed): {e}")
+        _close_grant_on_pre_failure(exc)
+        _fail_closed(str(exc))
 
     # We will ensure run_end and protected_access_end are appended even on failure (lifecycle closure)
     # If closure fails, no canonical result may remain — mandatory closure errors must not be swallowed.
+    # Two-phase structure to avoid duplicate run_end on success-closure failure (reviewer blocker).
     success = False
     result_path = None
+    run_end_done = False
+    protected_done = False
+    # Phase 1: orchestration + atomic publish (may set result_path)
     try:
         # Load and validate dev items (36) — injectable for fake E2E (no plaintext)
-        _sha_fn = _canonical_sha_fn or canonical_text_sha256
-        # actual_sha already computed via _sha_fn? We already computed actual_sha above via canonical_text_sha256; for injection, caller already patched file existence, but we recompute via injected if needed.
-        # For dev items, use injection if supplied
+        _sha_fn2 = _canonical_sha_fn or canonical_text_sha256
         if _load_and_validate_fn is not None:
             dev_items = _load_and_validate_fn(dev_path_resolved, role="dev")
         else:
@@ -515,15 +556,11 @@ def main(
         if len(dev_items) != EXPECTED_DEV_CASES:
             _fail_closed(f"dev cases mismatch: got {len(dev_items)} expected {EXPECTED_DEV_CASES}")
 
-        # --- Retrieval execution: real DB/model vs injected fakes (both go through same orchestration/validation/write/audit lifecycle) ---
-        # Injection path: when any test factory is supplied, bypass real DB/model and use fakes (no DATABASE_URL/model load)
         is_injected = any(x is not None for x in (_embedding_fn_factory, _retrieval_fn_factory, _latency_measurer_factory, _corpus_provenance_fn))
         if is_injected:
-            # Injected fake path — no DB/model, but still same audit lifecycle, corpus validation, orchestration, atomic write
             if _corpus_provenance_fn is not None:
                 corpus_provenance = _corpus_provenance_fn()
             else:
-                # Default valid corpus for pure tests without DB
                 corpus_provenance = {
                     "total_policies": 13589,
                     "total_chunks": 17609,
@@ -536,16 +573,11 @@ def main(
                 validate_corpus_provenance(corpus_provenance)
             except Exception as e:
                 _fail_closed(f"corpus provenance validation failed (injected): {e} — got {corpus_provenance}")
-            # Build injected embedding/retrieval/latency — factories accept dummy placeholder if needed
             if _embedding_fn_factory is not None:
                 embedding_fn = _embedding_fn_factory(None)
             else:
-                # Default fake embedding that validates prefix contract via caller-observable side-effect: use format_pgvector on dummy vector
                 def _default_fake_embed(stripped: str):
-                    # Simulate production prefix: must be called with stripped that was strip_region(raw)
-                    # For test, we just return pgvector string of dummy vector
                     import hashlib
-                    # deterministic dummy vector via hash
                     h = hashlib.sha256(stripped.encode()).hexdigest()
                     vals = [int(h[i:i+2], 16) / 255.0 for i in range(0, 6, 2)]
                     return format_pgvector(vals)
@@ -553,20 +585,15 @@ def main(
             if _retrieval_fn_factory is not None:
                 retrieval_fn = _retrieval_fn_factory(None, None)
             else:
-                # Default fake retrieval that returns controlled ranks: baseline worst, candidates better
                 def _default_fake_retrieve(candidate_id: str, vec, lexical_terms: list[str], youth_bias: float, age, rp):
                     assert_rp_is_null(rp)
-                    # Validate vec is pgvector string (production parity)
                     assert isinstance(vec, str) and vec.startswith("[") and vec.endswith("]"), f"vec must be pgvector string, got {vec!r}"
-                    # Return 30 results with synthetic source_ids; gold is determined by test's dev_items gold fields
-                    # For generic fallback, return empty (no gold) — metrics will be zero
                     return []
                 retrieval_fn = _default_fake_retrieve
             if _latency_measurer_factory is not None:
                 latency_measurer = _latency_measurer_factory(dev_items, embedding_fn, retrieval_fn)
             else:
                 latency_measurer = None
-            # Orchestrate with injected dependencies — same single code path
             result = orchestrate_4way_batch(
                 dev_items,
                 embedding_fn=embedding_fn,
@@ -585,40 +612,25 @@ def main(
             validate_complete_result(result)
             result_path = atomic_write_result(result, out_path)
         else:
-            # --- Real DB/model path (production canonical) ---
-            # Load model once (same-process constraint)
-            # Import here to avoid import cost in non-execution stage
             try:
                 from sentence_transformers import SentenceTransformer  # type: ignore
             except Exception as e:
                 _fail_closed(f"embedding model load failed: {e}")
-
-            # DATABASE_URL must be provided
             db_url = os.getenv("DATABASE_URL", "").strip()
             if not db_url:
                 _fail_closed("DATABASE_URL must be set for canonical execution")
-
             import psycopg2  # type: ignore
-
-            # Use single DB connection for same-DB constraint (corpus provenance + 4-way retrieval)
             conn = psycopg2.connect(db_url)
             try:
-                # Corpus provenance: same DB/corpus, fail-closed — total policy/chunk + Youth/Gov24 split from same connection
                 corpus_provenance = get_corpus_provenance(conn)
                 try:
                     validate_corpus_provenance(corpus_provenance)
                 except Exception as e:
                     _fail_closed(f"corpus provenance validation failed (same DB/corpus required): {e} — got {corpus_provenance}")
-
-                # Warm model
                 model = SentenceTransformer("intfloat/multilingual-e5-base")
                 embedding_fn = _real_embedding_fn_factory(model)
                 retrieval_fn = _real_retrieval_fn_factory(conn, model)
-
-                # Latency measurer: predefined warm paired, only for quality-selectable
                 latency_measurer = _real_latency_measurer_factory(dev_items, embedding_fn, retrieval_fn)
-
-                # Orchestrate 4-way batch (this is the real single code path) — pass same-DB corpus provenance
                 result = orchestrate_4way_batch(
                     dev_items,
                     embedding_fn=embedding_fn,
@@ -626,8 +638,6 @@ def main(
                     latency_measurer=latency_measurer,
                     corpus_provenance=corpus_provenance,
                 )
-
-                # Enrich result with provenance (audit grant linkage)
                 result["provenance"] = {
                     "dev_sha256": actual_sha,
                     "grant_event_hash": grant["event_hash"],
@@ -636,103 +646,51 @@ def main(
                     "executed_at": datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z"),
                     "corpus_provenance": corpus_provenance,
                 }
-
-                # Strict validation before write (includes corpus, git SHA, selected candidate, latency, metrics consistency)
                 validate_complete_result(result)
-
-                # Atomic write only after all validation — single batch guard + concurrent race guard
                 result_path = atomic_write_result(result, out_path)
-
             finally:
                 try:
                     conn.close()
                 except Exception:
                     pass
-
-        # Success path: append run_end success and close protected access — fail-closed, cleanup result on failure
-        try:
-            append_canonical_run_end(
-                audit_log,
-                candidate_id=BATCH_ID,
-                set_sha=EXPECTED_DEV_SHA256,
-                outcome="success",
-                session_id=session_id,
-            )
-        except Exception as e:
-            # Mandatory closure failed — result must not remain
-            if result_path is not None:
-                try:
-                    pathlib.Path(result_path).unlink()
-                except Exception:
-                    pass
-            _fail_closed(f"audit run_end append failed (fail-closed, result removed): {e}")
-        try:
-            from retrieval_v2.cycle3_audit import append_event  # type: ignore
-
-            append_event(
-                audit_log,
-                action="protected_access_end",
-                candidate_id=None,
-                set_role="dev",
-                set_sha=EXPECTED_DEV_SHA256,
-                outcome="success",
-                session_id=session_id,
-            )
-        except Exception as e:
-            if result_path is not None:
-                try:
-                    pathlib.Path(result_path).unlink()
-                except Exception:
-                    pass
-            _fail_closed(f"audit protected_access_end append failed (fail-closed, result removed): {e}")
-        success = True
     except Exception as e:
-        # Failure path: append run_end with failure, then lifecycle closure — mandatory, not swallowed
+        # Phase 1 failure: orchestration or publish failed before success closure — append failure lifecycle exactly once
         run_end_failed = False
         protected_failed = False
         run_end_err = None
         protected_err = None
-        try:
-            append_canonical_run_end(
-                audit_log,
-                candidate_id=BATCH_ID,
-                set_sha=EXPECTED_DEV_SHA256,
-                outcome="failure",
-                session_id=session_id,
-            )
-        except Exception as ee:
-            run_end_failed = True
-            run_end_err = ee
-        # Attempt to close protected access grant even on failure (fail-closed lifecycle)
-        try:
-            from retrieval_v2.cycle3_audit import append_event  # type: ignore
-
-            append_event(
-                audit_log,
-                action="protected_access_end",
-                candidate_id=None,
-                set_role="dev",
-                set_sha=EXPECTED_DEV_SHA256,
-                outcome="failure",
-                session_id=session_id,
-            )
-        except Exception as ee:
-            protected_failed = True
-            protected_err = ee
-        # Cleanup result if it was published before failure (fail-closed: no result may remain if closure fails)
+        if not run_end_done:
+            try:
+                append_canonical_run_end(
+                    audit_log,
+                    candidate_id=BATCH_ID,
+                    set_sha=EXPECTED_DEV_SHA256,
+                    outcome="failure",
+                    session_id=session_id,
+                )
+                run_end_done = True
+            except Exception as ee:
+                run_end_failed = True
+                run_end_err = ee
+        if not protected_done:
+            try:
+                from retrieval_v2.cycle3_audit import append_event  # type: ignore
+                append_event(
+                    audit_log,
+                    action="protected_access_end",
+                    candidate_id=None,
+                    set_role="dev",
+                    set_sha=EXPECTED_DEV_SHA256,
+                    outcome="failure",
+                    session_id=session_id,
+                )
+                protected_done = True
+            except Exception as ee:
+                protected_failed = True
+                protected_err = ee
         if result_path is not None:
             try:
                 pathlib.Path(result_path).unlink()
-            except Exception:
-                pass
-        # Also handle case where result_path is set but file not yet written? Ensure by checking out_path exists
-        else:
-            # If orchestration succeeded partially and atomic_write was attempted but failed after run_end?
-            # Check if output file now exists at out_path (race) and remove if failure closure
-            try:
-                if pathlib.Path(out_path).exists():
-                    # If we are in failure path, ensure no result remains even if result_path not set (e.g., after atomic_write but before assign)
-                    pathlib.Path(out_path).unlink()
             except Exception:
                 pass
         if run_end_failed or protected_failed:
@@ -740,26 +698,50 @@ def main(
                 f"audit closure failed after canonical failure (fail-closed, result removed): run_end_failed={run_end_failed} err={run_end_err!r} protected_failed={protected_failed} err={protected_err!r} original_error={e!r}"
             )
         _fail_closed(f"canonical dev batch failed (fail-closed): {e}")
-    finally:
-        # Ensure result artifact exists only on success; on failure it must not exist (fail-closed) — handle closure-failure case where success flag not yet set
-        if not success and result_path is not None:
+    # Phase 2: success closure — only reached if Phase 1 succeeded (result_path set, no exception)
+    # Each closure is outside Phase 1's except to avoid duplicate run_end on success-closure failure
+    try:
+        append_canonical_run_end(
+            audit_log,
+            candidate_id=BATCH_ID,
+            set_sha=EXPECTED_DEV_SHA256,
+            outcome="success",
+            session_id=session_id,
+        )
+        run_end_done = True
+    except Exception as e:
+        if result_path is not None:
             try:
-                p = pathlib.Path(result_path)
-                if p.exists():
-                    p.unlink()
+                pathlib.Path(result_path).unlink()
             except Exception:
                 pass
-        # Also ensure out_path not left if success is False (e.g., atomic_write succeeded but closure failed and we already removed result_path, but check direct path)
-        if not success:
+        _fail_closed(f"audit run_end append failed (fail-closed, result removed): {e}")
+    try:
+        from retrieval_v2.cycle3_audit import append_event  # type: ignore
+        append_event(
+            audit_log,
+            action="protected_access_end",
+            candidate_id=None,
+            set_role="dev",
+            set_sha=EXPECTED_DEV_SHA256,
+            outcome="success",
+            session_id=session_id,
+        )
+        protected_done = True
+    except Exception as e:
+        if result_path is not None:
             try:
-                direct = pathlib.Path(out_path)
-                if direct.exists():
-                    # Only remove if this invocation created it (audit one-shot ensures single batch, so safe to remove on failure)
-                    # Verify by checking if audit has failure run_end for this session? But simpler: remove if not success
-                    direct.unlink()
+                pathlib.Path(result_path).unlink()
             except Exception:
                 pass
-
-
-if __name__ == "__main__":
-    main()
+        _fail_closed(f"audit protected_access_end append failed (fail-closed, result removed): {e}")
+    success = True
+    # No outer except for Phase 2 — failures already handled fail-closed above; no duplicate lifecycle
+    # Ensure owned result cleanup on any future exception (should not happen after success)
+    if not success and result_path is not None:
+        try:
+            p = pathlib.Path(result_path)
+            if p.exists():
+                p.unlink()
+        except Exception:
+            pass
