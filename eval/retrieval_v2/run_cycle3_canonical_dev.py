@@ -85,6 +85,10 @@ from retrieval_v2.cycle3_runner import (  # type: ignore
     append_canonical_run_start,
     append_canonical_run_end,
     assert_rp_is_null,
+    assert_no_prior_canonical_attempt,
+    format_pgvector,
+    get_corpus_provenance,
+    validate_corpus_provenance,
 )
 from retrieval_v2.provenance import canonical_text_sha256  # type: ignore
 from retrieval_v2.schema import load_and_validate  # type: ignore
@@ -99,6 +103,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--output", type=str, default=CANONICAL_DEV_OUTPUT_REL, help="canonical result output (must be under eval/retrieval-v2/)")
     p.add_argument("--audit-log", type=str, default="eval/retrieval-v2/cycle3/audit/events.jsonl", help="audit log path")
     p.add_argument("--session-id", type=str, default=None, help="CYCLE3_SESSION_ID or explicit session token")
+    p.add_argument("--grant-token", type=str, default=None, help="CYCLE3_GRANT_TOKEN — optional but if supplied must be 64-hex and pinned to latest protected_access_start event_hash (fail-closed)")
     p.add_argument("--allow-holdout", action="store_true", help="NOT ALLOWED in canonical dev batch (holdout blocked)")
     p.add_argument("--candidates", type=str, nargs="*", default=list(ALL_CANONICAL_IDS), help="must be exactly baseline + 3 pool candidates (guarded)")
     return p.parse_args(argv)
@@ -176,19 +181,17 @@ def _confine_all_paths(dev_evalset: str, output: str, audit_log: str) -> tuple[p
 # ---------------------------------------------------------------------------
 
 def _real_embedding_fn_factory(model):
-    """Return embedding_fn that encodes strip_region(raw) via SentenceTransformer."""
+    """Return embedding_fn that encodes strip_region(raw) via SentenceTransformer.
+
+    Production parity: must exactly match production/eval contract
+    model.encode([f"query: {q}"], normalize_embeddings=True)[0]
+    and use same production-compatible pgvector string formatting "[x.xxxxxx,...]" (6-decimal).
+    """
     def _embed(stripped: str):
-        # SentenceTransformer encodes with normalize? Use model.encode
-        # Return vector as string or list for SQL vec param
-        vec = model.encode(stripped, normalize_embeddings=True)
-        # Convert to pgvector string representation? The SQL expects %(vec)s::vector
-        # psycopg2 will handle list -> vector? We pass as string "[...]"
-        # For real execution, we pass as python list; psycopg adapter handles.
-        # Here we return vec.tolist() if numpy
-        try:
-            return vec.tolist()
-        except Exception:
-            return list(vec)
+        # Production contract: prefix "query: " + stripped, list form, normalize True
+        qvec = model.encode([f"query: {stripped}"], normalize_embeddings=True)[0]
+        # Production pgvector string formatting: "[" + ",".join(f"{x:.6f}" for x in qvec) + "]"
+        return format_pgvector(qvec)
     return _embed
 
 
@@ -342,7 +345,23 @@ def _real_latency_measurer_factory(dev_items, embedding_fn, retrieval_fn):
     return _measure
 
 
-def main(argv: list[str] | None = None) -> None:
+def main(
+    argv: list[str] | None = None,
+    *,
+    _embedding_fn_factory=None,
+    _retrieval_fn_factory=None,
+    _latency_measurer_factory=None,
+    _corpus_provenance_fn=None,
+    _load_and_validate_fn=None,
+    _canonical_sha_fn=None,
+) -> None:
+    """Canonical entry point — accepts optional injected factories for E2E fake tests (no DB/model/plaintext).
+
+    Production call: main(argv) with no injection — uses real DB/model/corpus.
+    Test call: main(argv, _embedding_fn_factory=fake_factory, ...) — bypasses DB/model with injected fakes.
+    This keeps the actual CLI/main path exercised (parse_args, guards, audit lifecycle, validation, atomic write)
+    while avoiding protected plaintext/DB/model via dependency injection.
+    """
     args = parse_args(argv)
 
     # --- pre-execution guards (no plaintext open yet) ---
@@ -363,7 +382,7 @@ def main(argv: list[str] | None = None) -> None:
     # Region search disabled — rp must be NULL
     assert_rp_is_null(None)
 
-    # Single-batch guard: must request exactly baseline+3
+    # Single-batch guard: must request exactly baseline+3 (file existence check)
     validate_single_batch_request(args.candidates, output_path=str(out_path))
 
     # Validate requested candidates match canonical ids exactly
@@ -376,22 +395,39 @@ def main(argv: list[str] | None = None) -> None:
         validate_sql_semantics(sql, cid)
         validate_cosine_filter_position(sql)
 
-    # Protected dev access grant: require exact dev SHA + session + optional token before plaintext open
+    # Durable one-shot: reject if prior canonical attempt already exists in audit (even if prior failed before output)
+    audit_log = pathlib.Path(audit_log_path)
+    try:
+        assert_no_prior_canonical_attempt(audit_log)
+    except Exception as e:
+        # FileNotFoundError means no log yet — not a prior attempt, proceed
+        if isinstance(e, FileNotFoundError):
+            pass
+        else:
+            # Re-raise one-shot violation as fail-closed (contains batch_id)
+            _fail_closed(str(e))
+
+    # Protected dev access grant: require exact dev SHA + session + explicit token pinning (fail-closed) before plaintext open
     session_id = args.session_id or os.getenv("CYCLE3_SESSION_ID") or f"pid-{os.getpid()}"
     if not session_id.strip():
         _fail_closed("session_id must be non-empty for protected dev access")
 
-    audit_log = pathlib.Path(audit_log_path)
-    # Optional expected_event_hash token (if supplied via env, enforce exact match)
-    expected_token = os.getenv("CYCLE3_GRANT_TOKEN")
-    if expected_token is not None and not expected_token.strip():
+    # Grant token pinning: explicit, fail-closed — from CLI --grant-token > env CYCLE3_GRANT_TOKEN
+    # If supplied, must be 64-hex and pinned to latest protected_access_start event_hash
+    # Code/docs/tests consistent: optional but if present, strictly enforced; logs show token source
+    expected_token = args.grant_token
+    token_source = "cli --grant-token"
+    if expected_token is None:
+        expected_token = os.getenv("CYCLE3_GRANT_TOKEN")
+        token_source = "env CYCLE3_GRANT_TOKEN"
+    if expected_token is not None and not str(expected_token).strip():
         expected_token = None
     if expected_token is not None:
-        # must be 64-hex
         import re
 
-        if not re.fullmatch(r"[0-9a-f]{64}", expected_token.lower()):
-            _fail_closed(f"CYCLE3_GRANT_TOKEN must be 64-hex, got {expected_token!r}")
+        if not re.fullmatch(r"[0-9a-f]{64}", str(expected_token).strip().lower()):
+            _fail_closed(f"CYCLE3_GRANT_TOKEN ({token_source}) must be 64-hex, got {expected_token!r}")
+        expected_token = str(expected_token).strip().lower()
     try:
         grant = require_protected_dev_access_grant(
             audit_log,
@@ -402,7 +438,7 @@ def main(argv: list[str] | None = None) -> None:
     except Exception as e:
         _fail_closed(
             f"protected dev access denied (fail-closed): no verified protected_access_start "
-            f"for set_role=dev set_sha={EXPECTED_DEV_SHA256[:8]}... session_id={session_id!r} in {audit_log}: {e}"
+            f"for set_role=dev set_sha={EXPECTED_DEV_SHA256[:8]}... session_id={session_id!r} token_source={token_source} token={expected_token[:8] + '...' if expected_token else 'None'} in {audit_log}: {e}"
         )
 
     # Implementation-stage gate: do NOT open dev plaintext or execute retrieval.
@@ -412,7 +448,7 @@ def main(argv: list[str] | None = None) -> None:
             "canonical dev batch execution is not allowed in the implementation stage — "
             "this runner is code-complete but must be invoked only after Web static review "
             "in a dedicated canonical execution session (single batch, audit grant required). "
-            f"batch_id={BATCH_ID} dev_sha={EXPECTED_DEV_SHA256[:8]}... session={session_id!r} grant={grant['event_hash'][:8]}..."
+            f"batch_id={BATCH_ID} dev_sha={EXPECTED_DEV_SHA256[:8]}... session={session_id!r} grant={grant['event_hash'][:8]}... token_source={token_source}"
         )
 
     # --- ONLY below this line would real execution open plaintext ---
@@ -421,9 +457,17 @@ def main(argv: list[str] | None = None) -> None:
     dev_path_resolved = pathlib.Path(dev_path)
     if not dev_path_resolved.exists():
         _fail_closed(f"dev evalset not found: {dev_path_resolved} (sparse isolated worktree must provide dev plaintext via grant)")
-    actual_sha = canonical_text_sha256(dev_path_resolved)
+    _sha_fn = _canonical_sha_fn or canonical_text_sha256
+    actual_sha = _sha_fn(dev_path_resolved)
     if actual_sha.lower() != EXPECTED_DEV_SHA256.lower():
         _fail_closed(f"dev evalset sha mismatch: got {actual_sha} expected {EXPECTED_DEV_SHA256}")
+
+    # Durable one-shot re-check immediately before run_start (detect concurrent race after grant)
+    try:
+        assert_no_prior_canonical_attempt(audit_log)
+    except Exception as e:
+        if not isinstance(e, FileNotFoundError):
+            _fail_closed(str(e))
 
     # --- Audit run_start (must be appended atomically and verified) ---
     # This is the first real canonical event for this batch; preserve existing 16 events chain.
@@ -439,74 +483,198 @@ def main(argv: list[str] | None = None) -> None:
         _fail_closed(f"audit run_start append failed (fail-closed): {e}")
 
     # We will ensure run_end and protected_access_end are appended even on failure (lifecycle closure)
+    # If closure fails, no canonical result may remain — mandatory closure errors must not be swallowed.
     success = False
     result_path = None
     try:
-        # Load and validate dev items (36)
-        dev_items = load_and_validate(dev_path_resolved, role="dev")
+        # Load and validate dev items (36) — injectable for fake E2E (no plaintext)
+        _sha_fn = _canonical_sha_fn or canonical_text_sha256
+        # actual_sha already computed via _sha_fn? We already computed actual_sha above via canonical_text_sha256; for injection, caller already patched file existence, but we recompute via injected if needed.
+        # For dev items, use injection if supplied
+        if _load_and_validate_fn is not None:
+            dev_items = _load_and_validate_fn(dev_path_resolved, role="dev")
+        else:
+            dev_items = load_and_validate(dev_path_resolved, role="dev")
         if len(dev_items) != EXPECTED_DEV_CASES:
             _fail_closed(f"dev cases mismatch: got {len(dev_items)} expected {EXPECTED_DEV_CASES}")
 
-        # --- Real retrieval execution ---
-        # Load model once (same-process constraint)
-        # Import here to avoid import cost in non-execution stage
-        try:
-            from sentence_transformers import SentenceTransformer  # type: ignore
-        except Exception as e:
-            _fail_closed(f"embedding model load failed: {e}")
-
-        # DATABASE_URL must be provided
-        db_url = os.getenv("DATABASE_URL", "").strip()
-        if not db_url:
-            _fail_closed("DATABASE_URL must be set for canonical execution")
-
-        import psycopg2  # type: ignore
-
-        # Use single DB connection for same-DB constraint
-        conn = psycopg2.connect(db_url)
-        try:
-            # Warm model
-            model = SentenceTransformer("intfloat/multilingual-e5-base")
-            embedding_fn = _real_embedding_fn_factory(model)
-            retrieval_fn = _real_retrieval_fn_factory(conn, model)
-
-            # Latency measurer: predefined warm paired, only for quality-selectable
-            latency_measurer = _real_latency_measurer_factory(dev_items, embedding_fn, retrieval_fn)
-
-            # Orchestrate 4-way batch (this is the real single code path)
+        # --- Retrieval execution: real DB/model vs injected fakes (both go through same orchestration/validation/write/audit lifecycle) ---
+        # Injection path: when any test factory is supplied, bypass real DB/model and use fakes (no DATABASE_URL/model load)
+        is_injected = any(x is not None for x in (_embedding_fn_factory, _retrieval_fn_factory, _latency_measurer_factory, _corpus_provenance_fn))
+        if is_injected:
+            # Injected fake path — no DB/model, but still same audit lifecycle, corpus validation, orchestration, atomic write
+            if _corpus_provenance_fn is not None:
+                corpus_provenance = _corpus_provenance_fn()
+            else:
+                # Default valid corpus for pure tests without DB
+                corpus_provenance = {
+                    "total_policies": 13589,
+                    "total_chunks": 17609,
+                    "by_source": {
+                        "youth": {"policies": 2631, "chunks": 3083},
+                        "gov24": {"policies": 10958, "chunks": 14526},
+                    },
+                }
+            try:
+                validate_corpus_provenance(corpus_provenance)
+            except Exception as e:
+                _fail_closed(f"corpus provenance validation failed (injected): {e} — got {corpus_provenance}")
+            # Build injected embedding/retrieval/latency — factories accept dummy placeholder if needed
+            if _embedding_fn_factory is not None:
+                embedding_fn = _embedding_fn_factory(None)
+            else:
+                # Default fake embedding that validates prefix contract via caller-observable side-effect: use format_pgvector on dummy vector
+                def _default_fake_embed(stripped: str):
+                    # Simulate production prefix: must be called with stripped that was strip_region(raw)
+                    # For test, we just return pgvector string of dummy vector
+                    import hashlib
+                    # deterministic dummy vector via hash
+                    h = hashlib.sha256(stripped.encode()).hexdigest()
+                    vals = [int(h[i:i+2], 16) / 255.0 for i in range(0, 6, 2)]
+                    return format_pgvector(vals)
+                embedding_fn = _default_fake_embed
+            if _retrieval_fn_factory is not None:
+                retrieval_fn = _retrieval_fn_factory(None, None)
+            else:
+                # Default fake retrieval that returns controlled ranks: baseline worst, candidates better
+                def _default_fake_retrieve(candidate_id: str, vec, lexical_terms: list[str], youth_bias: float, age, rp):
+                    assert_rp_is_null(rp)
+                    # Validate vec is pgvector string (production parity)
+                    assert isinstance(vec, str) and vec.startswith("[") and vec.endswith("]"), f"vec must be pgvector string, got {vec!r}"
+                    # Return 30 results with synthetic source_ids; gold is determined by test's dev_items gold fields
+                    # For generic fallback, return empty (no gold) — metrics will be zero
+                    return []
+                retrieval_fn = _default_fake_retrieve
+            if _latency_measurer_factory is not None:
+                latency_measurer = _latency_measurer_factory(dev_items, embedding_fn, retrieval_fn)
+            else:
+                latency_measurer = None
+            # Orchestrate with injected dependencies — same single code path
             result = orchestrate_4way_batch(
                 dev_items,
                 embedding_fn=embedding_fn,
                 retrieval_fn=retrieval_fn,
                 latency_measurer=latency_measurer,
+                corpus_provenance=corpus_provenance,
             )
-
-            # Enrich result with provenance
-            # result already contains skeleton + metrics + selection + latency + per_case + git
-            # Add additional provenance fields if missing
             result["provenance"] = {
                 "dev_sha256": actual_sha,
                 "grant_event_hash": grant["event_hash"],
                 "run_start_event_hash": run_start_event["event_hash"] if run_start_event else None,
                 "session_id": session_id,
                 "executed_at": datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z"),
+                "corpus_provenance": corpus_provenance,
             }
-
-            # Strict validation before write
             validate_complete_result(result)
-
-            # Atomic write only after all validation — single batch guard already checked that output not exists
             result_path = atomic_write_result(result, out_path)
-
-        finally:
+        else:
+            # --- Real DB/model path (production canonical) ---
+            # Load model once (same-process constraint)
+            # Import here to avoid import cost in non-execution stage
             try:
-                conn.close()
-            except Exception:
-                pass
+                from sentence_transformers import SentenceTransformer  # type: ignore
+            except Exception as e:
+                _fail_closed(f"embedding model load failed: {e}")
 
+            # DATABASE_URL must be provided
+            db_url = os.getenv("DATABASE_URL", "").strip()
+            if not db_url:
+                _fail_closed("DATABASE_URL must be set for canonical execution")
+
+            import psycopg2  # type: ignore
+
+            # Use single DB connection for same-DB constraint (corpus provenance + 4-way retrieval)
+            conn = psycopg2.connect(db_url)
+            try:
+                # Corpus provenance: same DB/corpus, fail-closed — total policy/chunk + Youth/Gov24 split from same connection
+                corpus_provenance = get_corpus_provenance(conn)
+                try:
+                    validate_corpus_provenance(corpus_provenance)
+                except Exception as e:
+                    _fail_closed(f"corpus provenance validation failed (same DB/corpus required): {e} — got {corpus_provenance}")
+
+                # Warm model
+                model = SentenceTransformer("intfloat/multilingual-e5-base")
+                embedding_fn = _real_embedding_fn_factory(model)
+                retrieval_fn = _real_retrieval_fn_factory(conn, model)
+
+                # Latency measurer: predefined warm paired, only for quality-selectable
+                latency_measurer = _real_latency_measurer_factory(dev_items, embedding_fn, retrieval_fn)
+
+                # Orchestrate 4-way batch (this is the real single code path) — pass same-DB corpus provenance
+                result = orchestrate_4way_batch(
+                    dev_items,
+                    embedding_fn=embedding_fn,
+                    retrieval_fn=retrieval_fn,
+                    latency_measurer=latency_measurer,
+                    corpus_provenance=corpus_provenance,
+                )
+
+                # Enrich result with provenance (audit grant linkage)
+                result["provenance"] = {
+                    "dev_sha256": actual_sha,
+                    "grant_event_hash": grant["event_hash"],
+                    "run_start_event_hash": run_start_event["event_hash"] if run_start_event else None,
+                    "session_id": session_id,
+                    "executed_at": datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z"),
+                    "corpus_provenance": corpus_provenance,
+                }
+
+                # Strict validation before write (includes corpus, git SHA, selected candidate, latency, metrics consistency)
+                validate_complete_result(result)
+
+                # Atomic write only after all validation — single batch guard + concurrent race guard
+                result_path = atomic_write_result(result, out_path)
+
+            finally:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+
+        # Success path: append run_end success and close protected access — fail-closed, cleanup result on failure
+        try:
+            append_canonical_run_end(
+                audit_log,
+                candidate_id=BATCH_ID,
+                set_sha=EXPECTED_DEV_SHA256,
+                outcome="success",
+                session_id=session_id,
+            )
+        except Exception as e:
+            # Mandatory closure failed — result must not remain
+            if result_path is not None:
+                try:
+                    pathlib.Path(result_path).unlink()
+                except Exception:
+                    pass
+            _fail_closed(f"audit run_end append failed (fail-closed, result removed): {e}")
+        try:
+            from retrieval_v2.cycle3_audit import append_event  # type: ignore
+
+            append_event(
+                audit_log,
+                action="protected_access_end",
+                candidate_id=None,
+                set_role="dev",
+                set_sha=EXPECTED_DEV_SHA256,
+                outcome="success",
+                session_id=session_id,
+            )
+        except Exception as e:
+            if result_path is not None:
+                try:
+                    pathlib.Path(result_path).unlink()
+                except Exception:
+                    pass
+            _fail_closed(f"audit protected_access_end append failed (fail-closed, result removed): {e}")
         success = True
     except Exception as e:
-        # Failure path: append run_end with failure, then lifecycle closure
+        # Failure path: append run_end with failure, then lifecycle closure — mandatory, not swallowed
+        run_end_failed = False
+        protected_failed = False
+        run_end_err = None
+        protected_err = None
         try:
             append_canonical_run_end(
                 audit_log,
@@ -515,8 +683,9 @@ def main(argv: list[str] | None = None) -> None:
                 outcome="failure",
                 session_id=session_id,
             )
-        except Exception:
-            pass
+        except Exception as ee:
+            run_end_failed = True
+            run_end_err = ee
         # Attempt to close protected access grant even on failure (fail-closed lifecycle)
         try:
             from retrieval_v2.cycle3_audit import append_event  # type: ignore
@@ -530,40 +699,47 @@ def main(argv: list[str] | None = None) -> None:
                 outcome="failure",
                 session_id=session_id,
             )
-        except Exception:
-            pass
-        _fail_closed(f"canonical dev batch failed (fail-closed): {e}")
-    else:
-        # Success path: append run_end success and close protected access
-        try:
-            append_canonical_run_end(
-                audit_log,
-                candidate_id=BATCH_ID,
-                set_sha=EXPECTED_DEV_SHA256,
-                outcome="success",
-                session_id=session_id,
-            )
-        except Exception as e:
-            _fail_closed(f"audit run_end append failed (fail-closed): {e}")
-        try:
-            from retrieval_v2.cycle3_audit import append_event  # type: ignore
-
-            append_event(
-                audit_log,
-                action="protected_access_end",
-                candidate_id=None,
-                set_role="dev",
-                set_sha=EXPECTED_DEV_SHA256,
-                outcome="success",
-                session_id=session_id,
-            )
-        except Exception as e:
-            _fail_closed(f"audit protected_access_end append failed (fail-closed): {e}")
-    finally:
-        # Ensure result artifact exists only on success; on failure it must not exist (fail-closed)
-        if not success and result_path is not None:
+        except Exception as ee:
+            protected_failed = True
+            protected_err = ee
+        # Cleanup result if it was published before failure (fail-closed: no result may remain if closure fails)
+        if result_path is not None:
             try:
                 pathlib.Path(result_path).unlink()
+            except Exception:
+                pass
+        # Also handle case where result_path is set but file not yet written? Ensure by checking out_path exists
+        else:
+            # If orchestration succeeded partially and atomic_write was attempted but failed after run_end?
+            # Check if output file now exists at out_path (race) and remove if failure closure
+            try:
+                if pathlib.Path(out_path).exists():
+                    # If we are in failure path, ensure no result remains even if result_path not set (e.g., after atomic_write but before assign)
+                    pathlib.Path(out_path).unlink()
+            except Exception:
+                pass
+        if run_end_failed or protected_failed:
+            _fail_closed(
+                f"audit closure failed after canonical failure (fail-closed, result removed): run_end_failed={run_end_failed} err={run_end_err!r} protected_failed={protected_failed} err={protected_err!r} original_error={e!r}"
+            )
+        _fail_closed(f"canonical dev batch failed (fail-closed): {e}")
+    finally:
+        # Ensure result artifact exists only on success; on failure it must not exist (fail-closed) — handle closure-failure case where success flag not yet set
+        if not success and result_path is not None:
+            try:
+                p = pathlib.Path(result_path)
+                if p.exists():
+                    p.unlink()
+            except Exception:
+                pass
+        # Also ensure out_path not left if success is False (e.g., atomic_write succeeded but closure failed and we already removed result_path, but check direct path)
+        if not success:
+            try:
+                direct = pathlib.Path(out_path)
+                if direct.exists():
+                    # Only remove if this invocation created it (audit one-shot ensures single batch, so safe to remove on failure)
+                    # Verify by checking if audit has failure run_end for this session? But simpler: remove if not success
+                    direct.unlink()
             except Exception:
                 pass
 

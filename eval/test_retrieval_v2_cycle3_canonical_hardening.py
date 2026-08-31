@@ -249,8 +249,14 @@ class OrchestrationReachabilityTest(unittest.TestCase):
                     res.append({"source": "youth", "source_id": f"d-{r}", "dist": r * 0.01 + 0.001})
             return res
 
-        result = orchestrate_4way_batch(dev_items, embedding_fn=fake_embed, retrieval_fn=counting_fake, latency_measurer=None)
-        # embed called once per case
+        def fake_latency(quality_ids):
+            out = {}
+            for cid in quality_ids:
+                out[cid] = {"p50": 400.0, "p95": 450.0, "count": 180, "samples": [400]*5}
+            out["baseline"] = {"p50": 410.0, "p95": 460.0, "count": 180, "samples": [410]*5}
+            return out
+
+        result = orchestrate_4way_batch(dev_items, embedding_fn=fake_embed, retrieval_fn=counting_fake, latency_measurer=fake_latency)
         self.assertEqual(len(embed_calls), 36)
         # retrieval called 36*4 times
         self.assertEqual(len(retrieval_calls), 36 * 4)

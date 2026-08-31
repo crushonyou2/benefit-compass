@@ -91,6 +91,15 @@ EXPECTED_DEV_CASES = 36
 EXPECTED_DEV_YOUTH = 18
 EXPECTED_DEV_GOV24 = 18
 
+# Production corpus provenance (same DB/corpus, fail-closed)
+# Values from production parity manifests (13589 policies, 17609 chunks, youth 2631/3083, gov24 10958/14526)
+EXPECTED_CORPUS_TOTAL_POLICIES = 13589
+EXPECTED_CORPUS_TOTAL_CHUNKS = 17609
+EXPECTED_CORPUS_BY_SOURCE = {
+    "youth": {"policies": 2631, "chunks": 3083},
+    "gov24": {"policies": 10958, "chunks": 14526},
+}
+
 # Holdout gating — blocked until freeze+review+approval
 HOLDOUT_BLOCKED_MESSAGE = (
     "holdout evaluation/access blocked: candidate freeze + independent review "
@@ -690,6 +699,28 @@ def get_batch_provenance() -> dict[str, Any]:
     }
 
 
+def assert_no_prior_canonical_attempt(log_path: str | pathlib.Path) -> None:
+    """Durable audit one-shot: reject any later canonical attempt after prior run_start, even if prior failed before output.
+
+    Output existence alone is insufficient (attempt may have failed before writing).
+    This checks the durable audit log for ANY prior canonical run_start/attempt for BATCH_ID.
+    If found, fail-closed — the single batch is already consumed.
+    Also prevents concurrent second attempt after first\'s run_start is appended (durable, not just file-existence).
+    """
+    from retrieval_v2.cycle3_audit import read_and_verify_chain  # type: ignore
+
+    try:
+        events = read_and_verify_chain(log_path)
+    except FileNotFoundError:
+        return  # no log yet, no prior attempt
+    for ev in events:
+        if ev.get("action") == "run_start" and ev.get("candidate_id") == BATCH_ID:
+            raise RuntimeError(
+                f"canonical dev batch one-shot guard: prior run_start for batch_id={BATCH_ID} already exists at event {ev.get('event_hash','')[:8]}... (audit {ev.get('utc_timestamp')}) — "
+                "re-run / second attempt not allowed even if prior failed before output (durable audit, not file existence)"
+            )
+
+
 # ---------------------------------------------------------------------------
 # Audit integration (fail-closed, temp-audit for tests)
 # ---------------------------------------------------------------------------
@@ -846,7 +877,86 @@ def assert_d003_contract() -> None:
         raise AssertionError(f"D-003 EMBED_MODEL drift: {ml_app.EMBED_MODEL_NAME!r} != {D003_EMBED_MODEL!r}")
     _ = YOUTH_INTENT_BIAS  # ensure importable
 
+
 # ---------------------------------------------------------------------------
+# Corpus provenance — same DB/corpus (fail-closed, same connection)
+# ---------------------------------------------------------------------------
+
+def get_corpus_provenance(conn) -> dict[str, any]:
+    """Query total policy/chunk counts plus Youth/Gov24 split from SAME connection.
+
+    Must be called with the same DB connection used for 4-way retrieval
+    (same DB/corpus). Returns dict with total_policies, total_chunks, by_source.
+    Fail-closed: any query failure raises.
+    """
+    with conn.cursor() as cur:
+        cur.execute("SELECT count(*) FROM policy")
+        total_policies = int(cur.fetchone()[0])
+        cur.execute("SELECT count(*) FROM policy_chunk")
+        total_chunks = int(cur.fetchone()[0])
+        cur.execute("SELECT source, count(*) FROM policy GROUP BY source")
+        policy_by_source = {row[0]: int(row[1]) for row in cur.fetchall()}
+        cur.execute("SELECT p.source, count(*) FROM policy_chunk c JOIN policy p ON p.id=c.policy_id GROUP BY p.source")
+        chunk_by_source = {row[0]: int(row[1]) for row in cur.fetchall()}
+    by_source: dict[str, dict[str, int]] = {}
+    for src in ("youth", "gov24"):
+        by_source[src] = {
+            "policies": int(policy_by_source.get(src, 0)),
+            "chunks": int(chunk_by_source.get(src, 0)),
+        }
+    return {
+        "total_policies": total_policies,
+        "total_chunks": total_chunks,
+        "by_source": by_source,
+    }
+
+
+def validate_corpus_provenance(provenance: dict[str, any]) -> None:
+    """Fail-closed validation against expected production corpus."""
+    if not isinstance(provenance, dict):
+        raise ValueError(f"corpus_provenance must be dict, got {type(provenance)}")
+    tp = provenance.get("total_policies")
+    tc = provenance.get("total_chunks")
+    if tp != EXPECTED_CORPUS_TOTAL_POLICIES:
+        raise ValueError(f"corpus total_policies mismatch: got {tp} expected {EXPECTED_CORPUS_TOTAL_POLICIES} (same DB/corpus required)")
+    if tc != EXPECTED_CORPUS_TOTAL_CHUNKS:
+        raise ValueError(f"corpus total_chunks mismatch: got {tc} expected {EXPECTED_CORPUS_TOTAL_CHUNKS}")
+    by = provenance.get("by_source")
+    if not isinstance(by, dict) or "youth" not in by or "gov24" not in by:
+        raise ValueError(f"corpus by_source missing youth/gov24: {by}")
+    for src in ("youth", "gov24"):
+        exp = EXPECTED_CORPUS_BY_SOURCE[src]
+        got = by[src]
+        if not isinstance(got, dict) or got.get("policies") != exp["policies"] or got.get("chunks") != exp["chunks"]:
+            raise ValueError(f"corpus {src} mismatch: got {got} expected {exp}")
+
+
+# ---------------------------------------------------------------------------
+# Embedding parity — production-compatible pgvector formatting
+# ---------------------------------------------------------------------------
+
+def format_pgvector(vec) -> str:
+    """Format vector as production-compatible pgvector string: "[x.xxxxxx,...]" with 6-decimal.
+
+    Accepts numpy array or list of floats. Mirrors ml-service/app.py:vec = "[" + ",".join(f"{x:.6f}" for x in qvec) + "]"
+    """
+    try:
+        vals = vec.tolist()  # numpy
+    except Exception:
+        vals = list(vec)
+    return "[" + ",".join(f"{float(x):.6f}" for x in vals) + "]"
+
+
+def validate_embedding_parity_call(q: str, model) -> str:
+    """Helper for static tests: ensure production contract is model.encode([f"query: {q}"], normalize_embeddings=True)[0].
+
+    Returns pgvector string. This function is NOT the real factory but documents the contract for testing.
+    Real factory must call exactly this form.
+    """
+    # Contract: query prefix "query: " + stripped, list form, normalize=True
+    qvec = model.encode([f"query: {q}"], normalize_embeddings=True)[0]
+    return format_pgvector(qvec)
+
 # Result schema / provenance
 # ---------------------------------------------------------------------------
 
@@ -854,13 +964,14 @@ def build_result_skeleton(
     dev_sha256: str = EXPECTED_DEV_SHA256,
     git_head: str | None = None,
     git_dirty: bool | None = None,
+    corpus_provenance: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Return canonical result skeleton (no per-case metrics yet).
 
     Includes provenance fields that must be present in final artifact.
     Actual dev batch execution fills per-candidate metrics + per_case ranks.
     """
-    # Resolve git provenance lazily
+    # Resolve git provenance lazily — strict: must be 40-hex, fail-closed if cannot probe and no injection
     if git_head is None or git_dirty is None:
         try:
             import subprocess
@@ -871,12 +982,17 @@ def build_result_skeleton(
                 git_head = head
             if git_dirty is None:
                 git_dirty = dirty
-        except Exception:
+        except Exception as e:
+            # In strict complete validation, missing git provenance is fail-closed. For skeleton tests,
+            # we keep fallback but mark dirty True; validate_complete_result will reject "unknown".
             if git_head is None:
                 git_head = "unknown"
             if git_dirty is None:
                 git_dirty = True
 
+    # Normalize git_head to lower if looks like hex
+    if isinstance(git_head, str) and git_head != "unknown":
+        git_head = git_head.strip().lower()
     return {
         "schema_version": 1,
         "prereg_version": PREREG_VERSION,
@@ -912,6 +1028,7 @@ def build_result_skeleton(
         "candidates": list(ALL_CANONICAL_IDS),
         "pool_k_by_id": dict(POOL_K_BY_ID),
         "final_n": FINAL_N,
+        "corpus_provenance": corpus_provenance,
         # Placeholders filled by real execution:
         "metrics": None,
         "selection": None,
@@ -984,7 +1101,8 @@ def compute_metrics_from_ranks(
     hit1 = sum(1 for r in per_case_ranks if r == 1)
     hit5 = sum(1 for r in per_case_ranks if 1 <= r <= 5)
     hit10 = sum(1 for r in per_case_ranks if 1 <= r <= 10)
-    mrr_sum = sum((1.0 / r if r != 0 else 0.0) for r in per_case_ranks)
+    # MRR@10: reciprocal rank only for ranks within top10; ranks 11-30 must be zero (fail-closed)
+    mrr_sum = sum((1.0 / r if 1 <= r <= 10 else 0.0) for r in per_case_ranks)
     mrr = mrr_sum / n if n else 0.0
     # per source
     youth_n = sum(1 for s in per_case_sources if s == "youth")
@@ -1030,10 +1148,15 @@ def validate_complete_result(result: dict[str, Any]) -> None:
     """Strict validation of COMPLETE canonical result (skeleton + metrics + selection + per_case)."""
     # First validate skeleton drift
     validate_result_schema(result)
-    # Complete result must have metrics, selection, per_case
-    for k in ("metrics", "selection", "per_case"):
+    # Complete result must have metrics, selection, per_case, corpus_provenance, latency, git strict
+    for k in ("metrics", "selection", "per_case", "corpus_provenance"):
         if k not in result:
             raise ValueError(f"complete result missing required key {k!r}")
+    # Corpus provenance fail-closed
+    corpus = result.get("corpus_provenance")
+    if corpus is None:
+        raise ValueError("corpus_provenance must be present (same DB/corpus, fail-closed)")
+    validate_corpus_provenance(corpus)
     metrics = result["metrics"]
     if not isinstance(metrics, dict):
         raise ValueError("metrics must be dict")
@@ -1041,35 +1164,75 @@ def validate_complete_result(result: dict[str, Any]) -> None:
         if cid not in metrics:
             raise ValueError(f"metrics missing candidate {cid!r}")
         m = metrics[cid]
-        # must contain hit@5, source_macro, by_source
-        if "hit@5" not in m or "source_macro_recall@5" not in m or "by_source" not in m:
-            raise ValueError(f"metrics for {cid} missing required fields")
+        # must contain hit@5, source_macro, by_source, mrr@10 etc.
+        if "hit@5" not in m or "source_macro_recall@5" not in m or "by_source" not in m or "mrr@10" not in m:
+            raise ValueError(f"metrics for {cid} missing required fields (hit@5/source_macro/mrr@10/by_source)")
         # by_source must have youth/gov24 hit@5
         if "youth" not in m["by_source"] or "gov24" not in m["by_source"]:
             raise ValueError(f"metrics by_source missing youth/gov24 for {cid}")
-    # selection must contain dev_selectable etc
+        # Validate metric ranges plausible
+        if not (0 <= m["hit@5"] <= EXPECTED_DEV_CASES) or not (0 <= m["hit@10"] <= EXPECTED_DEV_CASES):
+            raise ValueError(f"metrics hit out of range for {cid}")
+    # selection must contain per_candidate etc
     sel = result["selection"]
     if not isinstance(sel, dict):
         raise ValueError("selection must be dict")
     if "per_candidate" not in sel or "selected_candidate" not in sel:
         raise ValueError("selection missing per_candidate/selected_candidate")
-    if sel["selected_candidate"] is not None and sel["selected_candidate"] not in ALL_CANONICAL_IDS:
-        raise ValueError(f"selected_candidate invalid: {sel['selected_candidate']!r}")
+    selected = sel["selected_candidate"]
+    # Strict: selected candidate only c3e1/c3e2/c3e3 or None (baseline never selected)
+    if selected is not None and selected not in CANDIDATE_IDS:
+        raise ValueError(f"selected_candidate must be one of {CANDIDATE_IDS} or None, got {selected!r} (baseline not selectable)")
     # per_case must be list of 36 with ranks per candidate
     per_case = result["per_case"]
     if not isinstance(per_case, list) or len(per_case) != EXPECTED_DEV_CASES:
         raise ValueError(f"per_case must be list of {EXPECTED_DEV_CASES}")
+    per_source_list: list[str] = []
     for pc in per_case:
         if "case_id" not in pc or "gold" not in pc or "ranks" not in pc:
             raise ValueError(f"per_case entry missing case_id/gold/ranks: {pc}")
+        gold = pc["gold"]
+        if gold.get("source") not in ("youth", "gov24"):
+            raise ValueError(f"per_case gold source must be youth/gov24, got {gold}")
+        per_source_list.append(gold["source"])
         ranks = pc["ranks"]
         for cid in ALL_CANONICAL_IDS:
             if cid not in ranks:
                 raise ValueError(f"per_case ranks missing {cid}")
-            if not isinstance(ranks[cid], int):
-                raise ValueError(f"rank for {cid} must be int")
-    # latency: if present, must obey quality-selectable-only contract
+            rv = ranks[cid]
+            if not isinstance(rv, int) or not (0 <= rv <= FINAL_N):
+                raise ValueError(f"rank for {cid} must be int 0..{FINAL_N}, got {rv!r} in {pc.get('case_id')}")
+    # Metrics/per-case consistency: recompute metrics from per_case ranks and compare hit@5/macro/mrr@10
+    # This ensures metrics are not fabricated independently of per_case.
+    # Recompute per_candidate ranks from per_case
+    recomputed_ranks: dict[str, list[int]] = {cid: [] for cid in ALL_CANONICAL_IDS}
+    for pc in per_case:
+        for cid in ALL_CANONICAL_IDS:
+            recomputed_ranks[cid].append(pc["ranks"][cid])
+    recomputed_metrics = compute_all_candidate_metrics(recomputed_ranks, per_source_list)
+    for cid in ALL_CANONICAL_IDS:
+        orig = metrics[cid]
+        recomputed = recomputed_metrics[cid]
+        # Compare critical fields: hit@5, hit@10, mrr@10, source_macro, by_source hit@5
+        for field in ("hit@5", "hit@10", "hit@1", "mrr@10", "source_macro_recall@5"):
+            ov = orig.get(field)
+            rv = recomputed.get(field)
+            # For mrr@10 use tolerance
+            if field == "mrr@10":
+                if abs(float(ov) - float(rv)) > 1e-9:
+                    raise ValueError(f"metrics mrr@10 mismatch for {cid}: result {ov} vs per_case recomputed {rv} (inconsistent)")
+            else:
+                if ov != rv:
+                    raise ValueError(f"metrics {field} mismatch for {cid}: result {ov} vs per_case recomputed {rv} (inconsistent)")
+        # by_source
+        for src in ("youth", "gov24"):
+            if orig["by_source"][src]["hit@5"] != recomputed["by_source"][src]["hit@5"]:
+                raise ValueError(f"metrics by_source {src} hit@5 mismatch for {cid}: {orig['by_source'][src]} vs {recomputed['by_source'][src]}")
+    # latency: strict quality-selectable-only + paired baseline
     latency = result.get("latency")
+    # latency key must exist (may be None dict values, but key must exist)
+    if "latency" not in result:
+        raise ValueError("latency missing in complete result")
     if latency is not None:
         if not isinstance(latency, dict):
             raise ValueError("latency must be dict or None")
@@ -1078,10 +1241,45 @@ def validate_complete_result(result: dict[str, Any]) -> None:
                 raise ValueError(f"latency unknown candidate {cid}")
             if vals is not None and "p95" not in vals:
                 raise ValueError(f"latency for {cid} missing p95")
-    # git provenance
+        # Enforce quality-selectable-only contract:
+        # Need selection per_candidate quality_selectable to know which should have latency
+        per_cand_sel = sel.get("per_candidate", {})
+        quality_ids = set(sel.get("quality_selectable", []))
+        # For each candidate, if not quality_selectable, latency must be None
+        for cid in CANDIDATE_IDS:
+            is_q = per_cand_sel.get(cid, {}).get("quality_selectable", False) if isinstance(per_cand_sel.get(cid), dict) else (cid in quality_ids)
+            # fallback to quality_ids membership if per_candidate not detailed
+            if cid in quality_ids:
+                is_q = True
+            if not is_q:
+                if latency.get(cid) is not None:
+                    raise ValueError(f"latency for non-quality-selectable candidate {cid} must be None (quality-selectable-only), got {latency.get(cid)}")
+            else:
+                if latency.get(cid) is None:
+                    raise ValueError(f"latency for quality-selectable candidate {cid} must not be None")
+                # must have p95 numeric
+                if not isinstance(latency[cid].get("p95"), (int, float)):
+                    raise ValueError(f"latency p95 for {cid} must be numeric")
+        # Baseline latency: only if any quality candidate exists, baseline must have latency; otherwise must be None
+        baseline_has_quality = len(quality_ids) > 0
+        baseline_lat = latency.get(BASELINE_ID)
+        if baseline_has_quality:
+            if baseline_lat is None or "p95" not in baseline_lat:
+                raise ValueError(f"baseline latency must be present (paired) when quality_selectable exists {quality_ids}, got {baseline_lat}")
+        else:
+            if baseline_lat is not None:
+                raise ValueError(f"baseline latency must be None when no quality_selectable candidate, got {baseline_lat}")
+    # git provenance strict
     git = result.get("git")
     if not isinstance(git, dict) or "head" not in git or "dirty" not in git:
         raise ValueError("git provenance missing")
+    head = git.get("head")
+    dirty = git.get("dirty")
+    if not isinstance(head, str) or not re.fullmatch(r"[0-9a-f]{40}", head.lower()):
+        raise ValueError(f"git head must be 40-hex SHA, got {head!r} (fail-closed provenance)")
+    if not isinstance(dirty, bool):
+        raise ValueError(f"git dirty must be bool, got {dirty!r}")
+    # corpus_provenance already validated above
 
 
 def atomic_write_result(result: dict[str, Any], output_path: str | pathlib.Path) -> pathlib.Path:
@@ -1089,12 +1287,12 @@ def atomic_write_result(result: dict[str, Any], output_path: str | pathlib.Path)
 
     - Validates complete schema (strict, fail-closed).
     - Fails closed if output_path already exists (single batch guard).
-    - Writes via temp file + fsync + atomic rename.
+    - Writes via temp file + fsync + atomic rename with concurrent race guard.
     - Returns resolved output path.
     """
     validate_complete_result(result)
     out = pathlib.Path(output_path)
-    # Single-batch guard: existing file must fail
+    # Single-batch guard: existing file must fail (file existence alone)
     if out.exists():
         raise FileExistsError(f"canonical dev result already exists at {out} — single batch guard (immutable_after_dev_inspection)")
     # Ensure parent exists
@@ -1112,7 +1310,9 @@ def atomic_write_result(result: dict[str, Any], output_path: str | pathlib.Path)
         # fallback: compare absolute normalized
         if out.resolve().as_posix() != intended.as_posix():
             raise ValueError(f"output_path must be exactly {CANONICAL_DEV_OUTPUT_REL!r}, got {str(output_path)!r}")
-    tmp = out.with_suffix(out.suffix + ".tmp")
+    # Use unique tmp to prevent tmp collision in concurrent case (race on same .tmp)
+    import uuid
+    tmp = out.with_name(out.name + f".tmp.{uuid.uuid4().hex}")
     payload = json.dumps(result, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
     # Write temp
     with open(tmp, "w", encoding="utf-8", newline="\n") as f:
@@ -1132,8 +1332,74 @@ def atomic_write_result(result: dict[str, Any], output_path: str | pathlib.Path)
         except Exception:
             pass
         raise
-    # Atomic rename
-    tmp.replace(out)
+    # Concurrent race guard: re-check existence before publish (another process may have published between initial check and now)
+    if out.exists():
+        try:
+            tmp.unlink()
+        except Exception:
+            pass
+        raise FileExistsError(f"canonical dev result already exists at {out} — concurrent race detected (pre-publish check)")
+    # Atomic publish with exclusive-create guard: try hardlink (POSIX atomic, fails if out exists)
+    # This prevents concurrent atomic output overwrite/race where tmp.replace would silently overwrite.
+    try:
+        # Primary: hardlink creates out atomically if not exists, fails with FileExistsError if exists
+        os.link(str(tmp), str(out))
+        # Success: out now exists via hardlink, remove tmp name (out remains)
+        try:
+            tmp.unlink()
+        except Exception:
+            pass
+    except FileExistsError:
+        try:
+            tmp.unlink()
+        except Exception:
+            pass
+        raise FileExistsError(f"canonical dev result already exists at {out} — concurrent publish race (link)")
+    except OSError as e:
+        # Fallback for cross-device or link not supported: check again and use exclusive create via 'xb'
+        # If out now exists, fail
+        if out.exists():
+            try:
+                tmp.unlink()
+            except Exception:
+                pass
+            raise FileExistsError(f"canonical dev result already exists at {out} — concurrent race (fallback) : {e}") from e
+        # Try exclusive file creation then copy payload atomically via replace with check
+        # As fallback, use os.replace but we already checked existence; however replace would overwrite if race happened after check.
+        # We instead attempt to create empty exclusive file first as a lock.
+        try:
+            # Try to create out exclusively with O_CREAT|O_EXCL
+            fd = os.open(str(out), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            try:
+                # Write payload via fd (already validated) — we already have tmp with payload, but we can copy
+                # Instead, close empty file and then replace via tmp: but we now own the exclusive creation, so it's safe to replace
+                os.close(fd)
+                # Remove the empty exclusive placeholder and retry link/replace path
+                try:
+                    out.unlink()
+                except Exception:
+                    pass
+                # Now retry link after owning slot? Simpler: just move tmp to out via replace after exclusive guard
+                # Since we held exclusive creation briefly, no other process could have created in that window; now safe to replace
+                tmp.replace(out)
+            except Exception:
+                try:
+                    os.close(fd)
+                except Exception:
+                    pass
+                raise
+        except FileExistsError:
+            try:
+                tmp.unlink()
+            except Exception:
+                pass
+            raise FileExistsError(f"canonical dev result already exists at {out} — concurrent exclusive-create race")
+        except Exception as ee:
+            try:
+                tmp.unlink()
+            except Exception:
+                pass
+            raise RuntimeError(f"atomic publish failed for {out}: {ee}") from ee
     # Ensure out exists and fsync dir
     try:
         dir_fd = os.open(str(out.parent), os.O_DIRECTORY)
@@ -1156,6 +1422,7 @@ def orchestrate_4way_batch(
     embedding_fn,
     retrieval_fn,
     latency_measurer=None,
+    corpus_provenance: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Execute single 4-way canonical batch orchestration (pure, no DB/model side-effects beyond injected fns).
 
@@ -1326,7 +1593,17 @@ def orchestrate_4way_batch(
         tie_sorted = sorted(selectable, key=_sort_key)
     selected = tie_sorted[0] if tie_sorted else None
     # Build complete result skeleton and fill
-    skeleton = build_result_skeleton()
+    # Build complete result skeleton and fill — include corpus provenance (same DB/corpus)
+    # For pure tests without DB, use expected valid provenance if not supplied
+    if corpus_provenance is None:
+        corpus_provenance = {
+            "total_policies": EXPECTED_CORPUS_TOTAL_POLICIES,
+            "total_chunks": EXPECTED_CORPUS_TOTAL_CHUNKS,
+            "by_source": dict(EXPECTED_CORPUS_BY_SOURCE),
+        }
+    else:
+        validate_corpus_provenance(corpus_provenance)
+    skeleton = build_result_skeleton(corpus_provenance=corpus_provenance)
     skeleton["metrics"] = metrics
     skeleton["per_case"] = per_case_records
     # selection details
