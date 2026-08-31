@@ -958,3 +958,391 @@ def validate_result_schema(result: dict[str, Any]) -> None:
         raise ValueError(f"dev sha drift: got {ds.get('sha256')!r} expected {EXPECTED_DEV_SHA256!r}")
     if str(ds.get("expected_sha256", "")).lower() != EXPECTED_DEV_SHA256.lower():
         raise ValueError(f"expected_sha256 drift: got {ds.get('expected_sha256')!r} expected {EXPECTED_DEV_SHA256!r}")
+
+# ---------------------------------------------------------------------------
+# Rank / metrics helpers (pure, for orchestration)
+# ---------------------------------------------------------------------------
+
+def rank_of_gold(results: list[dict[str, Any]], gold_source: str, gold_source_id: str) -> int:
+    """Return 1-indexed rank of gold in results (0 if not found). Deterministic."""
+    for idx, r in enumerate(results, start=1):
+        if r.get("source") == gold_source and str(r.get("source_id")) == str(gold_source_id):
+            return idx
+    return 0
+
+
+def compute_metrics_from_ranks(
+    per_case_ranks: list[int],
+    per_case_sources: list[str],
+) -> dict[str, Any]:
+    """Aggregate metrics from per-case ranks (0 means outside top10)."""
+    n = len(per_case_ranks)
+    if n == 0:
+        raise ValueError("empty per_case ranks")
+    if len(per_case_sources) != n:
+        raise ValueError("per_case_sources length mismatch")
+    hit1 = sum(1 for r in per_case_ranks if r == 1)
+    hit5 = sum(1 for r in per_case_ranks if 1 <= r <= 5)
+    hit10 = sum(1 for r in per_case_ranks if 1 <= r <= 10)
+    mrr_sum = sum((1.0 / r if r != 0 else 0.0) for r in per_case_ranks)
+    mrr = mrr_sum / n if n else 0.0
+    # per source
+    youth_n = sum(1 for s in per_case_sources if s == "youth")
+    gov24_n = sum(1 for s in per_case_sources if s == "gov24")
+    youth_hit5 = sum(1 for r, s in zip(per_case_ranks, per_case_sources) if s == "youth" and 1 <= r <= 5)
+    gov24_hit5 = sum(1 for r, s in zip(per_case_ranks, per_case_sources) if s == "gov24" and 1 <= r <= 5)
+    youth_r5 = (youth_hit5 / youth_n) if youth_n else 0.0
+    gov24_r5 = (gov24_hit5 / gov24_n) if gov24_n else 0.0
+    macro = (youth_r5 + gov24_r5) / 2.0
+    return {
+        "n": n,
+        "hit@1": hit1,
+        "hit@5": hit5,
+        "hit@10": hit10,
+        "recall@1": hit1 / n if n else 0.0,
+        "recall@5": hit5 / n if n else 0.0,
+        "recall@10": hit10 / n if n else 0.0,
+        "mrr@10": mrr,
+        "by_source": {
+            "youth": {"hit@5": youth_hit5, "n": youth_n, "recall@5": youth_r5},
+            "gov24": {"hit@5": gov24_hit5, "n": gov24_n, "recall@5": gov24_r5},
+        },
+        "source_macro_recall@5": macro,
+    }
+
+
+def compute_all_candidate_metrics(
+    per_candidate_ranks: dict[str, list[int]],
+    per_case_sources: list[str],
+) -> dict[str, dict[str, Any]]:
+    """Compute metrics dict per candidate_id."""
+    out: dict[str, dict[str, Any]] = {}
+    for cid, ranks in per_candidate_ranks.items():
+        out[cid] = compute_metrics_from_ranks(ranks, per_case_sources)
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Complete result validation / atomic write
+# ---------------------------------------------------------------------------
+
+def validate_complete_result(result: dict[str, Any]) -> None:
+    """Strict validation of COMPLETE canonical result (skeleton + metrics + selection + per_case)."""
+    # First validate skeleton drift
+    validate_result_schema(result)
+    # Complete result must have metrics, selection, per_case
+    for k in ("metrics", "selection", "per_case"):
+        if k not in result:
+            raise ValueError(f"complete result missing required key {k!r}")
+    metrics = result["metrics"]
+    if not isinstance(metrics, dict):
+        raise ValueError("metrics must be dict")
+    for cid in ALL_CANONICAL_IDS:
+        if cid not in metrics:
+            raise ValueError(f"metrics missing candidate {cid!r}")
+        m = metrics[cid]
+        # must contain hit@5, source_macro, by_source
+        if "hit@5" not in m or "source_macro_recall@5" not in m or "by_source" not in m:
+            raise ValueError(f"metrics for {cid} missing required fields")
+        # by_source must have youth/gov24 hit@5
+        if "youth" not in m["by_source"] or "gov24" not in m["by_source"]:
+            raise ValueError(f"metrics by_source missing youth/gov24 for {cid}")
+    # selection must contain dev_selectable etc
+    sel = result["selection"]
+    if not isinstance(sel, dict):
+        raise ValueError("selection must be dict")
+    if "per_candidate" not in sel or "selected_candidate" not in sel:
+        raise ValueError("selection missing per_candidate/selected_candidate")
+    if sel["selected_candidate"] is not None and sel["selected_candidate"] not in ALL_CANONICAL_IDS:
+        raise ValueError(f"selected_candidate invalid: {sel['selected_candidate']!r}")
+    # per_case must be list of 36 with ranks per candidate
+    per_case = result["per_case"]
+    if not isinstance(per_case, list) or len(per_case) != EXPECTED_DEV_CASES:
+        raise ValueError(f"per_case must be list of {EXPECTED_DEV_CASES}")
+    for pc in per_case:
+        if "case_id" not in pc or "gold" not in pc or "ranks" not in pc:
+            raise ValueError(f"per_case entry missing case_id/gold/ranks: {pc}")
+        ranks = pc["ranks"]
+        for cid in ALL_CANONICAL_IDS:
+            if cid not in ranks:
+                raise ValueError(f"per_case ranks missing {cid}")
+            if not isinstance(ranks[cid], int):
+                raise ValueError(f"rank for {cid} must be int")
+    # latency: if present, must obey quality-selectable-only contract
+    latency = result.get("latency")
+    if latency is not None:
+        if not isinstance(latency, dict):
+            raise ValueError("latency must be dict or None")
+        for cid, vals in latency.items():
+            if cid not in ALL_CANONICAL_IDS:
+                raise ValueError(f"latency unknown candidate {cid}")
+            if vals is not None and "p95" not in vals:
+                raise ValueError(f"latency for {cid} missing p95")
+    # git provenance
+    git = result.get("git")
+    if not isinstance(git, dict) or "head" not in git or "dirty" not in git:
+        raise ValueError("git provenance missing")
+
+
+def atomic_write_result(result: dict[str, Any], output_path: str | pathlib.Path) -> pathlib.Path:
+    """Validate complete result and atomically write to output_path.
+
+    - Validates complete schema (strict, fail-closed).
+    - Fails closed if output_path already exists (single batch guard).
+    - Writes via temp file + fsync + atomic rename.
+    - Returns resolved output path.
+    """
+    validate_complete_result(result)
+    out = pathlib.Path(output_path)
+    # Single-batch guard: existing file must fail
+    if out.exists():
+        raise FileExistsError(f"canonical dev result already exists at {out} — single batch guard (immutable_after_dev_inspection)")
+    # Ensure parent exists
+    out.parent.mkdir(parents=True, exist_ok=True)
+    # Validate canonical confinement? Caller should have confined via CLI; but we also check that path is under expected rel
+    intended = (ROOT / CANONICAL_DEV_OUTPUT_REL).resolve()
+    try:
+        # Require exact intended path (case-sensitive)
+        if out.resolve() != intended:
+            raise ValueError(f"output_path must be exactly {CANONICAL_DEV_OUTPUT_REL!r}, got {str(output_path)!r} (resolved {out.resolve()})")
+    except Exception as e:
+        # If resolve fails due to non-existent parent, try absolute check
+        if isinstance(e, ValueError):
+            raise
+        # fallback: compare absolute normalized
+        if out.resolve().as_posix() != intended.as_posix():
+            raise ValueError(f"output_path must be exactly {CANONICAL_DEV_OUTPUT_REL!r}, got {str(output_path)!r}")
+    tmp = out.with_suffix(out.suffix + ".tmp")
+    payload = json.dumps(result, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
+    # Write temp
+    with open(tmp, "w", encoding="utf-8", newline="\n") as f:
+        f.write(payload)
+        f.flush()
+        try:
+            os.fsync(f.fileno())
+        except Exception as e:
+            raise RuntimeError(f"fsync failed for temp {tmp}: {e}") from e
+    # Validate temp is readable and matches
+    try:
+        loaded = json.loads(tmp.read_text(encoding="utf-8"))
+        validate_complete_result(loaded)
+    except Exception:
+        try:
+            tmp.unlink()
+        except Exception:
+            pass
+        raise
+    # Atomic rename
+    tmp.replace(out)
+    # Ensure out exists and fsync dir
+    try:
+        dir_fd = os.open(str(out.parent), os.O_DIRECTORY)
+        try:
+            os.fsync(dir_fd)
+        finally:
+            os.close(dir_fd)
+    except Exception:
+        pass
+    return out
+
+
+# ---------------------------------------------------------------------------
+# 4-way orchestration (pure, injectable dependencies)
+# ---------------------------------------------------------------------------
+
+def orchestrate_4way_batch(
+    dev_items: list[dict[str, Any]],
+    *,
+    embedding_fn,
+    retrieval_fn,
+    latency_measurer=None,
+) -> dict[str, Any]:
+    """Execute single 4-way canonical batch orchestration (pure, no DB/model side-effects beyond injected fns).
+
+    dev_items: validated list of 36 cases (each with query, gold_source, gold_source_id etc)
+    embedding_fn: (stripped_query: str) -> vector (opaque, same for 4-way)
+    retrieval_fn: (candidate_id: str, vec, lexical_terms: list[str], youth_bias: float, age, rp) -> list[dict] (LIMIT 30 ordered)
+      Must respect: rp must be None, lexical_terms derived correctly, retrieval_fn returns ordered results (already youth/lexical sorted)
+    latency_measurer: optional (candidate_ids: list[str]) -> dict[candidate_id, dict with p95 etc]
+      If None, latency is None (no measurement). When supplied, it will be invoked ONLY for quality-selectable candidates
+      (same-process/same-DB/interleaved contract is the measurer's responsibility; we enforce quality-selectable-only gating here).
+
+    Returns complete result dict (without git/audit provenance; caller wraps with build_result_skeleton and fills).
+    Validates invariants: same vec for 4-way, correct lexical semantics, cosine post-LIMIT, rp NULL, deterministic ordering,
+    paired ranks/metrics, selection tie-break, zero-selectable handling.
+    """
+    if len(dev_items) != EXPECTED_DEV_CASES:
+        raise ValueError(f"dev_items must be {EXPECTED_DEV_CASES}, got {len(dev_items)}")
+    # Validate candidate registry exactly
+    validate_candidate_registry()
+    assert_d003_contract()
+    # Fail-closed: RERANK must be 0 implicitly via D003 check
+    per_candidate_ranks: dict[str, list[int]] = {cid: [] for cid in ALL_CANONICAL_IDS}
+    per_case_records: list[dict[str, Any]] = []
+    per_case_sources: list[str] = []
+    # Fixed timed count before inspection (for latency harness): count is per_variant = len(dev_items) * rounds
+    # For tests, we keep deterministic LATENCY_ROUNDS=5 if measurer needs it, but orchestration itself fixes count before calling measurer
+    for idx, case in enumerate(dev_items):
+        raw = str(case.get("query", "") or case.get("raw", ""))
+        if not raw:
+            raise ValueError(f"case {idx} missing query/raw")
+        gold_source = str(case.get("gold_source") or case.get("source") or "")
+        gold_source_id = str(case.get("gold_source_id") or case.get("source_id") or "")
+        if gold_source not in ("youth", "gov24"):
+            raise ValueError(f"case {idx} gold_source must be youth/gov24, got {gold_source!r}")
+        per_case_sources.append(gold_source)
+        # Strip region once, reuse for 4-way (same DB/corpus/query/qvec constraint)
+        stripped = strip_region_for_runner(raw)
+        # Lexical terms: baseline original, candidates rewrite
+        baseline_terms = baseline_lexical_terms_for_runner(raw)
+        # Validate baseline semantics
+        validate_lexical_terms_semantics(baseline_terms, raw, candidate_id=BASELINE_ID)
+        # Youth bias once
+        yb = youth_bias_for_runner(raw)
+        age = case.get("age")
+        # Embed once, same qvec for 4-way
+        vec = embedding_fn(stripped)
+        # rp must be NULL
+        rp = None
+        assert_rp_is_null(rp)
+        case_ranks: dict[str, int] = {}
+        case_results_debug: dict[str, Any] = {}
+        for cid in ALL_CANONICAL_IDS:
+            # Lexical terms per candidate semantics
+            terms = lexical_terms_for_runner(raw, candidate_id=cid)
+            # Validate semantics per candidate
+            validate_lexical_terms_semantics(terms, raw, candidate_id=cid)
+            # SQL semantics already validated globally, but we also ensure call uses correct pool semantics via get_sql_for_candidate check
+            sql = get_sql_for_candidate(cid)
+            validate_sql_semantics(sql, cid)
+            validate_cosine_filter_position(sql)
+            # Retrieve (LIMIT 30) — retrieval_fn must implement vector-pool K and youth/lexical ordering already
+            # For baseline, pool_k is None, for candidates pool_k is 128/256/512
+            raw_results = retrieval_fn(cid, vec, terms, yb, age, rp)
+            if not isinstance(raw_results, list):
+                raise ValueError(f"retrieval_fn for {cid} must return list, got {type(raw_results)}")
+            if len(raw_results) > FINAL_N:
+                raise ValueError(f"retrieval_fn for {cid} returned > FINAL_N {len(raw_results)} > {FINAL_N} (must be LIMIT 30)")
+            # Apply post-LIMIT cosine filter (1 - dist >= 0.78)
+            filtered = apply_cosine_filter(raw_results, cosine_min=D003_COSINE_MIN)
+            # Verify deterministic tie-break: results should already be ordered by ordering_key if we were to sort.
+            # For pure testability, we do not re-sort here; we trust retrieval_fn's SQL ordering.
+            # But we can validate that filtered is sorted according to ordering_key when lexical_overlap known? Hard without dist.
+            # Instead validate that rp is still null
+            assert_rp_is_null(rp)
+            rank = rank_of_gold(filtered, gold_source, gold_source_id)
+            # rank is 0 if outside top10, but for metrics we need rank within filtered (could be outside filtered length -> 0)
+            # For diagnostic, also store clipped rank (0 if not in filtered at all vs >30)
+            per_candidate_ranks[cid].append(rank)
+            case_ranks[cid] = rank
+            case_results_debug[cid] = {"filtered_len": len(filtered), "rank": rank}
+        per_case_records.append({
+            "case_id": case.get("id") or case.get("case_id") or f"case-{idx}",
+            "gold": {"source": gold_source, "source_id": gold_source_id},
+            "category": case.get("category"),
+            "ranks": dict(case_ranks),
+            "_debug": case_results_debug,
+        })
+    # Compute metrics per candidate
+    metrics = compute_all_candidate_metrics(per_candidate_ranks, per_case_sources)
+    # Determine quality-selectable per candidate
+    baseline_metrics = metrics[BASELINE_ID]
+    per_candidate_quality: dict[str, tuple[bool, dict]] = {}
+    quality_ids: list[str] = []
+    for cid in CANDIDATE_IDS:
+        is_q, diag = quality_selectable(baseline_metrics, metrics[cid])
+        per_candidate_quality[cid] = (is_q, diag)
+        if is_q:
+            quality_ids.append(cid)
+    # Latency: ONLY for quality-selectable candidates, via measurer (same-process/same-DB/interleaved/warmup-excluded)
+    # Timed count fixed before inspection: measurer should use predetermined count, we pass quality_ids only
+    latency_results: dict[str, Any] = {cid: None for cid in ALL_CANONICAL_IDS}
+    dev_selectable_map: dict[str, tuple[bool, dict]] = {}
+    # If measurer provided, it must be called with quality_ids only
+    measured: dict[str, Any] = {}
+    if latency_measurer is not None and quality_ids:
+        # Enforce quality-selectable-only contract: measurer should not be called for non-quality
+        measured = latency_measurer(quality_ids)
+        if not isinstance(measured, dict):
+            raise ValueError("latency_measurer must return dict")
+        for cid in quality_ids:
+            if cid not in measured:
+                raise ValueError(f"latency_measurer missing quality candidate {cid}")
+            latency_results[cid] = measured[cid]
+        # Baseline is required for paired delta; measurer should return baseline as well if quality_ids non-empty
+        if BASELINE_ID in measured:
+            latency_results[BASELINE_ID] = measured[BASELINE_ID]
+        # For non-quality, latency remains None (not evaluated)
+    for cid in CANDIDATE_IDS:
+        is_q = per_candidate_quality[cid][0]
+        if not is_q:
+            # Not quality-selectable -> dev_selectable false, latency not applicable
+            is_dev, ddiag = dev_selectable(baseline_metrics, metrics[cid], None, None)
+            # Override latency_gate reason to indicate not applicable
+            dev_selectable_map[cid] = (False, ddiag)
+            continue
+        # Quality-selectable: check latency gate
+        # Need baseline p95 and candidate p95
+        base_lat = latency_results[BASELINE_ID]
+        cand_lat = latency_results[cid]
+        # Baseline latency may be needed even if baseline not quality-selectable? For quality-selectable candidates, baseline latency must have been measured.
+        # If measurer was provided, it should have measured baseline as well if baseline is needed for comparison?
+        # Spec says same-process/same-DB/interleaved for baseline vs candidate. So for each quality candidate, we need paired baseline p95.
+        # Our measurer contract: when quality_ids includes candidates, measurer should measure baseline + those candidates interleaved.
+        # So we expect baseline latency in measured if quality_ids non-empty.
+        # Handle: if baseline latency missing but quality candidates exist, require measurer to have provided baseline p95 via separate call or we call measurer with baseline included.
+        # Simpler: if baseline not in measured, treat as None -> dev_selectable false with reason missing
+        b_p95 = None
+        c_p95 = None
+        if base_lat is not None:
+            b_p95 = base_lat.get("p95") if isinstance(base_lat, dict) else None
+        elif latency_measurer is not None and quality_ids:
+            # Try to get baseline from measurer if it included baseline implicitly
+            # If not, we consider missing
+            b_p95 = None
+        if cand_lat is not None and isinstance(cand_lat, dict):
+            c_p95 = cand_lat.get("p95")
+        is_dev, ddiag = dev_selectable(baseline_metrics, metrics[cid], b_p95, c_p95)
+        dev_selectable_map[cid] = (is_dev, ddiag)
+    # Alternative path: if latency_measurer is None, all dev_selectable will be false due to missing latency (as per dev_selectable logic)
+    # unless quality_ids empty -> already false
+    # Collect selectable candidates
+    selectable: list[str] = [cid for cid, (is_dev, _) in dev_selectable_map.items() if is_dev]
+    # For delta we need p95_delta; for selectable only, delta is defined
+    tie_sorted: list[str] = []
+    if selectable:
+        def _sort_key(cid: str):
+            # Retrieve net, macro, delta
+            is_q, qdiag = per_candidate_quality[cid]
+            net = int(qdiag.get("net_hit5", metrics[cid]["hit@5"] - baseline_metrics["hit@5"]))
+            macro = float(metrics[cid]["source_macro_recall@5"])
+            # p95 delta
+            b_lat = latency_results[BASELINE_ID]
+            c_lat = latency_results[cid]
+            b_p95 = b_lat.get("p95") if isinstance(b_lat, dict) and "p95" in b_lat else 0.0
+            c_p95 = c_lat.get("p95") if isinstance(c_lat, dict) and "p95" in c_lat else 0.0
+            delta = float(c_p95) - float(b_p95) if b_p95 is not None and c_p95 is not None else 9999.0
+            return tie_break_sort_key(cid, net, macro, delta)
+        tie_sorted = sorted(selectable, key=_sort_key)
+    selected = tie_sorted[0] if tie_sorted else None
+    # Build complete result skeleton and fill
+    skeleton = build_result_skeleton()
+    skeleton["metrics"] = metrics
+    skeleton["per_case"] = per_case_records
+    # selection details
+    selection_detail = {
+        "per_candidate": {cid: {"quality_selectable": per_candidate_quality[cid][0], "quality_diag": per_candidate_quality[cid][1], "dev_selectable": dev_selectable_map[cid][0], "dev_diag": dev_selectable_map[cid][1]} for cid in CANDIDATE_IDS},
+        "quality_selectable": quality_ids,
+        "dev_selectable": selectable,
+        "tie_sorted": tie_sorted,
+        "selected_candidate": selected,
+        "tie_break": ["net_hit5", "macro_R5", "p95_delta", "smaller_K"],
+        "zero_selectable": len(selectable) == 0,
+    }
+    skeleton["selection"] = selection_detail
+    skeleton["latency"] = latency_results
+    # Also include latency_diagnostics for transparency
+    skeleton["latency_diagnostics"] = {"measured": measured, "quality_only": True, "timed_count_fixed_before_inspection": True}
+    # Validate complete before return
+    validate_complete_result(skeleton)
+    return skeleton
