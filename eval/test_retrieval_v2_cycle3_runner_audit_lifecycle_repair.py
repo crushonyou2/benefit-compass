@@ -691,5 +691,121 @@ class AtomicPublishNoOverwriteTest(unittest.TestCase):
         self.assertEqual(self.out_path.read_text(encoding="utf-8"), foreign_content)
 
 
+class SuccessRunEndFailureGrantClosureTest(unittest.TestCase):
+    """df6b70b Web HOLD: success-phase run_end append failure must still close exact dev grant with protected_access_end failure."""
+
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.tmp_root = pathlib.Path(self.tmpdir.name)
+        (self.tmp_root / "eval/retrieval-v2/cycle3/dev").mkdir(parents=True)
+        (self.tmp_root / "eval/retrieval-v2/cycle3/canonical-dev").mkdir(parents=True)
+        (self.tmp_root / "eval/retrieval-v2/cycle3/audit").mkdir(parents=True)
+        self.dev_path = self.tmp_root / "eval/retrieval-v2/cycle3/dev/evalset.jsonl"
+        self.dev_path.write_text('{"dummy":1}\n', encoding="utf-8")
+        self.out_path = self.tmp_root / CANONICAL_DEV_OUTPUT_REL
+        self.audit_path = self.tmp_root / CANONICAL_DEV_AUDIT_REL
+        self.session_id = "success-run-end-fail-session-006"
+        self.p1 = mock.patch.object(runner_mod, "ROOT", self.tmp_root)
+        self.p2 = mock.patch.object(cli_mod, "ROOT", self.tmp_root)
+        self.p1.start(); self.p2.start()
+        self.addCleanup(self.p1.stop); self.addCleanup(self.p2.stop)
+        self.addCleanup(self.tmpdir.cleanup)
+        self.env_patch = mock.patch.dict(os.environ, {"CYCLE3_CANONICAL_EXECUTION": "1", "CYCLE3_SESSION_ID": self.session_id})
+        self.env_patch.start()
+        self.addCleanup(self.env_patch.stop)
+
+    def test_success_run_end_failure_closes_grant_with_failure_outcome(self):
+        grant = append_event(self.audit_path, action="protected_access_start", candidate_id=None, set_role="dev", set_sha=EXPECTED_DEV_SHA256, outcome="success", session_id=self.session_id)
+        deps = _fake_deps()
+        # Force append_canonical_run_end success failure only (simulate MAIN_FAIL)
+        orig_run_end = runner_mod.append_canonical_run_end
+        orig_cli_run_end = cli_mod.append_canonical_run_end if hasattr(cli_mod, "append_canonical_run_end") else orig_run_end
+
+        def failing_run_end(audit_log, candidate_id=None, set_sha=None, outcome=None, session_id=None, **kw):
+            if outcome == "success" and candidate_id == BATCH_ID:
+                raise RuntimeError("MAIN_FAIL success run_end synthetic")
+            return orig_run_end(audit_log, candidate_id=candidate_id, set_sha=set_sha, outcome=outcome, session_id=session_id, **kw)
+
+        with mock.patch.object(runner_mod, "append_canonical_run_end", side_effect=failing_run_end):
+            with mock.patch.object(cli_mod, "append_canonical_run_end", side_effect=failing_run_end):
+                with self.assertRaises(RuntimeError) as ctx:
+                    cli_main(
+                        ["--dev-evalset", "eval/retrieval-v2/cycle3/dev/evalset.jsonl",
+                         "--output", CANONICAL_DEV_OUTPUT_REL,
+                         "--audit-log", CANONICAL_DEV_AUDIT_REL,
+                         "--session-id", self.session_id],
+                        _embedding_fn_factory=deps["embed_factory"],
+                        _retrieval_fn_factory=deps["retrieval_factory"],
+                        _latency_measurer_factory=deps["latency_factory"],
+                        _load_and_validate_fn=deps["load_fn"],
+                        _canonical_sha_fn=deps["sha_fn"],
+                        _corpus_provenance_fn=deps["corpus_fn"],
+                    )
+                self.assertIn("run_end", str(ctx.exception).lower())
+                self.assertIn("grant closed", str(ctx.exception).lower())
+        # Result must be absent (owned result removed, not foreign)
+        self.assertFalse(self.out_path.exists(), "owned result must be removed after run_end failure")
+        # Check that a protected_access_end for exact dev/session exists with failure outcome (not success)
+        chain = read_and_verify_chain(self.audit_path)
+        p_ends = [e for e in chain if e["action"] == "protected_access_end" and e["set_role"] == "dev" and e["session_id"] == self.session_id and e["set_sha"].lower() == EXPECTED_DEV_SHA256.lower()]
+        self.assertEqual(len(p_ends), 1, f"expected exactly one protected_access_end for exact dev/session, got {len(p_ends)} chain={chain}")
+        self.assertEqual(p_ends[0]["outcome"], "failure", f"grant closure must be failure outcome, got {p_ends[0]['outcome']!r}")
+        # No duplicate run_end: success run_end failed to append, so no run_end success event; also must not have created duplicate run_end failure
+        run_ends = [e for e in chain if e["action"] == "run_end" and e["candidate_id"] == BATCH_ID and e["session_id"] == self.session_id]
+        self.assertEqual(len(run_ends), 0, f"must not create duplicate run_end after success run_end failure, got {run_ends}")
+        # Old grant/token must no longer be reusable
+        with self.assertRaises(Exception) as cm:
+            verify_holdout_access_allowed(self.audit_path, set_role="dev", set_sha=EXPECTED_DEV_SHA256, session_id=self.session_id, expected_event_hash=grant["event_hash"])
+        self.assertIn("closed", str(cm.exception).lower())
+        # Also without token, should be denied because grant closed
+        with self.assertRaises(Exception):
+            verify_holdout_access_allowed(self.audit_path, set_role="dev", set_sha=EXPECTED_DEV_SHA256, session_id=self.session_id)
+
+    def test_success_run_end_and_grant_close_both_fail_reports_combined(self):
+        grant = append_event(self.audit_path, action="protected_access_start", candidate_id=None, set_role="dev", set_sha=EXPECTED_DEV_SHA256, outcome="success", session_id=self.session_id)
+        deps = _fake_deps()
+        orig_run_end = runner_mod.append_canonical_run_end
+
+        def failing_run_end2(audit_log, candidate_id=None, set_sha=None, outcome=None, session_id=None, **kw):
+            if outcome == "success" and candidate_id == BATCH_ID:
+                raise RuntimeError("MAIN_FAIL success run_end synthetic")
+            return orig_run_end(audit_log, candidate_id=candidate_id, set_sha=set_sha, outcome=outcome, session_id=session_id, **kw)
+
+        def failing_protected_end(*args, **kwargs):
+            # Called via append_event with action protected_access_end
+            action = kwargs.get("action") or (args[1] if len(args) > 1 else None)
+            if kwargs.get("action") == "protected_access_end" or action == "protected_access_end":
+                raise RuntimeError("PROTECTED_END_FAIL synthetic")
+            # fallback to real append_event for other actions (should not be called)
+            from retrieval_v2.cycle3_audit import append_event as real_ae
+            return real_ae(*args, **kwargs)
+
+        with mock.patch.object(runner_mod, "append_canonical_run_end", side_effect=failing_run_end2):
+            with mock.patch.object(cli_mod, "append_canonical_run_end", side_effect=failing_run_end2):
+                with mock.patch("retrieval_v2.cycle3_audit.append_event", side_effect=failing_protected_end):
+                    with self.assertRaises(RuntimeError) as ctx:
+                        cli_main(
+                            ["--dev-evalset", "eval/retrieval-v2/cycle3/dev/evalset.jsonl",
+                             "--output", CANONICAL_DEV_OUTPUT_REL,
+                             "--audit-log", CANONICAL_DEV_AUDIT_REL,
+                             "--session-id", self.session_id],
+                            _embedding_fn_factory=deps["embed_factory"],
+                            _retrieval_fn_factory=deps["retrieval_factory"],
+                            _latency_measurer_factory=deps["latency_factory"],
+                            _load_and_validate_fn=deps["load_fn"],
+                            _canonical_sha_fn=deps["sha_fn"],
+                            _corpus_provenance_fn=deps["corpus_fn"],
+                        )
+                    msg = str(ctx.exception).lower()
+                    self.assertIn("protected_access_end", msg)
+                    self.assertIn("run_end", msg)
+        self.assertFalse(self.out_path.exists(), "owned result must be removed even when grant closure fails")
+        # Grant closure failed, so grant remains technically reusable? But we must not pretend closure succeeded.
+        # Chain should have no protected_access_end (since closure failed), and error must indicate combined failure.
+        # We verify that the error does not claim grant closed.
+        self.assertNotIn("grant closed", str(ctx.exception).lower() if 'ctx' in locals() else "")
+
+
+
 if __name__ == "__main__":
     unittest.main()

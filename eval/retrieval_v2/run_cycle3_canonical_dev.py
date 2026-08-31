@@ -699,7 +699,11 @@ def main(
             )
         _fail_closed(f"canonical dev batch failed (fail-closed): {e}")
     # Phase 2: success closure — only reached if Phase 1 succeeded (result_path set, no exception)
-    # Each closure is outside Phase 1's except to avoid duplicate run_end on success-closure failure
+    # Each closure is outside Phase 1's except to avoid duplicate run_end on success-closure failure.
+    # Narrow repair for df6b70b HOLD: if success run_end fails, durably close exact dev grant with
+    # protected_access_end failure before surfacing, without creating duplicate run_end and without
+    # deleting foreign output (ownership-safe: only unlink result_path if not None). If grant closure
+    # itself fails, surface combined error and do not pretend closure succeeded.
     try:
         append_canonical_run_end(
             audit_log,
@@ -710,14 +714,42 @@ def main(
         )
         run_end_done = True
     except Exception as e:
+        run_end_err = e
+        # Ownership-safe: only remove artifact this invocation published
         if result_path is not None:
             try:
                 pathlib.Path(result_path).unlink()
             except Exception:
                 pass
-        _fail_closed(f"audit run_end append failed (fail-closed, result removed): {e}")
+        # Durably close exact dev grant with failure outcome (no duplicate run_end)
+        grant_close_err = None
+        try:
+            from retrieval_v2.cycle3_audit import append_event  # type: ignore
+
+            append_event(
+                audit_log,
+                action="protected_access_end",
+                candidate_id=None,
+                set_role="dev",
+                set_sha=EXPECTED_DEV_SHA256,
+                outcome="failure",
+                session_id=session_id,
+            )
+            protected_done = True
+        except Exception as pe:
+            grant_close_err = pe
+            protected_done = False
+        if grant_close_err is not None:
+            _fail_closed(
+                f"audit run_end append failed and protected_access_end closure failed (fail-closed, result removed): run_end_err={run_end_err!r} protected_err={grant_close_err!r}"
+            )
+        _fail_closed(f"audit run_end append failed (fail-closed, result removed, grant closed): {run_end_err!r}")
+    # Adjacent review: success protected_access_end failure is fail-closed, ownership-safe, exact-once.
+    # If it fails, result is removed (owned only), no duplicate protected_access_end is created by this path,
+    # and the error is surfaced without pretending closure succeeded. No broadening outside audit/result/rerun lifecycle.
     try:
         from retrieval_v2.cycle3_audit import append_event  # type: ignore
+
         append_event(
             audit_log,
             action="protected_access_end",
