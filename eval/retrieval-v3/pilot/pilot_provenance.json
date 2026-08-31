@@ -1,0 +1,122 @@
+{
+  "ambiguous": {
+    "ambiguous": 13,
+    "distribution": {
+      "missing_eligibility": 3,
+      "missing_location": 3,
+      "underspecified_intent": 4,
+      "vague_benefit_type": 3
+    },
+    "rate": 0.13
+  },
+  "annotation_protocol": "single annotator + independent reviewer (prereg-permitted pilot alternative; no fabricated second human annotator)",
+  "annotator": "primary author (assistant) – drafted 100 queries from policy-category taxonomy and user-intent patterns only; no retrieval/DB/model/protected plaintext consulted",
+  "answerability": {
+    "answerable_labelable": 84,
+    "answerable_raw": 85,
+    "rate_labelable": 0.8485,
+    "rate_raw": 0.85,
+    "unanswerable": 15
+  },
+  "base_commit": "5327661445c37191a3fd61db195f3af4d2cf893a",
+  "branch": "codex/retrieval-v3-user-search-quality",
+  "category_counts": {
+    "business_agriculture": 16,
+    "culture_community": 16,
+    "employment_education": 17,
+    "family_care": 17,
+    "housing_finance": 17,
+    "welfare_health": 17
+  },
+  "common_vs_rare": {
+    "common": 70,
+    "rare": 30
+  },
+  "created_at": "2026-09-01T06:44:21.432772+09:00",
+  "disagreement": {
+    "adjudication": "all 7 disagreements adjudicated by reviewer; residual 0",
+    "agreement_rate": 0.93,
+    "ambiguity_disagreements": 2,
+    "disagreement_rate": 0.07,
+    "equivalence_disagreements": 3,
+    "grade_disagreements": 6,
+    "unique_tasks_with_disagreement": 7
+  },
+  "forbidden_actions_not_performed": [
+    "retrieval execution",
+    "DB ranking/search",
+    "embedding/model load",
+    "benchmark scoring vs system output",
+    "system retrieval output inspection",
+    "protected dev/holdout/canonical plaintext access via git show/cat-file/checkout/restore/sparse/worktree/path traversal",
+    "production ml-service behavior change"
+  ],
+  "freshness": {
+    "fresh": 25,
+    "stable": 75
+  },
+  "hash_algo": "SHA256 canonical LF jsonl (sorted keys)",
+  "head_commit_at_pilot": "c1a05cfd980c7a2d89f95cfe9884a2d055d3d5c1",
+  "instruction_revisions": [
+    "Revise contradictory multi_constraint query v3p-042 (age <19 and >34) – split into two eligible queries or clarify; removed from final benchmark pool",
+    "Add explicit ambiguity handling instruction: for ambiguous stratum, system must request clarification or safe abstention; golds are conditional on interpretation and not scored as headline failure if clarification issued",
+    "Clarify equivalence-group grouping rule for exploratory multi-valid: keep 2-3 distinct grade-2 groups at same grade, not merged; grade-1 peripheral not to be counted as success"
+  ],
+  "labelability": {
+    "labelable": 99,
+    "rate": 0.99,
+    "unlabelable": 1
+  },
+  "labelability_rate": 0.99,
+  "location_bearing": {
+    "count": 30,
+    "rate": 0.3,
+    "stratified": {
+      "ambiguous": 1,
+      "colloquial_typo_spacing_abbrev": 2,
+      "exact_navigation": 3,
+      "exploratory_multi_valid": 4,
+      "multi_constraint": 10,
+      "natural_needs": 5,
+      "short_keywords": 1,
+      "unsupported_no_answer": 4
+    }
+  },
+  "multi_gold_semantics": "graded 3/2/1/0 + equivalence-group preserved: grade 3 perfect, 2 acceptable, 1 partially relevant, 0 irrelevant; equivalence_group groups equally acceptable golds at same grade; unsupported queries have no grade 2/3 golds and are evaluated under safety gate, not headline",
+  "permissible_sources": [
+    "docs/RETRIEVAL_V3_PREREG.md strata taxonomy",
+    "generic benefit policy category schema (housing_finance, family_care, employment_education, welfare_health, culture_community, business_agriculture)",
+    "Korean user query pattern intuition (colloquial, typo, spacing, abbrev)",
+    "no protected evalset plaintext reused"
+  ],
+  "pilot_id": "retrieval-v3-pilot-100-v1",
+  "provenance_chain": "retrieval-blind pilot: author drafted without seeing retrieval results; reviewer audited without system output; tasks frozen before any candidate tuning; valid for Q-006 sizing",
+  "reviewer": "independent reviewer – re-labeled 100% for strata/answerability/ambiguity/location and 30% subsample (n=30) for grade/equivalence; adjudicated disagreements; final adjudicated labels recorded as pilot_tasks.jsonl",
+  "source_hint_counts": {
+    "gov24": 53,
+    "youth": 47
+  },
+  "stats": {
+    "avg_golds_per_answerable": 2.05,
+    "equiv_groups_total": 172,
+    "grade_counts": {
+      "1": 47,
+      "2": 76,
+      "3": 49
+    }
+  },
+  "strata_counts": {
+    "ambiguous": 13,
+    "colloquial_typo_spacing_abbrev": 12,
+    "exact_navigation": 12,
+    "exploratory_multi_valid": 12,
+    "multi_constraint": 12,
+    "natural_needs": 14,
+    "short_keywords": 10,
+    "unsupported_no_answer": 15
+  },
+  "tasks_file": "pilot_tasks.jsonl",
+  "tasks_lines": 100,
+  "tasks_sha256": "b3250e592d4c80099e29d20d1bf87594f2bac11a59907ac8067d3e1ddbd65da3",
+  "total_tasks": 100
+}

@@ -14,6 +14,8 @@ Purpose: this folder is the durable memory for benefit-compass. Conversations fo
 ## Project status / reference docs
 
 - `docs/RETRIEVAL_V2.md` — Retrieval v2 SSOT/status page (cycle-1 HOLD, D-007/D-008, frozen candidate, gate outcomes, provenance).
+- `docs/RETRIEVAL_V3_PREREG.md` — Retrieval v3 FINAL prereg/freeze (D-013/D-014, pilot 100 evidence, dev 160 / holdout 220, Wilson CI, paired latency budget, annotation protocol) — SSOT for v3 evaluation.
+- `eval/retrieval-v3/pilot/` — Retrieval-blind pilot 100 durable artifact (tasks, report, provenance) — SSOT for Q-006 sizing evidence.
 
 ## Operating principles
 
