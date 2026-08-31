@@ -439,6 +439,26 @@ def youth_bias_for_runner(raw: str) -> float:
     return youth_source_bias(stripped)
 
 
+def lexical_terms_for_stripped(stripped: str, candidate_id: str | None = None) -> list[str]:
+    """Lexical terms for already-stripped query (strip excluded from timed).
+
+    D-007 harness precomputes q=strip_region(raw) before warmup/timing and timed scope
+    starts with lexical_terms on q. Using this helper inside the timed loop avoids
+    recomputing strip_region per sample (which would drift p95 gate).
+    """
+    if candidate_id == BASELINE_ID:
+        from source_ranking import lexical_overlap_terms  # type: ignore
+        return lexical_overlap_terms(stripped)
+    from retrieval_v2.candidate_lexical_rewrite import lexical_overlap_terms_rewrite  # type: ignore
+    return lexical_overlap_terms_rewrite(stripped)
+
+
+def youth_bias_for_stripped(stripped: str) -> float:
+    """Youth bias for already-stripped query (strip excluded from timed)."""
+    from source_ranking import youth_source_bias  # type: ignore
+    return youth_source_bias(stripped)
+
+
 def validate_lexical_terms_semantics(terms: list[str], raw: str, candidate_id: str | None = None) -> None:
     """Ensure terms are exactly expected helper for candidate_id."""
     expected = lexical_terms_for_runner(raw, candidate_id=candidate_id)

@@ -69,7 +69,9 @@ from retrieval_v2.cycle3_runner import (  # type: ignore
     validate_cosine_filter_position,
     strip_region_for_runner,
     lexical_terms_for_runner,
+    lexical_terms_for_stripped,
     youth_bias_for_runner,
+    youth_bias_for_stripped,
     apply_cosine_filter,
     ordering_key,
     build_result_skeleton,
@@ -255,17 +257,25 @@ def _real_retrieval_fn_factory(conn, model):  # noqa: ARG001
 def _real_latency_measurer_factory(dev_items, embedding_fn, retrieval_fn):
     """Build a latency measurer that implements predefined warm paired harness.
 
-    Contract:
+    Contract (repaired to D-007 frozen methodology per prereg §7):
     - Same-process / same-DB / interleaved / warmup-excluded
-    - Timed count fixed before inspection (WARMUP + ROUNDS*len(dev_items) per variant)
+    - Timed count fixed before inspection (ROUNDS*len(dev_items) per variant = 5*36=180)
     - Only invoked for quality-selectable candidates (enforced by orchestrator)
+    - Precompute stripped query/qvec outside timed section (embedding + strip excluded from timed)
+    - Warm all 36 dev queries exactly once per measured variant, excluded from timed
+    - Timed 5 rounds x 36 per measured variant, interleaved/paired, with t0 before
+      lexical_terms + youth_source_bias and including SQL/fetch + post-LIMIT cosine filter
+    - Timed sample uses stripped helpers (lexical_terms_for_stripped / youth_bias_for_stripped)
+      so strip_region cost is NOT inside timed — matches D-007 q=strip_region(raw) precomputed
+    - Uses time.perf_counter_ns + canonical nearest-rank p50/p95 (latency.py) to match D-007
+    - Do not include model load / cold samples; same process/DB/corpus/query set
     - Returns dict[candidate_id, {"p50": ..., "p95": ..., "samples": [...], "count": ...}]
 
-    For real execution, this measures actual retrieval time (encode+lexical+SQL+filter).
-    For tests, a fake measurer can be injected via orchestrate_4way_batch directly.
+    For real execution, this measures retrieval time including lexical/youth+SQL+filter
+    (qvec precomputed). For tests, a fake measurer can be injected via orchestrate directly.
     """
-    LATENCY_WARMUP = 36  # one pass over dev set per variant
-    LATENCY_ROUNDS = 5  # timed rounds
+    LATENCY_ROUNDS = 5  # timed rounds -> 5*36=180 per variant
+    SHUFFLE_SEED = 20260831
 
     def _measure(quality_ids: list[str]) -> dict[str, dict]:
         # Include baseline in measurement for paired delta
@@ -273,68 +283,75 @@ def _real_latency_measurer_factory(dev_items, embedding_fn, retrieval_fn):
         # Ensure baseline always measured for delta
         if BASELINE_ID not in variants:
             variants = [BASELINE_ID] + variants
-        # Fix timed count before inspection
+        # Fix timed count before inspection (same as D-007: 5*36)
         timed_per_variant = len(dev_items) * LATENCY_ROUNDS
-        # Prepare interleaving: for each case, interleave variants in random order per round
-        # Use fixed seed for reproducibility
-        rng = random.Random(20260831)
-        # Warmup phase (excluded from timed)
-        for _ in range(LATENCY_WARMUP):
-            case = rng.choice(dev_items)
+        # Precompute stripped query and qvec outside warmup/timed (embedding + strip excluded)
+        # This mirrors D-007: q=strip_region(raw), vec_by_case precomputed before warmup (qvec before warmup/timing)
+        # Each dev query's qvec is computed exactly once here, then reused for warmup and every timed sample
+        # Do NOT recompute strip/embedding inside warmup or timed loops (would drift p95 gate)
+        precomputed: list[tuple[dict, str, str, str]] = []
+        for case in dev_items:
             raw = str(case.get("query", "") or case.get("raw", ""))
             stripped = strip_region_for_runner(raw)
-            terms_map = {cid: lexical_terms_for_runner(raw, candidate_id=cid) for cid in variants}
-            yb = youth_bias_for_runner(raw)
             vec = embedding_fn(stripped)
-            for cid in rng.sample(variants, len(variants)):
-                terms = terms_map[cid]
-                _ = retrieval_fn(cid, vec, terms, yb, case.get("age"), None)
-                _ = apply_cosine_filter(_, 0.78)
-        # Timed phase
+            precomputed.append((case, raw, stripped, vec))
+        # Warmup phase (excluded from timed): each of 36 queries exactly once per variant, not random-with-replacement
+        # D-007 warms every benchmark query once per variant (36/variant), excluded, baseline then candidate per case.
+        # Interleaved per case: for each case, execute all variants consecutively (paired) in fixed order.
+        for (case, raw, stripped, vec) in precomputed:
+            for cid in variants:
+                terms = lexical_terms_for_stripped(stripped, candidate_id=cid)
+                yb = youth_bias_for_stripped(stripped)
+                age = case.get("age")
+                rp = None
+                raw_res = retrieval_fn(cid, vec, terms, yb, age, rp)
+                _ = apply_cosine_filter(raw_res, 0.78)
+        # Timed phase: 5 rounds x 36 per variant, interleaved/paired
         latencies: dict[str, list[float]] = {cid: [] for cid in variants}
-        # Interleaved: for each round, shuffle dev order, then for each case interleave variants
-        for _ in range(LATENCY_ROUNDS):
-            round_cases = dev_items[:]
-            rng.shuffle(round_cases)
-            for case in round_cases:
-                raw = str(case.get("query", "") or case.get("raw", ""))
-                stripped = strip_region_for_runner(raw)
-                terms_map = {cid: lexical_terms_for_runner(raw, candidate_id=cid) for cid in variants}
-                yb = youth_bias_for_runner(raw)
-                vec = embedding_fn(stripped)
-                # Interleave variants per case
-                order = rng.sample(variants, len(variants))
+        for rnd in range(LATENCY_ROUNDS):
+            # Deterministic shuffle per round (same methodology as D-007: seed + rnd)
+            # Preserve same-process / same-DB / same corpus / same query set, just shuffled order per round
+            shuffled = precomputed[:]
+            rnd_rng = random.Random(SHUFFLE_SEED + rnd)
+            rnd_rng.shuffle(shuffled)
+            for q_idx, (case, raw, stripped, vec) in enumerate(shuffled):
+                # Interleaved per case: for 2 variants, use D-007 alternating (round+q_idx)%2 to exactly match harness
+                # For >2 variants, use random permutation per case (still paired consecutive per case)
+                if len(variants) == 2:
+                    baseline_first = ((rnd + q_idx) % 2 == 0)
+                    other = variants[1]
+                    order = [BASELINE_ID, other] if baseline_first else [other, BASELINE_ID]
+                else:
+                    order = rnd_rng.sample(variants, len(variants))
                 for cid in order:
-                    terms = terms_map[cid]
-                    t0 = time.perf_counter()
-                    raw_res = retrieval_fn(cid, vec, terms, yb, case.get("age"), None)
+                    t0 = time.perf_counter_ns()
+                    # --- timed section start: lexical term generation + youth bias + SQL/fetch + postfilter inside ---
+                    # Use stripped helpers so strip_region is NOT recomputed inside timed (precomputed q)
+                    terms = lexical_terms_for_stripped(stripped, candidate_id=cid)
+                    yb = youth_bias_for_stripped(stripped)
+                    age = case.get("age")
+                    rp = None
+                    raw_res = retrieval_fn(cid, vec, terms, yb, age, rp)
                     filtered = apply_cosine_filter(raw_res, 0.78)
-                    t1 = time.perf_counter()
-                    # Use filtered length to ensure not optimized away
                     _ = len(filtered)
-                    latencies[cid].append((t1 - t0) * 1000.0)  # ms
-        # Compute p50/p95
+                    t1 = time.perf_counter_ns()
+                    latencies[cid].append((t1 - t0) / 1_000_000.0)  # ms
+        # Compute p50/p95 via canonical nearest-rank (latency.py) to match D-007 gate
+        import math
         out: dict[str, dict] = {}
         for cid in variants:
             samples = latencies[cid]
             if len(samples) != timed_per_variant:
                 _fail_closed(f"latency timed count mismatch for {cid}: got {len(samples)} expected {timed_per_variant} (fixed before inspection)")
             samples_sorted = sorted(samples)
-            # p50 median, p95 95th percentile
-            p50 = statistics.median(samples_sorted)
-            # p95: 95th percentile using nearest rank method
-            idx95 = max(0, min(len(samples_sorted) - 1, int(0.95 * len(samples_sorted))))
-            # Use linear interpolation for more accurate
-            # Simple: sorted[(n-1)*0.95]
-            k = (len(samples_sorted) - 1) * 0.95
-            f = int(k)
-            c = min(f + 1, len(samples_sorted) - 1)
-            if f == c:
-                p95 = samples_sorted[f]
-            else:
-                d0 = k - f
-                p95 = samples_sorted[f] * (1 - d0) + samples_sorted[c] * d0
-            out[cid] = {"p50": float(p50), "p95": float(p95), "count": len(samples), "samples": samples_sorted[:5], "all_samples_count": len(samples)}
+            n = len(samples_sorted)
+            # p50 = s[ceil(0.5*n)-1], p95 = s[ceil(0.95*n)-1]  (latency.py)
+            idx_p50 = math.ceil(0.5 * n) - 1
+            idx_p95 = math.ceil(0.95 * n) - 1
+            p50 = float(samples_sorted[max(0, min(idx_p50, n - 1))])
+            p95 = float(samples_sorted[max(0, min(idx_p95, n - 1))])
+            # Round to 2 decimals as D-007 summarize does before gate (candidate p95 <= baseline p95)
+            out[cid] = {"p50": round(p50, 2), "p95": round(p95, 2), "count": len(samples), "samples": samples_sorted[:5], "all_samples_count": len(samples)}
         # For quality_ids, ensure we return at least baseline + quality_ids
         # Fill missing candidates with None (not measured)
         full: dict[str, dict | None] = {cid: None for cid in ALL_CANONICAL_IDS}
