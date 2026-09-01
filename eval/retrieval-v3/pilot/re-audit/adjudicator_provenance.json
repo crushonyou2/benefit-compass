@@ -9,7 +9,7 @@
   "c_input_rows": 93,
   "instruction_version": "neutral_rubric.md (outside-repo clean-room rubric, retrieval-blind, rubric-based adjudication)",
   "log_file": "adjudication_log.json",
-  "log_sha256": "fea84204e00d8aa483e58b5af0c8d2a5b9549eafc35b942238a7c522f3139b07",
+  "log_sha256": "6935a6270da4643418d12e8a51c87dab4786b6c09e408b416c9f7c634f5b094a",
   "method": "For each of 93 tasks with any disagreement (sanitized task_id/query_text + A/B disagreement values only, no original pilot labels or historical aggregate targets, agreed dimensions not shown), adjudicator independently evaluated query_text against neutral rubric per dimension with documented rationale; not alternating, not predetermined synthesis; deterministic residual 0; mechanically compared A vs B to construct C-input containing only sanitized query + disagreements, no historical labels",
   "model_role": "openai-codex/gpt-5.6-luna:max (review Luna max per OMP modelRoles; ROOT is opencode-go/muse-spark-1.2-contributor:xhigh HARD GATE, child is review role; --no-extensions, no repo/add-dir)",
   "thinking": "max",

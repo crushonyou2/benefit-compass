@@ -4,7 +4,7 @@
     "disagreements_resolved": 93,
     "id": "C",
     "log_file": "adjudication_log.json",
-    "log_sha256": "fea84204e00d8aa483e58b5af0c8d2a5b9549eafc35b942238a7c522f3139b07",
+    "log_sha256": "6935a6270da4643418d12e8a51c87dab4786b6c09e408b416c9f7c634f5b094a",
     "method": "For each of 93 tasks with any disagreement (93/100), adjudicator independently evaluated query_text against neutral rubric per dimension with documented rationale; not alternating, not predetermined synthesis; deterministic residual 0; C-input contained only sanitized query_text + A/B disagreement values, no historical labels",
     "model_role": "openai-codex/gpt-5.6-luna:max (review Luna max per OMP modelRoles; ROOT is opencode-go/muse-spark-1.2-contributor:xhigh HARD GATE)",
     "thinking": "max",
@@ -23,7 +23,7 @@
   "correction_note": "Prior b03b30a/D-016 re-audit used genuinely isolated outside-repo but recorded OMP session IDs as unavailable (not durably persisted) with note; that provenance is superseded by this durable evidence with actual session IDs and transcript SHAs. Prior f1322cb flawed re-audit (A 100% copy, 19% designed, alternating) was already superseded by D-016. This v2-durable correction provides append-only durable OMP provenance with true session IDs, transcript SHAs, cwd confinement, child vs committed SHA lineage, and deterministic safety/audit. No history rewrite.",
   "disagreement_recomputation": {
     "matrix_file": "disagreement_matrix.json",
-    "matrix_sha256": "0d7ac781ae3aad06ee9d01fe4a1f09ba3c2c2833a7641f7241c1cdedb474b2d6",
+    "matrix_sha256": "cf85045799a7b93e3bdcfb46280d379b69c75a4ef550fe6f6beb8f1120a0545a",
     "method": "Recompute by aligning task_id between reviewer_A_raw_labels.jsonl and reviewer_B_raw_labels.jsonl; per-dimension disagreement = field mismatch (golds canonicalized via sorted policy_concept/grade/description); any_disagreement = union across dimensions; recomputable via pure python/json without DB/retrieval; not pinning designed rate",
     "note": "D-016 reported 27/100 (27%) with available isolation but unavailable session IDs; this durable 93/100 (93%) is genuinely recomputable from new durable A/B with stricter golds canonicalization (88 golds disagreements due to conceptual description variance). Tests must validate recomputability and isolation contract, not pin output difference as proof. Original pilot 7% claim remains not proven auditable and is preserved as historical.",
     "reported_metrics": {

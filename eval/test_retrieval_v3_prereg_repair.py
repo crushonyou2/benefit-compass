@@ -44,7 +44,7 @@ def test_prereg_final_repair_header_and_governance():
     assert "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3" in txt
     assert "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5" in txt
     assert "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f" in txt
-    assert "0d7ac781ae3aad06ee9d01fe4a1f09ba3c2c2833a7641f7241c1cdedb474b2d6" in txt or "f758d91e32d1b5b26938ae99a1f0f1933dbd3c75a7527fd09ae7f0684b114a67" in txt
+    assert "cf85045799a7b93e3bdcfb46280d379b69c75a4ef550fe6f6beb8f1120a0545a" in txt
 def test_exact_allocations_and_headline_denominator():
     txt = PREREG.read_text(encoding="utf-8")
     # Dev 180 exact strata exact numbers — check numbers present
