@@ -1,229 +1,4955 @@
 [
   {
-    "adjudicator_rationale": "location_bearing: query contains 서울 location token that determines region-specific eligibility; adjudicated true (A) per rubric location-bearing definition -- independent rubric judgment, not deterministic alternating",
-    "decisions": {
-      "location_bearing": true
-    },
+    "task_id": "v3p-001",
     "query_text": "서울 청년 월세 한시 특별지원 사업",
-    "task_id": "v3p-001"
-  },
-  {
-    "adjudicator_rationale": "stratum: query matches known housing_finance program title '신혼부부 전세자금 대출' verbatim; exact_navigation (A) per title-lookup heuristic, not natural_needs -- independent rubric judgment, not deterministic alternating",
     "decisions": {
-      "stratum": "exact_navigation"
+      "golds": [
+        {
+          "description": "서울 청년 월세 한시 특별지원",
+          "equivalence_group": "1",
+          "grade": 3,
+          "policy_concept": "temporary youth monthly rent support"
+        }
+      ]
     },
-    "query_text": "신혼부부 전세자금 대출 이자지원",
-    "task_id": "v3p-004"
+    "adjudicator_rationale": "The query names a specific temporary youth monthly-rent program, and the selected gold is a direct grade-3 conceptual match; wording differences do not change the concept. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "서울 청년 월세 한시 특별지원",
+            "equivalence_group": "1",
+            "grade": 3,
+            "policy_concept": "temporary youth monthly rent support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Seoul youth temporary special monthly-rent support",
+            "equivalence_group": "v3p-001",
+            "grade": 3,
+            "policy_concept": "Youth monthly-rent subsidy"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "서울 청년 월세 한시 특별지원",
+          "equivalence_group": "1",
+          "grade": 3,
+          "policy_concept": "temporary youth monthly rent support"
+        }
+      ]
+    },
+    "rationale": "The query names a specific temporary youth monthly-rent program, and the selected gold is a direct grade-3 conceptual match; wording differences do not change the concept."
   },
   {
-    "adjudicator_rationale": "location_bearing true (B) - 경기 token scopes region; category welfare_health (A) per policy domain rubric (청년복지포인트 is welfare, not business) -- independent rubric judgment, not deterministic alternating",
+    "task_id": "v3p-002",
+    "query_text": "경기 청년 전세보증금 반환보증 보증료 지원",
+    "decisions": {
+      "common_vs_rare": "rare",
+      "golds": [
+        {
+          "description": "경기 청년 전세보증금 반환보증 보증료 지원",
+          "equivalence_group": "2",
+          "grade": 3,
+          "policy_concept": "youth jeonse deposit return guarantee fee support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Return-guarantee premium support is a targeted, specialized policy concept, so it is rare; the selected gold directly matches the youth rental-deposit guarantee-fee support. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "common_vs_rare": {
+        "A": "rare",
+        "B": "common"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "경기 청년 전세보증금 반환보증 보증료 지원",
+            "equivalence_group": "2",
+            "grade": 3,
+            "policy_concept": "youth jeonse deposit return guarantee fee support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Gyeonggi youth support for a rental-deposit return-guarantee premium",
+            "equivalence_group": "v3p-002",
+            "grade": 3,
+            "policy_concept": "Rental-deposit return-guarantee premium subsidy"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "common_vs_rare": "rare",
+      "golds": [
+        {
+          "description": "경기 청년 전세보증금 반환보증 보증료 지원",
+          "equivalence_group": "2",
+          "grade": 3,
+          "policy_concept": "youth jeonse deposit return guarantee fee support"
+        }
+      ]
+    },
+    "rationale": "Return-guarantee premium support is a targeted, specialized policy concept, so it is rare; the selected gold directly matches the youth rental-deposit guarantee-fee support."
+  },
+  {
+    "task_id": "v3p-003",
+    "query_text": "부산 국민취업지원제도 구직촉진수당",
+    "decisions": {
+      "source_hint": "gov24",
+      "golds": [
+        {
+          "description": "국민취업지원제도 구직촉진수당",
+          "equivalence_group": "3",
+          "grade": 3,
+          "policy_concept": "employment support job-seeking promotion allowance"
+        }
+      ]
+    },
+    "adjudicator_rationale": "No youth or young-adult framing is explicit, so source_hint is gov24; the selected gold directly matches the named employment-system allowance. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "source_hint": {
+        "A": "gov24",
+        "B": "youth"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "국민취업지원제도 구직촉진수당",
+            "equivalence_group": "3",
+            "grade": 3,
+            "policy_concept": "employment support job-seeking promotion allowance"
+          }
+        ],
+        "B": [
+          {
+            "description": "National Employment Support System job-seeking promotion allowance",
+            "equivalence_group": "v3p-003",
+            "grade": 3,
+            "policy_concept": "Job-seeking promotion allowance"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "source_hint": "gov24",
+      "golds": [
+        {
+          "description": "국민취업지원제도 구직촉진수당",
+          "equivalence_group": "3",
+          "grade": 3,
+          "policy_concept": "employment support job-seeking promotion allowance"
+        }
+      ]
+    },
+    "rationale": "No youth or young-adult framing is explicit, so source_hint is gov24; the selected gold directly matches the named employment-system allowance."
+  },
+  {
+    "task_id": "v3p-004",
+    "query_text": "신혼부부 전세자금 대출 이자지원",
+    "decisions": {
+      "golds": [
+        {
+          "description": "신혼부부 전세자금 대출 이자 지원",
+          "equivalence_group": "4",
+          "grade": 3,
+          "policy_concept": "newlywed jeonse loan interest support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The selected gold directly matches newlywed lease-deposit loan interest support at grade 3. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "신혼부부 전세자금 대출 이자 지원",
+            "equivalence_group": "4",
+            "grade": 3,
+            "policy_concept": "newlywed jeonse loan interest support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Newlywed couple lease-deposit loan interest support",
+            "equivalence_group": "v3p-004",
+            "grade": 3,
+            "policy_concept": "Newlywed lease-deposit loan interest subsidy"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "신혼부부 전세자금 대출 이자 지원",
+          "equivalence_group": "4",
+          "grade": 3,
+          "policy_concept": "newlywed jeonse loan interest support"
+        }
+      ]
+    },
+    "rationale": "The selected gold directly matches newlywed lease-deposit loan interest support at grade 3."
+  },
+  {
+    "task_id": "v3p-005",
+    "query_text": "청년 월세 지원사업 공고문",
+    "decisions": {
+      "golds": [
+        {
+          "description": "청년 월세 지원사업 공고",
+          "equivalence_group": "5",
+          "grade": 3,
+          "policy_concept": "youth monthly rent support announcement"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The query asks for a youth monthly-rent program announcement, and the selected gold captures that announcement as a direct grade-3 conceptual match. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "청년 월세 지원사업 공고",
+            "equivalence_group": "5",
+            "grade": 3,
+            "policy_concept": "youth monthly rent support announcement"
+          }
+        ],
+        "B": [
+          {
+            "description": "Youth monthly-rent support program announcement",
+            "equivalence_group": "v3p-005",
+            "grade": 3,
+            "policy_concept": "Youth monthly-rent support"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "청년 월세 지원사업 공고",
+          "equivalence_group": "5",
+          "grade": 3,
+          "policy_concept": "youth monthly rent support announcement"
+        }
+      ]
+    },
+    "rationale": "The query asks for a youth monthly-rent program announcement, and the selected gold captures that announcement as a direct grade-3 conceptual match."
+  },
+  {
+    "task_id": "v3p-006",
+    "query_text": "아이돌봄 서비스 지원 사업",
+    "decisions": {
+      "golds": [
+        {
+          "description": "아이돌봄 서비스 지원",
+          "equivalence_group": "6",
+          "grade": 3,
+          "policy_concept": "public child care service support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The named childcare-service support is a direct public childcare-service concept, warranting the selected grade-3 gold. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "아이돌봄 서비스 지원",
+            "equivalence_group": "6",
+            "grade": 3,
+            "policy_concept": "public child care service support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Childcare service support program",
+            "equivalence_group": "v3p-006",
+            "grade": 3,
+            "policy_concept": "Subsidized childcare service"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "아이돌봄 서비스 지원",
+          "equivalence_group": "6",
+          "grade": 3,
+          "policy_concept": "public child care service support"
+        }
+      ]
+    },
+    "rationale": "The named childcare-service support is a direct public childcare-service concept, warranting the selected grade-3 gold."
+  },
+  {
+    "task_id": "v3p-007",
+    "query_text": "청년내일저축계좌 신청",
+    "decisions": {
+      "golds": [
+        {
+          "description": "Youth Tomorrow Savings Account application",
+          "equivalence_group": "v3p-007",
+          "grade": 3,
+          "policy_concept": "Youth matched savings account"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The query names the Youth Tomorrow Savings Account and asks to apply; the selected gold captures that named matched-savings account/application at grade 3. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "청년내일저축계좌",
+            "equivalence_group": "7",
+            "grade": 3,
+            "policy_concept": "youth asset-building savings account"
+          }
+        ],
+        "B": [
+          {
+            "description": "Youth Tomorrow Savings Account application",
+            "equivalence_group": "v3p-007",
+            "grade": 3,
+            "policy_concept": "Youth matched savings account"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "Youth Tomorrow Savings Account application",
+          "equivalence_group": "v3p-007",
+          "grade": 3,
+          "policy_concept": "Youth matched savings account"
+        }
+      ]
+    },
+    "rationale": "The query names the Youth Tomorrow Savings Account and asks to apply; the selected gold captures that named matched-savings account/application at grade 3."
+  },
+  {
+    "task_id": "v3p-008",
+    "query_text": "소상공인 정책자금 대출",
+    "decisions": {
+      "golds": [
+        {
+          "description": "소상공인 정책자금 대출",
+          "equivalence_group": "8",
+          "grade": 3,
+          "policy_concept": "small-business policy fund loan"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The query names a small-business policy-fund loan, so the selected gold is a direct grade-3 conceptual match. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "소상공인 정책자금 대출",
+            "equivalence_group": "8",
+            "grade": 3,
+            "policy_concept": "small-business policy fund loan"
+          }
+        ],
+        "B": [
+          {
+            "description": "Small-business policy-fund loan",
+            "equivalence_group": "v3p-008",
+            "grade": 3,
+            "policy_concept": "Small-business policy financing"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "소상공인 정책자금 대출",
+          "equivalence_group": "8",
+          "grade": 3,
+          "policy_concept": "small-business policy fund loan"
+        }
+      ]
+    },
+    "rationale": "The query names a small-business policy-fund loan, so the selected gold is a direct grade-3 conceptual match."
+  },
+  {
+    "task_id": "v3p-009",
+    "query_text": "경기도 청년 복지포인트",
     "decisions": {
       "category": "welfare_health",
-      "location_bearing": true
+      "common_vs_rare": "rare",
+      "golds": [
+        {
+          "description": "경기도 청년 복지포인트",
+          "equivalence_group": "9",
+          "grade": 3,
+          "policy_concept": "Gyeonggi youth welfare points"
+        }
+      ]
     },
-    "query_text": "경기도 청년 복지포인트",
-    "task_id": "v3p-009"
+    "adjudicator_rationale": "Welfare points are a welfare benefit rather than an education or employment concept on the query wording, so category is welfare_health; the localized youth points program is specialized and rare, and the selected gold is direct. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "category": {
+        "A": "employment_education",
+        "B": "welfare_health"
+      },
+      "common_vs_rare": {
+        "A": "rare",
+        "B": "common"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "경기도 청년 복지포인트",
+            "equivalence_group": "9",
+            "grade": 3,
+            "policy_concept": "Gyeonggi youth welfare points"
+          }
+        ],
+        "B": [
+          {
+            "description": "Gyeonggi youth welfare points",
+            "equivalence_group": "v3p-009",
+            "grade": 3,
+            "policy_concept": "Youth welfare point benefit"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "category": "welfare_health",
+      "common_vs_rare": "rare",
+      "golds": [
+        {
+          "description": "경기도 청년 복지포인트",
+          "equivalence_group": "9",
+          "grade": 3,
+          "policy_concept": "Gyeonggi youth welfare points"
+        }
+      ]
+    },
+    "rationale": "Welfare points are a welfare benefit rather than an education or employment concept on the query wording, so category is welfare_health; the localized youth points program is specialized and rare, and the selected gold is direct."
   },
   {
-    "adjudicator_rationale": "location_bearing true (B) - 서울 token present and relevant to 청년수당 region eligibility -- independent rubric judgment, not deterministic alternating",
-    "decisions": {
-      "location_bearing": true
-    },
+    "task_id": "v3p-010",
     "query_text": "서울 청년수당 신청",
-    "task_id": "v3p-010"
+    "decisions": {
+      "golds": [
+        {
+          "description": "Seoul youth allowance application",
+          "equivalence_group": "v3p-010",
+          "grade": 3,
+          "policy_concept": "Seoul youth allowance"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The query names the Seoul youth allowance and its application, so the selected gold is a direct grade-3 match. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "서울 청년수당",
+            "equivalence_group": "10",
+            "grade": 3,
+            "policy_concept": "Seoul youth allowance"
+          }
+        ],
+        "B": [
+          {
+            "description": "Seoul youth allowance application",
+            "equivalence_group": "v3p-010",
+            "grade": 3,
+            "policy_concept": "Seoul youth allowance"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "Seoul youth allowance application",
+          "equivalence_group": "v3p-010",
+          "grade": 3,
+          "policy_concept": "Seoul youth allowance"
+        }
+      ]
+    },
+    "rationale": "The query names the Seoul youth allowance and its application, so the selected gold is a direct grade-3 match."
   },
   {
-    "adjudicator_rationale": "location_bearing false (B) - query '청년 주택드림 청약통장' has no location token; false per rubric, A true was overreach -- independent rubric judgment, not deterministic alternating",
-    "decisions": {
-      "location_bearing": false
-    },
+    "task_id": "v3p-011",
     "query_text": "청년 주택드림 청약통장",
-    "task_id": "v3p-011"
+    "decisions": {
+      "golds": [
+        {
+          "description": "청년 주택드림 청약통장",
+          "equivalence_group": "11",
+          "grade": 3,
+          "policy_concept": "youth housing subscription savings account"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The query names the Youth Housing Dream subscription savings account, making the selected gold a direct grade-3 conceptual match. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "청년 주택드림 청약통장",
+            "equivalence_group": "11",
+            "grade": 3,
+            "policy_concept": "youth housing subscription savings account"
+          }
+        ],
+        "B": [
+          {
+            "description": "Youth Housing Dream subscription savings account",
+            "equivalence_group": "v3p-011",
+            "grade": 3,
+            "policy_concept": "Youth housing subscription savings account"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "청년 주택드림 청약통장",
+          "equivalence_group": "11",
+          "grade": 3,
+          "policy_concept": "youth housing subscription savings account"
+        }
+      ]
+    },
+    "rationale": "The query names the Youth Housing Dream subscription savings account, making the selected gold a direct grade-3 conceptual match."
   },
   {
-    "adjudicator_rationale": "stratum exact_navigation (B) - 2-token query '청년월세 지원' is exact program name, takes precedence over natural_needs per rubric -- independent rubric judgment, not deterministic alternating",
+    "task_id": "v3p-012",
+    "query_text": "햇살론 유스 대출",
     "decisions": {
-      "stratum": "exact_navigation"
+      "golds": [
+        {
+          "description": "Sunshine Loan Youth loan",
+          "equivalence_group": "v3p-012",
+          "grade": 3,
+          "policy_concept": "Youth-targeted policy loan"
+        }
+      ]
     },
+    "adjudicator_rationale": "The query names a youth-targeted policy loan, so the selected gold is a direct grade-3 conceptual match. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "햇살론 유스 대출",
+            "equivalence_group": "12",
+            "grade": 3,
+            "policy_concept": "Sunshine Loan Youth"
+          }
+        ],
+        "B": [
+          {
+            "description": "Sunshine Loan Youth loan",
+            "equivalence_group": "v3p-012",
+            "grade": 3,
+            "policy_concept": "Youth-targeted policy loan"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "Sunshine Loan Youth loan",
+          "equivalence_group": "v3p-012",
+          "grade": 3,
+          "policy_concept": "Youth-targeted policy loan"
+        }
+      ]
+    },
+    "rationale": "The query names a youth-targeted policy loan, so the selected gold is a direct grade-3 conceptual match."
+  },
+  {
+    "task_id": "v3p-013",
     "query_text": "월세가 너무 부담돼서 지원받을 수 있는 방법이 있을까요? 대학생이고 서울 살아요",
-    "task_id": "v3p-013"
+    "decisions": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "Monthly-rent assistance for a Seoul college student facing rent burden",
+          "equivalence_group": "v3p-013",
+          "grade": 3,
+          "policy_concept": "Youth or student monthly-rent subsidy"
+        }
+      ]
+    },
+    "adjudicator_rationale": "College-student status, Seoul residence, and rent burden are independent qualifiers or needs, so the stratum is multi_constraint; the selected gold preserves the salient rent-support intent at grade 3. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "natural_needs",
+        "B": "multi_constraint"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "대학생·서울 거주자의 청년 월세 지원",
+            "equivalence_group": "13",
+            "grade": 3,
+            "policy_concept": "youth monthly rent support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Monthly-rent assistance for a Seoul college student facing rent burden",
+            "equivalence_group": "v3p-013",
+            "grade": 3,
+            "policy_concept": "Youth or student monthly-rent subsidy"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "Monthly-rent assistance for a Seoul college student facing rent burden",
+          "equivalence_group": "v3p-013",
+          "grade": 3,
+          "policy_concept": "Youth or student monthly-rent subsidy"
+        }
+      ]
+    },
+    "rationale": "College-student status, Seoul residence, and rent burden are independent qualifiers or needs, so the stratum is multi_constraint; the selected gold preserves the salient rent-support intent at grade 3."
   },
   {
-    "adjudicator_rationale": "location_bearing true (A) - 경기 token in query and relevant to 육아휴직/돌봄 region policy -- independent rubric judgment, not deterministic alternating",
-    "decisions": {
-      "location_bearing": true
-    },
+    "task_id": "v3p-014",
     "query_text": "경기 아기 키우면서 일하는데 육아휴직 급여나 아이돌봄 지원 알려주세요",
-    "task_id": "v3p-014"
+    "decisions": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "육아휴직 급여",
+          "equivalence_group": "14",
+          "grade": 3,
+          "policy_concept": "parental leave benefit"
+        },
+        {
+          "description": "아이돌봄 서비스 지원",
+          "equivalence_group": "14",
+          "grade": 3,
+          "policy_concept": "public child care service support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Gyeonggi, working-parent status, an infant, and two requested supports provide multiple independent constraints, so the stratum is multi_constraint; the selected golds represent the explicit parental-leave and childcare alternatives. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "natural_needs",
+        "B": "multi_constraint"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "육아휴직 급여",
+            "equivalence_group": "14",
+            "grade": 3,
+            "policy_concept": "parental leave benefit"
+          },
+          {
+            "description": "아이돌봄 서비스 지원",
+            "equivalence_group": "14",
+            "grade": 3,
+            "policy_concept": "public child care service support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Gyeonggi parental-leave pay or childcare support for a working parent",
+            "equivalence_group": "v3p-014",
+            "grade": 3,
+            "policy_concept": "Parental-leave benefit or subsidized childcare"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "육아휴직 급여",
+          "equivalence_group": "14",
+          "grade": 3,
+          "policy_concept": "parental leave benefit"
+        },
+        {
+          "description": "아이돌봄 서비스 지원",
+          "equivalence_group": "14",
+          "grade": 3,
+          "policy_concept": "public child care service support"
+        }
+      ]
+    },
+    "rationale": "Gyeonggi, working-parent status, an infant, and two requested supports provide multiple independent constraints, so the stratum is multi_constraint; the selected golds represent the explicit parental-leave and childcare alternatives."
   },
   {
-    "adjudicator_rationale": "location_bearing false (B) - no location token in cultural voucher query; category culture_community (A) per domain -- independent rubric judgment, not deterministic alternating",
+    "task_id": "v3p-015",
+    "query_text": "부산 취업 준비 중인데 생활비랑 교육비 지원받을 수 있을까요",
     "decisions": {
-      "category": "culture_community",
-      "location_bearing": false
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "구직자 생활비 지원",
+          "equivalence_group": "15",
+          "grade": 3,
+          "policy_concept": "job-seeker livelihood support"
+        },
+        {
+          "description": "취업 준비 교육비 지원",
+          "equivalence_group": "15",
+          "grade": 3,
+          "policy_concept": "employment preparation education support"
+        }
+      ]
     },
+    "adjudicator_rationale": "Busan, job preparation, and separate living-cost and education-cost needs meet the multi_constraint definition; the selected golds match both requested support concepts. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "natural_needs",
+        "B": "multi_constraint"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "구직자 생활비 지원",
+            "equivalence_group": "15",
+            "grade": 3,
+            "policy_concept": "job-seeker livelihood support"
+          },
+          {
+            "description": "취업 준비 교육비 지원",
+            "equivalence_group": "15",
+            "grade": 3,
+            "policy_concept": "employment preparation education support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Busan living-cost and education support for a job seeker",
+            "equivalence_group": "v3p-015",
+            "grade": 3,
+            "policy_concept": "Job-seeker living and training assistance"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "구직자 생활비 지원",
+          "equivalence_group": "15",
+          "grade": 3,
+          "policy_concept": "job-seeker livelihood support"
+        },
+        {
+          "description": "취업 준비 교육비 지원",
+          "equivalence_group": "15",
+          "grade": 3,
+          "policy_concept": "employment preparation education support"
+        }
+      ]
+    },
+    "rationale": "Busan, job preparation, and separate living-cost and education-cost needs meet the multi_constraint definition; the selected golds match both requested support concepts."
+  },
+  {
+    "task_id": "v3p-016",
+    "query_text": "대전 부모님이랑 같이 사는데 청년 독립하려면 주거 지원 뭐가 있죠",
+    "decisions": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "Housing support helping a Daejeon youth establish an independent household",
+          "equivalence_group": "v3p-016",
+          "grade": 3,
+          "policy_concept": "Youth housing independence support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Daejeon, youth status, living with parents, and the independence need are multiple independent constraints, so the stratum is multi_constraint; the selected gold directly matches the housing-independence intent. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "natural_needs",
+        "B": "multi_constraint"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "청년 주거 독립 지원",
+            "equivalence_group": "16",
+            "grade": 3,
+            "policy_concept": "youth housing independence support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Housing support helping a Daejeon youth establish an independent household",
+            "equivalence_group": "v3p-016",
+            "grade": 3,
+            "policy_concept": "Youth housing independence support"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "Housing support helping a Daejeon youth establish an independent household",
+          "equivalence_group": "v3p-016",
+          "grade": 3,
+          "policy_concept": "Youth housing independence support"
+        }
+      ]
+    },
+    "rationale": "Daejeon, youth status, living with parents, and the independence need are multiple independent constraints, so the stratum is multi_constraint; the selected gold directly matches the housing-independence intent."
+  },
+  {
+    "task_id": "v3p-017",
+    "query_text": "인천 갑자기 실직해서 생계가 막막해요 긴급복지 지원 대상인가요",
+    "decisions": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "Emergency welfare assistance after sudden unemployment in Incheon",
+          "equivalence_group": "v3p-017",
+          "grade": 3,
+          "policy_concept": "Emergency livelihood assistance"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Incheon, sudden unemployment, livelihood crisis, and emergency-welfare need are multiple independent constraints, so the stratum is multi_constraint; the selected gold directly matches emergency assistance after unemployment. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "natural_needs",
+        "B": "multi_constraint"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "실직 위기 긴급복지 생계지원",
+            "equivalence_group": "17",
+            "grade": 3,
+            "policy_concept": "emergency livelihood welfare support after job loss"
+          }
+        ],
+        "B": [
+          {
+            "description": "Emergency welfare assistance after sudden unemployment in Incheon",
+            "equivalence_group": "v3p-017",
+            "grade": 3,
+            "policy_concept": "Emergency livelihood assistance"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "Emergency welfare assistance after sudden unemployment in Incheon",
+          "equivalence_group": "v3p-017",
+          "grade": 3,
+          "policy_concept": "Emergency livelihood assistance"
+        }
+      ]
+    },
+    "rationale": "Incheon, sudden unemployment, livelihood crisis, and emergency-welfare need are multiple independent constraints, so the stratum is multi_constraint; the selected gold directly matches emergency assistance after unemployment."
+  },
+  {
+    "task_id": "v3p-018",
+    "query_text": "신혼부부인데 전세자금이 부족해요 대출 지원 있나요",
+    "decisions": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "Lease-deposit loan support for a newlywed couple",
+          "equivalence_group": "v3p-018",
+          "grade": 3,
+          "policy_concept": "Newlywed lease-deposit financing"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Newlywed status plus a lease-deposit shortfall and loan need are independent constraints, so the stratum is multi_constraint; the selected gold directly matches newlywed lease financing. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "natural_needs",
+        "B": "multi_constraint"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "신혼부부 전세자금 대출 지원",
+            "equivalence_group": "18",
+            "grade": 3,
+            "policy_concept": "newlywed jeonse loan support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Lease-deposit loan support for a newlywed couple",
+            "equivalence_group": "v3p-018",
+            "grade": 3,
+            "policy_concept": "Newlywed lease-deposit financing"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "Lease-deposit loan support for a newlywed couple",
+          "equivalence_group": "v3p-018",
+          "grade": 3,
+          "policy_concept": "Newlywed lease-deposit financing"
+        }
+      ]
+    },
+    "rationale": "Newlywed status plus a lease-deposit shortfall and loan need are independent constraints, so the stratum is multi_constraint; the selected gold directly matches newlywed lease financing."
+  },
+  {
+    "task_id": "v3p-019",
+    "query_text": "대학원생인데 학자금 대출 이자 지원 받을 수 있나요",
+    "decisions": {
+      "stratum": "multi_constraint",
+      "source_hint": "gov24",
+      "golds": [
+        {
+          "description": "대학원생 학자금 대출 이자 지원",
+          "equivalence_group": "19",
+          "grade": 3,
+          "policy_concept": "graduate student education-loan interest support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Graduate-student status and education-loan interest need are independent constraints, so the stratum is multi_constraint; graduate student does not itself establish youth framing, so source_hint is gov24, and the selected gold is direct. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "natural_needs",
+        "B": "multi_constraint"
+      },
+      "source_hint": {
+        "A": "gov24",
+        "B": "youth"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "대학원생 학자금 대출 이자 지원",
+            "equivalence_group": "19",
+            "grade": 3,
+            "policy_concept": "graduate student education-loan interest support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Graduate-student support for interest on an education loan",
+            "equivalence_group": "v3p-019",
+            "grade": 3,
+            "policy_concept": "Student education-loan interest subsidy"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "stratum": "multi_constraint",
+      "source_hint": "gov24",
+      "golds": [
+        {
+          "description": "대학원생 학자금 대출 이자 지원",
+          "equivalence_group": "19",
+          "grade": 3,
+          "policy_concept": "graduate student education-loan interest support"
+        }
+      ]
+    },
+    "rationale": "Graduate-student status and education-loan interest need are independent constraints, so the stratum is multi_constraint; graduate student does not itself establish youth framing, so source_hint is gov24, and the selected gold is direct."
+  },
+  {
+    "task_id": "v3p-020",
+    "query_text": "장애 자녀 돌봄 지원이나 활동지원 서비스 찾고 있어요",
+    "decisions": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "장애 자녀 돌봄 지원",
+          "equivalence_group": "20",
+          "grade": 3,
+          "policy_concept": "care support for a child with disability"
+        },
+        {
+          "description": "장애인 활동지원 서비스",
+          "equivalence_group": "20",
+          "grade": 3,
+          "policy_concept": "disability personal assistance service"
+        }
+      ]
+    },
+    "adjudicator_rationale": "A child disability condition plus care or personal-assistance needs are independent constraints, so the stratum is multi_constraint; the selected golds match both explicit service alternatives. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "natural_needs",
+        "B": "multi_constraint"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "장애 자녀 돌봄 지원",
+            "equivalence_group": "20",
+            "grade": 3,
+            "policy_concept": "care support for a child with disability"
+          },
+          {
+            "description": "장애인 활동지원 서비스",
+            "equivalence_group": "20",
+            "grade": 3,
+            "policy_concept": "disability personal assistance service"
+          }
+        ],
+        "B": [
+          {
+            "description": "Caregiving or personal-assistance service for a child with a disability",
+            "equivalence_group": "v3p-020",
+            "grade": 3,
+            "policy_concept": "Disability-related child care and personal assistance"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "장애 자녀 돌봄 지원",
+          "equivalence_group": "20",
+          "grade": 3,
+          "policy_concept": "care support for a child with disability"
+        },
+        {
+          "description": "장애인 활동지원 서비스",
+          "equivalence_group": "20",
+          "grade": 3,
+          "policy_concept": "disability personal assistance service"
+        }
+      ]
+    },
+    "rationale": "A child disability condition plus care or personal-assistance needs are independent constraints, so the stratum is multi_constraint; the selected golds match both explicit service alternatives."
+  },
+  {
+    "task_id": "v3p-021",
+    "query_text": "귀농해서 창업하려는데 지원 사업 있을까요",
+    "decisions": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "귀농 창업 지원",
+          "equivalence_group": "21",
+          "grade": 3,
+          "policy_concept": "return-to-farming startup support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Returning to farming and starting a business are distinct status and need constraints, so the stratum is multi_constraint; the selected gold directly matches return-to-farming startup support. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "natural_needs",
+        "B": "multi_constraint"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "귀농 창업 지원",
+            "equivalence_group": "21",
+            "grade": 3,
+            "policy_concept": "return-to-farming startup support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Startup support for a new farmer establishing an agricultural business",
+            "equivalence_group": "v3p-021",
+            "grade": 3,
+            "policy_concept": "Beginning-farmer entrepreneurship support"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "귀농 창업 지원",
+          "equivalence_group": "21",
+          "grade": 3,
+          "policy_concept": "return-to-farming startup support"
+        }
+      ]
+    },
+    "rationale": "Returning to farming and starting a business are distinct status and need constraints, so the stratum is multi_constraint; the selected gold directly matches return-to-farming startup support."
+  },
+  {
+    "task_id": "v3p-022",
+    "query_text": "한부모 가정인데 양육비 지원받으려면 어떻게 하죠",
+    "decisions": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "한부모 가정 아동 양육비 지원",
+          "equivalence_group": "22",
+          "grade": 3,
+          "policy_concept": "single-parent child-rearing support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Single-parent status and child-rearing support are independent eligibility and need elements, so the stratum is multi_constraint; the selected gold is a direct child-rearing-support concept. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "natural_needs",
+        "B": "multi_constraint"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "한부모 가정 아동 양육비 지원",
+            "equivalence_group": "22",
+            "grade": 3,
+            "policy_concept": "single-parent child-rearing support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Child-rearing support for a single-parent household",
+            "equivalence_group": "v3p-022",
+            "grade": 3,
+            "policy_concept": "Single-parent child-rearing assistance"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "한부모 가정 아동 양육비 지원",
+          "equivalence_group": "22",
+          "grade": 3,
+          "policy_concept": "single-parent child-rearing support"
+        }
+      ]
+    },
+    "rationale": "Single-parent status and child-rearing support are independent eligibility and need elements, so the stratum is multi_constraint; the selected gold is a direct child-rearing-support concept."
+  },
+  {
+    "task_id": "v3p-023",
     "query_text": "문화생활 바우처 같은 거 청년도 받을 수 있나요",
-    "task_id": "v3p-023"
+    "decisions": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "청년 문화생활 바우처",
+          "equivalence_group": "23",
+          "grade": 3,
+          "policy_concept": "youth culture and leisure voucher"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Youth eligibility framing and a culture or leisure voucher need are independent elements, so the stratum is multi_constraint; the selected gold directly matches the youth culture-voucher concept. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "natural_needs",
+        "B": "multi_constraint"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "청년 문화생활 바우처",
+            "equivalence_group": "23",
+            "grade": 3,
+            "policy_concept": "youth culture and leisure voucher"
+          }
+        ],
+        "B": [
+          {
+            "description": "Culture and leisure voucher available to a young adult",
+            "equivalence_group": "v3p-023",
+            "grade": 3,
+            "policy_concept": "Youth culture voucher"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "청년 문화생활 바우처",
+          "equivalence_group": "23",
+          "grade": 3,
+          "policy_concept": "youth culture and leisure voucher"
+        }
+      ]
+    },
+    "rationale": "Youth eligibility framing and a culture or leisure voucher need are independent elements, so the stratum is multi_constraint; the selected gold directly matches the youth culture-voucher concept."
   },
   {
-    "adjudicator_rationale": "golds: multi-constraint query with 3 equivalent acceptable groups at grade 2; A's three grade 2 correct vs B's two grade 3 per rubric exploratory grading -- independent rubric judgment, not deterministic alternating",
+    "task_id": "v3p-024",
+    "query_text": "중장년인데 재취업 교육이나 구직 지원 있나요",
     "decisions": {
-      "golds_choice": "A"
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "중장년 재취업 교육",
+          "equivalence_group": "24",
+          "grade": 3,
+          "policy_concept": "mid-career reemployment training"
+        },
+        {
+          "description": "중장년 구직 지원",
+          "equivalence_group": "24",
+          "grade": 3,
+          "policy_concept": "mid-career job-seeking support"
+        }
+      ]
     },
+    "adjudicator_rationale": "Middle-age status and reemployment, training, or job-search needs are independent elements, so the stratum is multi_constraint; the selected golds cover both explicit alternatives. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "natural_needs",
+        "B": "multi_constraint"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "중장년 재취업 교육",
+            "equivalence_group": "24",
+            "grade": 3,
+            "policy_concept": "mid-career reemployment training"
+          },
+          {
+            "description": "중장년 구직 지원",
+            "equivalence_group": "24",
+            "grade": 3,
+            "policy_concept": "mid-career job-seeking support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Retraining or job-search assistance for a middle-aged person",
+            "equivalence_group": "v3p-024",
+            "grade": 3,
+            "policy_concept": "Mid-career retraining and reemployment support"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "중장년 재취업 교육",
+          "equivalence_group": "24",
+          "grade": 3,
+          "policy_concept": "mid-career reemployment training"
+        },
+        {
+          "description": "중장년 구직 지원",
+          "equivalence_group": "24",
+          "grade": 3,
+          "policy_concept": "mid-career job-seeking support"
+        }
+      ]
+    },
+    "rationale": "Middle-age status and reemployment, training, or job-search needs are independent elements, so the stratum is multi_constraint; the selected golds cover both explicit alternatives."
+  },
+  {
+    "task_id": "v3p-025",
+    "query_text": "임신 중인데 산모 건강관리 지원 알려주세요",
+    "decisions": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "임산부 산모 건강관리 지원",
+          "equivalence_group": "25",
+          "grade": 3,
+          "policy_concept": "maternal health management support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Pregnancy status and a maternal-health need are independent elements, so the stratum is multi_constraint; the selected gold directly matches maternal health-management support. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "natural_needs",
+        "B": "multi_constraint"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "임산부 산모 건강관리 지원",
+            "equivalence_group": "25",
+            "grade": 3,
+            "policy_concept": "maternal health management support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Maternal health-management support during pregnancy",
+            "equivalence_group": "v3p-025",
+            "grade": 3,
+            "policy_concept": "Pregnancy and maternal health support"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "임산부 산모 건강관리 지원",
+          "equivalence_group": "25",
+          "grade": 3,
+          "policy_concept": "maternal health management support"
+        }
+      ]
+    },
+    "rationale": "Pregnancy status and a maternal-health need are independent elements, so the stratum is multi_constraint; the selected gold directly matches maternal health-management support."
+  },
+  {
+    "task_id": "v3p-026",
+    "query_text": "청년 창업해서 사무실 임대료 지원받고 싶어요",
+    "decisions": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "청년 창업 사무실 임대료 지원",
+          "equivalence_group": "26",
+          "grade": 3,
+          "policy_concept": "youth startup office-rent support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Youth-founder status, startup activity, and office-rent need are multiple independent constraints, so the stratum is multi_constraint; the selected gold directly matches startup workspace-rent support. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "natural_needs",
+        "B": "multi_constraint"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "청년 창업 사무실 임대료 지원",
+            "equivalence_group": "26",
+            "grade": 3,
+            "policy_concept": "youth startup office-rent support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Office-rent support for a young startup founder",
+            "equivalence_group": "v3p-026",
+            "grade": 3,
+            "policy_concept": "Youth startup workspace-rent subsidy"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "청년 창업 사무실 임대료 지원",
+          "equivalence_group": "26",
+          "grade": 3,
+          "policy_concept": "youth startup office-rent support"
+        }
+      ]
+    },
+    "rationale": "Youth-founder status, startup activity, and office-rent need are multiple independent constraints, so the stratum is multi_constraint; the selected gold directly matches startup workspace-rent support."
+  },
+  {
+    "task_id": "v3p-027",
     "query_text": "서울 청년이 받을 수 있는 혜택 전부 알려줘",
-    "task_id": "v3p-027"
+    "decisions": {
+      "golds": [
+        {
+          "description": "청년수당",
+          "equivalence_group": "27",
+          "grade": 2,
+          "policy_concept": "youth cash allowance"
+        },
+        {
+          "description": "청년 주거 지원",
+          "equivalence_group": "27",
+          "grade": 2,
+          "policy_concept": "youth housing support"
+        },
+        {
+          "description": "청년 취업 지원",
+          "equivalence_group": "27",
+          "grade": 2,
+          "policy_concept": "youth employment support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The broad request for all Seoul youth benefits spans materially distinct domains, so the selected grade-2 golds cover cash, housing, and employment concepts. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "청년수당",
+            "equivalence_group": "27",
+            "grade": 2,
+            "policy_concept": "youth cash allowance"
+          },
+          {
+            "description": "청년 주거 지원",
+            "equivalence_group": "27",
+            "grade": 2,
+            "policy_concept": "youth housing support"
+          },
+          {
+            "description": "청년 취업 지원",
+            "equivalence_group": "27",
+            "grade": 2,
+            "policy_concept": "youth employment support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Seoul youth allowance and related youth benefits",
+            "equivalence_group": "v3p-027-benefits",
+            "grade": 2,
+            "policy_concept": "Youth cash and welfare benefits"
+          },
+          {
+            "description": "Seoul youth housing support",
+            "equivalence_group": "v3p-027-benefits",
+            "grade": 2,
+            "policy_concept": "Youth housing benefits"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "청년수당",
+          "equivalence_group": "27",
+          "grade": 2,
+          "policy_concept": "youth cash allowance"
+        },
+        {
+          "description": "청년 주거 지원",
+          "equivalence_group": "27",
+          "grade": 2,
+          "policy_concept": "youth housing support"
+        },
+        {
+          "description": "청년 취업 지원",
+          "equivalence_group": "27",
+          "grade": 2,
+          "policy_concept": "youth employment support"
+        }
+      ]
+    },
+    "rationale": "The broad request for all Seoul youth benefits spans materially distinct domains, so the selected grade-2 golds cover cash, housing, and employment concepts."
   },
   {
-    "adjudicator_rationale": "golds: exact title-like query with single perfect gold grade 3; B single grade 3 correct vs A's three grade 2 -- independent rubric judgment, not deterministic alternating",
-    "decisions": {
-      "golds_choice": "B"
-    },
+    "task_id": "v3p-028",
     "query_text": "서울에서 신혼부부가 받을 수 있는 주거 혜택 뭐가 있을까",
-    "task_id": "v3p-028"
+    "decisions": {
+      "golds": [
+        {
+          "description": "신혼부부 전세자금 대출",
+          "equivalence_group": "28",
+          "grade": 2,
+          "policy_concept": "newlywed jeonse loan"
+        },
+        {
+          "description": "신혼부부 주거비 이자 지원",
+          "equivalence_group": "28",
+          "grade": 2,
+          "policy_concept": "newlywed housing-cost interest support"
+        },
+        {
+          "description": "신혼부부 공공임대주택",
+          "equivalence_group": "28",
+          "grade": 2,
+          "policy_concept": "newlywed public rental housing"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The broad Seoul newlywed housing-benefit request admits several materially distinct concepts, so the selected grade-2 golds cover lease financing, interest support, and public rental housing. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "신혼부부 전세자금 대출",
+            "equivalence_group": "28",
+            "grade": 2,
+            "policy_concept": "newlywed jeonse loan"
+          },
+          {
+            "description": "신혼부부 주거비 이자 지원",
+            "equivalence_group": "28",
+            "grade": 2,
+            "policy_concept": "newlywed housing-cost interest support"
+          },
+          {
+            "description": "신혼부부 공공임대주택",
+            "equivalence_group": "28",
+            "grade": 2,
+            "policy_concept": "newlywed public rental housing"
+          }
+        ],
+        "B": [
+          {
+            "description": "Seoul newlywed housing-rental support",
+            "equivalence_group": "v3p-028-housing",
+            "grade": 2,
+            "policy_concept": "Newlywed housing support"
+          },
+          {
+            "description": "Seoul newlywed lease financing or interest support",
+            "equivalence_group": "v3p-028-housing",
+            "grade": 2,
+            "policy_concept": "Newlywed lease-deposit financing"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "신혼부부 전세자금 대출",
+          "equivalence_group": "28",
+          "grade": 2,
+          "policy_concept": "newlywed jeonse loan"
+        },
+        {
+          "description": "신혼부부 주거비 이자 지원",
+          "equivalence_group": "28",
+          "grade": 2,
+          "policy_concept": "newlywed housing-cost interest support"
+        },
+        {
+          "description": "신혼부부 공공임대주택",
+          "equivalence_group": "28",
+          "grade": 2,
+          "policy_concept": "newlywed public rental housing"
+        }
+      ]
+    },
+    "rationale": "The broad Seoul newlywed housing-benefit request admits several materially distinct concepts, so the selected grade-2 golds cover lease financing, interest support, and public rental housing."
   },
   {
-    "adjudicator_rationale": "location true (B) - 경기도 token scopes region; golds B single grade 3 correct for open-ended query vs A's three grade 2 -- independent rubric judgment, not deterministic alternating",
+    "task_id": "v3p-029",
+    "query_text": "부산 저소득층이 이용할 수 있는 복지 지원 탐색하고 싶어요",
     "decisions": {
-      "golds_choice": "B",
-      "location_bearing": true
+      "golds": [
+        {
+          "description": "저소득층 생계급여",
+          "equivalence_group": "29",
+          "grade": 2,
+          "policy_concept": "livelihood benefit for low-income households"
+        },
+        {
+          "description": "저소득층 주거급여",
+          "equivalence_group": "29",
+          "grade": 2,
+          "policy_concept": "housing benefit for low-income households"
+        },
+        {
+          "description": "저소득층 의료급여",
+          "equivalence_group": "29",
+          "grade": 2,
+          "policy_concept": "medical benefit for low-income households"
+        }
+      ]
     },
+    "adjudicator_rationale": "The low-income welfare exploration is broad, so the selected grade-2 golds provide distinct livelihood, housing, and medical benefit concepts. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "저소득층 생계급여",
+            "equivalence_group": "29",
+            "grade": 2,
+            "policy_concept": "livelihood benefit for low-income households"
+          },
+          {
+            "description": "저소득층 주거급여",
+            "equivalence_group": "29",
+            "grade": 2,
+            "policy_concept": "housing benefit for low-income households"
+          },
+          {
+            "description": "저소득층 의료급여",
+            "equivalence_group": "29",
+            "grade": 2,
+            "policy_concept": "medical benefit for low-income households"
+          }
+        ],
+        "B": [
+          {
+            "description": "Busan low-income income-support benefits",
+            "equivalence_group": "v3p-029-welfare",
+            "grade": 2,
+            "policy_concept": "Low-income welfare assistance"
+          },
+          {
+            "description": "Busan low-income social welfare services",
+            "equivalence_group": "v3p-029-welfare",
+            "grade": 2,
+            "policy_concept": "Low-income social services"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "저소득층 생계급여",
+          "equivalence_group": "29",
+          "grade": 2,
+          "policy_concept": "livelihood benefit for low-income households"
+        },
+        {
+          "description": "저소득층 주거급여",
+          "equivalence_group": "29",
+          "grade": 2,
+          "policy_concept": "housing benefit for low-income households"
+        },
+        {
+          "description": "저소득층 의료급여",
+          "equivalence_group": "29",
+          "grade": 2,
+          "policy_concept": "medical benefit for low-income households"
+        }
+      ]
+    },
+    "rationale": "The low-income welfare exploration is broad, so the selected grade-2 golds provide distinct livelihood, housing, and medical benefit concepts."
+  },
+  {
+    "task_id": "v3p-030",
+    "query_text": "대전 대학생이 신청할 수 있는 장학금이나 지원금 알려줘",
+    "decisions": {
+      "golds": [
+        {
+          "description": "대학생 국가장학금",
+          "equivalence_group": "30",
+          "grade": 2,
+          "policy_concept": "national scholarship for college students"
+        },
+        {
+          "description": "대학생 지역 장학금",
+          "equivalence_group": "30",
+          "grade": 2,
+          "policy_concept": "local scholarship for college students"
+        },
+        {
+          "description": "대학생 교육비 지원금",
+          "equivalence_group": "30",
+          "grade": 2,
+          "policy_concept": "college student education grant"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The broad college-student scholarship or grant request supports distinct national, local, and education-cost concepts, so the selected golds are grade 2 alternatives. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "대학생 국가장학금",
+            "equivalence_group": "30",
+            "grade": 2,
+            "policy_concept": "national scholarship for college students"
+          },
+          {
+            "description": "대학생 지역 장학금",
+            "equivalence_group": "30",
+            "grade": 2,
+            "policy_concept": "local scholarship for college students"
+          },
+          {
+            "description": "대학생 교육비 지원금",
+            "equivalence_group": "30",
+            "grade": 2,
+            "policy_concept": "college student education grant"
+          }
+        ],
+        "B": [
+          {
+            "description": "Daejeon college scholarships",
+            "equivalence_group": "v3p-030-student",
+            "grade": 2,
+            "policy_concept": "Student scholarship support"
+          },
+          {
+            "description": "Daejeon student living or education grants",
+            "equivalence_group": "v3p-030-student",
+            "grade": 2,
+            "policy_concept": "Student education assistance"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "대학생 국가장학금",
+          "equivalence_group": "30",
+          "grade": 2,
+          "policy_concept": "national scholarship for college students"
+        },
+        {
+          "description": "대학생 지역 장학금",
+          "equivalence_group": "30",
+          "grade": 2,
+          "policy_concept": "local scholarship for college students"
+        },
+        {
+          "description": "대학생 교육비 지원금",
+          "equivalence_group": "30",
+          "grade": 2,
+          "policy_concept": "college student education grant"
+        }
+      ]
+    },
+    "rationale": "The broad college-student scholarship or grant request supports distinct national, local, and education-cost concepts, so the selected golds are grade 2 alternatives."
+  },
+  {
+    "task_id": "v3p-031",
     "query_text": "경기도에 사는 청년 지원 정책 모아줘",
-    "task_id": "v3p-031"
+    "decisions": {
+      "golds": [
+        {
+          "description": "경기도 청년수당",
+          "equivalence_group": "31",
+          "grade": 2,
+          "policy_concept": "Gyeonggi youth allowance"
+        },
+        {
+          "description": "경기도 청년 주거 지원",
+          "equivalence_group": "31",
+          "grade": 2,
+          "policy_concept": "Gyeonggi youth housing support"
+        },
+        {
+          "description": "경기도 청년 취업 지원",
+          "equivalence_group": "31",
+          "grade": 2,
+          "policy_concept": "Gyeonggi youth employment support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The broad Gyeonggi youth-policy request spans cash, housing, and employment, so the selected grade-2 golds cover those materially distinct domains. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "경기도 청년수당",
+            "equivalence_group": "31",
+            "grade": 2,
+            "policy_concept": "Gyeonggi youth allowance"
+          },
+          {
+            "description": "경기도 청년 주거 지원",
+            "equivalence_group": "31",
+            "grade": 2,
+            "policy_concept": "Gyeonggi youth housing support"
+          },
+          {
+            "description": "경기도 청년 취업 지원",
+            "equivalence_group": "31",
+            "grade": 2,
+            "policy_concept": "Gyeonggi youth employment support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Gyeonggi youth allowance or cash benefit",
+            "equivalence_group": "v3p-031-youth",
+            "grade": 2,
+            "policy_concept": "Youth cash benefit"
+          },
+          {
+            "description": "Gyeonggi youth employment or housing support",
+            "equivalence_group": "v3p-031-youth",
+            "grade": 2,
+            "policy_concept": "Youth employment and housing benefits"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "경기도 청년수당",
+          "equivalence_group": "31",
+          "grade": 2,
+          "policy_concept": "Gyeonggi youth allowance"
+        },
+        {
+          "description": "경기도 청년 주거 지원",
+          "equivalence_group": "31",
+          "grade": 2,
+          "policy_concept": "Gyeonggi youth housing support"
+        },
+        {
+          "description": "경기도 청년 취업 지원",
+          "equivalence_group": "31",
+          "grade": 2,
+          "policy_concept": "Gyeonggi youth employment support"
+        }
+      ]
+    },
+    "rationale": "The broad Gyeonggi youth-policy request spans cash, housing, and employment, so the selected grade-2 golds cover those materially distinct domains."
   },
   {
-    "adjudicator_rationale": "stratum exploratory_multi_valid (A) - open-ended multi-valid not colloquial; golds A three grade 2 correct -- independent rubric judgment, not deterministic alternating",
+    "task_id": "v3p-032",
+    "query_text": "아이 키우는 가정에 주는 지원들 뭐가 있어",
     "decisions": {
-      "golds_choice": "A",
-      "stratum": "exploratory_multi_valid"
+      "golds": [
+        {
+          "description": "아동수당",
+          "equivalence_group": "32",
+          "grade": 2,
+          "policy_concept": "child allowance"
+        },
+        {
+          "description": "보육료 지원",
+          "equivalence_group": "32",
+          "grade": 2,
+          "policy_concept": "childcare fee support"
+        },
+        {
+          "description": "부모급여",
+          "equivalence_group": "32",
+          "grade": 2,
+          "policy_concept": "parental benefit"
+        }
+      ]
     },
+    "adjudicator_rationale": "Support for families raising children spans child allowance, childcare fees, and parental benefits, so the selected grade-2 golds cover the distinct concepts. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "아동수당",
+            "equivalence_group": "32",
+            "grade": 2,
+            "policy_concept": "child allowance"
+          },
+          {
+            "description": "보육료 지원",
+            "equivalence_group": "32",
+            "grade": 2,
+            "policy_concept": "childcare fee support"
+          },
+          {
+            "description": "부모급여",
+            "equivalence_group": "32",
+            "grade": 2,
+            "policy_concept": "parental benefit"
+          }
+        ],
+        "B": [
+          {
+            "description": "Child and family cash benefits",
+            "equivalence_group": "v3p-032-family",
+            "grade": 2,
+            "policy_concept": "Child benefit"
+          },
+          {
+            "description": "Subsidized childcare services",
+            "equivalence_group": "v3p-032-family",
+            "grade": 2,
+            "policy_concept": "Childcare support"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "아동수당",
+          "equivalence_group": "32",
+          "grade": 2,
+          "policy_concept": "child allowance"
+        },
+        {
+          "description": "보육료 지원",
+          "equivalence_group": "32",
+          "grade": 2,
+          "policy_concept": "childcare fee support"
+        },
+        {
+          "description": "부모급여",
+          "equivalence_group": "32",
+          "grade": 2,
+          "policy_concept": "parental benefit"
+        }
+      ]
+    },
+    "rationale": "Support for families raising children spans child allowance, childcare fees, and parental benefits, so the selected grade-2 golds cover the distinct concepts."
+  },
+  {
+    "task_id": "v3p-033",
+    "query_text": "취업 준비생에게 도움 되는 정책 전체 보여줘",
+    "decisions": {
+      "golds": [
+        {
+          "description": "구직촉진수당",
+          "equivalence_group": "33",
+          "grade": 2,
+          "policy_concept": "job-seeking promotion allowance"
+        },
+        {
+          "description": "취업 교육·훈련 지원",
+          "equivalence_group": "33",
+          "grade": 2,
+          "policy_concept": "employment education and training support"
+        },
+        {
+          "description": "취업성공 지원",
+          "equivalence_group": "33",
+          "grade": 2,
+          "policy_concept": "job-placement support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The broad job-preparation policy request spans allowance, training, and placement support, so the selected grade-2 golds cover those distinct concepts. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "구직촉진수당",
+            "equivalence_group": "33",
+            "grade": 2,
+            "policy_concept": "job-seeking promotion allowance"
+          },
+          {
+            "description": "취업 교육·훈련 지원",
+            "equivalence_group": "33",
+            "grade": 2,
+            "policy_concept": "employment education and training support"
+          },
+          {
+            "description": "취업성공 지원",
+            "equivalence_group": "33",
+            "grade": 2,
+            "policy_concept": "job-placement support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Job-seeker training support",
+            "equivalence_group": "v3p-033-job",
+            "grade": 2,
+            "policy_concept": "Employment training assistance"
+          },
+          {
+            "description": "Job-search allowance or employment counseling",
+            "equivalence_group": "v3p-033-job",
+            "grade": 2,
+            "policy_concept": "Job-seeker employment support"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "구직촉진수당",
+          "equivalence_group": "33",
+          "grade": 2,
+          "policy_concept": "job-seeking promotion allowance"
+        },
+        {
+          "description": "취업 교육·훈련 지원",
+          "equivalence_group": "33",
+          "grade": 2,
+          "policy_concept": "employment education and training support"
+        },
+        {
+          "description": "취업성공 지원",
+          "equivalence_group": "33",
+          "grade": 2,
+          "policy_concept": "job-placement support"
+        }
+      ]
+    },
+    "rationale": "The broad job-preparation policy request spans allowance, training, and placement support, so the selected grade-2 golds cover those distinct concepts."
+  },
+  {
+    "task_id": "v3p-034",
+    "query_text": "노년층 복지 혜택 어떤 게 있는지 궁금해요",
+    "decisions": {
+      "golds": [
+        {
+          "description": "기초연금",
+          "equivalence_group": "34",
+          "grade": 2,
+          "policy_concept": "basic pension"
+        },
+        {
+          "description": "노인일자리 지원",
+          "equivalence_group": "34",
+          "grade": 2,
+          "policy_concept": "senior employment support"
+        },
+        {
+          "description": "노인 복지서비스",
+          "equivalence_group": "34",
+          "grade": 2,
+          "policy_concept": "senior welfare services"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The broad senior-welfare request spans pension, employment, and welfare services, so the selected grade-2 golds cover those distinct concepts. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "기초연금",
+            "equivalence_group": "34",
+            "grade": 2,
+            "policy_concept": "basic pension"
+          },
+          {
+            "description": "노인일자리 지원",
+            "equivalence_group": "34",
+            "grade": 2,
+            "policy_concept": "senior employment support"
+          },
+          {
+            "description": "노인 복지서비스",
+            "equivalence_group": "34",
+            "grade": 2,
+            "policy_concept": "senior welfare services"
+          }
+        ],
+        "B": [
+          {
+            "description": "Senior basic-pension benefits",
+            "equivalence_group": "v3p-034-senior",
+            "grade": 2,
+            "policy_concept": "Senior income support"
+          },
+          {
+            "description": "Senior care and welfare services",
+            "equivalence_group": "v3p-034-senior",
+            "grade": 2,
+            "policy_concept": "Senior care support"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "기초연금",
+          "equivalence_group": "34",
+          "grade": 2,
+          "policy_concept": "basic pension"
+        },
+        {
+          "description": "노인일자리 지원",
+          "equivalence_group": "34",
+          "grade": 2,
+          "policy_concept": "senior employment support"
+        },
+        {
+          "description": "노인 복지서비스",
+          "equivalence_group": "34",
+          "grade": 2,
+          "policy_concept": "senior welfare services"
+        }
+      ]
+    },
+    "rationale": "The broad senior-welfare request spans pension, employment, and welfare services, so the selected grade-2 golds cover those distinct concepts."
+  },
+  {
+    "task_id": "v3p-035",
     "query_text": "소상공인 지원 사업 종류별로 알려줘",
-    "task_id": "v3p-035"
+    "decisions": {
+      "golds": [
+        {
+          "description": "소상공인 정책자금",
+          "equivalence_group": "35",
+          "grade": 2,
+          "policy_concept": "small-business policy financing"
+        },
+        {
+          "description": "소상공인 지원금",
+          "equivalence_group": "35",
+          "grade": 2,
+          "policy_concept": "small-business grant"
+        },
+        {
+          "description": "소상공인 경영 컨설팅",
+          "equivalence_group": "35",
+          "grade": 2,
+          "policy_concept": "small-business management consulting"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Support by small-business type spans policy financing, grants, and management consulting, so the selected grade-2 golds cover the requested categories. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "소상공인 정책자금",
+            "equivalence_group": "35",
+            "grade": 2,
+            "policy_concept": "small-business policy financing"
+          },
+          {
+            "description": "소상공인 지원금",
+            "equivalence_group": "35",
+            "grade": 2,
+            "policy_concept": "small-business grant"
+          },
+          {
+            "description": "소상공인 경영 컨설팅",
+            "equivalence_group": "35",
+            "grade": 2,
+            "policy_concept": "small-business management consulting"
+          }
+        ],
+        "B": [
+          {
+            "description": "Small-business policy loans",
+            "equivalence_group": "v3p-035-business",
+            "grade": 2,
+            "policy_concept": "Small-business financing"
+          },
+          {
+            "description": "Small-business grants and consulting",
+            "equivalence_group": "v3p-035-business",
+            "grade": 2,
+            "policy_concept": "Small-business support services"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "소상공인 정책자금",
+          "equivalence_group": "35",
+          "grade": 2,
+          "policy_concept": "small-business policy financing"
+        },
+        {
+          "description": "소상공인 지원금",
+          "equivalence_group": "35",
+          "grade": 2,
+          "policy_concept": "small-business grant"
+        },
+        {
+          "description": "소상공인 경영 컨설팅",
+          "equivalence_group": "35",
+          "grade": 2,
+          "policy_concept": "small-business management consulting"
+        }
+      ]
+    },
+    "rationale": "Support by small-business type spans policy financing, grants, and management consulting, so the selected grade-2 golds cover the requested categories."
   },
   {
-    "adjudicator_rationale": "golds B two grade 2 (acceptable alternatives) correct vs A single grade 3 per rubric for age-constrained 월세 query -- independent rubric judgment, not deterministic alternating",
+    "task_id": "v3p-036",
+    "query_text": "청년 창업 관련 지원 전부 모아줘",
     "decisions": {
-      "golds_choice": "B"
+      "golds": [
+        {
+          "description": "청년 창업 사업화 자금",
+          "equivalence_group": "36",
+          "grade": 2,
+          "policy_concept": "youth startup commercialization funding"
+        },
+        {
+          "description": "청년 창업공간 지원",
+          "equivalence_group": "36",
+          "grade": 2,
+          "policy_concept": "youth startup-space support"
+        },
+        {
+          "description": "청년 창업 보증·융자",
+          "equivalence_group": "36",
+          "grade": 2,
+          "policy_concept": "youth startup guarantee or loan"
+        }
+      ]
     },
+    "adjudicator_rationale": "Youth startup support spans commercialization funding, workspace, and guarantee or loan support, so the selected grade-2 golds cover distinct concepts. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "청년 창업 사업화 자금",
+            "equivalence_group": "36",
+            "grade": 2,
+            "policy_concept": "youth startup commercialization funding"
+          },
+          {
+            "description": "청년 창업공간 지원",
+            "equivalence_group": "36",
+            "grade": 2,
+            "policy_concept": "youth startup-space support"
+          },
+          {
+            "description": "청년 창업 보증·융자",
+            "equivalence_group": "36",
+            "grade": 2,
+            "policy_concept": "youth startup guarantee or loan"
+          }
+        ],
+        "B": [
+          {
+            "description": "Youth startup grants",
+            "equivalence_group": "v3p-036-startup",
+            "grade": 2,
+            "policy_concept": "Youth entrepreneurship funding"
+          },
+          {
+            "description": "Youth startup incubation and consulting",
+            "equivalence_group": "v3p-036-startup",
+            "grade": 2,
+            "policy_concept": "Youth startup support services"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "청년 창업 사업화 자금",
+          "equivalence_group": "36",
+          "grade": 2,
+          "policy_concept": "youth startup commercialization funding"
+        },
+        {
+          "description": "청년 창업공간 지원",
+          "equivalence_group": "36",
+          "grade": 2,
+          "policy_concept": "youth startup-space support"
+        },
+        {
+          "description": "청년 창업 보증·융자",
+          "equivalence_group": "36",
+          "grade": 2,
+          "policy_concept": "youth startup guarantee or loan"
+        }
+      ]
+    },
+    "rationale": "Youth startup support spans commercialization funding, workspace, and guarantee or loan support, so the selected grade-2 golds cover distinct concepts."
+  },
+  {
+    "task_id": "v3p-037",
+    "query_text": "임산부와 영아가 받을 수 있는 지원 모음",
+    "decisions": {
+      "golds": [
+        {
+          "description": "임산부 건강관리 지원",
+          "equivalence_group": "37",
+          "grade": 2,
+          "policy_concept": "pregnancy health support"
+        },
+        {
+          "description": "영아 보육료 지원",
+          "equivalence_group": "37",
+          "grade": 2,
+          "policy_concept": "infant childcare support"
+        },
+        {
+          "description": "부모급여",
+          "equivalence_group": "37",
+          "grade": 2,
+          "policy_concept": "parental benefit"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The broad pregnant-person and infant request spans maternal health, infant childcare, and parental benefits, so the selected grade-2 golds cover those concepts. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "임산부 건강관리 지원",
+            "equivalence_group": "37",
+            "grade": 2,
+            "policy_concept": "pregnancy health support"
+          },
+          {
+            "description": "영아 보육료 지원",
+            "equivalence_group": "37",
+            "grade": 2,
+            "policy_concept": "infant childcare support"
+          },
+          {
+            "description": "부모급여",
+            "equivalence_group": "37",
+            "grade": 2,
+            "policy_concept": "parental benefit"
+          }
+        ],
+        "B": [
+          {
+            "description": "Pregnancy and childbirth benefits",
+            "equivalence_group": "v3p-037-maternity",
+            "grade": 2,
+            "policy_concept": "Maternity support"
+          },
+          {
+            "description": "Infant childcare and health services",
+            "equivalence_group": "v3p-037-maternity",
+            "grade": 2,
+            "policy_concept": "Infant support"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "임산부 건강관리 지원",
+          "equivalence_group": "37",
+          "grade": 2,
+          "policy_concept": "pregnancy health support"
+        },
+        {
+          "description": "영아 보육료 지원",
+          "equivalence_group": "37",
+          "grade": 2,
+          "policy_concept": "infant childcare support"
+        },
+        {
+          "description": "부모급여",
+          "equivalence_group": "37",
+          "grade": 2,
+          "policy_concept": "parental benefit"
+        }
+      ]
+    },
+    "rationale": "The broad pregnant-person and infant request spans maternal health, infant childcare, and parental benefits, so the selected grade-2 golds cover those concepts."
+  },
+  {
+    "task_id": "v3p-038",
+    "query_text": "문화·여가 바우처나 포인트 지원 알려줘",
+    "decisions": {
+      "golds": [
+        {
+          "description": "Culture and leisure vouchers",
+          "equivalence_group": "v3p-038-culture",
+          "grade": 2,
+          "policy_concept": "Cultural voucher"
+        },
+        {
+          "description": "Culture or leisure point benefits",
+          "equivalence_group": "v3p-038-culture",
+          "grade": 2,
+          "policy_concept": "Leisure subsidy"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The query explicitly covers culture or leisure vouchers and points, so the selected grade-2 golds cover both voucher and point-benefit concepts. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "문화누리카드",
+            "equivalence_group": "38",
+            "grade": 2,
+            "policy_concept": "culture voucher"
+          },
+          {
+            "description": "체육·여가 바우처",
+            "equivalence_group": "38",
+            "grade": 2,
+            "policy_concept": "sports and leisure voucher"
+          }
+        ],
+        "B": [
+          {
+            "description": "Culture and leisure vouchers",
+            "equivalence_group": "v3p-038-culture",
+            "grade": 2,
+            "policy_concept": "Cultural voucher"
+          },
+          {
+            "description": "Culture or leisure point benefits",
+            "equivalence_group": "v3p-038-culture",
+            "grade": 2,
+            "policy_concept": "Leisure subsidy"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "Culture and leisure vouchers",
+          "equivalence_group": "v3p-038-culture",
+          "grade": 2,
+          "policy_concept": "Cultural voucher"
+        },
+        {
+          "description": "Culture or leisure point benefits",
+          "equivalence_group": "v3p-038-culture",
+          "grade": 2,
+          "policy_concept": "Leisure subsidy"
+        }
+      ]
+    },
+    "rationale": "The query explicitly covers culture or leisure vouchers and points, so the selected grade-2 golds cover both voucher and point-benefit concepts."
+  },
+  {
+    "task_id": "v3p-039",
     "query_text": "서울 거주 만 34세 이하 무주택 청년 월세 지원",
-    "task_id": "v3p-039"
+    "decisions": {
+      "golds": [
+        {
+          "description": "Seoul monthly-rent support for a non-homeowning youth under age 35",
+          "equivalence_group": "v3p-039",
+          "grade": 3,
+          "policy_concept": "Eligibility-based youth monthly-rent subsidy"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Seoul, age under 35, non-homeownership, youth status, and monthly-rent support are all explicit; the selected gold retains the full eligibility frame at grade 3. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "서울 무주택 청년 월세 지원",
+            "equivalence_group": "39",
+            "grade": 3,
+            "policy_concept": "Seoul monthly rent support for unhoused youth"
+          }
+        ],
+        "B": [
+          {
+            "description": "Seoul monthly-rent support for a non-homeowning youth under age 35",
+            "equivalence_group": "v3p-039",
+            "grade": 3,
+            "policy_concept": "Eligibility-based youth monthly-rent subsidy"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "Seoul monthly-rent support for a non-homeowning youth under age 35",
+          "equivalence_group": "v3p-039",
+          "grade": 3,
+          "policy_concept": "Eligibility-based youth monthly-rent subsidy"
+        }
+      ]
+    },
+    "rationale": "Seoul, age under 35, non-homeownership, youth status, and monthly-rent support are all explicit; the selected gold retains the full eligibility frame at grade 3."
   },
   {
-    "adjudicator_rationale": "category employment_education (A) - 충남 농어업인 자녀 학자금 is employment/education domain, not business -- independent rubric judgment, not deterministic alternating",
+    "task_id": "v3p-040",
+    "query_text": "부산 거주 중소기업 재직 3년차 청년 전세자금 대출",
     "decisions": {
-      "category": "employment_education"
+      "common_vs_rare": "rare",
+      "golds": [
+        {
+          "description": "Busan lease-deposit loan for a youth employed by a small or medium business",
+          "equivalence_group": "v3p-040",
+          "grade": 3,
+          "policy_concept": "SME-worker youth lease financing"
+        }
+      ]
     },
+    "adjudicator_rationale": "SME employment, youth status, Busan, and lease financing define a narrow targeted policy concept, so it is rare; the selected gold directly matches that financing. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "common_vs_rare": {
+        "A": "rare",
+        "B": "common"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "부산 중소기업 재직 청년 전세자금 대출",
+            "equivalence_group": "40",
+            "grade": 3,
+            "policy_concept": "Busan jeonse loan for young small-business employees"
+          }
+        ],
+        "B": [
+          {
+            "description": "Busan lease-deposit loan for a youth employed by a small or medium business",
+            "equivalence_group": "v3p-040",
+            "grade": 3,
+            "policy_concept": "SME-worker youth lease financing"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "common_vs_rare": "rare",
+      "golds": [
+        {
+          "description": "Busan lease-deposit loan for a youth employed by a small or medium business",
+          "equivalence_group": "v3p-040",
+          "grade": 3,
+          "policy_concept": "SME-worker youth lease financing"
+        }
+      ]
+    },
+    "rationale": "SME employment, youth status, Busan, and lease financing define a narrow targeted policy concept, so it is rare; the selected gold directly matches that financing."
+  },
+  {
+    "task_id": "v3p-041",
+    "query_text": "소득 하위 50% 신혼부부 경기도 아파트 전세 지원",
+    "decisions": {
+      "common_vs_rare": "rare",
+      "golds": [
+        {
+          "description": "Gyeonggi lease support for a low-income newlywed couple",
+          "equivalence_group": "v3p-041",
+          "grade": 3,
+          "policy_concept": "Income-targeted newlywed lease support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The lower-income, newlywed, Gyeonggi apartment-lease combination is a narrow targeted policy concept, so it is rare; the selected gold directly matches it. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "common_vs_rare": {
+        "A": "rare",
+        "B": "common"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "저소득 신혼부부 경기도 전세 지원",
+            "equivalence_group": "41",
+            "grade": 3,
+            "policy_concept": "Gyeonggi jeonse support for low-income newlyweds"
+          }
+        ],
+        "B": [
+          {
+            "description": "Gyeonggi lease support for a low-income newlywed couple",
+            "equivalence_group": "v3p-041",
+            "grade": 3,
+            "policy_concept": "Income-targeted newlywed lease support"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "common_vs_rare": "rare",
+      "golds": [
+        {
+          "description": "Gyeonggi lease support for a low-income newlywed couple",
+          "equivalence_group": "v3p-041",
+          "grade": 3,
+          "policy_concept": "Income-targeted newlywed lease support"
+        }
+      ]
+    },
+    "rationale": "The lower-income, newlywed, Gyeonggi apartment-lease combination is a narrow targeted policy concept, so it is rare; the selected gold directly matches it."
+  },
+  {
+    "task_id": "v3p-042",
+    "query_text": "만 18세 이하이면서 만 35세 이상 청년 대상 서울 월세 지원",
+    "decisions": {
+      "stratum": "unsupported_no_answer",
+      "labelable": false,
+      "common_vs_rare": "rare"
+    },
+    "adjudicator_rationale": "The age conditions “18 or below” and “35 or above” cannot be jointly satisfied, making the row contradictory and unlabelable; no eligible concept satisfies the stated conjunction, so the stratum is unsupported_no_answer, and the highly specific combination is rare. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "multi_constraint",
+        "B": "unsupported_no_answer"
+      },
+      "labelable": {
+        "A": false,
+        "B": true
+      },
+      "common_vs_rare": {
+        "A": "common",
+        "B": "rare"
+      }
+    },
+    "adjudicated": {
+      "stratum": "unsupported_no_answer",
+      "labelable": false,
+      "common_vs_rare": "rare"
+    },
+    "rationale": "The age conditions “18 or below” and “35 or above” cannot be jointly satisfied, making the row contradictory and unlabelable; no eligible concept satisfies the stated conjunction, so the stratum is unsupported_no_answer, and the highly specific combination is rare."
+  },
+  {
+    "task_id": "v3p-043",
+    "query_text": "중위소득 120% 이하 한부모 가정 아동 양육비 지원 서울",
+    "decisions": {
+      "golds": [
+        {
+          "description": "Seoul child-rearing allowance for a single-parent household under the stated income limit",
+          "equivalence_group": "v3p-043",
+          "grade": 3,
+          "policy_concept": "Income-targeted single-parent child allowance"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The income limit, single-parent status, Seoul location, and child-rearing support are all preserved by the selected grade-3 conceptual gold. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "서울 중위소득 120% 이하 한부모 아동양육비",
+            "equivalence_group": "43",
+            "grade": 3,
+            "policy_concept": "Seoul child-rearing support for qualifying single parents"
+          }
+        ],
+        "B": [
+          {
+            "description": "Seoul child-rearing allowance for a single-parent household under the stated income limit",
+            "equivalence_group": "v3p-043",
+            "grade": 3,
+            "policy_concept": "Income-targeted single-parent child allowance"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "Seoul child-rearing allowance for a single-parent household under the stated income limit",
+          "equivalence_group": "v3p-043",
+          "grade": 3,
+          "policy_concept": "Income-targeted single-parent child allowance"
+        }
+      ]
+    },
+    "rationale": "The income limit, single-parent status, Seoul location, and child-rearing support are all preserved by the selected grade-3 conceptual gold."
+  },
+  {
+    "task_id": "v3p-044",
+    "query_text": "대전 거주 만 39세 이하 창업 3년 이내 청년 사업화 자금",
+    "decisions": {
+      "golds": [
+        {
+          "description": "Daejeon business-commercialization funding for a young startup within three years",
+          "equivalence_group": "v3p-044",
+          "grade": 3,
+          "policy_concept": "Early-stage youth startup commercialization funding"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Daejeon, age under 40, startup age under three years, and commercialization funding are explicit; the selected gold captures the constrained concept at grade 3. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "대전 청년 초기창업 사업화 자금",
+            "equivalence_group": "44",
+            "grade": 3,
+            "policy_concept": "Daejeon commercialization funding for young early-stage founders"
+          }
+        ],
+        "B": [
+          {
+            "description": "Daejeon business-commercialization funding for a young startup within three years",
+            "equivalence_group": "v3p-044",
+            "grade": 3,
+            "policy_concept": "Early-stage youth startup commercialization funding"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "Daejeon business-commercialization funding for a young startup within three years",
+          "equivalence_group": "v3p-044",
+          "grade": 3,
+          "policy_concept": "Early-stage youth startup commercialization funding"
+        }
+      ]
+    },
+    "rationale": "Daejeon, age under 40, startup age under three years, and commercialization funding are explicit; the selected gold captures the constrained concept at grade 3."
+  },
+  {
+    "task_id": "v3p-045",
     "query_text": "충남 거주 농어업인 자녀 학자금 지원",
-    "task_id": "v3p-045"
+    "decisions": {
+      "category": "employment_education",
+      "golds": [
+        {
+          "description": "Tuition support for children of Chungnam agricultural or fishery workers",
+          "equivalence_group": "v3p-045",
+          "grade": 3,
+          "policy_concept": "Agricultural-worker child tuition assistance"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Tuition assistance is the dominant intent, while agricultural or fishery work is eligibility context, so category is employment_education; the selected gold directly matches the tuition concept. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "category": {
+        "A": "business_agriculture",
+        "B": "employment_education"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "충남 농어업인 자녀 학자금 지원",
+            "equivalence_group": "45",
+            "grade": 3,
+            "policy_concept": "Chungnam tuition support for children of agricultural or fishery workers"
+          }
+        ],
+        "B": [
+          {
+            "description": "Tuition support for children of Chungnam agricultural or fishery workers",
+            "equivalence_group": "v3p-045",
+            "grade": 3,
+            "policy_concept": "Agricultural-worker child tuition assistance"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "category": "employment_education",
+      "golds": [
+        {
+          "description": "Tuition support for children of Chungnam agricultural or fishery workers",
+          "equivalence_group": "v3p-045",
+          "grade": 3,
+          "policy_concept": "Agricultural-worker child tuition assistance"
+        }
+      ]
+    },
+    "rationale": "Tuition assistance is the dominant intent, while agricultural or fishery work is eligibility context, so category is employment_education; the selected gold directly matches the tuition concept."
   },
   {
-    "adjudicator_rationale": "golds B single grade 2 correct vs A's two-grade conflation -- independent rubric judgment, not deterministic alternating",
-    "decisions": {
-      "golds_choice": "B"
-    },
+    "task_id": "v3p-046",
     "query_text": "부산 소득 1분위 대학생 국가장학금 주거 지원 포함 여부",
-    "task_id": "v3p-046"
+    "decisions": {
+      "golds": [
+        {
+          "description": "National scholarship and housing-aid eligibility for a low-income Busan college student",
+          "equivalence_group": "v3p-046",
+          "grade": 3,
+          "policy_concept": "Need-based student scholarship and housing support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The query combines low-income college status, Busan, national scholarship, and housing-support inclusion; the selected gold directly represents that combined eligibility question at grade 3. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "저소득 대학생 국가장학금 및 주거 지원",
+            "equivalence_group": "46",
+            "grade": 3,
+            "policy_concept": "national scholarship and housing support for low-income college students"
+          }
+        ],
+        "B": [
+          {
+            "description": "National scholarship and housing-aid eligibility for a low-income Busan college student",
+            "equivalence_group": "v3p-046",
+            "grade": 3,
+            "policy_concept": "Need-based student scholarship and housing support"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "National scholarship and housing-aid eligibility for a low-income Busan college student",
+          "equivalence_group": "v3p-046",
+          "grade": 3,
+          "policy_concept": "Need-based student scholarship and housing support"
+        }
+      ]
+    },
+    "rationale": "The query combines low-income college status, Busan, national scholarship, and housing-support inclusion; the selected gold directly represents that combined eligibility question at grade 3."
   },
   {
-    "adjudicator_rationale": "location true (B) - 광주 token scopes region for 장애인+주거급여 -- independent rubric judgment, not deterministic alternating",
+    "task_id": "v3p-047",
+    "query_text": "인천 거주 65세 이상 기초연금 수급자 문화 바우처",
     "decisions": {
-      "location_bearing": true
+      "common_vs_rare": "rare",
+      "golds": [
+        {
+          "description": "Cultural voucher for an Incheon senior receiving the basic pension",
+          "equivalence_group": "v3p-047",
+          "grade": 3,
+          "policy_concept": "Senior cultural voucher"
+        }
+      ]
     },
+    "adjudicator_rationale": "A senior basic-pension recipient seeking a local culture voucher is a targeted, specialized combination, so it is rare; the selected gold directly matches the concept. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "common_vs_rare": {
+        "A": "rare",
+        "B": "common"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "인천 고령 기초연금 수급자 문화 바우처",
+            "equivalence_group": "47",
+            "grade": 3,
+            "policy_concept": "Incheon culture voucher for older basic-pension recipients"
+          }
+        ],
+        "B": [
+          {
+            "description": "Cultural voucher for an Incheon senior receiving the basic pension",
+            "equivalence_group": "v3p-047",
+            "grade": 3,
+            "policy_concept": "Senior cultural voucher"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "common_vs_rare": "rare",
+      "golds": [
+        {
+          "description": "Cultural voucher for an Incheon senior receiving the basic pension",
+          "equivalence_group": "v3p-047",
+          "grade": 3,
+          "policy_concept": "Senior cultural voucher"
+        }
+      ]
+    },
+    "rationale": "A senior basic-pension recipient seeking a local culture voucher is a targeted, specialized combination, so it is rare; the selected gold directly matches the concept."
+  },
+  {
+    "task_id": "v3p-048",
+    "query_text": "경북 거주 청년 귀농 영농 정착 지원 3년차",
+    "decisions": {
+      "golds": [
+        {
+          "description": "Three-year settlement support for a young returning farmer in Gyeongbuk",
+          "equivalence_group": "v3p-048",
+          "grade": 3,
+          "policy_concept": "Young beginning-farmer settlement support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Young returning-farmer status, Gyeongbuk location, and third-year settlement support are all captured by the selected grade-3 conceptual gold. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "경북 청년 귀농 영농 정착 지원",
+            "equivalence_group": "48",
+            "grade": 3,
+            "policy_concept": "Gyeongbuk young farmer settlement support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Three-year settlement support for a young returning farmer in Gyeongbuk",
+            "equivalence_group": "v3p-048",
+            "grade": 3,
+            "policy_concept": "Young beginning-farmer settlement support"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "Three-year settlement support for a young returning farmer in Gyeongbuk",
+          "equivalence_group": "v3p-048",
+          "grade": 3,
+          "policy_concept": "Young beginning-farmer settlement support"
+        }
+      ]
+    },
+    "rationale": "Young returning-farmer status, Gyeongbuk location, and third-year settlement support are all captured by the selected grade-3 conceptual gold."
+  },
+  {
+    "task_id": "v3p-049",
     "query_text": "광주 거주 장애인 활동지원 + 주거급여 동시 신청 가능 여부",
-    "task_id": "v3p-049"
+    "decisions": {
+      "golds": [
+        {
+          "description": "Concurrent application of disability activity assistance and housing benefit in Gwangju",
+          "equivalence_group": "v3p-049",
+          "grade": 3,
+          "policy_concept": "Disability activity assistance and housing benefit coordination"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The query asks about concurrent Gwangju applications for disability activity assistance and housing benefit; the selected gold directly matches both programs and the coordination question. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "장애인 활동지원과 주거급여 동시 신청",
+            "equivalence_group": "49",
+            "grade": 3,
+            "policy_concept": "concurrent application for disability assistance and housing benefit"
+          }
+        ],
+        "B": [
+          {
+            "description": "Concurrent application of disability activity assistance and housing benefit in Gwangju",
+            "equivalence_group": "v3p-049",
+            "grade": 3,
+            "policy_concept": "Disability activity assistance and housing benefit coordination"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "Concurrent application of disability activity assistance and housing benefit in Gwangju",
+          "equivalence_group": "v3p-049",
+          "grade": 3,
+          "policy_concept": "Disability activity assistance and housing benefit coordination"
+        }
+      ]
+    },
+    "rationale": "The query asks about concurrent Gwangju applications for disability activity assistance and housing benefit; the selected gold directly matches both programs and the coordination question."
   },
   {
-    "adjudicator_rationale": "location true (B) - 제주 token scopes region -- independent rubric judgment, not deterministic alternating",
-    "decisions": {
-      "location_bearing": true
-    },
+    "task_id": "v3p-050",
     "query_text": "제주 거주 2자녀 가구 다자녀 차량 취득세 감면 + 양육 지원",
-    "task_id": "v3p-050"
+    "decisions": {
+      "common_vs_rare": "rare",
+      "golds": [
+        {
+          "description": "Jeju two-child family vehicle tax reduction and child-rearing support",
+          "equivalence_group": "v3p-050",
+          "grade": 3,
+          "policy_concept": "Multi-child family tax and child-rearing benefits"
+        }
+      ]
+    },
+    "adjudicator_rationale": "A Jeju two-child family seeking vehicle-tax reduction plus child-rearing support is a localized multi-benefit combination, so it is rare; the selected gold includes the two-child qualifier and both benefits. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "common_vs_rare": {
+        "A": "rare",
+        "B": "common"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "제주 다자녀 차량 취득세 감면 및 양육 지원",
+            "equivalence_group": "50",
+            "grade": 3,
+            "policy_concept": "Jeju multi-child vehicle tax relief and child-rearing support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Jeju two-child family vehicle tax reduction and child-rearing support",
+            "equivalence_group": "v3p-050",
+            "grade": 3,
+            "policy_concept": "Multi-child family tax and child-rearing benefits"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "common_vs_rare": "rare",
+      "golds": [
+        {
+          "description": "Jeju two-child family vehicle tax reduction and child-rearing support",
+          "equivalence_group": "v3p-050",
+          "grade": 3,
+          "policy_concept": "Multi-child family tax and child-rearing benefits"
+        }
+      ]
+    },
+    "rationale": "A Jeju two-child family seeking vehicle-tax reduction plus child-rearing support is a localized multi-benefit combination, so it is rare; the selected gold includes the two-child qualifier and both benefits."
   },
   {
-    "adjudicator_rationale": "location true (A) - 서울 token present; A true correct vs B false -- independent rubric judgment, not deterministic alternating",
-    "decisions": {
-      "location_bearing": true
-    },
+    "task_id": "v3p-051",
     "query_text": "서울 청년 월세",
-    "task_id": "v3p-051"
+    "decisions": {
+      "golds": [
+        {
+          "description": "서울 청년 월세 지원",
+          "equivalence_group": "51",
+          "grade": 3,
+          "policy_concept": "Seoul youth monthly rent support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The query points to Seoul youth monthly-rent support, so the selected gold is a direct grade-3 conceptual match. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "서울 청년 월세 지원",
+            "equivalence_group": "51",
+            "grade": 3,
+            "policy_concept": "Seoul youth monthly rent support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Seoul youth monthly-rent support",
+            "equivalence_group": "v3p-051",
+            "grade": 3,
+            "policy_concept": "Youth monthly-rent subsidy"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "서울 청년 월세 지원",
+          "equivalence_group": "51",
+          "grade": 3,
+          "policy_concept": "Seoul youth monthly rent support"
+        }
+      ]
+    },
+    "rationale": "The query points to Seoul youth monthly-rent support, so the selected gold is a direct grade-3 conceptual match."
   },
   {
-    "adjudicator_rationale": "stratum colloquial_typo_spacing_abbrev (A) - query contains 'ㄹㅇ' abbreviation and spacing variant per rubric -- independent rubric judgment, not deterministic alternating",
+    "task_id": "v3p-052",
+    "query_text": "육아휴직 급여",
     "decisions": {
-      "stratum": "colloquial_typo_spacing_abbrev"
+      "golds": [
+        {
+          "description": "육아휴직 급여",
+          "equivalence_group": "52",
+          "grade": 3,
+          "policy_concept": "parental leave benefit"
+        }
+      ]
     },
+    "adjudicator_rationale": "The query names parental-leave pay, so the selected gold is a direct grade-3 conceptual match. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "육아휴직 급여",
+            "equivalence_group": "52",
+            "grade": 3,
+            "policy_concept": "parental leave benefit"
+          }
+        ],
+        "B": [
+          {
+            "description": "Parental-leave pay",
+            "equivalence_group": "v3p-052",
+            "grade": 3,
+            "policy_concept": "Parental-leave benefit"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "육아휴직 급여",
+          "equivalence_group": "52",
+          "grade": 3,
+          "policy_concept": "parental leave benefit"
+        }
+      ]
+    },
+    "rationale": "The query names parental-leave pay, so the selected gold is a direct grade-3 conceptual match."
+  },
+  {
+    "task_id": "v3p-053",
+    "query_text": "국민취업제도",
+    "decisions": {
+      "golds": [
+        {
+          "description": "국민취업지원제도",
+          "equivalence_group": "53",
+          "grade": 3,
+          "policy_concept": "national employment support system"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The query names the National Employment Support System, so the selected gold is a direct grade-3 conceptual match. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "국민취업지원제도",
+            "equivalence_group": "53",
+            "grade": 3,
+            "policy_concept": "national employment support system"
+          }
+        ],
+        "B": [
+          {
+            "description": "National Employment Support System",
+            "equivalence_group": "v3p-053",
+            "grade": 3,
+            "policy_concept": "National employment support program"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "국민취업지원제도",
+          "equivalence_group": "53",
+          "grade": 3,
+          "policy_concept": "national employment support system"
+        }
+      ]
+    },
+    "rationale": "The query names the National Employment Support System, so the selected gold is a direct grade-3 conceptual match."
+  },
+  {
+    "task_id": "v3p-054",
+    "query_text": "소상공인 대출",
+    "decisions": {
+      "golds": [
+        {
+          "description": "소상공인 대출",
+          "equivalence_group": "54",
+          "grade": 3,
+          "policy_concept": "small-business policy loan"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The query names a small-business loan, so the selected gold is a direct grade-3 conceptual match. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "소상공인 대출",
+            "equivalence_group": "54",
+            "grade": 3,
+            "policy_concept": "small-business policy loan"
+          }
+        ],
+        "B": [
+          {
+            "description": "Small-business loan",
+            "equivalence_group": "v3p-054",
+            "grade": 3,
+            "policy_concept": "Small-business policy loan"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "소상공인 대출",
+          "equivalence_group": "54",
+          "grade": 3,
+          "policy_concept": "small-business policy loan"
+        }
+      ]
+    },
+    "rationale": "The query names a small-business loan, so the selected gold is a direct grade-3 conceptual match."
+  },
+  {
+    "task_id": "v3p-055",
+    "query_text": "청년수당 신청",
+    "decisions": {
+      "golds": [
+        {
+          "description": "청년수당 신청",
+          "equivalence_group": "55",
+          "grade": 3,
+          "policy_concept": "youth allowance application"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The query asks to apply for a youth allowance, so the selected gold is a direct grade-3 conceptual match. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "청년수당 신청",
+            "equivalence_group": "55",
+            "grade": 3,
+            "policy_concept": "youth allowance application"
+          }
+        ],
+        "B": [
+          {
+            "description": "Youth allowance application",
+            "equivalence_group": "v3p-055",
+            "grade": 3,
+            "policy_concept": "Youth allowance"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "청년수당 신청",
+          "equivalence_group": "55",
+          "grade": 3,
+          "policy_concept": "youth allowance application"
+        }
+      ]
+    },
+    "rationale": "The query asks to apply for a youth allowance, so the selected gold is a direct grade-3 conceptual match."
+  },
+  {
+    "task_id": "v3p-056",
+    "query_text": "전세보증 보증료",
+    "decisions": {
+      "common_vs_rare": "rare",
+      "golds": [
+        {
+          "description": "전세보증 보증료 지원",
+          "equivalence_group": "56",
+          "grade": 3,
+          "policy_concept": "jeonse guarantee fee support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Rental-deposit guarantee-premium support is a specialized insurance-fee concept, so it is rare; the selected gold directly matches the request. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "common_vs_rare": {
+        "A": "rare",
+        "B": "common"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "전세보증 보증료 지원",
+            "equivalence_group": "56",
+            "grade": 3,
+            "policy_concept": "jeonse guarantee fee support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Rental-deposit guarantee premium support",
+            "equivalence_group": "v3p-056",
+            "grade": 3,
+            "policy_concept": "Rental-deposit guarantee premium subsidy"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "common_vs_rare": "rare",
+      "golds": [
+        {
+          "description": "전세보증 보증료 지원",
+          "equivalence_group": "56",
+          "grade": 3,
+          "policy_concept": "jeonse guarantee fee support"
+        }
+      ]
+    },
+    "rationale": "Rental-deposit guarantee-premium support is a specialized insurance-fee concept, so it is rare; the selected gold directly matches the request."
+  },
+  {
+    "task_id": "v3p-057",
+    "query_text": "햇살론 유스",
+    "decisions": {
+      "golds": [
+        {
+          "description": "햇살론 유스",
+          "equivalence_group": "57",
+          "grade": 3,
+          "policy_concept": "Sunshine Loan Youth"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The query names Sunshine Loan Youth, so the selected gold is a direct grade-3 conceptual match. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "햇살론 유스",
+            "equivalence_group": "57",
+            "grade": 3,
+            "policy_concept": "Sunshine Loan Youth"
+          }
+        ],
+        "B": [
+          {
+            "description": "Sunshine Loan Youth",
+            "equivalence_group": "v3p-057",
+            "grade": 3,
+            "policy_concept": "Youth-targeted policy loan"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "햇살론 유스",
+          "equivalence_group": "57",
+          "grade": 3,
+          "policy_concept": "Sunshine Loan Youth"
+        }
+      ]
+    },
+    "rationale": "The query names Sunshine Loan Youth, so the selected gold is a direct grade-3 conceptual match."
+  },
+  {
+    "task_id": "v3p-058",
+    "query_text": "주거급여 신청",
+    "decisions": {
+      "stratum": "exact_navigation",
+      "golds": [
+        {
+          "description": "주거급여 신청",
+          "equivalence_group": "58",
+          "grade": 3,
+          "policy_concept": "housing benefit application"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Housing-benefit application names a specific benefit or service, so exact_navigation takes priority over short_keywords; the selected gold directly matches the application intent. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "short_keywords",
+        "B": "exact_navigation"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "주거급여 신청",
+            "equivalence_group": "58",
+            "grade": 3,
+            "policy_concept": "housing benefit application"
+          }
+        ],
+        "B": [
+          {
+            "description": "Housing benefit application",
+            "equivalence_group": "v3p-058",
+            "grade": 3,
+            "policy_concept": "Housing benefit"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "stratum": "exact_navigation",
+      "golds": [
+        {
+          "description": "주거급여 신청",
+          "equivalence_group": "58",
+          "grade": 3,
+          "policy_concept": "housing benefit application"
+        }
+      ]
+    },
+    "rationale": "Housing-benefit application names a specific benefit or service, so exact_navigation takes priority over short_keywords; the selected gold directly matches the application intent."
+  },
+  {
+    "task_id": "v3p-059",
+    "query_text": "아이돌봄 서비스",
+    "decisions": {
+      "golds": [
+        {
+          "description": "아이돌봄 서비스",
+          "equivalence_group": "59",
+          "grade": 3,
+          "policy_concept": "public child care service"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The query names childcare service, so the selected gold is a direct grade-3 conceptual match. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "아이돌봄 서비스",
+            "equivalence_group": "59",
+            "grade": 3,
+            "policy_concept": "public child care service"
+          }
+        ],
+        "B": [
+          {
+            "description": "Childcare service",
+            "equivalence_group": "v3p-059",
+            "grade": 3,
+            "policy_concept": "Subsidized childcare service"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "아이돌봄 서비스",
+          "equivalence_group": "59",
+          "grade": 3,
+          "policy_concept": "public child care service"
+        }
+      ]
+    },
+    "rationale": "The query names childcare service, so the selected gold is a direct grade-3 conceptual match."
+  },
+  {
+    "task_id": "v3p-060",
+    "query_text": "청년 창업 지원",
+    "decisions": {
+      "golds": [
+        {
+          "description": "청년 창업 지원",
+          "equivalence_group": "60",
+          "grade": 3,
+          "policy_concept": "youth startup support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The query names youth startup support, so the selected gold is a direct grade-3 conceptual match. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "청년 창업 지원",
+            "equivalence_group": "60",
+            "grade": 3,
+            "policy_concept": "youth startup support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Youth startup support",
+            "equivalence_group": "v3p-060",
+            "grade": 3,
+            "policy_concept": "Youth entrepreneurship support"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "청년 창업 지원",
+          "equivalence_group": "60",
+          "grade": 3,
+          "policy_concept": "youth startup support"
+        }
+      ]
+    },
+    "rationale": "The query names youth startup support, so the selected gold is a direct grade-3 conceptual match."
+  },
+  {
+    "task_id": "v3p-061",
     "query_text": "서울 청년월세 지원 ㄹㅇ 되나요? 오타 아닙니다",
-    "task_id": "v3p-061"
-  },
-  {
-    "adjudicator_rationale": "category housing_finance (A) - 청년월세 query is housing, not culture -- independent rubric judgment, not deterministic alternating",
     "decisions": {
-      "category": "housing_finance"
+      "golds": [
+        {
+          "description": "서울 청년월세 지원",
+          "equivalence_group": "61",
+          "grade": 3,
+          "policy_concept": "Seoul youth monthly rent support"
+        }
+      ]
     },
-    "query_text": "자취생 월세 지원 있음? 대학생",
-    "task_id": "v3p-070"
+    "adjudicator_rationale": "The colloquial emphasis does not obscure the named Seoul youth monthly-rent support, and the selected gold is a direct grade-3 conceptual match. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "서울 청년월세 지원",
+            "equivalence_group": "61",
+            "grade": 3,
+            "policy_concept": "Seoul youth monthly rent support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Seoul youth monthly-rent support",
+            "equivalence_group": "v3p-061",
+            "grade": 3,
+            "policy_concept": "Youth monthly-rent subsidy"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "서울 청년월세 지원",
+          "equivalence_group": "61",
+          "grade": 3,
+          "policy_concept": "Seoul youth monthly rent support"
+        }
+      ]
+    },
+    "rationale": "The colloquial emphasis does not obscure the named Seoul youth monthly-rent support, and the selected gold is a direct grade-3 conceptual match."
   },
   {
-    "adjudicator_rationale": "location false (B) - no location token in duplicate-check query -- independent rubric judgment, not deterministic alternating",
+    "task_id": "v3p-062",
+    "query_text": "경기 주거급여 신청 어디서 함? ㅈㅅㅎ",
+    "decisions": {
+      "golds": [
+        {
+          "description": "경기 주거급여 신청",
+          "equivalence_group": "62",
+          "grade": 3,
+          "policy_concept": "Gyeonggi housing benefit application"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The query names a Gyeonggi housing-benefit application and asks where to apply, so the selected gold is a direct grade-3 match. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "경기 주거급여 신청",
+            "equivalence_group": "62",
+            "grade": 3,
+            "policy_concept": "Gyeonggi housing benefit application"
+          }
+        ],
+        "B": [
+          {
+            "description": "Gyeonggi housing-benefit application",
+            "equivalence_group": "v3p-062",
+            "grade": 3,
+            "policy_concept": "Housing benefit"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "경기 주거급여 신청",
+          "equivalence_group": "62",
+          "grade": 3,
+          "policy_concept": "Gyeonggi housing benefit application"
+        }
+      ]
+    },
+    "rationale": "The query names a Gyeonggi housing-benefit application and asks where to apply, so the selected gold is a direct grade-3 match."
+  },
+  {
+    "task_id": "v3p-063",
+    "query_text": "국민취업제도 1유형 2유형 차이가 머에요",
+    "decisions": {
+      "golds": [
+        {
+          "description": "국민취업지원제도 1유형과 2유형 비교",
+          "equivalence_group": "63",
+          "grade": 3,
+          "policy_concept": "comparison of national employment support types 1 and 2"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The query asks for the Type I versus Type II comparison within a named employment system, so the selected gold directly captures that comparison at grade 3. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "국민취업지원제도 1유형과 2유형 비교",
+            "equivalence_group": "63",
+            "grade": 3,
+            "policy_concept": "comparison of national employment support types 1 and 2"
+          }
+        ],
+        "B": [
+          {
+            "description": "Difference between National Employment Support System Types I and II",
+            "equivalence_group": "v3p-063",
+            "grade": 3,
+            "policy_concept": "Employment support program type comparison"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "국민취업지원제도 1유형과 2유형 비교",
+          "equivalence_group": "63",
+          "grade": 3,
+          "policy_concept": "comparison of national employment support types 1 and 2"
+        }
+      ]
+    },
+    "rationale": "The query asks for the Type I versus Type II comparison within a named employment system, so the selected gold directly captures that comparison at grade 3."
+  },
+  {
+    "task_id": "v3p-064",
+    "query_text": "청년도약계좌 ㄱㄴ 조건 되나여",
+    "decisions": {
+      "golds": [
+        {
+          "description": "청년도약계좌 가입 조건",
+          "equivalence_group": "64",
+          "grade": 3,
+          "policy_concept": "youth leap account eligibility"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The named Youth Leap Account and explicit eligibility question make the selected gold a direct grade-3 conceptual match. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "청년도약계좌 가입 조건",
+            "equivalence_group": "64",
+            "grade": 3,
+            "policy_concept": "youth leap account eligibility"
+          }
+        ],
+        "B": [
+          {
+            "description": "Eligibility conditions for the Youth Leap Account",
+            "equivalence_group": "v3p-064",
+            "grade": 3,
+            "policy_concept": "Youth asset-building savings account"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "청년도약계좌 가입 조건",
+          "equivalence_group": "64",
+          "grade": 3,
+          "policy_concept": "youth leap account eligibility"
+        }
+      ]
+    },
+    "rationale": "The named Youth Leap Account and explicit eligibility question make the selected gold a direct grade-3 conceptual match."
+  },
+  {
+    "task_id": "v3p-065",
+    "query_text": "애 돌봄 서비스 신청법 좀요 ㅠㅠ",
+    "decisions": {
+      "golds": [
+        {
+          "description": "아이돌봄 서비스 신청 방법",
+          "equivalence_group": "65",
+          "grade": 3,
+          "policy_concept": "child care service application"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Although colloquial and emotive, the query clearly asks how to apply for childcare service; the selected gold is a direct grade-3 match. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "아이돌봄 서비스 신청 방법",
+            "equivalence_group": "65",
+            "grade": 3,
+            "policy_concept": "child care service application"
+          }
+        ],
+        "B": [
+          {
+            "description": "How to apply for childcare service",
+            "equivalence_group": "v3p-065",
+            "grade": 3,
+            "policy_concept": "Childcare service application"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "아이돌봄 서비스 신청 방법",
+          "equivalence_group": "65",
+          "grade": 3,
+          "policy_concept": "child care service application"
+        }
+      ]
+    },
+    "rationale": "Although colloquial and emotive, the query clearly asks how to apply for childcare service; the selected gold is a direct grade-3 match."
+  },
+  {
+    "task_id": "v3p-066",
+    "query_text": "소상공인 정책자금 대출 서류 머필요해요",
+    "decisions": {
+      "golds": [
+        {
+          "description": "소상공인 정책자금 대출 구비서류",
+          "equivalence_group": "66",
+          "grade": 3,
+          "policy_concept": "documents for small-business policy loan"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The query names a small-business policy loan and asks for required documents, so the selected gold directly matches the documentation concept at grade 3. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "소상공인 정책자금 대출 구비서류",
+            "equivalence_group": "66",
+            "grade": 3,
+            "policy_concept": "documents for small-business policy loan"
+          }
+        ],
+        "B": [
+          {
+            "description": "Required documents for a small-business policy-fund loan",
+            "equivalence_group": "v3p-066",
+            "grade": 3,
+            "policy_concept": "Small-business policy-loan documentation"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "소상공인 정책자금 대출 구비서류",
+          "equivalence_group": "66",
+          "grade": 3,
+          "policy_concept": "documents for small-business policy loan"
+        }
+      ]
+    },
+    "rationale": "The query names a small-business policy loan and asks for required documents, so the selected gold directly matches the documentation concept at grade 3."
+  },
+  {
+    "task_id": "v3p-067",
+    "query_text": "청년 수당 신청기간 언제까지에요??",
+    "decisions": {
+      "golds": [
+        {
+          "description": "Youth allowance application deadline",
+          "equivalence_group": "v3p-067",
+          "grade": 3,
+          "policy_concept": "Youth allowance application period"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The query specifically asks for the application deadline, so the selected gold explicitly captures that period at grade 3. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "청년수당 신청기간",
+            "equivalence_group": "67",
+            "grade": 3,
+            "policy_concept": "youth allowance application period"
+          }
+        ],
+        "B": [
+          {
+            "description": "Youth allowance application deadline",
+            "equivalence_group": "v3p-067",
+            "grade": 3,
+            "policy_concept": "Youth allowance application period"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "Youth allowance application deadline",
+          "equivalence_group": "v3p-067",
+          "grade": 3,
+          "policy_concept": "Youth allowance application period"
+        }
+      ]
+    },
+    "rationale": "The query specifically asks for the application deadline, so the selected gold explicitly captures that period at grade 3."
+  },
+  {
+    "task_id": "v3p-068",
+    "query_text": "전세보증금 반환보증 보험료 지원 찐인가요",
+    "decisions": {
+      "common_vs_rare": "rare",
+      "golds": [
+        {
+          "description": "Rental-deposit return-guarantee insurance premium support",
+          "equivalence_group": "v3p-068",
+          "grade": 3,
+          "policy_concept": "Rental-deposit guarantee premium subsidy"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Return-guarantee insurance-premium support is a specialized targeted concept, so it is rare; the selected gold directly matches the request. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "common_vs_rare": {
+        "A": "rare",
+        "B": "common"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "전세보증금 반환보증 보증료 지원",
+            "equivalence_group": "68",
+            "grade": 3,
+            "policy_concept": "jeonse deposit return guarantee fee support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Rental-deposit return-guarantee insurance premium support",
+            "equivalence_group": "v3p-068",
+            "grade": 3,
+            "policy_concept": "Rental-deposit guarantee premium subsidy"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "common_vs_rare": "rare",
+      "golds": [
+        {
+          "description": "Rental-deposit return-guarantee insurance premium support",
+          "equivalence_group": "v3p-068",
+          "grade": 3,
+          "policy_concept": "Rental-deposit guarantee premium subsidy"
+        }
+      ]
+    },
+    "rationale": "Return-guarantee insurance-premium support is a specialized targeted concept, so it is rare; the selected gold directly matches the request."
+  },
+  {
+    "task_id": "v3p-069",
+    "query_text": "햇살론유스 ㅇ디서 신청함?",
+    "decisions": {
+      "golds": [
+        {
+          "description": "Where to apply for Sunshine Loan Youth",
+          "equivalence_group": "v3p-069",
+          "grade": 3,
+          "policy_concept": "Youth-targeted policy-loan application"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The typo does not obscure the where-to-apply request for Sunshine Loan Youth, and the selected gold directly captures the application destination at grade 3. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "햇살론유스 신청 방법",
+            "equivalence_group": "69",
+            "grade": 3,
+            "policy_concept": "Sunshine Loan Youth application"
+          }
+        ],
+        "B": [
+          {
+            "description": "Where to apply for Sunshine Loan Youth",
+            "equivalence_group": "v3p-069",
+            "grade": 3,
+            "policy_concept": "Youth-targeted policy-loan application"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "Where to apply for Sunshine Loan Youth",
+          "equivalence_group": "v3p-069",
+          "grade": 3,
+          "policy_concept": "Youth-targeted policy-loan application"
+        }
+      ]
+    },
+    "rationale": "The typo does not obscure the where-to-apply request for Sunshine Loan Youth, and the selected gold directly captures the application destination at grade 3."
+  },
+  {
+    "task_id": "v3p-070",
+    "query_text": "자취생 월세 지원 있음? 대학생",
+    "decisions": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "Monthly-rent support for a college student living independently",
+          "equivalence_group": "v3p-070",
+          "grade": 3,
+          "policy_concept": "Student or youth monthly-rent subsidy"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Independent-living student status and college-student status are two explicit constraints, so the stratum is multi_constraint rather than colloquial_typo_spacing_abbrev; the selected gold captures both at grade 3. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "colloquial_typo_spacing_abbrev",
+        "B": "multi_constraint"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "대학생 월세 지원",
+            "equivalence_group": "70",
+            "grade": 3,
+            "policy_concept": "college student monthly rent support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Monthly-rent support for a college student living independently",
+            "equivalence_group": "v3p-070",
+            "grade": 3,
+            "policy_concept": "Student or youth monthly-rent subsidy"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "Monthly-rent support for a college student living independently",
+          "equivalence_group": "v3p-070",
+          "grade": 3,
+          "policy_concept": "Student or youth monthly-rent subsidy"
+        }
+      ]
+    },
+    "rationale": "Independent-living student status and college-student status are two explicit constraints, so the stratum is multi_constraint rather than colloquial_typo_spacing_abbrev; the selected gold captures both at grade 3."
+  },
+  {
+    "task_id": "v3p-071",
+    "query_text": "정부24 청년 혜택 모음?",
+    "decisions": {
+      "stratum": "exact_navigation",
+      "golds": [
+        {
+          "description": "정부24 청년 혜택 조회",
+          "equivalence_group": "71",
+          "grade": 3,
+          "policy_concept": "Government24 youth benefit search"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Government24 is a named service and the query asks for its youth-benefit collection, so exact_navigation applies; the selected gold directly matches that directory intent. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "short_keywords",
+        "B": "exact_navigation"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "정부24 청년 혜택 조회",
+            "equivalence_group": "71",
+            "grade": 3,
+            "policy_concept": "Government24 youth benefit search"
+          }
+        ],
+        "B": [
+          {
+            "description": "Government24 collection of youth benefits",
+            "equivalence_group": "v3p-071",
+            "grade": 3,
+            "policy_concept": "Government24 youth benefit directory"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "stratum": "exact_navigation",
+      "golds": [
+        {
+          "description": "정부24 청년 혜택 조회",
+          "equivalence_group": "71",
+          "grade": 3,
+          "policy_concept": "Government24 youth benefit search"
+        }
+      ]
+    },
+    "rationale": "Government24 is a named service and the query asks for its youth-benefit collection, so exact_navigation applies; the selected gold directly matches that directory intent."
+  },
+  {
+    "task_id": "v3p-072",
+    "query_text": "월세지원 청년 월세지원 중복 되나요 띄어쓰기오류",
+    "decisions": {
+      "golds": [
+        {
+          "description": "청년 월세 지원 중복 가능 여부",
+          "equivalence_group": "72",
+          "grade": 3,
+          "policy_concept": "whether youth monthly rent supports can be combined"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The spacing error is incidental to a clear question about combining youth monthly-rent supports, and the selected gold captures the concurrent-eligibility concept at grade 3. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "청년 월세 지원 중복 가능 여부",
+            "equivalence_group": "72",
+            "grade": 3,
+            "policy_concept": "whether youth monthly rent supports can be combined"
+          }
+        ],
+        "B": [
+          {
+            "description": "Whether monthly-rent supports can be received concurrently",
+            "equivalence_group": "v3p-072",
+            "grade": 3,
+            "policy_concept": "Monthly-rent benefit overlap eligibility"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "청년 월세 지원 중복 가능 여부",
+          "equivalence_group": "72",
+          "grade": 3,
+          "policy_concept": "whether youth monthly rent supports can be combined"
+        }
+      ]
+    },
+    "rationale": "The spacing error is incidental to a clear question about combining youth monthly-rent supports, and the selected gold captures the concurrent-eligibility concept at grade 3."
+  },
+  {
+    "task_id": "v3p-073",
+    "query_text": "서울 지원금 받고 싶어요",
+    "decisions": {
+      "golds": [
+        {
+          "description": "Seoul public cash or welfare support",
+          "equivalence_group": "v3p-073-general",
+          "grade": 2,
+          "policy_concept": "General Seoul welfare assistance"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The Seoul support request is broad, so the selected grade-2 gold appropriately remains a general public cash or welfare-support concept. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "서울 지역 지원금",
+            "equivalence_group": "73",
+            "grade": 2,
+            "policy_concept": "Seoul public assistance payment"
+          }
+        ],
+        "B": [
+          {
+            "description": "Seoul public cash or welfare support",
+            "equivalence_group": "v3p-073-general",
+            "grade": 2,
+            "policy_concept": "General Seoul welfare assistance"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "Seoul public cash or welfare support",
+          "equivalence_group": "v3p-073-general",
+          "grade": 2,
+          "policy_concept": "General Seoul welfare assistance"
+        }
+      ]
+    },
+    "rationale": "The Seoul support request is broad, so the selected grade-2 gold appropriately remains a general public cash or welfare-support concept."
+  },
+  {
+    "task_id": "v3p-074",
+    "query_text": "청년 혜택 뭐 있죠",
+    "decisions": {
+      "ambiguity_type": "vague_benefit_type",
+      "golds": [
+        {
+          "description": "Youth welfare and allowance benefits",
+          "equivalence_group": "v3p-074-general",
+          "grade": 2,
+          "policy_concept": "General youth benefits"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Youth-benefit intent is clear but the benefit domain is unspecified, so ambiguity_type is vague_benefit_type; the selected grade-2 gold stays general rather than inventing a narrow program. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "ambiguity_type": {
+        "A": "missing_location",
+        "B": "vague_benefit_type"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "청년수당",
+            "equivalence_group": "74",
+            "grade": 2,
+            "policy_concept": "youth cash allowance"
+          },
+          {
+            "description": "청년 주거 지원",
+            "equivalence_group": "74",
+            "grade": 2,
+            "policy_concept": "youth housing support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Youth welfare and allowance benefits",
+            "equivalence_group": "v3p-074-general",
+            "grade": 2,
+            "policy_concept": "General youth benefits"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "ambiguity_type": "vague_benefit_type",
+      "golds": [
+        {
+          "description": "Youth welfare and allowance benefits",
+          "equivalence_group": "v3p-074-general",
+          "grade": 2,
+          "policy_concept": "General youth benefits"
+        }
+      ]
+    },
+    "rationale": "Youth-benefit intent is clear but the benefit domain is unspecified, so ambiguity_type is vague_benefit_type; the selected grade-2 gold stays general rather than inventing a narrow program."
+  },
+  {
+    "task_id": "v3p-075",
+    "query_text": "주거 지원 알려줘요",
+    "decisions": {
+      "golds": [
+        {
+          "description": "Housing assistance such as rent or housing benefit",
+          "equivalence_group": "v3p-075-housing",
+          "grade": 2,
+          "policy_concept": "General housing support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Housing support is explicit but its subtype is broad, so the selected grade-2 gold covers rent or housing-benefit assistance without over-specifying. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "주거급여 또는 월세 지원",
+            "equivalence_group": "75",
+            "grade": 2,
+            "policy_concept": "housing benefit or monthly rent support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Housing assistance such as rent or housing benefit",
+            "equivalence_group": "v3p-075-housing",
+            "grade": 2,
+            "policy_concept": "General housing support"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "Housing assistance such as rent or housing benefit",
+          "equivalence_group": "v3p-075-housing",
+          "grade": 2,
+          "policy_concept": "General housing support"
+        }
+      ]
+    },
+    "rationale": "Housing support is explicit but its subtype is broad, so the selected grade-2 gold covers rent or housing-benefit assistance without over-specifying."
+  },
+  {
+    "task_id": "v3p-076",
+    "query_text": "정부 지원 받을 수 있을까요",
+    "decisions": {
+      "ambiguity_type": "vague_benefit_type",
+      "golds": [
+        {
+          "description": "A suitable government welfare benefit",
+          "equivalence_group": "v3p-076-general",
+          "grade": 2,
+          "policy_concept": "General public assistance"
+        }
+      ]
+    },
+    "adjudicator_rationale": "The intent is to find a government benefit, but no benefit type is named, so ambiguity_type is vague_benefit_type; the selected grade-2 gold remains general. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "ambiguity_type": {
+        "A": "underspecified_intent",
+        "B": "vague_benefit_type"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "공공 복지 지원",
+            "equivalence_group": "76",
+            "grade": 2,
+            "policy_concept": "public welfare support"
+          }
+        ],
+        "B": [
+          {
+            "description": "A suitable government welfare benefit",
+            "equivalence_group": "v3p-076-general",
+            "grade": 2,
+            "policy_concept": "General public assistance"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "ambiguity_type": "vague_benefit_type",
+      "golds": [
+        {
+          "description": "A suitable government welfare benefit",
+          "equivalence_group": "v3p-076-general",
+          "grade": 2,
+          "policy_concept": "General public assistance"
+        }
+      ]
+    },
+    "rationale": "The intent is to find a government benefit, but no benefit type is named, so ambiguity_type is vague_benefit_type; the selected grade-2 gold remains general."
+  },
+  {
+    "task_id": "v3p-077",
+    "query_text": "복지 혜택 신청하고 싶어요",
+    "decisions": {
+      "golds": [
+        {
+          "description": "복지급여 신청",
+          "equivalence_group": "77",
+          "grade": 2,
+          "policy_concept": "welfare benefit application"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Welfare-application intent is explicit, so the selected grade-2 gold directly represents a welfare-benefit application. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "복지급여 신청",
+            "equivalence_group": "77",
+            "grade": 2,
+            "policy_concept": "welfare benefit application"
+          }
+        ],
+        "B": [
+          {
+            "description": "General welfare benefits and application guidance",
+            "equivalence_group": "v3p-077-welfare",
+            "grade": 2,
+            "policy_concept": "General welfare assistance"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "복지급여 신청",
+          "equivalence_group": "77",
+          "grade": 2,
+          "policy_concept": "welfare benefit application"
+        }
+      ]
+    },
+    "rationale": "Welfare-application intent is explicit, so the selected grade-2 gold directly represents a welfare-benefit application."
+  },
+  {
+    "task_id": "v3p-078",
+    "query_text": "대출 지원 있나요",
+    "decisions": {
+      "ambiguity_type": "missing_eligibility",
+      "golds": [
+        {
+          "description": "정책금융 대출 지원",
+          "equivalence_group": "78",
+          "grade": 2,
+          "policy_concept": "public policy loan support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Loan support is already an explicit benefit type, so the primary gap is applicant eligibility rather than benefit type; the selected grade-2 gold matches public policy-loan support. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "ambiguity_type": {
+        "A": "missing_eligibility",
+        "B": "vague_benefit_type"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "정책금융 대출 지원",
+            "equivalence_group": "78",
+            "grade": 2,
+            "policy_concept": "public policy loan support"
+          }
+        ],
+        "B": [
+          {
+            "description": "A suitable policy loan or public financing program",
+            "equivalence_group": "v3p-078-loan",
+            "grade": 2,
+            "policy_concept": "General policy financing"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "ambiguity_type": "missing_eligibility",
+      "golds": [
+        {
+          "description": "정책금융 대출 지원",
+          "equivalence_group": "78",
+          "grade": 2,
+          "policy_concept": "public policy loan support"
+        }
+      ]
+    },
+    "rationale": "Loan support is already an explicit benefit type, so the primary gap is applicant eligibility rather than benefit type; the selected grade-2 gold matches public policy-loan support."
+  },
+  {
+    "task_id": "v3p-079",
+    "query_text": "교육 지원 알려주세요",
+    "decisions": {
+      "golds": [
+        {
+          "description": "Education scholarships or training support",
+          "equivalence_group": "v3p-079-education",
+          "grade": 2,
+          "policy_concept": "General education assistance"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Education support is explicit but its subtype is broad, so the selected grade-2 gold covers scholarships or training assistance. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "교육비 또는 장학금 지원",
+            "equivalence_group": "79",
+            "grade": 2,
+            "policy_concept": "education-cost or scholarship support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Education scholarships or training support",
+            "equivalence_group": "v3p-079-education",
+            "grade": 2,
+            "policy_concept": "General education assistance"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "Education scholarships or training support",
+          "equivalence_group": "v3p-079-education",
+          "grade": 2,
+          "policy_concept": "General education assistance"
+        }
+      ]
+    },
+    "rationale": "Education support is explicit but its subtype is broad, so the selected grade-2 gold covers scholarships or training assistance."
+  },
+  {
+    "task_id": "v3p-080",
+    "query_text": "보육 지원 궁금해요",
+    "decisions": {
+      "golds": [
+        {
+          "description": "보육료 및 보육 서비스 지원",
+          "equivalence_group": "80",
+          "grade": 2,
+          "policy_concept": "childcare fee and service support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Childcare is explicit, and the selected grade-2 gold covers both childcare fees and services without narrowing the request. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "보육료 및 보육 서비스 지원",
+            "equivalence_group": "80",
+            "grade": 2,
+            "policy_concept": "childcare fee and service support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Childcare and child-rearing support",
+            "equivalence_group": "v3p-080-care",
+            "grade": 2,
+            "policy_concept": "General childcare assistance"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "보육료 및 보육 서비스 지원",
+          "equivalence_group": "80",
+          "grade": 2,
+          "policy_concept": "childcare fee and service support"
+        }
+      ]
+    },
+    "rationale": "Childcare is explicit, and the selected grade-2 gold covers both childcare fees and services without narrowing the request."
+  },
+  {
+    "task_id": "v3p-081",
+    "query_text": "문화 혜택 있나요",
+    "decisions": {
+      "golds": [
+        {
+          "description": "Cultural or leisure benefit programs",
+          "equivalence_group": "v3p-081-culture",
+          "grade": 2,
+          "policy_concept": "General cultural assistance"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Culture is explicit but the particular benefit is not, so the selected grade-2 gold appropriately covers broad cultural or leisure programs. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "문화 바우처",
+            "equivalence_group": "81",
+            "grade": 2,
+            "policy_concept": "culture voucher"
+          }
+        ],
+        "B": [
+          {
+            "description": "Cultural or leisure benefit programs",
+            "equivalence_group": "v3p-081-culture",
+            "grade": 2,
+            "policy_concept": "General cultural assistance"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "Cultural or leisure benefit programs",
+          "equivalence_group": "v3p-081-culture",
+          "grade": 2,
+          "policy_concept": "General cultural assistance"
+        }
+      ]
+    },
+    "rationale": "Culture is explicit but the particular benefit is not, so the selected grade-2 gold appropriately covers broad cultural or leisure programs."
+  },
+  {
+    "task_id": "v3p-082",
+    "query_text": "창업 지원받고 싶어요",
+    "decisions": {
+      "ambiguity_type": "missing_eligibility",
+      "golds": [
+        {
+          "description": "Startup grants, loans, or incubation support",
+          "equivalence_group": "v3p-082-startup",
+          "grade": 2,
+          "policy_concept": "General entrepreneurship assistance"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Startup-support intent is clear, but the applicant’s eligibility is unspecified and may determine fit, so missing_eligibility is primary over missing_location; the selected gold covers grants, loans, and incubation at grade 2. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "ambiguity_type": {
+        "A": "missing_eligibility",
+        "B": "missing_location"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "창업 사업화 자금",
+            "equivalence_group": "82",
+            "grade": 2,
+            "policy_concept": "startup commercialization funding"
+          }
+        ],
+        "B": [
+          {
+            "description": "Startup grants, loans, or incubation support",
+            "equivalence_group": "v3p-082-startup",
+            "grade": 2,
+            "policy_concept": "General entrepreneurship assistance"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "ambiguity_type": "missing_eligibility",
+      "golds": [
+        {
+          "description": "Startup grants, loans, or incubation support",
+          "equivalence_group": "v3p-082-startup",
+          "grade": 2,
+          "policy_concept": "General entrepreneurship assistance"
+        }
+      ]
+    },
+    "rationale": "Startup-support intent is clear, but the applicant’s eligibility is unspecified and may determine fit, so missing_eligibility is primary over missing_location; the selected gold covers grants, loans, and incubation at grade 2."
+  },
+  {
+    "task_id": "v3p-083",
+    "query_text": "의료비 지원 되나요",
+    "decisions": {
+      "golds": [
+        {
+          "description": "의료비 지원",
+          "equivalence_group": "83",
+          "grade": 2,
+          "policy_concept": "medical expense assistance"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Medical-expense support is explicit, so the selected grade-2 gold is a direct conceptual match. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "golds": {
+        "A": [
+          {
+            "description": "의료비 지원",
+            "equivalence_group": "83",
+            "grade": 2,
+            "policy_concept": "medical expense assistance"
+          }
+        ],
+        "B": [
+          {
+            "description": "Medical-expense assistance for an eligible household",
+            "equivalence_group": "v3p-083-medical",
+            "grade": 2,
+            "policy_concept": "Medical expense support"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "golds": [
+        {
+          "description": "의료비 지원",
+          "equivalence_group": "83",
+          "grade": 2,
+          "policy_concept": "medical expense assistance"
+        }
+      ]
+    },
+    "rationale": "Medical-expense support is explicit, so the selected grade-2 gold is a direct conceptual match."
+  },
+  {
+    "task_id": "v3p-084",
+    "query_text": "이사 지원 있을까요",
+    "decisions": {
+      "ambiguity_type": "missing_location",
+      "common_vs_rare": "rare",
+      "golds": [
+        {
+          "description": "이사·이주 비용 지원",
+          "equivalence_group": "84",
+          "grade": 2,
+          "policy_concept": "moving or relocation cost support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Moving assistance is clear, while location is the material routing gap, so ambiguity_type is missing_location; the selected grade-2 gold directly matches moving or relocation costs, and this targeted concept is rare. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "ambiguity_type": {
+        "A": "missing_location",
+        "B": "underspecified_intent"
+      },
+      "common_vs_rare": {
+        "A": "rare",
+        "B": "common"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "이사·이주 비용 지원",
+            "equivalence_group": "84",
+            "grade": 2,
+            "policy_concept": "moving or relocation cost support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Relocation-related housing or moving assistance",
+            "equivalence_group": "v3p-084-moving",
+            "grade": 2,
+            "policy_concept": "Moving assistance"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "ambiguity_type": "missing_location",
+      "common_vs_rare": "rare",
+      "golds": [
+        {
+          "description": "이사·이주 비용 지원",
+          "equivalence_group": "84",
+          "grade": 2,
+          "policy_concept": "moving or relocation cost support"
+        }
+      ]
+    },
+    "rationale": "Moving assistance is clear, while location is the material routing gap, so ambiguity_type is missing_location; the selected grade-2 gold directly matches moving or relocation costs, and this targeted concept is rare."
+  },
+  {
+    "task_id": "v3p-085",
+    "query_text": "포인트 지원 알려줘",
+    "decisions": {
+      "category": "welfare_health",
+      "golds": [
+        {
+          "description": "A points or voucher benefit for an eligible purpose",
+          "equivalence_group": "v3p-085-points",
+          "grade": 2,
+          "policy_concept": "General points or voucher assistance"
+        }
+      ]
+    },
+    "adjudicator_rationale": "No cultural purpose is stated, so generic points support fits welfare_health rather than culture_community; the selected grade-2 gold remains a generic points or voucher concept. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "category": {
+        "A": "welfare_health",
+        "B": "culture_community"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "공공 포인트 지원",
+            "equivalence_group": "85",
+            "grade": 2,
+            "policy_concept": "public benefit points"
+          }
+        ],
+        "B": [
+          {
+            "description": "A points or voucher benefit for an eligible purpose",
+            "equivalence_group": "v3p-085-points",
+            "grade": 2,
+            "policy_concept": "General points or voucher assistance"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "category": "welfare_health",
+      "golds": [
+        {
+          "description": "A points or voucher benefit for an eligible purpose",
+          "equivalence_group": "v3p-085-points",
+          "grade": 2,
+          "policy_concept": "General points or voucher assistance"
+        }
+      ]
+    },
+    "rationale": "No cultural purpose is stated, so generic points support fits welfare_health rather than culture_community; the selected grade-2 gold remains a generic points or voucher concept."
+  },
+  {
+    "task_id": "v3p-086",
+    "query_text": "서울 외국인 관광객 교통비 지원 신청하고 싶어요",
+    "decisions": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "Seoul public transportation subsidy or discount for foreign tourists",
+          "equivalence_group": "v3p-086",
+          "grade": 3,
+          "policy_concept": "Tourist transportation support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Seoul, foreign-tourist status, and transportation support are independent constraints, so the stratum is multi_constraint; the selected gold directly matches all elements at grade 3. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "natural_needs",
+        "B": "multi_constraint"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "관광객 대중교통 할인·지원",
+            "equivalence_group": "86",
+            "grade": 2,
+            "policy_concept": "tourist transportation subsidy or discount"
+          }
+        ],
+        "B": [
+          {
+            "description": "Seoul public transportation subsidy or discount for foreign tourists",
+            "equivalence_group": "v3p-086",
+            "grade": 3,
+            "policy_concept": "Tourist transportation support"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "Seoul public transportation subsidy or discount for foreign tourists",
+          "equivalence_group": "v3p-086",
+          "grade": 3,
+          "policy_concept": "Tourist transportation support"
+        }
+      ]
+    },
+    "rationale": "Seoul, foreign-tourist status, and transportation support are independent constraints, so the stratum is multi_constraint; the selected gold directly matches all elements at grade 3."
+  },
+  {
+    "task_id": "v3p-087",
+    "query_text": "경기 반려동물 미용비 정부 지원 있나요",
+    "decisions": {
+      "stratum": "natural_needs",
+      "conceptual_answerable": true,
+      "golds": [
+        {
+          "description": "반려동물 돌봄·미용 비용 지원",
+          "equivalence_group": "87",
+          "grade": 2,
+          "policy_concept": "companion-animal care or grooming support"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Gyeonggi pet-grooming assistance is a clear public-policy need and a plausible conceptual benefit, so conceptual_answerable is true and the stratum is natural_needs; the selected grade-2 gold does not assert that a corpus row exists. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "natural_needs",
+        "B": "unsupported_no_answer"
+      },
+      "conceptual_answerable": {
+        "A": true,
+        "B": false
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "반려동물 돌봄·미용 비용 지원",
+            "equivalence_group": "87",
+            "grade": 2,
+            "policy_concept": "companion-animal care or grooming support"
+          }
+        ],
+        "B": []
+      }
+    },
+    "adjudicated": {
+      "stratum": "natural_needs",
+      "conceptual_answerable": true,
+      "golds": [
+        {
+          "description": "반려동물 돌봄·미용 비용 지원",
+          "equivalence_group": "87",
+          "grade": 2,
+          "policy_concept": "companion-animal care or grooming support"
+        }
+      ]
+    },
+    "rationale": "Gyeonggi pet-grooming assistance is a clear public-policy need and a plausible conceptual benefit, so conceptual_answerable is true and the stratum is natural_needs; the selected grade-2 gold does not assert that a corpus row exists."
+  },
+  {
+    "task_id": "v3p-088",
+    "query_text": "부산 해외 유학 비행기표 지원 사업 찾고 있어요",
+    "decisions": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "Public scholarship or grant covering overseas-study airfare for a Busan resident",
+          "equivalence_group": "v3p-088",
+          "grade": 3,
+          "policy_concept": "Overseas-study travel grant"
+        }
+      ]
+    },
+    "adjudicator_rationale": "Busan, overseas study, and airfare support are independent constraints, so the stratum is multi_constraint; the selected gold directly matches an overseas-study travel grant at grade 3. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "natural_needs",
+        "B": "multi_constraint"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "해외 유학 장학금 및 항공료 지원",
+            "equivalence_group": "88",
+            "grade": 2,
+            "policy_concept": "overseas study scholarship and airfare support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Public scholarship or grant covering overseas-study airfare for a Busan resident",
+            "equivalence_group": "v3p-088",
+            "grade": 3,
+            "policy_concept": "Overseas-study travel grant"
+          }
+        ]
+      }
+    },
+    "adjudicated": {
+      "stratum": "multi_constraint",
+      "golds": [
+        {
+          "description": "Public scholarship or grant covering overseas-study airfare for a Busan resident",
+          "equivalence_group": "v3p-088",
+          "grade": 3,
+          "policy_concept": "Overseas-study travel grant"
+        }
+      ]
+    },
+    "rationale": "Busan, overseas study, and airfare support are independent constraints, so the stratum is multi_constraint; the selected gold directly matches an overseas-study travel grant at grade 3."
+  },
+  {
+    "task_id": "v3p-092",
+    "query_text": "외제차 구입 보조금 청년 대상 있나요",
     "decisions": {
       "location_bearing": false
     },
-    "query_text": "월세지원 청년 월세지원 중복 되나요 띄어쓰기오류",
-    "task_id": "v3p-072"
+    "adjudicator_rationale": "No city, province, region, or locality is named; “foreign car” describes the vehicle, not the beneficiary’s geography, so location_bearing is false. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "location_bearing": {
+        "A": false,
+        "B": true
+      }
+    },
+    "adjudicated": {
+      "location_bearing": false
+    },
+    "rationale": "No city, province, region, or locality is named; “foreign car” describes the vehicle, not the beneficiary’s geography, so location_bearing is false."
   },
   {
-    "adjudicator_rationale": "location true (A? actually A true, B false for 073? But 073 both natural now? Wait 073 location diff is A false vs B false? Actually earlier 073 location diff was A false? Let's keep true per 서울 token) - 서울 token present, true -- independent rubric judgment, not deterministic alternating",
+    "task_id": "v3p-093",
+    "query_text": "해외 콘서트 티켓 지원 사업",
     "decisions": {
       "location_bearing": true
     },
-    "query_text": "서울 지원금 받고 싶어요",
-    "task_id": "v3p-073"
+    "adjudicator_rationale": "“Overseas” is an explicit geographic-region qualifier, so location_bearing is true. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "location_bearing": {
+        "A": false,
+        "B": true
+      }
+    },
+    "adjudicated": {
+      "location_bearing": true
+    },
+    "rationale": "“Overseas” is an explicit geographic-region qualifier, so location_bearing is true."
   },
   {
-    "adjudicator_rationale": "stratum unsupported_no_answer (A), conceptual false (A), ambiguous false (A), golds A empty (A), category housing_finance (B? actually adjudicated housing) - unsupported has no grade>=2 per rubric; B's ambiguous/conceptual true was overreach -- independent rubric judgment, not deterministic alternating",
+    "task_id": "v3p-098",
+    "query_text": "사치품 구입 지원 청년 혜택",
     "decisions": {
-      "ambiguity_type": null,
-      "ambiguous": false,
-      "category": "housing_finance",
-      "conceptual_answerable": false,
-      "golds_choice": "A",
-      "stratum": "unsupported_no_answer"
+      "source_hint": "youth"
     },
-    "query_text": "서울 외국인 관광객 교통비 지원 신청하고 싶어요",
-    "task_id": "v3p-086"
+    "adjudicator_rationale": "Youth framing is explicit, so source_hint is youth even though the requested luxury benefit is not otherwise narrowed. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "source_hint": {
+        "A": "youth",
+        "B": "gov24"
+      }
+    },
+    "adjudicated": {
+      "source_hint": "youth"
+    },
+    "rationale": "Youth framing is explicit, so source_hint is youth even though the requested luxury benefit is not otherwise narrowed."
   },
   {
-    "adjudicator_rationale": "conceptual false and golds A empty (A) - unsupported query with no conceivable eligible policy; B true was overreach -- independent rubric judgment, not deterministic alternating",
+    "task_id": "v3p-099",
+    "query_text": "해외 명품 여행 지원금 있나요",
     "decisions": {
-      "conceptual_answerable": false,
-      "golds_choice": "A"
+      "location_bearing": true
     },
-    "query_text": "경기 반려동물 미용비 정부 지원 있나요",
-    "task_id": "v3p-087"
+    "adjudicator_rationale": "“Overseas” explicitly denotes a geographic region, so location_bearing is true. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "location_bearing": {
+        "A": false,
+        "B": true
+      }
+    },
+    "adjudicated": {
+      "location_bearing": true
+    },
+    "rationale": "“Overseas” explicitly denotes a geographic region, so location_bearing is true."
   },
   {
-    "adjudicator_rationale": "conceptual false and golds A empty (A) -- independent rubric judgment, not deterministic alternating",
+    "task_id": "v3p-100",
+    "query_text": "개인 헬스장 PT 비용 국가 지원",
     "decisions": {
-      "conceptual_answerable": false,
-      "golds_choice": "A"
+      "stratum": "natural_needs",
+      "golds": [
+        {
+          "description": "국민체육진흥 바우처를 통한 운동비 지원",
+          "equivalence_group": "100",
+          "grade": 2,
+          "policy_concept": "public fitness expense support"
+        }
+      ]
     },
-    "query_text": "부산 해외 유학 비행기표 지원 사업 찾고 있어요",
-    "task_id": "v3p-088"
-  },
-  {
-    "adjudicator_rationale": "stratum unsupported_no_answer (A) - unsupported query -- independent rubric judgment, not deterministic alternating",
-    "decisions": {
-      "stratum": "unsupported_no_answer"
+    "adjudicator_rationale": "This is one fitness-expense need; “national” indicates the source rather than a second eligibility constraint, so the stratum is natural_needs. A general public fitness voucher is only an acceptable conceptual match at grade 2, not a guaranteed exact match for private PT. -- independent rubric judgment per neutral_rubric.md, not deterministic alternating",
+    "disagreements": {
+      "stratum": {
+        "A": "natural_needs",
+        "B": "multi_constraint"
+      },
+      "golds": {
+        "A": [
+          {
+            "description": "국민체육진흥 바우처를 통한 운동비 지원",
+            "equivalence_group": "100",
+            "grade": 2,
+            "policy_concept": "public fitness expense support"
+          }
+        ],
+        "B": [
+          {
+            "description": "Sports activity voucher or health support covering personal gym training",
+            "equivalence_group": "v3p-100",
+            "grade": 3,
+            "policy_concept": "Subsidized sports activity or fitness support"
+          }
+        ]
+      }
     },
-    "query_text": "대전 주식 투자 손실 보전 지원금 있나요",
-    "task_id": "v3p-089"
-  },
-  {
-    "adjudicator_rationale": "stratum unsupported_no_answer (A) -- independent rubric judgment, not deterministic alternating",
-    "decisions": {
-      "stratum": "unsupported_no_answer"
+    "adjudicated": {
+      "stratum": "natural_needs",
+      "golds": [
+        {
+          "description": "국민체육진흥 바우처를 통한 운동비 지원",
+          "equivalence_group": "100",
+          "grade": 2,
+          "policy_concept": "public fitness expense support"
+        }
+      ]
     },
-    "query_text": "외제차 구입 보조금 청년 대상 있나요",
-    "task_id": "v3p-092"
+    "rationale": "This is one fitness-expense need; “national” indicates the source rather than a second eligibility constraint, so the stratum is natural_needs. A general public fitness voucher is only an acceptable conceptual match at grade 2, not a guaranteed exact match for private PT."
   }
 ]

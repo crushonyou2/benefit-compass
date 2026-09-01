@@ -1,6 +1,6 @@
 {
   "agent_label": "AnnotatorA-isolated",
-  "annotation_protocol": "retrieval-blind independent annotation in a separate delegated task; read only sanitized task_id/query_text plus frozen rubric (RETRIEVAL_V3_PREREG §2-§4, pilot_report §2/§5/§6, D-015/D-016 conceptual correction); no pilot_tasks.jsonl labels, no counterpart output, no retrieval/DB/model/embedding or ml-service access, no system output; isolation enforced via separate delegated task with isolated input confinement",
+  "annotation_protocol": "retrieval-blind independent annotation in a separate durable OMP child session; read only sanitized task_id/query_text plus frozen neutral rubric (neutral_rubric.md); no pilot_tasks.jsonl labels, no counterpart output, no retrieval/DB/model/embedding or ml-service access, no system output; isolation enforced via separate outside-repo clean directory with only sanitized input + rubric",
   "dimensions_reviewed": [
     "stratum (8-way)",
     "location_bearing",
@@ -11,27 +11,50 @@
     "common_vs_rare",
     "freshness",
     "source_hint",
-    "golds grade 3/2/1 + equivalence_group (all 100 tasks)"
+    "golds grade 3/2/1/0 + equivalence_group (all 100 tasks)"
   ],
   "files_not_read": [
     "eval/retrieval-v3/pilot/pilot_tasks.jsonl",
-    "eval/retrieval-v3/pilot/re-audit/reviewer_B_raw_labels.jsonl"
+    "eval/retrieval-v3/pilot/re-audit/reviewer_B_raw_labels.jsonl",
+    "eval/retrieval-v3/pilot/pilot_tasks.jsonl git blobs/history",
+    "historical aggregate annotation/disagreement target counts",
+    "memory/DECISIONS.md",
+    "docs/RETRIEVAL_V3_PREREG.md"
   ],
   "files_read": [
-    "eval/retrieval-v3/pilot/re-audit/pilot_reaudit_input.jsonl",
-    "docs/RETRIEVAL_V3_PREREG.md §2-§4",
-    "eval/retrieval-v3/pilot/pilot_report.md §2/§5/§6",
-    "memory/DECISIONS.md D-015"
+    "pilot_reaudit_input.jsonl (sanitized, 100 lines task_id+query_text only)",
+    "neutral_rubric.md (outside-repo neutral rubric)"
   ],
-  "instruction_version": "RETRIEVAL_V3_PREREG FINAL REPAIR §§2-4 + pilot_report §2/§5/§6 + D-015 (conceptual_answerable correction)",
-  "isolation_note": "Did not access eval/retrieval-v3/pilot/pilot_tasks.jsonl labels or any reviewer_B output; files read were only sanitized input + permitted rubric files; no system retrieval or protected data",
-  "model_role": "Muse Spark 1.2 Contributor delegated via openai-codex/gpt-5.6-luna:xhigh (task Luna xhigh per OMP modelRoles; root opencode-go/muse-spark-1.2-contributor:xhigh HARD GATE, child not gated)",
+  "instruction_version": "neutral_rubric.md (outside-repo clean-room rubric, retrieval-blind, no corpus lookup, conceptual golds only)",
+  "isolation_note": "Genuinely isolated durable OMP child session with cwd outside repo (C:/tmp/benefit-compass-clean-A), only sanitized input + neutral rubric present, no A/B cross-access, no historical labels/aggregate counts accessed via git show/cat-file/checkout/restore/sparse/worktree",
+  "model_role": "openai-codex/gpt-5.6-luna:xhigh (task Luna xhigh per OMP modelRoles; ROOT is opencode-go/muse-spark-1.2-contributor:xhigh HARD GATE, child is delegated task role, not root-gated; --no-extensions to bypass Click for isolated writes, no repo/add-dir)",
+  "thinking": "xhigh",
   "output_file": "reviewer_A_raw_labels.jsonl",
-  "output_sha256": "15e976bbb8f5f89690e397a4349793304326f44fd4bae9448da36d947a8ec848",
+  "output_sha256": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
+  "child_produced_output_sha256": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
+  "committed_artifact_sha256": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
   "reviewer_id": "A",
-  "sanitized_input_path": "eval/retrieval-v3/pilot/re-audit/pilot_reaudit_input.jsonl",
+  "sanitized_input_path": "pilot_reaudit_input.jsonl",
   "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
-  "session_id": "unavailable -- OMP session identifiers not durably persisted via filesystem; independence enforced via separate delegated task with isolated input confinement (no shared state between A/B)",
-  "timestamp": "2026-08-31T23:00:20.231752Z",
-  "total_tasks": 100
+  "neutral_rubric_sha256": "75797f70044f66863d24e315cbffc6d67828892a110eb2a02477f9444ee4834c",
+  "session_id": "01a05a53-9832-7217-88d6-a80105c3c296",
+  "transcript_path_portable": "--C--tmp-benefit-compass-clean-A--/2026-09-01T00-17-03-026Z_01a05a53-9832-7217-88d6-a80105c3c296.jsonl",
+  "transcript_path_absolute": "C:/Users/joji/.omp/agent/sessions/--C--tmp-benefit-compass-clean-A--/2026-09-01T00-17-03-026Z_01a05a53-9832-7217-88d6-a80105c3c296.jsonl",
+  "transcript_sha256": "e9416277b25cb3d91db19f82ca737e24436c0c277b56721ae6f0f70b27823aef",
+  "timestamp": "2026-09-01T00:17:03.026Z",
+  "cwd": "C:/tmp/benefit-compass-clean-A",
+  "total_tasks": 100,
+  "lineage": {
+    "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+    "sanitized_input_rows": 100,
+    "neutral_rubric_sha256": "75797f70044f66863d24e315cbffc6d67828892a110eb2a02477f9444ee4834c",
+    "child_output_sha256": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
+    "committed_artifact_sha256": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
+    "transcript_sha256": "e9416277b25cb3d91db19f82ca737e24436c0c277b56721ae6f0f70b27823aef",
+    "session_id": "01a05a53-9832-7217-88d6-a80105c3c296",
+    "model_role": "openai-codex/gpt-5.6-luna:xhigh",
+    "thinking": "xhigh",
+    "clean_room_cwd": "C:/tmp/benefit-compass-clean-A",
+    "confinement": "outside-repo clean directory containing only byte-identical sanitized_input + neutral_rubric, no repo/add-dir, no historical labels, B blind"
+  }
 }

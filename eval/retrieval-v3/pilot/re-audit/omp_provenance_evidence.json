@@ -1,0 +1,135 @@
+{
+  "pilot_reaudit_id": "retrieval-v3-pilot-100-v1-re-audit-2026-09-01-corrected-v2-durable",
+  "description": "Deterministic OMP provenance evidence for offline regression; sanitized digest metadata sufficient without live sessions or home directory",
+  "sanitized_input": {
+    "path": "eval/retrieval-v3/pilot/re-audit/pilot_reaudit_input.jsonl",
+    "sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+    "rows": 100,
+    "fields": [
+      "task_id",
+      "query_text"
+    ]
+  },
+  "neutral_rubric": {
+    "path": "neutral_rubric.md (outside-repo clean-room)",
+    "sha256": "75797f70044f66863d24e315cbffc6d67828892a110eb2a02477f9444ee4834c",
+    "note": "Neutral rubric solely from prompt, no historical counts"
+  },
+  "c_input": {
+    "path": "c_input.jsonl (outside-repo, not committed)",
+    "sha256": "ba5d30608a04f3a43243e18ea78a6a2b327bacae2c2b4402bb1c2cfb1aa38764",
+    "rows": 93,
+    "construction": "mechanically compared A vs B, only task_id/query_text + A/B disagreement values for dimensions that differ, no historical labels"
+  },
+  "reviewer_A": {
+    "session_id": "01a05a53-9832-7217-88d6-a80105c3c296",
+    "transcript_path_portable": "--C--tmp-benefit-compass-clean-A--/2026-09-01T00-17-03-026Z_01a05a53-9832-7217-88d6-a80105c3c296.jsonl",
+    "transcript_sha256": "e9416277b25cb3d91db19f82ca737e24436c0c277b56721ae6f0f70b27823aef",
+    "model_role": "openai-codex/gpt-5.6-luna:xhigh",
+    "thinking": "xhigh",
+    "cwd": "C:/tmp/benefit-compass-clean-A",
+    "cwd_confinement": "outside-repo, contains only sanitized_input + neutral_rubric, no repo/add-dir, no historical labels",
+    "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+    "neutral_rubric_sha256": "75797f70044f66863d24e315cbffc6d67828892a110eb2a02477f9444ee4834c",
+    "child_produced_output_sha256": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
+    "committed_artifact": "eval/retrieval-v3/pilot/re-audit/reviewer_A_raw_labels.jsonl",
+    "committed_artifact_sha256": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
+    "output_rows": 100,
+    "timestamp": "2026-09-01T00:17:03.026Z",
+    "files_read": [
+      "pilot_reaudit_input.jsonl",
+      "neutral_rubric.md"
+    ],
+    "files_not_read": [
+      "eval/retrieval-v3/pilot/pilot_tasks.jsonl",
+      "reviewer_B_raw_labels.jsonl",
+      "historical counts",
+      "memory/DECISIONS.md"
+    ]
+  },
+  "reviewer_B": {
+    "session_id": "01a05a54-8e7b-741e-b6df-ddbcf2c125e2",
+    "transcript_path_portable": "--C--tmp-benefit-compass-clean-B--/2026-09-01T00-18-06-075Z_01a05a54-8e7b-741e-b6df-ddbcf2c125e2.jsonl",
+    "transcript_sha256": "de7f79517138eb78ec2f5f0cef6a43efecd22bc4db67c1423da2a0d1d668b1a1",
+    "model_role": "openai-codex/gpt-5.6-luna:xhigh",
+    "thinking": "xhigh",
+    "cwd": "C:/tmp/benefit-compass-clean-B",
+    "cwd_confinement": "outside-repo, contains only sanitized_input + neutral_rubric, no repo/add-dir, no A output, no historical labels",
+    "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+    "neutral_rubric_sha256": "75797f70044f66863d24e315cbffc6d67828892a110eb2a02477f9444ee4834c",
+    "child_produced_output_sha256": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
+    "committed_artifact": "eval/retrieval-v3/pilot/re-audit/reviewer_B_raw_labels.jsonl",
+    "committed_artifact_sha256": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
+    "output_rows": 100,
+    "timestamp": "2026-09-01T00:18:06.075Z",
+    "blind_to_A": true,
+    "files_read": [
+      "pilot_reaudit_input.jsonl",
+      "neutral_rubric.md"
+    ],
+    "files_not_read": [
+      "eval/retrieval-v3/pilot/pilot_tasks.jsonl",
+      "reviewer_A_raw_labels.jsonl",
+      "C:/tmp/benefit-compass-clean-A"
+    ]
+  },
+  "reviewer_C": {
+    "session_id": "01a05a5c-63fd-7132-8a5f-a8259ef50382",
+    "transcript_path_portable": "--C--tmp-benefit-compass-clean-C--/2026-09-01T00-26-39-485Z_01a05a5c-63fd-7132-8a5f-a8259ef50382.jsonl",
+    "transcript_sha256": "8c4eed7cc619fa21f7c34812f926840fde760191e145389c2acd005dd0207067",
+    "model_role": "openai-codex/gpt-5.6-luna:max",
+    "thinking": "max",
+    "cwd": "C:/tmp/benefit-compass-clean-C",
+    "cwd_confinement": "outside-repo, contains only c_input.jsonl + neutral_rubric.md, no repo, no A/B full files, no historical labels",
+    "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+    "neutral_rubric_sha256": "75797f70044f66863d24e315cbffc6d67828892a110eb2a02477f9444ee4834c",
+    "c_input_sha256": "ba5d30608a04f3a43243e18ea78a6a2b327bacae2c2b4402bb1c2cfb1aa38764",
+    "c_input_rows": 93,
+    "child_produced_output_sha256": "e0376e25512194308842ff7392d9f9264ed75ab75db3b76b1865b7e2248d4141",
+    "committed_adjudicated_sha256": "fd65971d13a1d7400b58cfaeeb14762a5a3c1de45dfec5dc1aeeb9dcb2218b2d",
+    "committed_adjudication_log_sha256": "fea84204e00d8aa483e58b5af0c8d2a5b9549eafc35b942238a7c522f3139b07",
+    "log_file": "adjudication_log.json",
+    "output_rows": 93,
+    "timestamp": "2026-09-01T00:26:39.485Z",
+    "method": "rubric/reasoned judgment per dimension, not alternating, not predetermined synthesis"
+  },
+  "disagreement_matrix": {
+    "file": "eval/retrieval-v3/pilot/re-audit/disagreement_matrix.json",
+    "sha256": "0d7ac781ae3aad06ee9d01fe4a1f09ba3c2c2833a7641f7241c1cdedb474b2d6",
+    "any_disagreement": 93,
+    "any_agreement": 7,
+    "per_dimension": {
+      "golds": 88,
+      "stratum": 22,
+      "common_vs_rare": 10,
+      "ambiguity_type": 5,
+      "source_hint": 3,
+      "category": 3,
+      "location_bearing": 3,
+      "labelable": 1,
+      "conceptual_answerable": 1
+    },
+    "recomputable": true,
+    "note": "Tests verify recomputability, not a magic rate; prior 27% (27/100) superseded, now 93% genuine via stricter golds canonicalization"
+  },
+  "adjudicated": {
+    "file": "eval/retrieval-v3/pilot/re-audit/adjudicated_labels.jsonl",
+    "sha256": "fd65971d13a1d7400b58cfaeeb14762a5a3c1de45dfec5dc1aeeb9dcb2218b2d",
+    "rows": 100,
+    "residual_after_adjudication": 0
+  },
+  "lineage": {
+    "base_commit": "b03b30aee37e849220e9813b9e9710d05996eeb1",
+    "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+    "neutral_rubric_sha256": "75797f70044f66863d24e315cbffc6d67828892a110eb2a02477f9444ee4834c",
+    "c_input_sha256": "ba5d30608a04f3a43243e18ea78a6a2b327bacae2c2b4402bb1c2cfb1aa38764",
+    "reviewer_A_child_sha": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
+    "reviewer_B_child_sha": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
+    "reviewer_C_child_sha": "e0376e25512194308842ff7392d9f9264ed75ab75db3b76b1865b7e2248d4141",
+    "provenance": "A/B/C provenance durably recorded with session IDs, transcript SHAs, cwds, model roles; committed SHAs equal frozen child SHAs"
+  },
+  "historical_access_embargo": {
+    "lifted_after": "2026-09-01T00:35:15Z (C freeze)",
+    "note": "Historical pilot labels (pilot_tasks.jsonl), historical counts, D-016 provenance, memory/DECISIONS.md reads occurred strictly after A/B/C output freeze; verified via timestamps"
+  }
+}

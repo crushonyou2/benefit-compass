@@ -40,11 +40,11 @@ def test_prereg_final_repair_header_and_governance():
     assert "Governed by D-015" in txt or "Governed by D-015" in txt or "D-015" in txt
     # Original SHA preserved mention
     assert "b3250e592d4c80099e29d20d1bf87594f2bac11a59907ac8067d3e1ddbd65da3" in txt
-    # Re-audit SHAs mentioned
+    # Re-audit SHAs mentioned (durable v2)
     assert "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3" in txt
-    assert "2d8a84b93d1e62870d42978d1d51ddef18373da6b6809d65d33d069929eba1eb" in txt
-    assert "15b98f3522ed9acd560aa5bb75f7fc30991fb2815f6521bfbeadbb171f5fcb89" in txt
-
+    assert "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5" in txt
+    assert "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f" in txt
+    assert "0d7ac781ae3aad06ee9d01fe4a1f09ba3c2c2833a7641f7241c1cdedb474b2d6" in txt or "f758d91e32d1b5b26938ae99a1f0f1933dbd3c75a7527fd09ae7f0684b114a67" in txt
 def test_exact_allocations_and_headline_denominator():
     txt = PREREG.read_text(encoding="utf-8")
     # Dev 180 exact strata exact numbers — check numbers present

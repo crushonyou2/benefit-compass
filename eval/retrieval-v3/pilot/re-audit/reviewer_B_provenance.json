@@ -1,6 +1,6 @@
 {
   "agent_label": "AnnotatorB-isolated",
-  "annotation_protocol": "retrieval-blind independent annotation, blind to reviewer A labels, sanitized input only, no system output, no retrieval/DB/model/embedding",
+  "annotation_protocol": "retrieval-blind independent annotation, blind to reviewer A labels, sanitized input only, no system output, no retrieval/DB/model/embedding, separate durable OMP child session with outside-repo clean directory containing only sanitized input + neutral rubric, no A output/path in workspace or prompt",
   "dimensions_reviewed": [
     "stratum (8-way)",
     "location_bearing",
@@ -11,27 +11,52 @@
     "common_vs_rare",
     "freshness",
     "source_hint",
-    "golds grade 3/2/1 + equivalence_group (all 100)"
+    "golds grade 3/2/1/0 + equivalence_group (all 100)"
   ],
   "files_not_read": [
     "eval/retrieval-v3/pilot/pilot_tasks.jsonl",
-    "eval/retrieval-v3/pilot/re-audit/reviewer_A_raw_labels.jsonl"
+    "eval/retrieval-v3/pilot/re-audit/reviewer_A_raw_labels.jsonl",
+    "eval/retrieval-v3/pilot/pilot_tasks.jsonl git blobs/history",
+    "historical aggregate annotation/disagreement target counts",
+    "memory/DECISIONS.md",
+    "docs/RETRIEVAL_V3_PREREG.md",
+    "C:/tmp/benefit-compass-clean-A/labels.jsonl",
+    "C:/tmp/benefit-compass-clean-A"
   ],
   "files_read": [
-    "eval/retrieval-v3/pilot/re-audit/pilot_reaudit_input.jsonl",
-    "docs/RETRIEVAL_V3_PREREG.md §2-§4",
-    "eval/retrieval-v3/pilot/pilot_report.md",
-    "memory/DECISIONS.md D-015"
+    "pilot_reaudit_input.jsonl (sanitized, 100 lines task_id+query_text only)",
+    "neutral_rubric.md (outside-repo neutral rubric)"
   ],
-  "instruction_version": "RETRIEVAL_V3_PREREG FINAL REPAIR §§2-4 + D-015",
-  "isolation_note": "Did not access pilot_tasks.jsonl or reviewer_A output; only sanitized input + rubric",
-  "model_role": "Muse Spark 1.2 Contributor delegated via openai-codex/gpt-5.6-luna:xhigh (task Luna xhigh; root HARD GATE Luna max not applicable)",
+  "instruction_version": "neutral_rubric.md (outside-repo clean-room rubric, retrieval-blind, no corpus lookup, conceptual golds only)",
+  "isolation_note": "Genuinely isolated durable OMP child session with cwd outside repo (C:/tmp/benefit-compass-clean-B), only sanitized input + neutral rubric present, B had no A output/path in workspace or prompt, no historical labels/aggregate counts accessed via git show/cat-file/checkout/restore/sparse/worktree, blind to A verified via cwd and input confinement",
+  "model_role": "openai-codex/gpt-5.6-luna:xhigh (task Luna xhigh per OMP modelRoles; ROOT is opencode-go/muse-spark-1.2-contributor:xhigh HARD GATE, child is delegated task role; --no-extensions to bypass Click)",
+  "thinking": "xhigh",
   "output_file": "reviewer_B_raw_labels.jsonl",
-  "output_sha256": "d7a303378b5661d79be1286b5f1c98933fa5f262961a4e1caf2146a149d23bef",
+  "output_sha256": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
+  "child_produced_output_sha256": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
+  "committed_artifact_sha256": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
   "reviewer_id": "B",
-  "sanitized_input_path": "eval/retrieval-v3/pilot/re-audit/pilot_reaudit_input.jsonl",
+  "sanitized_input_path": "pilot_reaudit_input.jsonl",
   "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
-  "session_id": "unavailable -- OMP session identifiers not durably persisted; independence via separate delegated task with isolated input confinement",
-  "timestamp": "2026-08-31T23:00:20.231752Z",
-  "total_tasks": 100
+  "neutral_rubric_sha256": "75797f70044f66863d24e315cbffc6d67828892a110eb2a02477f9444ee4834c",
+  "session_id": "01a05a54-8e7b-741e-b6df-ddbcf2c125e2",
+  "transcript_path_portable": "--C--tmp-benefit-compass-clean-B--/2026-09-01T00-18-06-075Z_01a05a54-8e7b-741e-b6df-ddbcf2c125e2.jsonl",
+  "transcript_path_absolute": "C:/Users/joji/.omp/agent/sessions/--C--tmp-benefit-compass-clean-B--/2026-09-01T00-18-06-075Z_01a05a54-8e7b-741e-b6df-ddbcf2c125e2.jsonl",
+  "transcript_sha256": "de7f79517138eb78ec2f5f0cef6a43efecd22bc4db67c1423da2a0d1d668b1a1",
+  "timestamp": "2026-09-01T00:18:06.075Z",
+  "cwd": "C:/tmp/benefit-compass-clean-B",
+  "total_tasks": 100,
+  "lineage": {
+    "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+    "sanitized_input_rows": 100,
+    "neutral_rubric_sha256": "75797f70044f66863d24e315cbffc6d67828892a110eb2a02477f9444ee4834c",
+    "child_output_sha256": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
+    "committed_artifact_sha256": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
+    "transcript_sha256": "de7f79517138eb78ec2f5f0cef6a43efecd22bc4db67c1423da2a0d1d668b1a1",
+    "session_id": "01a05a54-8e7b-741e-b6df-ddbcf2c125e2",
+    "model_role": "openai-codex/gpt-5.6-luna:xhigh",
+    "thinking": "xhigh",
+    "clean_room_cwd": "C:/tmp/benefit-compass-clean-B",
+    "confinement": "outside-repo clean directory containing only byte-identical sanitized_input + neutral_rubric, no repo/add-dir, no A output, no historical labels"
+  }
 }
