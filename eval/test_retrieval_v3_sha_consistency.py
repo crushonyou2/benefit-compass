@@ -1,12 +1,12 @@
-"""Deterministic SHA lineage regression — would have failed at 39c4deb.
+"""Deterministic SHA lineage regression — would have failed at 39c4deb and at 3499a61 (fixture SHA 6029 stale, lineage broad).
 
 Recomputes SHA256 from committed working-tree bytes for
-disagreement_matrix.json and adjudication_log.json and verifies every
-current provenance/protocol/correction metadata and current docs/SSOT
+disagreement_matrix.json, adjudication_log.json, and omp_provenance_evidence.json
+and verifies every current provenance/protocol/correction metadata and current docs/SSOT
 declaration equals those recomputed SHAs. No home-path or live OMP
 session dependency. Checks file-content lineage (recompute + verify
 declarations + recomputable disagreement semantics), not merely pinning
-two observed hashes."""
+two observed hashes. Also verifies OMP fixture lineage truth: A/B child=committed, C child != committed by design."""
 import hashlib
 import json
 import pathlib
@@ -24,7 +24,8 @@ README = BASE / "README.md"
 
 STALE_MATRIX = "0d7ac781ae3aad06ee9d01fe4a1f09ba3c2c2833a7641f7241c1cdedb474b2d6"
 STALE_LOG = "fea84204e00d8aa483e58b5af0c8d2a5b9549eafc35b942238a7c522f3139b07"
-
+STALE_FIXTURE = "6029a64cc4c74dd0f8f137d1e20f9445779c2bfc79484269ee28ba2685528721"
+EXPECTED_FIXTURE_ACTUAL_AT_3316 = "3316e4bcdcc9f6b72e684bb99b36b05a2df88e1191471ac21f1913c99696ce93"
 
 def _sha256_bytes(p: pathlib.Path) -> str:
     return hashlib.sha256(p.read_bytes()).hexdigest()
@@ -200,3 +201,58 @@ def test_recomputable_disagreement_not_brittle_pin():
     # Ensure raw A/B are actually different (proves not 19% designed nor 27% unavailable)
     # They must be genuinely isolated and different
     assert disagreed >= 80, f"raw A/B should be highly different via stricter golds canonicalization, got {disagreed}/100"
+
+
+def test_fixture_bytes_sha_matches_external_declarations_and_lineage_truth():
+    """Strengthened regression: fixture bytes SHA must match all current external declarations; lineage A/B child=committed, C child != committed by design."""
+    # Compute actual fixture bytes SHA — not comparing stale declarations to each other
+    assert OMP_PROV.exists(), "omp_provenance_evidence.json missing"
+    recomputed_fixture = _sha256_bytes(OMP_PROV)
+    assert len(OMP_PROV.read_bytes()) > 1000
+    # Must not be stale 6029 (would pass if only comparing declarations among themselves)
+    assert recomputed_fixture.lower() != STALE_FIXTURE.lower(), "fixture bytes still stale? lineage edit not applied?"
+    # Verify every current external omp_evidence_sha256 matches actual bytes (not stale)
+    corr = json.loads(CORRECTION.read_text(encoding="utf-8"))
+    ext_sha = corr["corrected_reaudit"]["omp_evidence_sha256"]
+    assert ext_sha.lower() == recomputed_fixture.lower(), f"pilot_correction omp_evidence_sha256 {ext_sha} != actual fixture bytes {recomputed_fixture}"
+    prereg_txt = PREREG.read_text(encoding="utf-8")
+    readme_txt = README.read_text(encoding="utf-8")
+    assert recomputed_fixture.lower() in prereg_txt.lower(), "PREREG missing actual fixture bytes SHA (external ref != bytes)"
+    assert recomputed_fixture.lower() in readme_txt.lower(), "README missing actual fixture bytes SHA"
+    # Must not contain stale fixture SHA as current
+    assert STALE_FIXTURE.lower() not in prereg_txt.lower(), "PREREG still contains stale fixture SHA 6029 as current"
+    assert STALE_FIXTURE.lower() not in readme_txt.lower(), "README still contains stale fixture SHA"
+    assert STALE_FIXTURE.lower() not in CORRECTION.read_text(encoding="utf-8").lower().split("supersede")[0].lower() or STALE_FIXTURE.lower() not in corr["corrected_reaudit"]["omp_evidence_sha256"].lower(), "correction still stale"
+    # Verify lineage truth: A/B child=committed, C child != committed by design after merge
+    omp = json.loads(OMP_PROV.read_text(encoding="utf-8"))
+    # A
+    assert omp["reviewer_A"]["child_produced_output_sha256"].lower() == omp["reviewer_A"]["committed_artifact_sha256"].lower(), "A child must equal committed"
+    assert omp["reviewer_A"]["committed_artifact_sha256"].lower() == hashlib.sha256((BASE / "reviewer_A_raw_labels.jsonl").read_bytes()).hexdigest().lower()
+    # B
+    assert omp["reviewer_B"]["child_produced_output_sha256"].lower() == omp["reviewer_B"]["committed_artifact_sha256"].lower(), "B child must equal committed"
+    assert omp["reviewer_B"]["committed_artifact_sha256"].lower() == hashlib.sha256((BASE / "reviewer_B_raw_labels.jsonl").read_bytes()).hexdigest().lower()
+    # C child differs from committed adjudicated artifact by design
+    c_child = omp["reviewer_C"]["child_produced_output_sha256"].lower()
+    assert c_child == "e0376e25512194308842ff7392d9f9264ed75ab75db3b76b1865b7e2248d4141"
+    committed_adjud = omp["adjudicated"]["sha256"].lower()
+    assert committed_adjud == "fd65971d13a1d7400b58cfaeeb14762a5a3c1de45dfec5dc1aeeb9dcb2218b2d"
+    assert committed_adjud == hashlib.sha256((BASE / "adjudicated_labels.jsonl").read_bytes()).hexdigest().lower()
+    assert c_child != committed_adjud, "C child must differ from committed merged/adjudicated artifact by design"
+    assert omp["reviewer_C"]["committed_adjudicated_sha256"].lower() == committed_adjud, "reviewer_C committed_adjudicated mismatch"
+    # Lineage provenance wording must be truthful: mentions A/B equal and C differs, not broad equal
+    prov = omp["lineage"]["provenance"]
+    assert "A/B committed SHAs equal frozen child SHAs" in prov or "A/B child=committed" in prov or "A/B committed" in prov, "lineage must state A/B equal"
+    assert "C child" in prov and "differs from committed" in prov, "lineage must state C child differs from committed by design"
+    assert "e0376e25512194308842ff7392d9f9264ed75ab75db3b76b1865b7e2248d4141" in prov.lower(), "lineage provenance must contain C child SHA"
+    assert "fd65971d13a1d7400b58cfaeeb14762a5a3c1de45dfec5dc1aeeb9dcb2218b2d" in prov.lower(), "lineage provenance must contain committed adjudicated SHA"
+    # Must NOT claim broad "committed SHAs equal frozen child SHAs" without qualification for C
+    # The old broad claim was exactly "committed SHAs equal frozen child SHAs" without A/B qualifier
+    # Now must either not appear alone or be qualified
+    if "committed SHAs equal frozen child SHAs" in prov:
+        assert "A/B" in prov and "C child" in prov, "broad equal claim must be qualified with A/B vs C differing"
+    # Ensure recomputed fixture SHA via second method matches (not merely pinned)
+    h = hashlib.sha256()
+    with OMP_PROV.open("rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            h.update(chunk)
+    assert h.hexdigest().lower() == recomputed_fixture.lower()

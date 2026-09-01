@@ -17,7 +17,7 @@
     "neutral_rubric_sha256": "75797f70044f66863d24e315cbffc6d67828892a110eb2a02477f9444ee4834c",
     "c_input_sha256": "ba5d30608a04f3a43243e18ea78a6a2b327bacae2c2b4402bb1c2cfb1aa38764",
     "omp_evidence": "omp_provenance_evidence.json",
-    "omp_evidence_sha256": "6029a64cc4c74dd0f8f137d1e20f9445779c2bfc79484269ee28ba2685528721",
+    "omp_evidence_sha256": "8850bff46c834abe81d0cb0510775357478296dd257ac0843b7428d86cf28837",
     "terminology": "pilot answerability is CONCEPTUAL/INTENT only; final benchmark answerability is source-truth grounded"
   },
   "correction_id": "pilot-correction-2026-09-01-web-hold-A-B-corrected-v2-durable",

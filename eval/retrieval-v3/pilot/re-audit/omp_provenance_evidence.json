@@ -126,7 +126,7 @@
     "reviewer_A_child_sha": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
     "reviewer_B_child_sha": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
     "reviewer_C_child_sha": "e0376e25512194308842ff7392d9f9264ed75ab75db3b76b1865b7e2248d4141",
-    "provenance": "A/B/C provenance durably recorded with session IDs, transcript SHAs, cwds, model roles; committed SHAs equal frozen child SHAs",
+    "provenance": "A/B/C provenance durably recorded with session IDs, transcript SHAs, cwds, model roles; A/B committed SHAs equal frozen child SHAs, C child output e0376e25512194308842ff7392d9f9264ed75ab75db3b76b1865b7e2248d4141 differs from committed merged/adjudicated artifact fd65971d13a1d7400b58cfaeeb14762a5a3c1de45dfec5dc1aeeb9dcb2218b2d by design (merged with agreed dimensions)",
     "disagreement_matrix_sha256": "cf85045799a7b93e3bdcfb46280d379b69c75a4ef550fe6f6beb8f1120a0545a"
   },
   "historical_access_embargo": {
