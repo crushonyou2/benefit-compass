@@ -4,8 +4,8 @@
     "adjudicated_sha256": "fd65971d13a1d7400b58cfaeeb14762a5a3c1de45dfec5dc1aeeb9dcb2218b2d",
     "adjudication_log": "adjudication_log.json",
     "disagreement_matrix": "disagreement_matrix.json",
-    "log_sha256": "6935a6270da4643418d12e8a51c87dab4786b6c09e408b416c9f7c634f5b094a",
-    "matrix_sha256": "cf85045799a7b93e3bdcfb46280d379b69c75a4ef550fe6f6beb8f1120a0545a",
+    "log_sha256": "d45d67c008eac6cfcb41755bae53da3d953466196cc1d55c122ed3b8c2b7eef2",
+    "matrix_sha256": "93a796335d9525db293a16e62002304f23c04e3b4c89a997e026fbbec74cd265",
     "provenance": "reviewer_A_provenance.json, reviewer_B_provenance.json, adjudicator_provenance.json, reaudit_protocol.json, omp_provenance_evidence.json",
     "raw_A": "reviewer_A_raw_labels.jsonl",
     "raw_A_sha256": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
@@ -13,12 +13,15 @@
     "raw_B_sha256": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
     "re_audit_directory": "eval/retrieval-v3/pilot/re-audit/",
     "sanitized_input": "pilot_reaudit_input.jsonl",
-    "sanitized_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+    "sanitized_sha256": "7307a62a262dd80f1342c43a0d3d13b1269fe260d99ba6a7d6cb08aabab5d274",
     "neutral_rubric_sha256": "75797f70044f66863d24e315cbffc6d67828892a110eb2a02477f9444ee4834c",
     "c_input_sha256": "ba5d30608a04f3a43243e18ea78a6a2b327bacae2c2b4402bb1c2cfb1aa38764",
     "omp_evidence": "omp_provenance_evidence.json",
-    "omp_evidence_sha256": "8850bff46c834abe81d0cb0510775357478296dd257ac0843b7428d86cf28837",
-    "terminology": "pilot answerability is CONCEPTUAL/INTENT only; final benchmark answerability is source-truth grounded"
+    "omp_evidence_sha256": "25c5f43bc8713cb9521b784c330f9e5ec7329c35a8bdd58897a25ac72c3a175a",
+    "terminology": "pilot answerability is CONCEPTUAL/INTENT only; final benchmark answerability is source-truth grounded",
+    "raw_A_canonical_sha256": "44ffd05266d4d465929f7cf42a67bc7c59ceba4fa0d9b8a5a0a2ec81572b750e",
+    "raw_B_canonical_sha256": "ad547db2c21de498cd7c892e0351e779fc6c06ea4546079be89cd8d3828c5e43",
+    "c_child_sha256": "e0376e25512194308842ff7392d9f9264ed75ab75db3b76b1865b7e2248d4141"
   },
   "correction_id": "pilot-correction-2026-09-01-web-hold-A-B-corrected-v2-durable",
   "hold_findings": {
@@ -54,5 +57,19 @@
     "timestamp": "2026-08-31T23:00:20Z"
   },
   "supersedes": "pilot-correction-2026-09-01-web-hold-A-B-corrected (b03b30a/D-016 unavailable sessions)",
-  "timestamp": "2026-09-01T00:35:15Z"
+  "timestamp": "2026-09-01T00:35:15Z",
+  "canonical_byte_contract": {
+    "canonical": "committed LF blob bytes via eol=lf",
+    "matrix_wt_crlf": "cf85045799a7b93e3bdcfb46280d379b69c75a4ef550fe6f6beb8f1120a0545a",
+    "matrix_canonical": "93a796335d9525db293a16e62002304f23c04e3b4c89a997e026fbbec74cd265",
+    "log_wt_crlf": "6935a6270da4643418d12e8a51c87dab4786b6c09e408b416c9f7c634f5b094a",
+    "log_canonical": "d45d67c008eac6cfcb41755bae53da3d953466196cc1d55c122ed3b8c2b7eef2",
+    "omp_canonical": "25c5f43bc8713cb9521b784c330f9e5ec7329c35a8bdd58897a25ac72c3a175a",
+    "omp_wt_crlf_old": "8850bff46c834abe81d0cb0510775357478296dd257ac0843b7428d86cf28837",
+    "omp_blob_old": "cc003d750f883bada4a9243fa725f7984ae5de6d9cc64a7bf57b14f9711027b9",
+    "reviewer_A_raw_crlf": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
+    "reviewer_A_canonical": "44ffd05266d4d465929f7cf42a67bc7c59ceba4fa0d9b8a5a0a2ec81572b750e",
+    "reviewer_B_raw_crlf": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
+    "reviewer_B_canonical": "ad547db2c21de498cd7c892e0351e779fc6c06ea4546079be89cd8d3828c5e43"
+  }
 }

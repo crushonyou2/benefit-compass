@@ -1,10 +1,10 @@
 {
   "pilot_id": "retrieval-v3-pilot-100-v1-re-audit-2026-09-01-corrected-v2-durable",
-  "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+  "sanitized_input_sha256": "7307a62a262dd80f1342c43a0d3d13b1269fe260d99ba6a7d6cb08aabab5d274",
   "reviewer_A_file": "reviewer_A_raw_labels.jsonl",
-  "reviewer_A_sha256": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
+  "reviewer_A_sha256": "44ffd05266d4d465929f7cf42a67bc7c59ceba4fa0d9b8a5a0a2ec81572b750e",
   "reviewer_B_file": "reviewer_B_raw_labels.jsonl",
-  "reviewer_B_sha256": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
+  "reviewer_B_sha256": "ad547db2c21de498cd7c892e0351e779fc6c06ea4546079be89cd8d3828c5e43",
   "adjudicated_file": "adjudicated_labels.jsonl",
   "adjudicated_sha256": "fd65971d13a1d7400b58cfaeeb14762a5a3c1de45dfec5dc1aeeb9dcb2218b2d",
   "total_tasks": 100,

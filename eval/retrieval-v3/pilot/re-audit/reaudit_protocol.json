@@ -4,7 +4,7 @@
     "disagreements_resolved": 93,
     "id": "C",
     "log_file": "adjudication_log.json",
-    "log_sha256": "6935a6270da4643418d12e8a51c87dab4786b6c09e408b416c9f7c634f5b094a",
+    "log_sha256": "d45d67c008eac6cfcb41755bae53da3d953466196cc1d55c122ed3b8c2b7eef2",
     "method": "For each of 93 tasks with any disagreement (93/100), adjudicator independently evaluated query_text against neutral rubric per dimension with documented rationale; not alternating, not predetermined synthesis; deterministic residual 0; C-input contained only sanitized query_text + A/B disagreement values, no historical labels",
     "model_role": "openai-codex/gpt-5.6-luna:max (review Luna max per OMP modelRoles; ROOT is opencode-go/muse-spark-1.2-contributor:xhigh HARD GATE)",
     "thinking": "max",
@@ -23,7 +23,7 @@
   "correction_note": "Prior b03b30a/D-016 re-audit used genuinely isolated outside-repo but recorded OMP session IDs as unavailable (not durably persisted) with note; that provenance is superseded by this durable evidence with actual session IDs and transcript SHAs. Prior f1322cb flawed re-audit (A 100% copy, 19% designed, alternating) was already superseded by D-016. This v2-durable correction provides append-only durable OMP provenance with true session IDs, transcript SHAs, cwd confinement, child vs committed SHA lineage, and deterministic safety/audit. No history rewrite.",
   "disagreement_recomputation": {
     "matrix_file": "disagreement_matrix.json",
-    "matrix_sha256": "cf85045799a7b93e3bdcfb46280d379b69c75a4ef550fe6f6beb8f1120a0545a",
+    "matrix_sha256": "93a796335d9525db293a16e62002304f23c04e3b4c89a997e026fbbec74cd265",
     "method": "Recompute by aligning task_id between reviewer_A_raw_labels.jsonl and reviewer_B_raw_labels.jsonl; per-dimension disagreement = field mismatch (golds canonicalized via sorted policy_concept/grade/description); any_disagreement = union across dimensions; recomputable via pure python/json without DB/retrieval; not pinning designed rate",
     "note": "D-016 reported 27/100 (27%) with available isolation but unavailable session IDs; this durable 93/100 (93%) is genuinely recomputable from new durable A/B with stricter golds canonicalization (88 golds disagreements due to conceptual description variance). Tests must validate recomputability and isolation contract, not pin output difference as proof. Original pilot 7% claim remains not proven auditable and is preserved as historical.",
     "reported_metrics": {
@@ -70,10 +70,14 @@
       "transcript_path_portable": "--C--tmp-benefit-compass-clean-A--/2026-09-01T00-17-03-026Z_01a05a53-9832-7217-88d6-a80105c3c296.jsonl",
       "transcript_sha256": "e9416277b25cb3d91db19f82ca737e24436c0c277b56721ae6f0f70b27823aef",
       "cwd": "C:/tmp/benefit-compass-clean-A",
-      "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+      "sanitized_input_sha256": "7307a62a262dd80f1342c43a0d3d13b1269fe260d99ba6a7d6cb08aabab5d274",
       "neutral_rubric_sha256": "75797f70044f66863d24e315cbffc6d67828892a110eb2a02477f9444ee4834c",
-      "output_sha256": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
-      "timestamp": "2026-09-01T00:17:03.026Z"
+      "output_sha256": "44ffd05266d4d465929f7cf42a67bc7c59ceba4fa0d9b8a5a0a2ec81572b750e",
+      "timestamp": "2026-09-01T00:17:03.026Z",
+      "raw_child_sha256": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
+      "canonical_sha256": "44ffd05266d4d465929f7cf42a67bc7c59ceba4fa0d9b8a5a0a2ec81572b750e",
+      "child_produced_output_sha256": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
+      "committed_artifact_sha256": "44ffd05266d4d465929f7cf42a67bc7c59ceba4fa0d9b8a5a0a2ec81572b750e"
     },
     {
       "agent_label": "AnnotatorB-isolated",
@@ -83,22 +87,42 @@
       "transcript_path_portable": "--C--tmp-benefit-compass-clean-B--/2026-09-01T00-18-06-075Z_01a05a54-8e7b-741e-b6df-ddbcf2c125e2.jsonl",
       "transcript_sha256": "de7f79517138eb78ec2f5f0cef6a43efecd22bc4db67c1423da2a0d1d668b1a1",
       "cwd": "C:/tmp/benefit-compass-clean-B",
-      "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+      "sanitized_input_sha256": "7307a62a262dd80f1342c43a0d3d13b1269fe260d99ba6a7d6cb08aabab5d274",
       "neutral_rubric_sha256": "75797f70044f66863d24e315cbffc6d67828892a110eb2a02477f9444ee4834c",
-      "output_sha256": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
+      "output_sha256": "ad547db2c21de498cd7c892e0351e779fc6c06ea4546079be89cd8d3828c5e43",
       "timestamp": "2026-09-01T00:18:06.075Z",
-      "blind_to_A": true
+      "blind_to_A": true,
+      "raw_child_sha256": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
+      "canonical_sha256": "ad547db2c21de498cd7c892e0351e779fc6c06ea4546079be89cd8d3828c5e43",
+      "child_produced_output_sha256": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
+      "committed_artifact_sha256": "ad547db2c21de498cd7c892e0351e779fc6c06ea4546079be89cd8d3828c5e43"
     }
   ],
   "sanitized_input": {
-    "fields": ["task_id", "query_text"],
+    "fields": [
+      "task_id",
+      "query_text"
+    ],
     "lines": 100,
     "path": "eval/retrieval-v3/pilot/re-audit/pilot_reaudit_input.jsonl",
     "selection": "All 100 non-protected pilot queries (v3p-001..100) -- task_id+query_text only; no retrieval results, no protected data, no system output exposed",
-    "sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3"
+    "sha256": "7307a62a262dd80f1342c43a0d3d13b1269fe260d99ba6a7d6cb08aabab5d274"
   },
   "session_identifiers_durable": "OMP child session IDs durably persisted via filesystem with portable transcript paths and SHA256; evidence fixture omp_provenance_evidence.json provides deterministic offline lineage without home/live-session dependency",
   "terminology_correction": {
     "pilot_answerability": "CONCEPTUAL/INTENT answerability only (whether user intent corresponds to a conceivable eligible policy), NOT corpus-grounded source-truth answerability. The prior '85% answerable' was concept-level intuition and MUST NOT be used as corpus-grounded sizing evidence. Final frozen benchmark answerability will be source-truth grounded: every headline task must have >=1 grade>=2 (source,source_id) validated against source-truth; unsupported has none; ambiguous is safety-only."
+  },
+  "canonical_byte_contract": {
+    "canonical": "committed LF blob bytes (eol=lf)",
+    "matrix_raw_wt_crlf": "cf85045799a7b93e3bdcfb46280d379b69c75a4ef550fe6f6beb8f1120a0545a",
+    "matrix_canonical_lf": "93a796335d9525db293a16e62002304f23c04e3b4c89a997e026fbbec74cd265",
+    "log_raw_wt_crlf": "6935a6270da4643418d12e8a51c87dab4786b6c09e408b416c9f7c634f5b094a",
+    "log_canonical_lf": "d45d67c008eac6cfcb41755bae53da3d953466196cc1d55c122ed3b8c2b7eef2",
+    "reviewer_A_raw_crlf": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
+    "reviewer_A_canonical_lf": "44ffd05266d4d465929f7cf42a67bc7c59ceba4fa0d9b8a5a0a2ec81572b750e",
+    "reviewer_B_raw_crlf": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
+    "reviewer_B_canonical_lf": "ad547db2c21de498cd7c892e0351e779fc6c06ea4546079be89cd8d3828c5e43",
+    "eol_policy": "eval/retrieval-v3/pilot/re-audit/*.json text eol=lf; *.jsonl text eol=lf",
+    "verification": "regression validates git show HEAD:path blob SHA256, not only WT; plus git ls-files --eol w/lf"
   }
 }

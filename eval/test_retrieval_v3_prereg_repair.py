@@ -41,10 +41,10 @@ def test_prereg_final_repair_header_and_governance():
     # Original SHA preserved mention
     assert "b3250e592d4c80099e29d20d1bf87594f2bac11a59907ac8067d3e1ddbd65da3" in txt
     # Re-audit SHAs mentioned (durable v2)
-    assert "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3" in txt
-    assert "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5" in txt
-    assert "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f" in txt
-    assert "cf85045799a7b93e3bdcfb46280d379b69c75a4ef550fe6f6beb8f1120a0545a" in txt
+    assert "7307a62a262dd80f1342c43a0d3d13b1269fe260d99ba6a7d6cb08aabab5d274" in txt
+    assert "44ffd05266d4d465929f7cf42a67bc7c59ceba4fa0d9b8a5a0a2ec81572b750e" in txt
+    assert "ad547db2c21de498cd7c892e0351e779fc6c06ea4546079be89cd8d3828c5e43" in txt
+    assert "93a796335d9525db293a16e62002304f23c04e3b4c89a997e026fbbec74cd265" in txt
 def test_exact_allocations_and_headline_denominator():
     txt = PREREG.read_text(encoding="utf-8")
     # Dev 180 exact strata exact numbers — check numbers present

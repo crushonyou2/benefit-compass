@@ -46,7 +46,7 @@ def test_sanitized_input_excludes_labels():
         assert x["query_text"] == orig[x["task_id"]]
     # sha pinned (re-audit input is new SSOT)
     sha = hashlib.sha256(SANITIZED.read_bytes()).hexdigest()
-    assert sha == "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3"
+    assert sha == "7307a62a262dd80f1342c43a0d3d13b1269fe260d99ba6a7d6cb08aabab5d274"
     # ensure no label fields leaked
     txt = SANITIZED.read_text(encoding="utf-8")
     for field in ["stratum","location_bearing","conceptual_answerable","answerable","ambiguous","golds","source_hint"]:

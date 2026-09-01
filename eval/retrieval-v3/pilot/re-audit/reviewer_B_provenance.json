@@ -32,12 +32,12 @@
   "model_role": "openai-codex/gpt-5.6-luna:xhigh (task Luna xhigh per OMP modelRoles; ROOT is opencode-go/muse-spark-1.2-contributor:xhigh HARD GATE, child is delegated task role; --no-extensions to bypass Click)",
   "thinking": "xhigh",
   "output_file": "reviewer_B_raw_labels.jsonl",
-  "output_sha256": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
+  "output_sha256": "ad547db2c21de498cd7c892e0351e779fc6c06ea4546079be89cd8d3828c5e43",
   "child_produced_output_sha256": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
-  "committed_artifact_sha256": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
+  "committed_artifact_sha256": "ad547db2c21de498cd7c892e0351e779fc6c06ea4546079be89cd8d3828c5e43",
   "reviewer_id": "B",
   "sanitized_input_path": "pilot_reaudit_input.jsonl",
-  "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+  "sanitized_input_sha256": "7307a62a262dd80f1342c43a0d3d13b1269fe260d99ba6a7d6cb08aabab5d274",
   "neutral_rubric_sha256": "75797f70044f66863d24e315cbffc6d67828892a110eb2a02477f9444ee4834c",
   "session_id": "01a05a54-8e7b-741e-b6df-ddbcf2c125e2",
   "transcript_path_portable": "--C--tmp-benefit-compass-clean-B--/2026-09-01T00-18-06-075Z_01a05a54-8e7b-741e-b6df-ddbcf2c125e2.jsonl",
@@ -47,16 +47,20 @@
   "cwd": "C:/tmp/benefit-compass-clean-B",
   "total_tasks": 100,
   "lineage": {
-    "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+    "sanitized_input_sha256": "7307a62a262dd80f1342c43a0d3d13b1269fe260d99ba6a7d6cb08aabab5d274",
     "sanitized_input_rows": 100,
     "neutral_rubric_sha256": "75797f70044f66863d24e315cbffc6d67828892a110eb2a02477f9444ee4834c",
     "child_output_sha256": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
-    "committed_artifact_sha256": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
+    "committed_artifact_sha256": "ad547db2c21de498cd7c892e0351e779fc6c06ea4546079be89cd8d3828c5e43",
     "transcript_sha256": "de7f79517138eb78ec2f5f0cef6a43efecd22bc4db67c1423da2a0d1d668b1a1",
     "session_id": "01a05a54-8e7b-741e-b6df-ddbcf2c125e2",
     "model_role": "openai-codex/gpt-5.6-luna:xhigh",
     "thinking": "xhigh",
     "clean_room_cwd": "C:/tmp/benefit-compass-clean-B",
-    "confinement": "outside-repo clean directory containing only byte-identical sanitized_input + neutral_rubric, no repo/add-dir, no A output, no historical labels"
-  }
+    "confinement": "outside-repo clean directory containing only byte-identical sanitized_input + neutral_rubric, no repo/add-dir, no A output, no historical labels",
+    "raw_child_sha256": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
+    "canonical_sha256": "ad547db2c21de498cd7c892e0351e779fc6c06ea4546079be89cd8d3828c5e43",
+    "eol_normalization": "raw child CRLF -> canonical LF blob (eol=lf, 100 bytes normalized)"
+  },
+  "canonical_byte_contract": "canonical is committed LF blob SHA256 ad547..., independent of core.autocrlf; raw child CRLF aaf... normalized"
 }

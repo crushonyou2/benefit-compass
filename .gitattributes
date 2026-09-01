@@ -1,3 +1,9 @@
 *.sh text eol=lf
 gradlew text eol=lf
 *.bat text eol=crlf
+# Retrieval v3 pilot re-audit evidence — canonical LF bytes (independent of core.autocrlf)
+# All SHA256 references to these files are canonical committed/origin LF blob SHAs.
+# Raw clean-room child outputs were CRLF on Windows text mode; git normalizes to LF on commit.
+# Provenance distinguishes raw-child CRLF SHA vs canonical committed LF SHA where they differ.
+eval/retrieval-v3/pilot/re-audit/*.json text eol=lf
+eval/retrieval-v3/pilot/re-audit/*.jsonl text eol=lf

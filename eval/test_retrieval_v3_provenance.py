@@ -15,7 +15,7 @@ ADJ_LOG = BASE / "adjudication_log.json"
 def test_sanitized_and_rubric_shas():
     assert SANITIZED.exists()
     sha = hashlib.sha256(SANITIZED.read_bytes()).hexdigest()
-    assert sha == "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3"
+    assert sha == "7307a62a262dd80f1342c43a0d3d13b1269fe260d99ba6a7d6cb08aabab5d274"
     # evidence fixture must match
     ev = json.loads(EVIDENCE.read_text(encoding="utf-8"))
     assert ev["sanitized_input"]["sha256"] == sha
@@ -24,11 +24,15 @@ def test_sanitized_and_rubric_shas():
 
 def test_committed_equals_child_shas():
     ev = json.loads(EVIDENCE.read_text(encoding="utf-8"))
-    # A
-    assert ev["reviewer_A"]["child_produced_output_sha256"] == ev["reviewer_A"]["committed_artifact_sha256"]
+    # A raw CRLF vs canonical LF distinguished (EOL normalization, CRLF->LF 100 bytes, semantics identical)
+    assert ev["reviewer_A"]["child_produced_output_sha256"] == "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5"
+    assert ev["reviewer_A"]["committed_artifact_sha256"] == "44ffd05266d4d465929f7cf42a67bc7c59ceba4fa0d9b8a5a0a2ec81572b750e"
+    assert ev["reviewer_A"]["child_produced_output_sha256"] != ev["reviewer_A"]["committed_artifact_sha256"]
     assert ev["reviewer_A"]["committed_artifact_sha256"] == hashlib.sha256(RAW_A.read_bytes()).hexdigest()
     # B
-    assert ev["reviewer_B"]["child_produced_output_sha256"] == ev["reviewer_B"]["committed_artifact_sha256"]
+    assert ev["reviewer_B"]["child_produced_output_sha256"] == "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f"
+    assert ev["reviewer_B"]["committed_artifact_sha256"] == "ad547db2c21de498cd7c892e0351e779fc6c06ea4546079be89cd8d3828c5e43"
+    assert ev["reviewer_B"]["child_produced_output_sha256"] != ev["reviewer_B"]["committed_artifact_sha256"]
     assert ev["reviewer_B"]["committed_artifact_sha256"] == hashlib.sha256(RAW_B.read_bytes()).hexdigest()
     # C
     assert ev["reviewer_C"]["child_produced_output_sha256"] == "e0376e25512194308842ff7392d9f9264ed75ab75db3b76b1865b7e2248d4141"

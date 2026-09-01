@@ -2,14 +2,14 @@
   "adjudicator_id": "C",
   "agent_label": "Adjudicator-isolated",
   "disagreements_resolved": 93,
-  "input_A_sha256": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
-  "input_B_sha256": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
+  "input_A_sha256": "44ffd05266d4d465929f7cf42a67bc7c59ceba4fa0d9b8a5a0a2ec81572b750e",
+  "input_B_sha256": "ad547db2c21de498cd7c892e0351e779fc6c06ea4546079be89cd8d3828c5e43",
   "c_input_file": "c_input.jsonl (constructed mechanically from A/B disagreements only, not committed to repo)",
   "c_input_sha256": "ba5d30608a04f3a43243e18ea78a6a2b327bacae2c2b4402bb1c2cfb1aa38764",
   "c_input_rows": 93,
   "instruction_version": "neutral_rubric.md (outside-repo clean-room rubric, retrieval-blind, rubric-based adjudication)",
   "log_file": "adjudication_log.json",
-  "log_sha256": "6935a6270da4643418d12e8a51c87dab4786b6c09e408b416c9f7c634f5b094a",
+  "log_sha256": "d45d67c008eac6cfcb41755bae53da3d953466196cc1d55c122ed3b8c2b7eef2",
   "method": "For each of 93 tasks with any disagreement (sanitized task_id/query_text + A/B disagreement values only, no original pilot labels or historical aggregate targets, agreed dimensions not shown), adjudicator independently evaluated query_text against neutral rubric per dimension with documented rationale; not alternating, not predetermined synthesis; deterministic residual 0; mechanically compared A vs B to construct C-input containing only sanitized query + disagreements, no historical labels",
   "model_role": "openai-codex/gpt-5.6-luna:max (review Luna max per OMP modelRoles; ROOT is opencode-go/muse-spark-1.2-contributor:xhigh HARD GATE, child is review role; --no-extensions, no repo/add-dir)",
   "thinking": "max",
@@ -18,7 +18,7 @@
   "child_produced_output_sha256": "e0376e25512194308842ff7392d9f9264ed75ab75db3b76b1865b7e2248d4141",
   "committed_artifact_sha256": "fd65971d13a1d7400b58cfaeeb14762a5a3c1de45dfec5dc1aeeb9dcb2218b2d",
   "residual_after_adjudication": 0,
-  "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+  "sanitized_input_sha256": "7307a62a262dd80f1342c43a0d3d13b1269fe260d99ba6a7d6cb08aabab5d274",
   "neutral_rubric_sha256": "75797f70044f66863d24e315cbffc6d67828892a110eb2a02477f9444ee4834c",
   "session_id": "01a05a5c-63fd-7132-8a5f-a8259ef50382",
   "transcript_path_portable": "--C--tmp-benefit-compass-clean-C--/2026-09-01T00-26-39-485Z_01a05a5c-63fd-7132-8a5f-a8259ef50382.jsonl",
@@ -28,7 +28,7 @@
   "cwd": "C:/tmp/benefit-compass-clean-C",
   "total_tasks": 100,
   "lineage": {
-    "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+    "sanitized_input_sha256": "7307a62a262dd80f1342c43a0d3d13b1269fe260d99ba6a7d6cb08aabab5d274",
     "neutral_rubric_sha256": "75797f70044f66863d24e315cbffc6d67828892a110eb2a02477f9444ee4834c",
     "c_input_sha256": "ba5d30608a04f3a43243e18ea78a6a2b327bacae2c2b4402bb1c2cfb1aa38764",
     "c_input_rows": 93,
@@ -39,6 +39,10 @@
     "model_role": "openai-codex/gpt-5.6-luna:max",
     "thinking": "max",
     "clean_room_cwd": "C:/tmp/benefit-compass-clean-C",
-    "confinement": "outside-repo clean directory containing only c_input.jsonl + neutral_rubric.md, no repo, no A/B full files, no historical labels, no aggregate targets"
-  }
+    "confinement": "outside-repo clean directory containing only c_input.jsonl + neutral_rubric.md, no repo, no A/B full files, no historical labels, no aggregate targets",
+    "canonical_log_sha256": "d45d67c008eac6cfcb41755bae53da3d953466196cc1d55c122ed3b8c2b7eef2",
+    "raw_log_wt_crlf": "6935a6270da4643418d12e8a51c87dab4786b6c09e408b416c9f7c634f5b094a",
+    "eol_normalization": "log WT CRLF 6935... normalized to canonical LF d45d... (4954 bytes CRLF->LF); reviewer inputs canonical LF"
+  },
+  "canonical_byte_contract": "canonical bytes are committed LF blobs; raw CRLF WT normalized via eol=lf"
 }

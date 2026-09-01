@@ -3,7 +3,7 @@
   "description": "Deterministic OMP provenance evidence for offline regression; sanitized digest metadata sufficient without live sessions or home directory",
   "sanitized_input": {
     "path": "eval/retrieval-v3/pilot/re-audit/pilot_reaudit_input.jsonl",
-    "sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+    "sha256": "7307a62a262dd80f1342c43a0d3d13b1269fe260d99ba6a7d6cb08aabab5d274",
     "rows": 100,
     "fields": [
       "task_id",
@@ -29,11 +29,11 @@
     "thinking": "xhigh",
     "cwd": "C:/tmp/benefit-compass-clean-A",
     "cwd_confinement": "outside-repo, contains only sanitized_input + neutral_rubric, no repo/add-dir, no historical labels",
-    "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+    "sanitized_input_sha256": "7307a62a262dd80f1342c43a0d3d13b1269fe260d99ba6a7d6cb08aabab5d274",
     "neutral_rubric_sha256": "75797f70044f66863d24e315cbffc6d67828892a110eb2a02477f9444ee4834c",
     "child_produced_output_sha256": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
     "committed_artifact": "eval/retrieval-v3/pilot/re-audit/reviewer_A_raw_labels.jsonl",
-    "committed_artifact_sha256": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
+    "committed_artifact_sha256": "44ffd05266d4d465929f7cf42a67bc7c59ceba4fa0d9b8a5a0a2ec81572b750e",
     "output_rows": 100,
     "timestamp": "2026-09-01T00:17:03.026Z",
     "files_read": [
@@ -55,11 +55,11 @@
     "thinking": "xhigh",
     "cwd": "C:/tmp/benefit-compass-clean-B",
     "cwd_confinement": "outside-repo, contains only sanitized_input + neutral_rubric, no repo/add-dir, no A output, no historical labels",
-    "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+    "sanitized_input_sha256": "7307a62a262dd80f1342c43a0d3d13b1269fe260d99ba6a7d6cb08aabab5d274",
     "neutral_rubric_sha256": "75797f70044f66863d24e315cbffc6d67828892a110eb2a02477f9444ee4834c",
     "child_produced_output_sha256": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
     "committed_artifact": "eval/retrieval-v3/pilot/re-audit/reviewer_B_raw_labels.jsonl",
-    "committed_artifact_sha256": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
+    "committed_artifact_sha256": "ad547db2c21de498cd7c892e0351e779fc6c06ea4546079be89cd8d3828c5e43",
     "output_rows": 100,
     "timestamp": "2026-09-01T00:18:06.075Z",
     "blind_to_A": true,
@@ -81,13 +81,13 @@
     "thinking": "max",
     "cwd": "C:/tmp/benefit-compass-clean-C",
     "cwd_confinement": "outside-repo, contains only c_input.jsonl + neutral_rubric.md, no repo, no A/B full files, no historical labels",
-    "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+    "sanitized_input_sha256": "7307a62a262dd80f1342c43a0d3d13b1269fe260d99ba6a7d6cb08aabab5d274",
     "neutral_rubric_sha256": "75797f70044f66863d24e315cbffc6d67828892a110eb2a02477f9444ee4834c",
     "c_input_sha256": "ba5d30608a04f3a43243e18ea78a6a2b327bacae2c2b4402bb1c2cfb1aa38764",
     "c_input_rows": 93,
     "child_produced_output_sha256": "e0376e25512194308842ff7392d9f9264ed75ab75db3b76b1865b7e2248d4141",
     "committed_adjudicated_sha256": "fd65971d13a1d7400b58cfaeeb14762a5a3c1de45dfec5dc1aeeb9dcb2218b2d",
-    "committed_adjudication_log_sha256": "6935a6270da4643418d12e8a51c87dab4786b6c09e408b416c9f7c634f5b094a",
+    "committed_adjudication_log_sha256": "d45d67c008eac6cfcb41755bae53da3d953466196cc1d55c122ed3b8c2b7eef2",
     "log_file": "adjudication_log.json",
     "output_rows": 93,
     "timestamp": "2026-09-01T00:26:39.485Z",
@@ -95,7 +95,7 @@
   },
   "disagreement_matrix": {
     "file": "eval/retrieval-v3/pilot/re-audit/disagreement_matrix.json",
-    "sha256": "cf85045799a7b93e3bdcfb46280d379b69c75a4ef550fe6f6beb8f1120a0545a",
+    "sha256": "93a796335d9525db293a16e62002304f23c04e3b4c89a997e026fbbec74cd265",
     "any_disagreement": 93,
     "any_agreement": 7,
     "per_dimension": {
@@ -120,17 +120,38 @@
   },
   "lineage": {
     "base_commit": "b03b30aee37e849220e9813b9e9710d05996eeb1",
-    "sanitized_input_sha256": "a47bb525f7966d7c23a06e57fc361119eca1c610e0cc1caf77e4cf2cd828aea3",
+    "sanitized_input_sha256": "7307a62a262dd80f1342c43a0d3d13b1269fe260d99ba6a7d6cb08aabab5d274",
     "neutral_rubric_sha256": "75797f70044f66863d24e315cbffc6d67828892a110eb2a02477f9444ee4834c",
     "c_input_sha256": "ba5d30608a04f3a43243e18ea78a6a2b327bacae2c2b4402bb1c2cfb1aa38764",
     "reviewer_A_child_sha": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
     "reviewer_B_child_sha": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
     "reviewer_C_child_sha": "e0376e25512194308842ff7392d9f9264ed75ab75db3b76b1865b7e2248d4141",
-    "provenance": "A/B/C provenance durably recorded with session IDs, transcript SHAs, cwds, model roles; A/B committed SHAs equal frozen child SHAs, C child output e0376e25512194308842ff7392d9f9264ed75ab75db3b76b1865b7e2248d4141 differs from committed merged/adjudicated artifact fd65971d13a1d7400b58cfaeeb14762a5a3c1de45dfec5dc1aeeb9dcb2218b2d by design (merged with agreed dimensions)",
-    "disagreement_matrix_sha256": "cf85045799a7b93e3bdcfb46280d379b69c75a4ef550fe6f6beb8f1120a0545a"
+    "provenance": "Canonical bytes are committed LF blob bytes (eol=lf enforced via .gitattributes, independent of core.autocrlf). Raw clean-room child outputs were CRLF on Windows text mode — raw-child SHA ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5 (A) / aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f (B) normalized to canonical LF SHA 44ffd05266d4d465929f7cf42a67bc7c59ceba4fa0d9b8a5a0a2ec81572b750e (A) / ad547db2c21de498cd7c892e0351e779fc6c06ea4546079be89cd8d3828c5e43 (B) on commit (EOL normalization, CRLF->LF, 100 bytes each). A/B raw-child CRLF vs canonical LF distinction recorded; not same SHA claimed for both. C child output e0376e25512194308842ff7392d9f9264ed75ab75db3b76b1865b7e2248d4141 differs from committed merged/adjudicated artifact fd65971d13a1d7400b58cfaeeb14762a5a3c1de45dfec5dc1aeeb9dcb2218b2d by design (merged with agreed dimensions), not EOL. A/B/C provenance durably recorded with session IDs, transcript SHAs, cwds, model roles; matrix/log canonical LF SHAs 93a796335d9525db293a16e62002304f23c04e3b4c89a997e026fbbec74cd265 / d45d67c008eac6cfcb41755bae53da3d953466196cc1d55c122ed3b8c2b7eef2 (normalized from WT CRLF cf85045799a7b93e3bdcfb46280d379b69c75a4ef550fe6f6beb8f1120a0545a / 6935a6270da4643418d12e8a51c87dab4786b6c09e408b416c9f7c634f5b094a).",
+    "disagreement_matrix_sha256": "93a796335d9525db293a16e62002304f23c04e3b4c89a997e026fbbec74cd265",
+    "reviewer_A_canonical_sha": "44ffd05266d4d465929f7cf42a67bc7c59ceba4fa0d9b8a5a0a2ec81572b750e",
+    "reviewer_B_canonical_sha": "ad547db2c21de498cd7c892e0351e779fc6c06ea4546079be89cd8d3828c5e43",
+    "reviewer_A_raw_child_sha": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
+    "reviewer_B_raw_child_sha": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f"
   },
   "historical_access_embargo": {
     "lifted_after": "2026-09-01T00:35:15Z (C freeze)",
     "note": "Historical pilot labels (pilot_tasks.jsonl), historical counts, D-016 provenance, memory/DECISIONS.md reads occurred strictly after A/B/C output freeze; verified via timestamps"
+  },
+  "canonical_byte_contract": {
+    "canonical": "committed LF blob bytes (git i/lf, eol=lf via .gitattributes)",
+    "independent_of": "core.autocrlf and working-tree CRLF",
+    "eol_policy": "eval/retrieval-v3/pilot/re-audit/*.json text eol=lf; *.jsonl text eol=lf",
+    "raw_child_crlf_vs_canonical_lf": {
+      "reviewer_A_raw_crlf": "ad7f8017f125209a7c43a3cb67b359d1585eb3eb1c63d36abdd694179ec37dc5",
+      "reviewer_A_canonical_lf": "44ffd05266d4d465929f7cf42a67bc7c59ceba4fa0d9b8a5a0a2ec81572b750e",
+      "reviewer_B_raw_crlf": "aaf349afe6e327bd23bd55d4ebb2970b431d62db5b6f07595fb942599267063f",
+      "reviewer_B_canonical_lf": "ad547db2c21de498cd7c892e0351e779fc6c06ea4546079be89cd8d3828c5e43",
+      "matrix_raw_crlf_wt": "cf85045799a7b93e3bdcfb46280d379b69c75a4ef550fe6f6beb8f1120a0545a",
+      "matrix_canonical_lf": "93a796335d9525db293a16e62002304f23c04e3b4c89a997e026fbbec74cd265",
+      "log_raw_crlf_wt": "6935a6270da4643418d12e8a51c87dab4786b6c09e408b416c9f7c634f5b094a",
+      "log_canonical_lf": "d45d67c008eac6cfcb41755bae53da3d953466196cc1d55c122ed3b8c2b7eef2",
+      "normalization": "CRLF->LF on commit, 100/100/2881/4954 bytes respectively; content semantics identical, only EOL normalized"
+    },
+    "verification": "regression validates git show HEAD:path blob SHA256 (canonical LF) and git ls-files --eol w/lf, not only Path.read_bytes() WT; fails at 35a7bec CRLF state"
   }
 }
