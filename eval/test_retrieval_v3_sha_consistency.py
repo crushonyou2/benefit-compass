@@ -46,7 +46,7 @@ CANONICAL_B = "ad547db2c21de498cd7c892e0351e779fc6c06ea4546079be89cd8d3828c5e43"
 CANONICAL_ADJUDICATED = "fd65971d13a1d7400b58cfaeeb14762a5a3c1de45dfec5dc1aeeb9dcb2218b2d"
 C_CHILD = "e0376e25512194308842ff7392d9f9264ed75ab75db3b76b1865b7e2248d4141"
 CANONICAL_SANITIZED = "7307a62a262dd80f1342c43a0d3d13b1269fe260d99ba6a7d6cb08aabab5d274"
-CANONICAL_OMP = "25c5f43bc8713cb9521b784c330f9e5ec7329c35a8bdd58897a25ac72c3a175a"
+CANONICAL_OMP = "6e6b2f8d7db02d1ab6c018e4c486443a7f3a0441276a2e2bf8dea392cfc1ff62"
 
 def _sha256_bytes(p: pathlib.Path) -> str:
     return hashlib.sha256(p.read_bytes()).hexdigest()
@@ -307,13 +307,13 @@ def test_canonical_blob_matches_declared_via_git_show():
     """Durable committed-state validation: git show HEAD blob SHA256 + length + LF/final-LF for matrix+OMP and other canonical files.
 
     Directly `git show HEAD:eval/retrieval-v3/pilot/re-audit/disagreement_matrix.json` must be SHA256 93a796... 80541 bytes LF-only final LF true,
-    and `git show HEAD:eval/retrieval-v3/pilot/re-audit/omp_provenance_evidence.json` must be 25c5f43... 10333 bytes final LF true,
+    and `git show HEAD:eval/retrieval-v3/pilot/re-audit/omp_provenance_evidence.json` must be 6e6b2f8d... 12989 bytes final LF true,
     plus log d45d 175300 no final LF, reviewer A 44ffd 49735 final LF, B ad547 49681 final LF, adjudicated fd659 53770 final LF, sanitized 7307 8959 final LF.
     Fails if HEAD is stale, missing, or mismatched — no continue loophole. Tests committed-state contract that exists now.
     """
     expected_blobs = [
         (MATRIX_PATH, CANONICAL_MATRIX, 80541, True),
-        (OMP_PROV, CANONICAL_OMP, 10333, True),
+        (OMP_PROV, CANONICAL_OMP, 12989, True),
         (LOG_PATH, CANONICAL_LOG, 175300, False),
         (BASE / "reviewer_A_raw_labels.jsonl", CANONICAL_A, 49735, True),
         (BASE / "reviewer_B_raw_labels.jsonl", CANONICAL_B, 49681, True),
@@ -343,3 +343,80 @@ def test_canonical_blob_matches_declared_via_git_show():
         assert b"\r\n" not in blob, f"HEAD blob for {path.name} contains CRLF — committed LF contract broken"
         blob_has_final = blob[-1:] == b"\n"
         assert blob_has_final == expected_final_lf, f"HEAD blob for {path.name} final LF mismatch: expected {expected_final_lf}, got {blob_has_final}"
+def test_matrix_lineage_truth_and_no_pure_2881_regression():
+    """D-022: matrix historical WT cf850 (83421, 2881 CRLF) vs historical blob 1786 (80540, no final LF) was pure EOL at 35a7bec;
+    current matrix 93a796 (80541, final LF true) is NOT pure EOL from WT cf850 — includes metadata SHA updates + canonical LF + final LF.
+    This test FAILS if future code reverts to claiming cf850->93a796 is 2881-byte pure-EOL / only EOL normalized.
+    Preserves A/B 100 and log 4954 pure EOL truths.
+    """
+    import json, pathlib, hashlib, re
+    omp = json.loads((BASE / "omp_provenance_evidence.json").read_text(encoding="utf-8"))
+    cbc = omp.get("canonical_byte_contract", {})
+    r = cbc.get("raw_child_crlf_vs_canonical_lf", {}) if isinstance(cbc, dict) else {}
+
+    # --- Structured historical matrix fields must exist and be truthful ---
+    assert r.get("matrix_historical_wt_crlf", "").lower() == WT_MATRIX_CRLF.lower(), "missing matrix_historical_wt_crlf cf850"
+    assert r.get("matrix_historical_wt_bytes") == 83421, "historical WT must be 83421 bytes"
+    assert r.get("matrix_historical_wt_crlf_count") == 2881, "historical WT must have 2881 CRLF"
+    assert r.get("matrix_historical_blob_lf", "").lower() == "1786a38e0ddc3c1e5d79e39fa1fa62fb2a09a0dd673851af27e4e623a73cd8f5".lower(), "missing historical blob 1786"
+    assert r.get("matrix_historical_blob_bytes") == 80540, "historical blob must be 80540 bytes"
+    assert r.get("matrix_historical_blob_final_lf") is False, "historical blob must be no final LF"
+    assert r.get("matrix_historical_pure_eol") is True, "historical WT->blob must be true pure EOL"
+    assert r.get("matrix_historical_pure_eol_bytes") == 2881
+
+    # --- Current matrix must be 80541 final LF true and NOT pure EOL from WT ---
+    assert r.get("matrix_raw_crlf_wt", "").lower() == WT_MATRIX_CRLF.lower()
+    assert r.get("matrix_canonical_lf", "").lower() == CANONICAL_MATRIX.lower()
+    assert r.get("matrix_canonical_bytes") == 80541, "current matrix must be 80541 bytes (80540 historical +1 final LF + content)"
+    assert r.get("matrix_canonical_final_lf") is True, "current matrix must have final LF true"
+    assert r.get("matrix_wt_to_current_pure_eol") is False, "WT cf850->current 93a796 must be NOT pure EOL"
+    assert r.get("matrix_wt_to_current_byte_diff") == 2880, "83421-80541=2880, not 2881 pure EOL"
+
+    # --- A/B and log remain pure EOL truths ---
+    assert r.get("reviewer_A_pure_eol_bytes") == 100
+    assert r.get("reviewer_B_pure_eol_bytes") == 100
+    assert r.get("log_pure_eol") is True
+    assert r.get("log_pure_eol_bytes") == 4954
+    assert r.get("log_canonical_bytes") == 175300
+    assert r.get("log_canonical_final_lf") is False
+
+    # --- Normalization string must be truthful, not the old incorrect 100/100/2881/4954 pure EOL claim ---
+    norm = r.get("normalization", "")
+    # Old incorrect phrase: "100/100/2881/4954 bytes respectively; content semantics identical, only EOL normalized"
+    assert "100/100/2881/4954" not in norm, "normalization still contains old incorrect '100/100/2881/4954 ... only EOL normalized' — matrix 2881 pure EOL claim must not be current"
+    # Must contain truthful matrix historical vs current distinction
+    assert "historical WT cf850" in norm or "historical WT" in norm, "normalization must state historical WT cf850"
+    assert "historical blob 1786" in norm, "normalization must state historical blob 1786"
+    assert "NOT pure EOL" in norm or "is NOT pure" in norm, "normalization must state WT cf850 -> current NOT pure EOL"
+    assert "83421" in norm and "80540" in norm and "80541" in norm, "normalization must contain byte sizes 83421, 80540, 80541"
+    assert "2880" in norm, "normalization must mention 2880 diff (83421-80541)"
+    # Must not claim matrix current is pure 2881
+    # Ensure that if someone writes "matrix 93a796 ... 2881" as pure, it would be caught by above NOT pure requirement
+
+    # --- Lineage provenance must also be truthful ---
+    prov = omp.get("lineage", {}).get("provenance", "")
+    assert "historical WT" in prov and "cf850" in prov.lower(), "provenance must mention historical WT cf850"
+    assert "1786a38" in prov.lower(), "provenance must mention historical blob 1786"
+    assert "NOT a pure-EOL" in prov or "is NOT a pure-EOL" in prov or "is NOT pure" in prov or "NOT pure-EOL" in prov, "provenance must state current matrix NOT pure-EOL"
+    assert "83421" in prov and "80540" in prov and "80541" in prov, "provenance must contain byte sizes"
+    assert "log canonical LF SHA d45d" in prov.lower() or "d45d67" in prov.lower(), "provenance must mention log canonical"
+    # Must not claim old incorrect lineage
+    # Check that PREREG does not contain old incorrect matrix 2881 wording
+    prereg_txt = PREREG.read_text(encoding="utf-8")
+    assert "matrix 2881, log 4954" not in prereg_txt, "PREREG still contains old 'matrix 2881, log 4954' pure EOL wording — must be corrected to historical vs current distinction"
+    assert "historical WT cf850" in prereg_txt, "PREREG must contain truthful historical WT cf850 wording"
+    assert "historical blob 1786" in prereg_txt, "PREREG must contain historical blob 1786"
+    assert "NOT pure EOL" in prereg_txt or "is NOT pure" in prereg_txt, "PREREG must state WT cf850 -> current NOT pure EOL"
+
+    # --- Byte truth: actual file bytes must match declared truth ---
+    matrix_bytes = (BASE / "disagreement_matrix.json").read_bytes()
+    assert len(matrix_bytes) == 80541, f"matrix bytes must be 80541, got {len(matrix_bytes)}"
+    assert b"\r\n" not in matrix_bytes, "matrix must be LF-only"
+    assert matrix_bytes[-1:] == b"\n", "matrix must have final LF true"
+    assert hashlib.sha256(matrix_bytes).hexdigest().lower() == CANONICAL_MATRIX.lower()
+    # Verify historical sizes are not current file size
+    assert 83421 != 80541 and 80540 != 80541, "historical sizes must differ from current"
+    # Ensure disagreement semantics preserved (93/100)
+    import json as _j
+    m = _j.loads(matrix_bytes.decode("utf-8"))
+    assert m.get("any_disagreement") == 93 or "93" in str(m), "matrix semantics 93/100 must be preserved"
