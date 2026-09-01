@@ -55,6 +55,10 @@ def _git_ls_files_eol(path: str) -> str:
     out = subprocess.check_output(["git","ls-files","--eol",path], text=True)
     return out.strip()
 
+def _git_check_attr(path: str, attr: str) -> str:
+    out = subprocess.check_output(["git","check-attr",attr,"--",path], text=True)
+    return out.strip()
+
 def test_recomputed_shas_match_actual_bytes_and_metadata_lineage():
     # Recompute from canonical LF bytes — deterministic, no home/session
     assert MATRIX_PATH.exists(), "disagreement_matrix.json missing"
@@ -162,11 +166,15 @@ def test_recomputed_shas_match_actual_bytes_and_metadata_lineage():
             h3.update(chunk)
     assert h3.hexdigest().lower() == recomputed_log.lower()
 
-    # EOL contract: git ls-files --eol must show w/lf for canonical files
+    # EOL contract: git ls-files --eol must show w/lf and git check-attr must be text: set + eol: lf (deterministic, independent of core.autocrlf)
     for rel in ["eval/retrieval-v3/pilot/re-audit/disagreement_matrix.json","eval/retrieval-v3/pilot/re-audit/adjudication_log.json","eval/retrieval-v3/pilot/re-audit/reviewer_A_raw_labels.jsonl","eval/retrieval-v3/pilot/re-audit/reviewer_B_raw_labels.jsonl","eval/retrieval-v3/pilot/re-audit/omp_provenance_evidence.json"]:
         eol = _git_ls_files_eol(rel)
         assert "w/lf" in eol, f"EOL contract broken for {rel}: {eol} — must be w/lf via eol=lf (fails at 35a7bec CRLF state)"
         assert "i/lf" in eol, f"index must be i/lf for {rel}: {eol}"
+        text_attr = _git_check_attr(rel, "text")
+        assert "text: set" in text_attr, f"text attribute not set for {rel}: {text_attr} — must be text: set via .gitattributes eol=lf"
+        eol_attr = _git_check_attr(rel, "eol")
+        assert "eol: lf" in eol_attr, f"eol attribute not lf for {rel}: {eol_attr} — must be eol: lf via .gitattributes"
 
 def test_no_home_or_live_session_dependency():
     assert not pathlib.Path.home().exists() or True
@@ -287,46 +295,51 @@ def test_fixture_bytes_sha_matches_external_declarations_and_lineage_truth():
         for chunk in iter(lambda: f.read(8192), b""):
             h.update(chunk)
     assert h.hexdigest().lower() == recomputed_fixture.lower()
-    # EOL contract for omp, matrix, log, A/B files must be w/lf
+    # EOL contract for omp, matrix, log, A/B files must be w/lf + deterministic attributes text: set + eol: lf (independent of core.autocrlf)
     for rel in ["eval/retrieval-v3/pilot/re-audit/omp_provenance_evidence.json","eval/retrieval-v3/pilot/re-audit/disagreement_matrix.json","eval/retrieval-v3/pilot/re-audit/adjudication_log.json","eval/retrieval-v3/pilot/re-audit/reviewer_A_raw_labels.jsonl","eval/retrieval-v3/pilot/re-audit/reviewer_B_raw_labels.jsonl"]:
         eol = _git_ls_files_eol(rel)
         assert "w/lf" in eol, f"EOL contract broken for {rel}: {eol} — must be w/lf via eol=lf (fails at 35a7bec CRLF state)"
-
+        text_attr = _git_check_attr(rel, "text")
+        assert "text: set" in text_attr, f"text attribute not set for {rel}: {text_attr}"
+        eol_attr = _git_check_attr(rel, "eol")
+        assert "eol: lf" in eol_attr, f"eol attribute not lf for {rel}: {eol_attr}"
 def test_canonical_blob_matches_declared_via_git_show():
-    """Validate canonical LF via WT bytes + git ls-files --eol w/lf + git show HEAD where stable — catches CRLF/LF divergence.
+    """Durable committed-state validation: git show HEAD blob SHA256 + length + LF/final-LF for matrix+OMP and other canonical files.
 
-    Pre-commit, HEAD for files with content updates (matrix 93a79 vs 1786, OMP 25c5f vs cc003, provenance docs) still holds stale blobs;
-    WT already canonical LF and ls-files shows w/lf, proving the next commit will store canonical LF (EOL contract).
-    For files already stable in HEAD (adjudication_log d45d, adjudicated fd659, pilot_input 7307, reviewer_A 44ffd / reviewer_B ad547 already LF in HEAD),
-    this test also validates actual committed blob bytes via `git show HEAD:path` SHA256 equals declared canonical, proving portability across core.autocrlf.
-    Would have failed at 35a7bec where WT was CRLF (cf850/6935/8850/ad7f/aaf) and w/crlf even though some HEAD blobs were already LF — stale-vs-stale loophole closed via WT+ EOL contract.
+    Directly `git show HEAD:eval/retrieval-v3/pilot/re-audit/disagreement_matrix.json` must be SHA256 93a796... 80541 bytes LF-only final LF true,
+    and `git show HEAD:eval/retrieval-v3/pilot/re-audit/omp_provenance_evidence.json` must be 25c5f43... 10333 bytes final LF true,
+    plus log d45d 175300 no final LF, reviewer A 44ffd 49735 final LF, B ad547 49681 final LF, adjudicated fd659 53770 final LF, sanitized 7307 8959 final LF.
+    Fails if HEAD is stale, missing, or mismatched — no continue loophole. Tests committed-state contract that exists now.
     """
-    # 1) WT canonical LF must equal declared canonical for all re-audit evidence; EOL must be w/lf (fails at 35a7bec w/crlf)
-    for path, expected in [(MATRIX_PATH, CANONICAL_MATRIX),(LOG_PATH, CANONICAL_LOG),(BASE/"reviewer_A_raw_labels.jsonl", CANONICAL_A),(BASE/"reviewer_B_raw_labels.jsonl", CANONICAL_B),(BASE/"adjudicated_labels.jsonl", CANONICAL_ADJUDICATED),(BASE/"pilot_reaudit_input.jsonl", CANONICAL_SANITIZED)]:
-        assert path.exists(), f"{path} missing"
-        wt_sha = _sha256_bytes(path)
-        assert wt_sha.lower() == expected.lower(), f"{path.name} WT canonical mismatch: got {wt_sha}, expected {expected}"
-        # WT must be LF-only (no CRLF) — canonical contract independent of core.autocrlf
-        assert b"\r\n" not in path.read_bytes(), f"{path.name} still contains CRLF — EOL contract broken"
-        eol = _git_ls_files_eol(str(path))
-        assert "w/lf" in eol, f"{path.name} EOL not w/lf: {eol} — would have failed at 35a7bec w/crlf"
-        assert "i/lf" in eol, f"{path.name} index not i/lf: {eol}"
-    # 2) For files already stable in HEAD, validate actual committed blob bytes via git show HEAD:path SHA256 == canonical (proves portability)
-    # These files had LF blobs already at 35a7bec (blob == canonical) but WT was CRLF — WT+EOL contract caught defect; now both WT and HEAD are LF.
-    stable_paths = [
-        (LOG_PATH, CANONICAL_LOG),
-        (BASE / "adjudicated_labels.jsonl", CANONICAL_ADJUDICATED),
-        (BASE / "pilot_reaudit_input.jsonl", CANONICAL_SANITIZED),
-        (BASE / "reviewer_A_raw_labels.jsonl", CANONICAL_A),
-        (BASE / "reviewer_B_raw_labels.jsonl", CANONICAL_B),
+    expected_blobs = [
+        (MATRIX_PATH, CANONICAL_MATRIX, 80541, True),
+        (OMP_PROV, CANONICAL_OMP, 10333, True),
+        (LOG_PATH, CANONICAL_LOG, 175300, False),
+        (BASE / "reviewer_A_raw_labels.jsonl", CANONICAL_A, 49735, True),
+        (BASE / "reviewer_B_raw_labels.jsonl", CANONICAL_B, 49681, True),
+        (BASE / "adjudicated_labels.jsonl", CANONICAL_ADJUDICATED, 53770, True),
+        (BASE / "pilot_reaudit_input.jsonl", CANONICAL_SANITIZED, 8959, True),
     ]
-    for path, expected in stable_paths:
-        try:
-            blob = subprocess.check_output(["git", "show", f"HEAD:{path.as_posix()}"], timeout=5)
-        except subprocess.CalledProcessError:
-            continue  # not in HEAD yet
+    for path, expected_sha, expected_len, expected_final_lf in expected_blobs:
+        assert path.exists(), f"{path} missing for blob check"
+        wt_bytes = path.read_bytes()
+        wt_sha = hashlib.sha256(wt_bytes).hexdigest()
+        assert wt_sha.lower() == expected_sha.lower(), f"{path.name} WT SHA mismatch: got {wt_sha}, expected {expected_sha}"
+        assert b"\r\n" not in wt_bytes, f"{path.name} WT contains CRLF — EOL contract broken"
+        wt_has_final = wt_bytes[-1:] == b"\n"
+        assert wt_has_final == expected_final_lf, f"{path.name} WT final LF mismatch: expected {expected_final_lf}, got {wt_has_final}"
+        assert len(wt_bytes) == expected_len, f"{path.name} WT length mismatch: got {len(wt_bytes)}, expected {expected_len}"
+        eol = _git_ls_files_eol(str(path))
+        assert "w/lf" in eol, f"{path.name} EOL not w/lf: {eol}"
+        assert "i/lf" in eol, f"{path.name} index not i/lf: {eol}"
+        text_attr = _git_check_attr(str(path), "text")
+        assert "text: set" in text_attr, f"{path.name} text attr not set: {text_attr}"
+        eol_attr = _git_check_attr(str(path), "eol")
+        assert "eol: lf" in eol_attr, f"{path.name} eol attr not lf: {eol_attr}"
+        blob = subprocess.check_output(["git", "show", f"HEAD:{path.as_posix()}"], timeout=5)
         blob_sha = hashlib.sha256(blob).hexdigest()
-        assert blob_sha.lower() == expected.lower(), f"HEAD blob for {path.name} not canonical LF: got {blob_sha}, expected {expected} — committed bytes portability broken"
+        assert blob_sha.lower() == expected_sha.lower(), f"HEAD blob for {path.name} not canonical LF: got {blob_sha}, expected {expected_sha} — committed bytes portability broken or HEAD stale"
+        assert len(blob) == expected_len, f"HEAD blob length for {path.name} mismatch: got {len(blob)}, expected {expected_len} — HEAD stale"
         assert b"\r\n" not in blob, f"HEAD blob for {path.name} contains CRLF — committed LF contract broken"
-    # 3) For files with content updates still dirty in HEAD (matrix 93a79 vs old 1786, OMP 25c5f vs cc003, provenance docs), HEAD is stale pre-commit — verify WT+EOL already canonical; post-commit HEAD will be validated via same git show after push (not asserted pre-commit).
-    # This documents the pre-commit stale-HEAD state without falsely claiming git show already equals canonical for dirty files.
+        blob_has_final = blob[-1:] == b"\n"
+        assert blob_has_final == expected_final_lf, f"HEAD blob for {path.name} final LF mismatch: expected {expected_final_lf}, got {blob_has_final}"
