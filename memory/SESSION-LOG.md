@@ -838,3 +838,9 @@ One short section per working session: what was worked on, what was decided (wit
 - **Model:** `Muse Spark 1.2 Contributor / xhigh` ROOT verified (`omp config get modelRoles`); delegated agents not used for root-gated work. This one UI-visible session owns the whole bounded correction stage.
 
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden-action counts.
+
+## 2026-09-02 — Follow-up mechanical repair: D-024 blockquote truncation restored — post-commit verification (D-026 unchanged, no new DECISION)
+
+- **Trigger:** Web verification of commit edf68301ed652ba7d588b6ba6f210cb777c2765f (D-026) found one unintended docs regression outside intended scope: docs/RETRIEVAL_V3_PREREG.md D-024 Holdout-builder v3 supplement blockquote truncated mid-sentence at Failure class: v2 C-376 insufficient for `.
+- **Repair (this commit, narrow mechanical only):** restored the entire D-024 blockquote EXACTLY from parent/base c3808a252082d04c09986eb29c241e747d98bb85 (byte/text-identical) while preserving all intended D-026 edits (bounded-correction blockquote and §3 Diagnostics non-gating correction). No new DECISION; D-026 semantics unchanged. No protected holdout plaintext/artifacts, eval code/tests, ml-service, or substantive contract touched.
+- **Validation:** restored D-024 line byte-identical to c3808a2 (SHA 62817431fc1bf213cfc4fc1b5cebcbd742bdef1baeb9496b6038eeeb2cd5d63a); focused diff c3808a2..HEAD shows only intended D-026 hunks + append-only D-026 records + this mechanical repair note; git diff --check PASS; ml-service diff 0; eval/retrieval-v3/holdout absent on main; protected branch/tag unchanged.
