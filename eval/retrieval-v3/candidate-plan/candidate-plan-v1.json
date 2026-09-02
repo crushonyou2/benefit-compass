@@ -1,0 +1,439 @@
+{
+  "allowed_axes": [
+    "sparse/dense fusion/weights — sparse_weight, dense_weight, fusion_method (union/hybrid_weighted_sum)",
+    "exact title/org/entity signal weights — exact_title_boost, exact_org_boost (exact_entity_boost reserved 0.0)",
+    "field weights — field_weight_title, field_weight_support_content, field_weight_eligibility",
+    "duplicate/diversification threshold/semantics — dedup_cosine_threshold, diversification_lambda"
+  ],
+  "assertions": {
+    "deterministic": "All config tuples fixed exactly; no range, placeholder, as feasible, adaptive generation, or result-dependent branch",
+    "no_candidate_a_implementation": "Candidate A not implemented/modified in ml-service; production behavior unchanged",
+    "no_candidate_b_implementation": "Candidate B not instantiated, implemented, or planned beyond conditional gate above",
+    "no_dev_dataset": "No dev dataset generated/frozen/accessed in this stage; no dev plaintext read; FIRST dev retrieval not executed",
+    "no_history_rewrite": "No amend/rebase/reset/force-push/tag deletion",
+    "no_holdout_plaintext_access": "No protected holdout plaintext accessed via git show/cat-file/checkout/restore/sparse-checkout/worktree/path traversal in this stage; verification only via plaintext-free refs (branch/tag SHAs)",
+    "no_new_gate": "No new gate/process/dataset regeneration requirement added beyond standing prereg",
+    "no_retrieval_execution": "No retrieval/search/ranking execution, no DB connection/query, no model/embedding load, no benchmark/latency/HTTP checker execution in this stage",
+    "production_diff": "git diff 5327661445c37191a3fd61db195f3af4d2cf893a..HEAD -- ml-service/ = 0"
+  },
+  "base_commit": "5327661445c37191a3fd61db195f3af4d2cf893a",
+  "base_commit_tag": "retrieval-v2-cycle3-closure-v1",
+  "baseline_identity": {
+    "CANDIDATES": 30,
+    "COSINE_MIN": 0.78,
+    "LEXICAL_OVERLAP_BIAS": 0.01,
+    "RERANK": 0,
+    "dense_sql": "ml-service/app.py:SQL nearest CTE (vector search) LEFT JOIN lexical CTE, ORDER BY t.dist - youth_bias - lexical_bias*coalesce(l.lexical_overlap,0)",
+    "embedding_model": "intfloat/multilingual-e5-base (768-dim, query: 'query: {q}' normalize_embeddings=True)",
+    "lexical_overlap_terms": "source_ranking.py:lexical_overlap_terms — regex [0-9A-Za-z가-힣]+, len>=2, deduped, stopwords excluded, count distinct term via ILIKE in concat_ws(title,summary,support_content,add_qualify,keywords)",
+    "policy_schema": "db/schema.sql — policy(id,source,source_id,title,summary,support_content,keywords,org,apply_method, etc., region_codes TEXT[], add_qualify, raw JSONB) + policy_chunk(policy_id, chunk_index, content, embedding VECTOR(768)), ivfflat vector_cosine_ops",
+    "strip_region": "ml-service/app.py:strip_region — region code removal, region filter unavailable (400)",
+    "youth_source_bias": "0.015 when youth intent terms present AND no Gov24 org terms; otherwise 0.0 (source_ranking.py:youth_source_bias, suppressed for Gov24)"
+  },
+  "branch": "codex/retrieval-v3-user-search-quality",
+  "candidate_b_gate": {
+    "admission_condition_exact": "Candidate B permitted ONLY IF on dev headline 130 union oracle Recall@100 >=97% AND (union oracle Recall@100 - Candidate-A Success@5) >=5.0 percentage points on same dev headline set. Otherwise B forbidden. Evidence must be dev diagnostic report on headline 130, not intuition. D-015 supersedes D-014. Union oracle = whether any grade>=2 gold appears in union of sparse+dense+exact top-100 before ranking.",
+    "headroom_calculation": "headroom_pp = union_oracle_Recall@100 - candidate_A_Success@5 (both on dev headline 130, pp units)",
+    "instantiated": false,
+    "note": "Candidate B not instantiated, implemented, or tuned in this stage. B is optional lightweight ranker only; never cross-encoder."
+  },
+  "candidate_family": "Candidate A only",
+  "configs": [
+    {
+      "config_id": "candidate-a-01",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.0,
+      "exact_title_boost": 0.0,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 1.0,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.01
+    },
+    {
+      "config_id": "candidate-a-02",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.05,
+      "exact_title_boost": 0.07,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 1.0,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.01
+    },
+    {
+      "config_id": "candidate-a-03",
+      "dedup_cosine_threshold": 0.97,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.0,
+      "exact_title_boost": 0.15,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 1.5,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.01
+    },
+    {
+      "config_id": "candidate-a-04",
+      "dedup_cosine_threshold": 0.95,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.3,
+      "exact_org_boost": 0.05,
+      "exact_title_boost": 0.07,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.2,
+      "field_weight_title": 1.5,
+      "fusion_method": "union",
+      "sparse_weight": 0.01
+    },
+    {
+      "config_id": "candidate-a-05",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.0,
+      "exact_title_boost": 0.0,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 1.0,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.02
+    },
+    {
+      "config_id": "candidate-a-06",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 0.9,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.1,
+      "exact_title_boost": 0.15,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 1.5,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.02
+    },
+    {
+      "config_id": "candidate-a-07",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 1.1,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.0,
+      "exact_title_boost": 0.07,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 2.0,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.005
+    },
+    {
+      "config_id": "candidate-a-08",
+      "dedup_cosine_threshold": 0.97,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.3,
+      "exact_org_boost": 0.05,
+      "exact_title_boost": 0.0,
+      "field_weight_eligibility": 1.2,
+      "field_weight_support_content": 1.2,
+      "field_weight_title": 1.0,
+      "fusion_method": "union",
+      "sparse_weight": 0.01
+    },
+    {
+      "config_id": "candidate-a-09",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.0,
+      "exact_title_boost": 0.07,
+      "field_weight_eligibility": 1.2,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 1.5,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.01
+    },
+    {
+      "config_id": "candidate-a-10",
+      "dedup_cosine_threshold": 0.95,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.1,
+      "exact_title_boost": 0.0,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 1.0,
+      "fusion_method": "union",
+      "sparse_weight": 0.02
+    },
+    {
+      "config_id": "candidate-a-11",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 0.9,
+      "diversification_lambda": 0.3,
+      "exact_org_boost": 0.0,
+      "exact_title_boost": 0.15,
+      "field_weight_eligibility": 1.2,
+      "field_weight_support_content": 1.2,
+      "field_weight_title": 2.0,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.01
+    },
+    {
+      "config_id": "candidate-a-12",
+      "dedup_cosine_threshold": 0.97,
+      "dense_weight": 1.1,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.05,
+      "exact_title_boost": 0.07,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.2,
+      "field_weight_title": 1.0,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.005
+    },
+    {
+      "config_id": "candidate-a-13",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.05,
+      "exact_title_boost": 0.15,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 1.0,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.02
+    },
+    {
+      "config_id": "candidate-a-14",
+      "dedup_cosine_threshold": 0.95,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.3,
+      "exact_org_boost": 0.0,
+      "exact_title_boost": 0.0,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 2.0,
+      "fusion_method": "union",
+      "sparse_weight": 0.005
+    },
+    {
+      "config_id": "candidate-a-15",
+      "dedup_cosine_threshold": 0.97,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.1,
+      "exact_title_boost": 0.07,
+      "field_weight_eligibility": 1.2,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 1.5,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.01
+    },
+    {
+      "config_id": "candidate-a-16",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 0.9,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.05,
+      "exact_title_boost": 0.0,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.2,
+      "field_weight_title": 1.0,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.02
+    },
+    {
+      "config_id": "candidate-a-17",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 1.1,
+      "diversification_lambda": 0.3,
+      "exact_org_boost": 0.0,
+      "exact_title_boost": 0.15,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 1.0,
+      "fusion_method": "union",
+      "sparse_weight": 0.01
+    },
+    {
+      "config_id": "candidate-a-18",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.0,
+      "exact_title_boost": 0.0,
+      "field_weight_eligibility": 1.2,
+      "field_weight_support_content": 1.2,
+      "field_weight_title": 1.5,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.01
+    }
+  ],
+  "forbidden_axes": [
+    "new signal/model/embedding — embedding model replacement (intfloat/multilingual-e5-base fixed), new dense encoder, LLM rewrite, LLM-as-judge",
+    "cross-encoder reranking re-enable (RERANK remains 0 for Candidate A; Candidate B is only lightweight reranker if gated)",
+    "v2 K/threshold/source-bias sweep — CANDIDATES, COSINE_MIN, youth_source_bias threshold, LEXICAL_OVERLAP_BIAS beyond allowed sparse_weight range, source-aware youth bias sweep",
+    "global abstention / public region search / region filter tuning (region 400 unavailable)",
+    "range/placeholder/as feasible/adaptive generation — all configs are exact tuples, no result-dependent branching",
+    "Candidate B instantiation/tuning before gate — B forbidden unless dev headline 130 union oracle Recall@100 >=97% AND (Recall@100 - Candidate-A Success@5) >=5.0pp"
+  ],
+  "frozen_at": "2026-09-02T15:00:00Z",
+  "gating_contract_ref": {
+    "dev": "180 total (headline 130 = 21/25/21/25/18/20, safety 50 = 23/27, location 54), holdout 250 total (headline 180 = 28/33/31/36/24/28, safety 70 = 32/38, location 75), Wilson/Clopper headline Success@5 PASS point>=85% AND Wilson lower>=80% on n=180, safety integers 26/27 and 21/23 dev / 37/38 and 29/32 holdout, ineligible/expired 0/250 & 0/1250 holdout 0/180 & 0/900 dev, official-link 100% + HTTP ceil(0.99*unique), MAX24, latency candidate p95 <= baseline+80ms AND <=700ms, audit/provenance/isolation/one-shot/rerun prevention",
+    "holdout_note": "Holdout v1 protected freeze 250 (headline 180 safety 70 location 75) already frozen on branch codex/retrieval-v3-holdout-freeze commit 978eeebbe423496cf2e95af410144efaf6fce406 tag retrieval-v3-holdout-v1 object 3028f72122a10feaeb54987d69c3045714babe8a peeled 978eeeb..."
+  },
+  "max_configs": 24,
+  "parameter_semantics": {
+    "fixed_not_tunable": {
+      "CANDIDATES": "fixed 30 per baseline; not swept (forbidden v2 axis)",
+      "COSINE_MIN": "fixed 0.78 not swept",
+      "RERANK_cross_encoder": "not used (RERANK=0 baseline, Candidate B only if gated)",
+      "embedding_model": "fixed intfloat/multilingual-e5-base not changed",
+      "global_abstention_threshold": "not introduced",
+      "lexical_stopwords": "fixed source_ranking.py LEXICAL_STOPWORDS",
+      "public_region_search": "not introduced",
+      "region_filter": "not used (region 400 unavailable)",
+      "strip_region": "fixed, region filter unavailable",
+      "youth_source_bias": "fixed 0.015 rule per baseline, not swept"
+    },
+    "overview": "All Candidate A configs use fielded sparse+dense union/hybrid + exact title/org/entity + explicit field weighting + duplicate/diversification. No new signal/model/embedding. Scoring is deterministic, no adaptive generation.",
+    "parameters": {
+      "dedup_cosine_threshold": {
+        "allowed": [
+          0.95,
+          0.97,
+          0.98
+        ],
+        "semantics": "cosine similarity above which duplicate is suppressed",
+        "type": "float"
+      },
+      "dense_weight": {
+        "allowed": [
+          0.9,
+          1.0,
+          1.1
+        ],
+        "semantics": "multiplier for dense_cosine before addition",
+        "type": "float"
+      },
+      "diversification_lambda": {
+        "allowed": [
+          0.0,
+          0.3
+        ],
+        "semantics": "MMR lambda; 0.0=no diversification, 0.3=light diversification",
+        "type": "float"
+      },
+      "exact_org_boost": {
+        "allowed": [
+          0.0,
+          0.05,
+          0.1
+        ],
+        "semantics": "additive boost when query matches org",
+        "type": "float"
+      },
+      "exact_title_boost": {
+        "allowed": [
+          0.0,
+          0.07,
+          0.15
+        ],
+        "semantics": "additive boost when query exactly matches title substring",
+        "type": "float"
+      },
+      "field_weight_eligibility": {
+        "allowed": [
+          1.0,
+          1.2
+        ],
+        "semantics": "multiplier for count_eligibility (add_qualify etc.)",
+        "type": "float"
+      },
+      "field_weight_support_content": {
+        "allowed": [
+          1.0,
+          1.2
+        ],
+        "semantics": "multiplier for count_support",
+        "type": "float"
+      },
+      "field_weight_title": {
+        "allowed": [
+          1.0,
+          1.5,
+          2.0
+        ],
+        "semantics": "multiplier for count_title in weighted lexical overlap",
+        "type": "float"
+      },
+      "fusion_method": {
+        "allowed": [
+          "union",
+          "hybrid_weighted_sum"
+        ],
+        "semantics": "union = sparse top-100 + dense top-100 union then weighted score; hybrid_weighted_sum = same union but final_score is weighted sum (described). Both satisfy union/hybrid; distinction controls whether pool is union only vs weighted sum already; in this plan both map to same final_score formula, enum documents intent for implementation audit.",
+        "type": "enum"
+      },
+      "sparse_weight": {
+        "allowed": [
+          0.005,
+          0.01,
+          0.02
+        ],
+        "semantics": "multiplier for weighted lexical overlap (lexical_bias analog)",
+        "type": "float"
+      }
+    },
+    "scoring_order_and_normalization": {
+      "determinism": "All steps deterministic: same qvec, same per-field counts, same scoring formula, same tie-breaks, same dedup threshold comparison, same MMR order. No randomness, no result-dependent branching.",
+      "step_1_query_normalization": "q = strip_region(raw_query) (ml-service/app.py:strip_region); lexical terms = lexical_overlap_terms(q) (source_ranking.py); embedding = SentenceTransformer(intfloat/multilingual-e5-base).encode(['query: '+q], normalize_embeddings=True)[0]",
+      "step_2_dense": "dense_cosine = 1 - (c.embedding <=> qvec) via pgvector cosine distance; range ~[-1,1] but normalized embeddings yields ~[0,1]; dense_score = dense_weight * dense_cosine; dense_weight in {0.9,1.0,1.1} (unitless multiplier, baseline 1.0)",
+      "step_3_sparse_field_weighted": "Per-field distinct lexical overlap counts: count_title = DISTINCT term ILIKE title, count_support = DISTINCT term ILIKE support_content||' '||summary||' '||keywords, count_eligibility = DISTINCT term ILIKE add_qualify||' '||income_etc||' '||apply_method. Weighted lexical overlap = field_weight_title*count_title + field_weight_support_content*count_support + field_weight_eligibility*count_eligibility. field_weights are multipliers (baseline 1.0). sparse_score = sparse_weight * weighted_lexical_overlap. sparse_weight (lexical_bias analog) in {0.005,0.01,0.02}. This generalizes baseline LEXICAL_OVERLAP_BIAS=0.01 * single count to weighted per-field.",
+      "step_4_exact_signals": "Exact signals are additive boosts (unitless, added to score before ordering). is_exact_title = 1 if NFC+strip+casefold normalized q equals or is substring of normalized title with length >=4 and word-boundary or exact equality, else 0. is_exact_org = 1 if normalized org appears as substring in q or vice versa with length >=2, else 0. exact_title_boost in {0.0,0.07,0.15}; exact_org_boost in {0.0,0.05,0.10}; exact_entity_boost fixed 0.0 (entity not separate from title/org in current schema; reserved for future but not instantiated in this plan). Boosts added: exact_score = exact_title_boost*is_exact_title + exact_org_boost*is_exact_org.",
+      "step_5_youth_bias_preserved": "youth_source_bias remains fixed per baseline (0.015 when youth terms without Gov24 orgs); not a tunable axis in this plan; included in final_score as subtractive distance bias mapped to score: youth_score = youth_bias (0 or 0.015) added to score (since baseline subtracts from distance, equivalent to adding to score).",
+      "step_6_final_score": "final_score = dense_score + sparse_score + exact_score + youth_score. No additional normalization beyond weights; ordering is by final_score desc. Tie-break deterministic: final_score desc, source asc, source_id asc, policy.id asc.",
+      "step_7_retrieval_pool": "Sparse and dense each retrieve top-100 by their own signal (dense by dense_cosine, sparse by weighted lexical overlap), exact signal is scoring boost not separate retrieval pool. Union = union of dense top-100 + sparse top-100 (deduplicated by policy id, keep max per-signal rank). Candidate pool for reranking is union (max 200). Final ranking sorts union pool by final_score. This satisfies sparse+dense union/hybrid contract.",
+      "step_8_dedup_diversification": "After scoring union pool: dedup: if cosine similarity between any two policy embeddings > dedup_cosine_threshold (0.95/0.97/0.98), keep higher final_score, drop lower (deterministic). Then diversification: if diversification_lambda >0, apply MMR-like penalty: diversification_score = lambda*final_score - (1-lambda)*max_similarity_to_already_selected; lambda 0.0 means no diversification (final_score only), lambda 0.3 means light MMR. Selection iterates picking highest diversification_score for top-5. Diversification computed on policy embeddings (cosine)."
+    }
+  },
+  "plan_id": "retrieval-v3-candidate-plan-v1",
+  "provenance": {
+    "created_by": "Muse Spark 1.2 Contributor:xhigh (plan), delegated agents root gate exempt per contract",
+    "investigation_basis": "Read-only inspection of ml-service/app.py (SQL, CANDIDATES, COSINE_MIN, strip_region, youth bias), ml-service/source_ranking.py (LEXICAL_OVERLAP_BIAS, lexical terms), db/schema.sql (policy, policy_chunk, vector 768), docs/RETRIEVAL_V3_PREREG.md §7-§9, memory/DECISIONS.md D-013/D-015/D-026 — no DB/model/embedding execution",
+    "reconciled_start": "branch codex/retrieval-v3-user-search-quality HEAD f5f8377a9710256db4aa4f46e7992b1274c5bf2d clean, local==upstream==actual remote verified, git diff --check PASS, ml-service diff 0, main holdout absent, protected branch/tag refs unchanged"
+  },
+  "secondary_diagnostics_D026": {
+    "contract": "category / freshness / common-vs-rare and secondary slice reporting (source/category/freshness/common-vs-rare per-slice Success@5) are non-gating diagnostic only per D-026 bounded correction (2026-09-02). Not a release gate, not freeze/seal hard invariant, not HOLD/NO-GO.",
+    "prohibition": "Do not infer/synthesize/auto-label missing category/freshness/common-vs-rare, do not create new mapping/threshold from source_truth, do not read holdout plaintext to fill gaps.",
+    "reporting_rule": "Report per-slice diagnostics only when slice metadata exists on sealed holdout and is authoritative/recomputable; if absent or not authoritatively determinable, report as unavailable / insufficiently characterized (reporting limitation, not data-regeneration requirement). Missing/insufficient secondary diagnostic metadata alone does not invalidate holdout freeze and is not a hard gate."
+  },
+  "selection_rule": {
+    "candidate_b_not_in_selection": "Candidate B not instantiated in this plan; selection applies only to Candidate A configs above",
+    "eligibility": "dev safety gates (§9) must PASS AND Success@5 >=85% on dev headline 130 (exact 130 by construction, Wilson not gating dev but point threshold is)",
+    "no_qualifier_action": "If 0 configs pass eligibility, no holdout evaluation (NO-GO for this cycle)",
+    "ordering": "Success@5 desc -> NDCG@5 desc -> MRR@10 desc -> paired p95 asc -> lexicographic config_id asc",
+    "paired_p95_method": "paired baseline-vs-candidate on ALL dev 180 tasks, same env/DB/corpus, warm, interleaved, cold/model-load excluded, exactly one timed sample per task per variant after deterministic warm-up over first 30 task_ids sorted, alternate variant order, nearest-rank p50/p95/p99, gate candidate p95 <= baseline p95+80ms AND <=700ms",
+    "safety_gates_dev": {
+      "ambiguous_correct_ge90": "ceil(0.90*23)=21 => PASS >=21/23, else NO-GO",
+      "cost": "index <=2x baseline, per-query DB rows <=3x baseline, 0 extra model calls unless Candidate B admitted, missing => HOLD",
+      "ineligible_expired_intrusion": "0/180 tasks AND 0/900 slots in top-5, any intrusion => NO-GO, missing => HOLD",
+      "official_link": "semantic 100% + HTTP >= ceil(0.99*unique), missing => HOLD",
+      "unsupported_correct_ge95": "ceil(0.95*27)=26 => PASS >=26/27, else NO-GO"
+    }
+  },
+  "standing_contract_refs": [
+    "D-013",
+    "D-015",
+    "D-016",
+    "D-017",
+    "D-025",
+    "D-026"
+  ],
+  "version": "1.0.0"
+}
