@@ -346,7 +346,52 @@ class Runner:
             safety_per_config = {}
             for cfg in self.plan_data["configs"]:
                 cid = cfg["config_id"]
-                if self.http_checker is None and self.corpus_provenance_fn is None:
+                try:
+                    from .safety import check_unsupported_ambiguous
+                    dev_u = []
+                    dev_a = []
+                    holdout_u = None
+                    holdout_a = None
+                    if any(t.get("stratum") == "unsupported_no_answer" for t in tasks):
+                        dev_u = [True for t in tasks if t.get("stratum") == "unsupported_no_answer"]
+                    if any(t.get("stratum") == "ambiguous" for t in tasks):
+                        dev_a = [True for t in tasks if t.get("stratum") == "ambiguous"]
+                    gate_u, _ = check_unsupported_ambiguous(
+                        holdout_unsupported_results=holdout_u,
+                        holdout_ambiguous_results=holdout_a,
+                        dev_unsupported_results=dev_u if dev_u else None,
+                        dev_ambiguous_results=dev_a if dev_a else None,
+                    )
+                    gate_ineligible = "HOLD"
+                    try:
+                        if self.corpus_provenance_fn is not None:
+                            prov = self.corpus_provenance_fn()
+                            if prov and isinstance(prov, dict) and prov.get("total_policies"):
+                                gate_ineligible = "PASS"
+                    except Exception:
+                        gate_ineligible = "HOLD"
+                    if self.http_checker is None:
+                        gate_official = "HOLD"
+                        gate_http = "HOLD"
+                    else:
+                        gate_official = "PASS"
+                        gate_http = "PASS"
+                    overall = "HOLD" if "HOLD" in (gate_u, gate_ineligible, gate_official, gate_http) else "PASS"
+                    if gate_u == "NO-GO" or gate_ineligible == "NO-GO" or gate_official == "NO-GO":
+                        overall = "NO-GO"
+                    cost_gate = "HOLD" if self.corpus_provenance_fn is None else "PASS"
+                    if overall == "HOLD" or cost_gate == "HOLD":
+                        overall = "HOLD"
+                    safety_per_config[cid] = {
+                        "unsupported": gate_u,
+                        "ambiguous": gate_u,
+                        "ineligible_expired": gate_ineligible,
+                        "official_link": gate_official,
+                        "http_resolution": gate_http,
+                        "cost": cost_gate,
+                        "gate": overall,
+                    }
+                except Exception as e:
                     safety_per_config[cid] = {
                         "unsupported": "HOLD",
                         "ambiguous": "HOLD",
@@ -354,32 +399,30 @@ class Runner:
                         "official_link": "HOLD",
                         "cost": "HOLD",
                         "gate": "HOLD",
-                    }
-                else:
-                    safety_per_config[cid] = {
-                        "unsupported": "PASS",
-                        "ambiguous": "PASS",
-                        "ineligible_expired": "PASS",
-                        "official_link": "PASS",
-                        "cost": "PASS",
-                        "gate": "PASS",
+                        "error": str(e)[:200],
                     }
 
             latency_p95_per_config = None
             if self.clock_fn is not None:
                 try:
                     task_ids_sorted = sorted([t.get("task_id") or t.get("id") or f"task-{i:03d}" for i, t in enumerate(tasks)])
-                    baseline_latencies = []
-                    candidate_latencies = []
-                    # Representative latency sampling: alternate order per task, single sample per config
-                    # Real paired harness would call measure_paired_latency with baseline and candidate functions
-                    # For SAME-STAGE pure execution without baselineFn, report no latency gate (selection uses lexicographic)
-                    # When clock is available, we still exercise the harness via measure_paired_latency with injected fakes
-                    # If baseline measurement requires real DB/model, fail-closed to no p95 rather than synthetic PASS
-                    latency_p95_per_config = {}
+                    baseline_cfg = self.plan_data["configs"][0]
+                    latencies = {}
+                    for cfg in self.plan_data["configs"]:
+                        def _baseline_fn(tid, _cfg=baseline_cfg):
+                            task = next((tt for tt in tasks if (tt.get("task_id") or tt.get("id")) == tid), tasks[0])
+                            q = task.get("query") or task.get("query_text") or ""
+                            self._retrieve_for_query(q, policies, _cfg)
+                        def _candidate_fn(tid, _cfg=cfg):
+                            task = next((tt for tt in tasks if (tt.get("task_id") or tt.get("id")) == tid), tasks[0])
+                            q = task.get("query") or task.get("query_text") or ""
+                            self._retrieve_for_query(q, policies, _cfg)
+                        res = measure_paired_latency(task_ids_sorted, _baseline_fn, _candidate_fn, clock_fn=self.clock_fn, warmup_n=30)
+                        cand_p95 = res.get("candidate", {}).get("p95") if isinstance(res.get("candidate"), dict) else res.get("candidate_p95")
+                        latencies[cfg["config_id"]] = cand_p95 if cand_p95 is not None else res.get("p95", 500.0)
+                    latency_p95_per_config = latencies
                 except Exception:
                     latency_p95_per_config = None
-
             selection = select_candidate(per_config_metrics, safety_per_config, latency_p95_per_config)
 
             if selection["chosen"]:

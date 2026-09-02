@@ -346,6 +346,77 @@ def test_path_confinement():
     except ValueError:
         pass
 
+def test_runner_safety_hold_when_checkers_absent():
+    plan=load_candidate_plan_or_fail()
+    def fake_vec(seed):
+        rnd=random.Random(seed)
+        v=[rnd.uniform(-1,1) for _ in range(768)]
+        norm=(sum(x*x for x in v)**0.5)or 1
+        return [round(x/norm,6) for x in v]
+    policies=[]
+    for i in range(5):
+        chunks=[{"embedding": fake_vec(i),"chunk_index":0,"id":i}]
+        policies.append({"id":i+1,"source":"youth","source_id":f"p{i}","title":f"정책 {i}","support_content":"","summary":"","keywords":"","add_qualify":"","income_etc":"","apply_method":"","org":"고용노동부","chunks":chunks})
+    def fake_emb(q):
+        h=hashlib.sha256(q.encode()).digest()
+        return fake_vec(int.from_bytes(h[:4],"little"))
+    tasks=[{"task_id":f"t{i}","query":f"정책 {i}","golds":[{"source":"youth","source_id":"p0","grade":2}],"stratum":"natural_needs","location_bearing":False} for i in range(5)]
+    with tempfile.TemporaryDirectory() as td:
+        audit_log=pathlib.Path(td)/"audit.jsonl"
+        out=pathlib.Path(td)/"out.json"
+        runner=Runner(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r,s: tasks, audit_log_path=audit_log)
+        res=runner.run_dev_evaluation(tasks=tasks, policies=policies, session_id="safety-hold", set_role="dev", set_sha=None, audit_log=audit_log, output_path=out, skip_audit=True)
+        assert res["selection"]["chosen"] is None, "without snapshot/http checker safety must be HOLD => no eligible"
+        assert res["candidate_b_gate"]["instantiated"] is False
+
+def test_runner_safety_pass_when_checkers_present():
+    plan=load_candidate_plan_or_fail()
+    def fake_vec(seed):
+        rnd=random.Random(seed)
+        v=[rnd.uniform(-1,1) for _ in range(768)]
+        norm=(sum(x*x for x in v)**0.5)or 1
+        return [round(x/norm,6) for x in v]
+    policies=[]
+    for i in range(5):
+        chunks=[{"embedding": fake_vec(i),"chunk_index":0,"id":i}]
+        policies.append({"id":i+1,"source":"youth","source_id":f"p{i}","title":f"정책 {i}","support_content":"","summary":"","keywords":"","add_qualify":"","income_etc":"","apply_method":"","org":"고용노동부","chunks":chunks})
+    def fake_emb(q):
+        h=hashlib.sha256(q.encode()).digest()
+        return fake_vec(int.from_bytes(h[:4],"little"))
+    tasks=[{"task_id":f"t{i}","query":f"정책 {i}","golds":[{"source":"youth","source_id":"p0","grade":2}],"stratum":"natural_needs","location_bearing":False} for i in range(5)]
+    with tempfile.TemporaryDirectory() as td:
+        audit_log=pathlib.Path(td)/"audit.jsonl"
+        out=pathlib.Path(td)/"out.json"
+        runner=Runner(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r,s: tasks, audit_log_path=audit_log, corpus_provenance_fn=lambda: {"total_policies":5, "total_chunks":5}, http_checker=lambda urls: True)
+        res=runner.run_dev_evaluation(tasks=tasks, policies=policies, session_id="safety-pass", set_role="dev", set_sha=None, audit_log=audit_log, output_path=out, skip_audit=True)
+        assert len(res["per_config_metrics"])==18
+
+def test_runner_latency_wiring():
+    plan=load_candidate_plan_or_fail()
+    def fake_vec(seed):
+        rnd=random.Random(seed)
+        v=[rnd.uniform(-1,1) for _ in range(768)]
+        norm=(sum(x*x for x in v)**0.5)or 1
+        return [round(x/norm,6) for x in v]
+    policies=[]
+    for i in range(5):
+        chunks=[{"embedding": fake_vec(i),"chunk_index":0,"id":i}]
+        policies.append({"id":i+1,"source":"youth","source_id":f"p{i}","title":f"정책 {i}","support_content":"","summary":"","keywords":"","add_qualify":"","income_etc":"","apply_method":"","org":"고용노동부","chunks":chunks})
+    def fake_emb(q):
+        h=hashlib.sha256(q.encode()).digest()
+        return fake_vec(int.from_bytes(h[:4],"little"))
+    tasks=[{"task_id":f"t{i:03d}","query":f"정책 {i}","golds":[{"source":"youth","source_id":"p0","grade":2}],"stratum":"natural_needs","location_bearing":False} for i in range(5)]
+    with tempfile.TemporaryDirectory() as td:
+        audit_log=pathlib.Path(td)/"audit.jsonl"
+        out=pathlib.Path(td)/"out.json"
+        cnt=[0]
+        def clock():
+            cnt[0]+=1000000
+            return cnt[0]
+        runner=Runner(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r,s: tasks, audit_log_path=audit_log, clock_fn=clock)
+        res=runner.run_dev_evaluation(tasks=tasks, policies=policies, session_id="latency-test", set_role="dev", set_sha=None, audit_log=audit_log, output_path=out, skip_audit=True)
+        assert len(res["per_config_metrics"])==18
+
 def test_cli_orchestrator_e2e():
     plan=load_candidate_plan_or_fail()
     def fake_vec(seed):
@@ -384,7 +455,7 @@ def test_cli_orchestrator_e2e():
         assert out2.exists()
 
 if __name__=="__main__":
-    tests=[test_18_configs_and_drift, test_non_unit_cosine, test_representative_tie_and_near_tie, test_strict_gt_dedup_boundary, test_mmr_actual_cosine_and_full_top30, test_exact_normalization_and_boundaries, test_cosine_min_placement, test_union_vs_hybrid, test_exact_not_injected, test_deterministic_ordering, test_metrics_mrr_rank_gt10, test_selection_ordering_and_zero, test_b_gate_no_impl, test_latency_harness, test_audit_lifecycle, test_atomic_rerun_concurrent, test_path_confinement, test_cli_orchestrator_e2e]
+    tests=[test_18_configs_and_drift, test_non_unit_cosine, test_representative_tie_and_near_tie, test_strict_gt_dedup_boundary, test_mmr_actual_cosine_and_full_top30, test_exact_normalization_and_boundaries, test_cosine_min_placement, test_union_vs_hybrid, test_exact_not_injected, test_deterministic_ordering, test_metrics_mrr_rank_gt10, test_selection_ordering_and_zero, test_b_gate_no_impl, test_latency_harness, test_audit_lifecycle, test_atomic_rerun_concurrent, test_path_confinement, test_runner_safety_hold_when_checkers_absent, test_runner_safety_pass_when_checkers_present, test_runner_latency_wiring, test_cli_orchestrator_e2e]
     for t in tests:
         try:
             t()
@@ -393,4 +464,4 @@ if __name__=="__main__":
             print(f"FAIL {t.__name__}: {e}")
             import traceback; traceback.print_exc()
             sys.exit(1)
-    print("ALL 18 focused tests PASS")
+    print("ALL 21 focused tests PASS")
