@@ -1,0 +1,40 @@
+{
+  "plan_version": "retrieval-v3-dev-generation-v1",
+  "plan_sha256": "dd69569346a2f0631de566425282951dcd3595e08b769add536038b032df578a",
+  "seed": "benefit-compass-retrieval-v3-dev-v1-2026-09-02",
+  "total_cases": 180,
+  "headline": 130,
+  "safety": 50,
+  "location_total": 54,
+  "per_stratum": {
+    "exact_navigation": 21,
+    "natural_needs": 25,
+    "exploratory_multi_valid": 21,
+    "multi_constraint": 25,
+    "short_keywords": 18,
+    "colloquial_typo_spacing_abbrev": 20,
+    "ambiguous": 23,
+    "unsupported_no_answer": 27
+  },
+  "per_location": {
+    "exact_navigation": 6,
+    "natural_needs": 7,
+    "exploratory_multi_valid": 6,
+    "multi_constraint": 8,
+    "short_keywords": 5,
+    "colloquial_typo_spacing_abbrev": 6,
+    "ambiguous": 7,
+    "unsupported_no_answer": 9
+  },
+  "evalset_sha256": "2f014112f394541bb389a3db0aa1de7a1279b737ac8673d472ed351479fe7cd1",
+  "fingerprints_sha256": "57716c6a6b3aaa08e9e8072f7148aac691d80ed81fdc7e10bd07957386035f88",
+  "source_truth_sha256": "63cc470e040a66a6410f3eeda3c22ea1858feede9fdba4d78f61e89987009469",
+  "source_truth_rows": 13589,
+  "annotation_audit_sha256": "03d2709fe17612d8f21568bf255d3a84f7e7e2f6d640da566aeece2de38d7fa7",
+  "disagreement_matrix_sha256": "7c3c24c1088800eb5449231825c890592c9e6f646f5298545b7ee2976eee8f5e",
+  "provenance_sha256": "0ee98af12e8ddf5b2915f6fa29d46e5e5aa09cf562b463ed9341463a5b74e4c2",
+  "sealed_sha256": "07e088812c54a879ad9ba7c7886a48d33f487b9741eade4236c55cf0ec429384",
+  "reviewer_A_sha256": "d096c2ccb5edf67f37ed470b6aee92cba533137402ca6128daf2752e45e9db71",
+  "reviewer_B_sha256": "94feebb6359e340b9dd7a64f439ada4db86f68b2260b9afa42b6903bcc46b46a",
+  "adjudicated_sha256": "725fd2f09ccba965d8d42488878f47e3d3d27a3827ff95c286439adbe6233ed9"
+}

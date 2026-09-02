@@ -1,0 +1,16 @@
+{
+  "total": 180,
+  "any_disagreement": 79,
+  "any_agreement": 101,
+  "per_dimension": {
+    "stratum": 21,
+    "location_bearing": 34,
+    "ambiguous": 0,
+    "golds": 32
+  },
+  "raw_agreement": {
+    "stratum": 0.8833333333333333,
+    "location_bearing": 0.8111111111111111
+  },
+  "residual_after_adjudication": 0
+}

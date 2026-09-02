@@ -1,0 +1,74 @@
+{
+  "plan_sha256": "dd69569346a2f0631de566425282951dcd3595e08b769add536038b032df578a",
+  "seed": "benefit-compass-retrieval-v3-dev-v1-2026-09-02",
+  "source_truth_sha256": "63cc470e040a66a6410f3eeda3c22ea1858feede9fdba4d78f61e89987009469",
+  "source_truth_rows": 13589,
+  "total_cases": 180,
+  "headline": 130,
+  "safety": 50,
+  "location_total": 54,
+  "per_stratum": {
+    "exact_navigation": 21,
+    "natural_needs": 25,
+    "exploratory_multi_valid": 21,
+    "multi_constraint": 25,
+    "short_keywords": 18,
+    "colloquial_typo_spacing_abbrev": 20,
+    "ambiguous": 23,
+    "unsupported_no_answer": 27
+  },
+  "per_location": {
+    "exact_navigation": 6,
+    "natural_needs": 7,
+    "exploratory_multi_valid": 6,
+    "multi_constraint": 8,
+    "short_keywords": 5,
+    "colloquial_typo_spacing_abbrev": 6,
+    "ambiguous": 7,
+    "unsupported_no_answer": 9
+  },
+  "candidate_author": {
+    "agent_id": "81e8bfa6-1f4f-461d-af73-9e2ac8b66570",
+    "provider": "omp/opencode-go/muse-spark-1.2-contributor",
+    "thinking": "xhigh"
+  },
+  "annotator_A": {
+    "agent_id": "b04fd2e1-6d4d-444b-a21a-cfd515df576e",
+    "workspace_id": "wks_dev_a_9af4ead1",
+    "provider": "omp/opencode-go/muse-spark-1.2-contributor",
+    "thinking": "xhigh",
+    "sha256": "d096c2ccb5edf67f37ed470b6aee92cba533137402ca6128daf2752e45e9db71",
+    "rows": 180
+  },
+  "annotator_B": {
+    "agent_id": "13ef9e18-6d73-4d6a-aa76-81fc77b863da",
+    "workspace_id": "wks_dev_b_932dd197",
+    "provider": "omp/opencode-go/muse-spark-1.2-contributor",
+    "thinking": "xhigh",
+    "sha256": "94feebb6359e340b9dd7a64f439ada4db86f68b2260b9afa42b6903bcc46b46a",
+    "rows": 180
+  },
+  "adjudicator_C": {
+    "agent_id": "a870e2f7-a267-4018-b927-1f0ec0c829cf",
+    "workspace_id": "wks_dev_c_11b8d866",
+    "provider": "omp/opencode-go/muse-spark-1.2-contributor",
+    "thinking": "xhigh",
+    "sha256": "725fd2f09ccba965d8d42488878f47e3d3d27a3827ff95c286439adbe6233ed9",
+    "disagreements_seen": 79,
+    "residual": 0
+  },
+  "disagreement_matrix_sha256": "7c3c24c1088800eb5449231825c890592c9e6f646f5298545b7ee2976eee8f5e",
+  "evalset_sha256": "2f014112f394541bb389a3db0aa1de7a1279b737ac8673d472ed351479fe7cd1",
+  "fingerprints_sha256": "57716c6a6b3aaa08e9e8072f7148aac691d80ed81fdc7e10bd07957386035f88",
+  "annotation_audit_sha256": "03d2709fe17612d8f21568bf255d3a84f7e7e2f6d640da566aeece2de38d7fa7",
+  "manifest_sha256": "a72fc92eae9b9a4bc33beb6250fb06c74558c0da986783db5cf0bdedfaf4edf8",
+  "history_query_overlap": 0,
+  "history_gold_overlap": 0,
+  "holdout_query_overlap": 0,
+  "holdout_gold_overlap": 0,
+  "gold_unique": true,
+  "query_unique": true,
+  "canonical_LF": true,
+  "retrieval_blind": true,
+  "source_truth_only": true
+}

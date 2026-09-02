@@ -7,3 +7,11 @@ gradlew text eol=lf
 # Provenance distinguishes raw-child CRLF SHA vs canonical committed LF SHA where they differ.
 eval/retrieval-v3/pilot/re-audit/*.json text eol=lf
 eval/retrieval-v3/pilot/re-audit/*.jsonl text eol=lf
+eval/retrieval-v3/dev/*.json text eol=lf
+eval/retrieval-v3/dev/*.jsonl text eol=lf
+eval/retrieval-v3/dev/*.md text eol=lf
+eval/retrieval-v3/dev/*.sha256 text eol=lf
+eval/retrieval-v3/holdout/*.json text eol=lf
+eval/retrieval-v3/holdout/*.jsonl text eol=lf
+eval/retrieval-v3/holdout/*.md text eol=lf
+eval/retrieval-v3/holdout/*.sha256 text eol=lf

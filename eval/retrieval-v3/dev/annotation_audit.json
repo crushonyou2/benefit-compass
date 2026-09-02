@@ -1,0 +1,33 @@
+{
+  "total": 180,
+  "per_stratum": {
+    "exact_navigation": 21,
+    "natural_needs": 25,
+    "exploratory_multi_valid": 21,
+    "multi_constraint": 25,
+    "short_keywords": 18,
+    "colloquial_typo_spacing_abbrev": 20,
+    "ambiguous": 23,
+    "unsupported_no_answer": 27
+  },
+  "per_location": {
+    "exact_navigation": 6,
+    "natural_needs": 7,
+    "exploratory_multi_valid": 6,
+    "multi_constraint": 8,
+    "short_keywords": 5,
+    "colloquial_typo_spacing_abbrev": 6,
+    "ambiguous": 7,
+    "unsupported_no_answer": 9
+  },
+  "headline": 130,
+  "safety": 50,
+  "gold_unique": true,
+  "query_unique": true,
+  "history_query_overlap": 0,
+  "history_gold_overlap": 0,
+  "holdout_query_overlap": 0,
+  "holdout_gold_overlap": 0,
+  "gold_duplicate_per_query": 0,
+  "unlabelable": 0
+}
