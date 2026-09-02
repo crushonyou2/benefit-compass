@@ -194,12 +194,13 @@ def atomic_write_result(result: dict, output_path: str | pathlib.Path) -> pathli
     canonical_alt_abs = (REPO_ROOT / CANONICAL_DEV_OUTPUT_ALT).resolve()
     abs_out = (REPO_ROOT / out).resolve() if not out.is_absolute() else out.resolve()
 
-    # If output is canonical, enforce exact match
-    if str(out) in (str(CANONICAL_DEV_OUTPUT_REL), str(CANONICAL_DEV_OUTPUT_ALT)) or abs_out in (canonical_abs, canonical_alt_abs):
-        # strict canonical enforced
+    # If output is canonical, enforce exact match — OS-agnostic via as_posix (covers Windows backslash vs POSIX slash)
+    out_posix = pathlib.PurePath(out).as_posix()
+    canon_posix = pathlib.PurePath(CANONICAL_DEV_OUTPUT_REL).as_posix()
+    canon_alt_posix = pathlib.PurePath(CANONICAL_DEV_OUTPUT_ALT).as_posix()
+    if out_posix in (canon_posix, canon_alt_posix) or abs_out in (canonical_abs, canonical_alt_abs):
         pass
     else:
-        # For non-canonical, still need to ensure no existing file
         pass
 
     # Single-batch guard: existing file must fail

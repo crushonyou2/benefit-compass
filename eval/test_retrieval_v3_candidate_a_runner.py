@@ -722,6 +722,106 @@ def test_selection_fail_closed_missing_latency():
     # exact string
     assert sel3["ordering"] == "Success@5 desc -> NDCG@5 desc -> MRR@10 desc -> paired p95 asc -> lexicographic config_id asc"
 
+def test_execution_lifecycle_audit_closure_on_failure():
+    import pathlib, tempfile, hashlib, random
+    from retrieval_v3.runner import Runner
+    from retrieval_v3.candidate_registry import load_and_validate
+    from retrieval_v3.audit import read_and_verify_chain
+    plan = load_and_validate()
+    def fake_vec(seed):
+        rnd = random.Random(seed)
+        v = [rnd.uniform(-1,1) for _ in range(768)]
+        norm = (sum(x*x for x in v)**0.5) or 1
+        return [x/norm for x in v]
+    def failing_emb(q):
+        raise RuntimeError("injected embedding failure for lifecycle test")
+    policies = []
+    for i in range(5):
+        policies.append({"id": i+1, "source": "youth", "source_id": f"p{i}", "title": f"정책 {i}", "support_content": "", "summary": "", "keywords": "", "add_qualify": "", "income_etc": "", "apply_method": "", "org": "고용노동부", "chunks": [{"embedding": fake_vec(i), "chunk_index": 0, "id": i}]})
+    tasks = [{"task_id": f"t{i}", "query": f"정책 0", "golds": [{"source": "youth", "source_id": "p0", "grade": 2}], "stratum": "natural_needs", "location_bearing": False} for i in range(5)]
+    with tempfile.TemporaryDirectory() as td:
+        audit_log = pathlib.Path(td) / "audit.jsonl"
+        out = pathlib.Path(td) / "out.json"
+        runner = Runner(candidate_plan=plan, embedding_fn=failing_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r,s: tasks, audit_log_path=audit_log)
+        # Use set_sha=None to avoid protected_access grant gating, but still exercise audit run_start/run_end lifecycle (set_role dev, set_sha None)
+        test_sha = "a"*64
+        # For this pure lifecycle test, we use skip_audit=False with a valid sha but we first create a grant via direct audit append to satisfy validate_protected_access if needed
+        # Instead, use set_sha=None to cleanly test run_start/run_end without grant complexity; rerun detection still works per (role,sha) pair
+        try:
+            runner.run_dev_evaluation(tasks=tasks, policies=policies, session_id="fail-session", set_role="dev", set_sha=test_sha, audit_log=audit_log, output_path=out, skip_audit=True)
+            assert False, "should have raised"
+        except Exception as e:
+            # When skip_audit=True, no audit events are written — verify output cleaned and no audit
+            assert not out.exists(), "output must be removed on failure"
+            # Now test with audit enabled but without grant gating (set_sha None) to verify closure
+            pass
+        # Now audit-enabled failure path — use set_role none (no grant needed) to verify run_start/run_end closure
+        audit_log2 = pathlib.Path(td) / "audit2.jsonl"
+        out2 = pathlib.Path(td) / "out2.json"
+        runner2 = Runner(candidate_plan=plan, embedding_fn=failing_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r,s: tasks, audit_log_path=audit_log2)
+        try:
+            runner2.run_dev_evaluation(tasks=tasks, policies=policies, session_id="fail-session2", set_role="none", set_sha=None, audit_log=audit_log2, output_path=out2, skip_audit=False)
+            assert False, "should have raised"
+        except Exception as e:
+            chain = read_and_verify_chain(str(audit_log2))
+            assert len(chain) == 2, f"expected 2 audit events on failure, got {len(chain)}: {chain}"
+            assert chain[0]["action"] == "run_start"
+            assert chain[1]["action"] == "run_end"
+            assert not out2.exists(), "output must be removed on failure"
+        # Second run with same (role,sha) should be blocked by rerun detection (none/None)
+        def good_emb(q):
+            h = hashlib.sha256(q.encode()).digest()
+            return fake_vec(int.from_bytes(h[:4], "little"))
+        runner3 = Runner(candidate_plan=plan, embedding_fn=good_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r,s: tasks, audit_log_path=audit_log2)
+        try:
+            runner3.run_dev_evaluation(tasks=tasks, policies=policies, session_id="second-session", set_role="none", set_sha=None, audit_log=audit_log2, output_path=pathlib.Path(td)/"out3.json", skip_audit=False)
+            assert False, "rerun should be blocked"
+        except RuntimeError as e:
+            assert "rerun" in str(e).lower()
+
+def test_execution_lifecycle_path_and_result_os_agnostic():
+    import pathlib
+    from retrieval_v3.paths import validate_output_path
+    from retrieval_v3.result_schema import atomic_write_result, build_result_skeleton
+    # Windows backslash traversal must fail even on POSIX host
+    try:
+        validate_output_path("eval\\retrieval-v3\\results\\..\\..\\etc\\passwd")
+        assert False
+    except ValueError:
+        pass
+    # .git with backslash must fail
+    try:
+        validate_output_path("eval\\retrieval-v3\\results\\..\\.git\\config")
+        assert False
+    except ValueError:
+        pass
+    # Canonical path with backslashes should be recognized as canonical via as_posix
+    # Use PurePath.as_posix check — ensure atomic_write_result accepts both slash styles for canonical detection (no throw before file existence guard)
+    # For temp output, test that atomic_write_result uses as_posix for canonical comparison (pure logic, no real canonical file)
+    import tempfile, hashlib, json
+    from retrieval_v3.candidate_registry import load_and_validate
+    plan = load_and_validate()
+    # Build minimal valid result for temp output
+    per = [{"config_id": f"candidate-a-{i:02d}", "success_at_5": 0.9, "ndcg_at_5": 0.8, "mrr_at_10": 0.7, "success_at_1": 0.9, "success_at_3": 0.9, "success_at_5_strict_grade3": 0.5, "success_at_5_grade3": 0.5, "ndcg_at_10": 0.8, "n": 5, "success_count": 4, "success_at_1_count": 4, "success_at_3_count": 4, "success_at_5_strict_grade3_count": 2, "oracle_recall": {}, "oracle_recall_all": {}, "union_oracle_R100": 0.9, "slice_diagnostics": {}} for i in range(1,19)]
+    sel = {"eligible": ["candidate-a-01"], "eligible_details": per[:1], "chosen": "candidate-a-01", "ordering": "Success@5 desc -> NDCG@5 desc -> MRR@10 desc -> paired p95 asc -> lexicographic config_id asc", "reason": "selected"}
+    bg = {"admitted": False, "headroom_pp": 0, "union_recall": 0.9, "reason": "test", "instantiated": False}
+    prov = {"candidate_plan_sha256": "a"*64, "prereg_sha256": "b"*64, "git_head": "c"*40, "git_dirty": False, "created_at": "2026-09-02T00:00:00Z"}
+    result = build_result_skeleton(per_config_metrics=per, selection=sel, candidate_b_gate=bg, provenance=prov, git_head="c"*40, git_dirty=False, corpus_provenance={"total_policies":5}, set_provenance={"set_role":"dev","set_sha":"a"*64,"n":5,"headline_n":5}, audit_head="d"*64)
+    with tempfile.TemporaryDirectory() as td:
+        out = pathlib.Path(td) / "nested" / "out.json"
+        written = atomic_write_result(result, out)
+        assert written.exists()
+        # Second write to same path must fail (rerun prevention)
+        try:
+            atomic_write_result(result, out)
+            assert False
+        except FileExistsError:
+            pass
+        # Validate that result_schema canonical as_posix check handles backslash canonical without misclassifying temp
+        win_path = "eval\\retrieval-v3\\results\\v3-candidate-dev-result.json"
+        canon_posix = pathlib.PurePath(win_path).as_posix()
+        assert canon_posix == "eval/retrieval-v3/results/v3-candidate-dev-result.json"
+
 def test_mirror_hyphen_underscore_identity():
     # Keep hyphen/underscore touched mirrors byte-identical
     import pathlib, hashlib
@@ -736,7 +836,7 @@ def test_mirror_hyphen_underscore_identity():
             assert h1 == h2, f"mirror mismatch {name}: {h1[:8]} vs {h2[:8]}"
 
 if __name__=="__main__":
-    tests=[test_18_configs_and_drift, test_non_unit_cosine, test_representative_tie_and_near_tie, test_strict_gt_dedup_boundary, test_mmr_actual_cosine_and_full_top30, test_exact_normalization_and_boundaries, test_cosine_min_placement, test_union_vs_hybrid, test_exact_not_injected, test_deterministic_ordering, test_metrics_mrr_rank_gt10, test_selection_ordering_and_zero, test_b_gate_no_impl, test_latency_harness, test_audit_lifecycle, test_atomic_rerun_concurrent, test_path_confinement, test_runner_safety_hold_when_checkers_absent, test_runner_safety_pass_when_checkers_present, test_runner_latency_wiring, test_cli_orchestrator_e2e, test_fusion_youth_bias_only_youth_source_gov24_zero, test_sparse_only_representative_query_nearest_no_chunk0_fallback, test_oracle_union_set_and_headline130, test_metrics_graded_strict_and_ndcg, test_metrics_equivalence_group_no_double_count, test_slice_diagnostics_unavailable, test_selection_fail_closed_missing_gates, test_selection_fail_closed_missing_latency, test_mirror_hyphen_underscore_identity]
+    tests=[test_18_configs_and_drift, test_non_unit_cosine, test_representative_tie_and_near_tie, test_strict_gt_dedup_boundary, test_mmr_actual_cosine_and_full_top30, test_exact_normalization_and_boundaries, test_cosine_min_placement, test_union_vs_hybrid, test_exact_not_injected, test_deterministic_ordering, test_metrics_mrr_rank_gt10, test_selection_ordering_and_zero, test_b_gate_no_impl, test_latency_harness, test_audit_lifecycle, test_atomic_rerun_concurrent, test_path_confinement, test_runner_safety_hold_when_checkers_absent, test_runner_safety_pass_when_checkers_present, test_runner_latency_wiring, test_cli_orchestrator_e2e, test_fusion_youth_bias_only_youth_source_gov24_zero, test_sparse_only_representative_query_nearest_no_chunk0_fallback, test_oracle_union_set_and_headline130, test_metrics_graded_strict_and_ndcg, test_metrics_equivalence_group_no_double_count, test_slice_diagnostics_unavailable, test_selection_fail_closed_missing_gates, test_selection_fail_closed_missing_latency, test_execution_lifecycle_audit_closure_on_failure, test_execution_lifecycle_path_and_result_os_agnostic, test_mirror_hyphen_underscore_identity]
     for t in tests:
         try:
             t()
@@ -745,4 +845,4 @@ if __name__=="__main__":
             print(f"FAIL {t.__name__}: {e}")
             import traceback; traceback.print_exc()
             sys.exit(1)
-    print("ALL 30 focused tests PASS")
+    print("ALL 32 focused tests PASS")

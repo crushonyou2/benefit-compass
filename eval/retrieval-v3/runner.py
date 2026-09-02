@@ -527,9 +527,30 @@ class Runner:
                     raise RuntimeError(f"audit run_end failed (fail-closed, result removed): {e}") from e
 
             return result
-
         except Exception as e:
+            # Execution-lifecycle: ensure audit closure even on failure — append run_end with failure outcome before cleanup (fail-closed, preserves chain)
             if need_audit_close:
+                try:
+                    # Attempt to close audit chain with run_end; if this fails, still clean up output and surface original error
+                    audit.append_event(
+                        str(audit_log),
+                        action="run_end",
+                        set_role=set_role,
+                        set_sha=set_sha,
+                        candidate_id="v3-candidate-dev-v1",
+                        session_id=session_id,
+                    )
+                except Exception as audit_e:
+                    # If audit close itself fails, ensure output removed and raise with audit context
+                    if output_path:
+                        try:
+                            out_abs = (REPO_ROOT / output_path).resolve() if not pathlib.Path(output_path).is_absolute() else pathlib.Path(output_path).resolve()
+                            if out_abs.exists():
+                                out_abs.unlink()
+                        except Exception:
+                            pass
+                    raise RuntimeError(f"audit run_end on failure failed (fail-closed): {audit_e}") from e
+                # Audit close succeeded — now clean up output if present
                 if output_path:
                     try:
                         out_abs = (REPO_ROOT / output_path).resolve() if not pathlib.Path(output_path).is_absolute() else pathlib.Path(output_path).resolve()
@@ -538,7 +559,6 @@ class Runner:
                     except Exception:
                         pass
             raise
-
 def parse_args(argv=None):
     p = argparse.ArgumentParser(description="Retrieval v3 Candidate A runner (pure/mock, no real DB/model)")
     p.add_argument("--tasks", type=str, help="path to tasks jsonl (fake for tests)")
