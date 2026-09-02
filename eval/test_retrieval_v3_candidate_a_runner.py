@@ -360,7 +360,7 @@ def test_runner_safety_hold_when_checkers_absent():
     def fake_emb(q):
         h=hashlib.sha256(q.encode()).digest()
         return fake_vec(int.from_bytes(h[:4],"little"))
-    tasks=[{"task_id":f"t{i}","query":f"정책 {i}","golds":[{"source":"youth","source_id":"p0","grade":2}],"stratum":"natural_needs","location_bearing":False} for i in range(5)]
+    tasks=[{"task_id":f"t{i}","query":f"정책 0","golds":[{"source":"youth","source_id":"p0","grade":2}],"stratum":"natural_needs","location_bearing":False} for i in range(5)]
     with tempfile.TemporaryDirectory() as td:
         audit_log=pathlib.Path(td)/"audit.jsonl"
         out=pathlib.Path(td)/"out.json"
@@ -383,14 +383,14 @@ def test_runner_safety_pass_when_checkers_present():
     def fake_emb(q):
         h=hashlib.sha256(q.encode()).digest()
         return fake_vec(int.from_bytes(h[:4],"little"))
-    tasks=[{"task_id":f"t{i}","query":f"정책 {i}","golds":[{"source":"youth","source_id":"p0","grade":2}],"stratum":"natural_needs","location_bearing":False} for i in range(5)]
+    tasks=[{"task_id":f"t{i}","query":f"정책 0","golds":[{"source":"youth","source_id":"p0","grade":2}],"stratum":"natural_needs","location_bearing":False} for i in range(5)]
     with tempfile.TemporaryDirectory() as td:
         audit_log=pathlib.Path(td)/"audit.jsonl"
         out=pathlib.Path(td)/"out.json"
         runner=Runner(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r,s: tasks, audit_log_path=audit_log, corpus_provenance_fn=lambda: {"total_policies":5, "total_chunks":5}, http_checker=lambda urls: True)
         res=runner.run_dev_evaluation(tasks=tasks, policies=policies, session_id="safety-pass", set_role="dev", set_sha=None, audit_log=audit_log, output_path=out, skip_audit=True)
         assert len(res["per_config_metrics"])==18
-
+        assert res["selection"]["chosen"] is not None, "with checkers safety PASS and high success => should have eligible"
 def test_runner_latency_wiring():
     plan=load_candidate_plan_or_fail()
     def fake_vec(seed):

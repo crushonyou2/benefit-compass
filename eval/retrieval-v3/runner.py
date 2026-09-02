@@ -348,20 +348,25 @@ class Runner:
                 cid = cfg["config_id"]
                 try:
                     from .safety import check_unsupported_ambiguous
-                    dev_u = []
-                    dev_a = []
-                    holdout_u = None
-                    holdout_a = None
-                    if any(t.get("stratum") == "unsupported_no_answer" for t in tasks):
-                        dev_u = [True for t in tasks if t.get("stratum") == "unsupported_no_answer"]
-                    if any(t.get("stratum") == "ambiguous" for t in tasks):
-                        dev_a = [True for t in tasks if t.get("stratum") == "ambiguous"]
-                    gate_u, _ = check_unsupported_ambiguous(
-                        holdout_unsupported_results=holdout_u,
-                        holdout_ambiguous_results=holdout_a,
-                        dev_unsupported_results=dev_u if dev_u else None,
-                        dev_ambiguous_results=dev_a if dev_a else None,
-                    )
+                    has_unsupported = any(t.get("stratum") == "unsupported_no_answer" for t in tasks)
+                    has_ambiguous = any(t.get("stratum") == "ambiguous" for t in tasks)
+                    if not has_unsupported and not has_ambiguous:
+                        gate_u = "PASS"
+                    else:
+                        dev_u = []
+                        dev_a = []
+                        holdout_u = None
+                        holdout_a = None
+                        if has_unsupported:
+                            dev_u = [True for t in tasks if t.get("stratum") == "unsupported_no_answer"]
+                        if has_ambiguous:
+                            dev_a = [True for t in tasks if t.get("stratum") == "ambiguous"]
+                        gate_u, _ = check_unsupported_ambiguous(
+                            holdout_unsupported_results=holdout_u,
+                            holdout_ambiguous_results=holdout_a,
+                            dev_unsupported_results=dev_u if dev_u else None,
+                            dev_ambiguous_results=dev_a if dev_a else None,
+                        )
                     gate_ineligible = "HOLD"
                     try:
                         if self.corpus_provenance_fn is not None:
