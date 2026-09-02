@@ -1,0 +1,34 @@
+{
+  "plan_version": "retrieval-v3-holdout-generation-v3",
+  "plan_sha256": "716ffd4f03c74664f5fe4a6f1c2a312da9e474b00d3c03cbac90bbecca37006b",
+  "seed": "benefit-compass-retrieval-v3-holdout-v3-2026-09-02",
+  "total_cases": 250,
+  "headline": 180,
+  "safety": 70,
+  "location_total": 75,
+  "per_stratum": {
+    "exact_navigation": 28,
+    "natural_needs": 33,
+    "exploratory_multi_valid": 31,
+    "multi_constraint": 36,
+    "short_keywords": 24,
+    "colloquial_typo_spacing_abbrev": 28,
+    "ambiguous": 32,
+    "unsupported_no_answer": 38
+  },
+  "per_location": {
+    "exact_navigation": 8,
+    "natural_needs": 10,
+    "exploratory_multi_valid": 9,
+    "multi_constraint": 11,
+    "short_keywords": 7,
+    "colloquial_typo_spacing_abbrev": 8,
+    "ambiguous": 10,
+    "unsupported_no_answer": 12
+  },
+  "supplement_used": 40,
+  "frozen_used": 210,
+  "frozen_v2_merged_sha256": "ea739eff9e1968dfeaa58565b2ae54ba6fad75153551757a96fe3fb34821060d",
+  "supplement_c_sha256": "b01d78a5da0e7c5e15a006e8b5e32603b877830822dc2a3ffe8d05f038f825f4",
+  "evalset_sha256": "addbc03a91b5dd40c71ffe811d525be6ee295c17defc66ca86ea9e51ca2ca71a"
+}
