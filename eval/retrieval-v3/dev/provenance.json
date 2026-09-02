@@ -61,7 +61,6 @@
   "evalset_sha256": "2f014112f394541bb389a3db0aa1de7a1279b737ac8673d472ed351479fe7cd1",
   "fingerprints_sha256": "57716c6a6b3aaa08e9e8072f7148aac691d80ed81fdc7e10bd07957386035f88",
   "annotation_audit_sha256": "03d2709fe17612d8f21568bf255d3a84f7e7e2f6d640da566aeece2de38d7fa7",
-  "manifest_sha256": "a72fc92eae9b9a4bc33beb6250fb06c74558c0da986783db5cf0bdedfaf4edf8",
   "history_query_overlap": 0,
   "history_gold_overlap": 0,
   "holdout_query_overlap": 0,
@@ -70,5 +69,6 @@
   "query_unique": true,
   "canonical_LF": true,
   "retrieval_blind": true,
-  "source_truth_only": true
+  "source_truth_only": true,
+  "agreement_audit_sha256": "d4861d9956e22d7d3e410526cf6ca62916b647049fa9e33b2eca433d7cd4de4c"
 }

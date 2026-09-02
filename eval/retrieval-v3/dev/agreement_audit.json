@@ -1,0 +1,248 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-02T18:00:00Z",
+  "input_shas": {
+    "reviewer_A_raw_labels.jsonl": "d096c2ccb5edf67f37ed470b6aee92cba533137402ca6128daf2752e45e9db71",
+    "reviewer_B_raw_labels.jsonl": "94feebb6359e340b9dd7a64f439ada4db86f68b2260b9afa42b6903bcc46b46a",
+    "adjudicated_labels.jsonl": "725fd2f09ccba965d8d42488878f47e3d3d27a3827ff95c286439adbe6233ed9",
+    "disagreement_matrix.json": "7c3c24c1088800eb5449231825c890592c9e6f646f5298545b7ee2976eee8f5e"
+  },
+  "alignment_contract": {
+    "task_alignment": "sorted task_id (lexicographic v3d-001..v3d-180), one-to-one deterministic; N=180 for query-level dimensions; per-gold grade N= total distinct gold identities union across A/B (228+?); no semantic relabeling, no regeneration, no readjudication, no heuristic seeds; mechanical sentinel ABSENT for missing gold identity; grade categories are stringified original grades '1','2','3' plus sentinel 'ABSENT'; sentinel is not a semantic grade, it is explicit mechanical absence representation; string conversion of booleans via str() ('True'/'False') for answerable/ambiguous; stratum categories are 8 prereg strata strings.",
+    "normalization": "No query text normalization for agreement; exact string equality on stratum/source_truth_answerable/ambiguous/gold grade categories as stored in raw JSONL; gold identity is (source, source_id) exact string pair; grade is stringified original grade or ABSENT sentinel; confusion counts are raw integer counts; expected agreement = sum_{cat} (count_a(cat)/N)*(count_b(cat)/N); kappa = (observed-expected)/(1-expected); if denominator 0 then kappa=1 if observed==1 else 0.",
+    "per_gold_grade_canonical": "Union of gold identities per task across A/B; each identity contributes one pair (grade_A_or_ABSENT, grade_B_or_ABSENT); N = len(union) across all tasks; categories = {'1','2','3','ABSENT'}; sentinel transparently reported; shared-identity-only diagnostic optionally included but canonical is union+sentinel as documented; no silent coercion of ABSENT to '0' or other grade.",
+    "per_gold_grade_shared_diagnostic": "Only identities present in both A and B for same task; N_shared = count of shared identities; same grade categories without sentinel; purely diagnostic."
+  },
+  "dimensions": {
+    "stratum": {
+      "n": 180,
+      "raw_agreement": 0.8833333333333333,
+      "expected_agreement": 0.12685185185185183,
+      "cohens_kappa": 0.8663838812301167,
+      "counter_a": {
+        "exact_navigation": 19,
+        "colloquial_typo_spacing_abbrev": 23,
+        "exploratory_multi_valid": 20,
+        "natural_needs": 26,
+        "multi_constraint": 24,
+        "short_keywords": 18,
+        "ambiguous": 23,
+        "unsupported_no_answer": 27
+      },
+      "counter_b": {
+        "exact_navigation": 20,
+        "colloquial_typo_spacing_abbrev": 18,
+        "exploratory_multi_valid": 22,
+        "natural_needs": 26,
+        "short_keywords": 19,
+        "multi_constraint": 25,
+        "ambiguous": 23,
+        "unsupported_no_answer": 27
+      },
+      "categories": [
+        "ambiguous",
+        "colloquial_typo_spacing_abbrev",
+        "exact_navigation",
+        "exploratory_multi_valid",
+        "multi_constraint",
+        "natural_needs",
+        "short_keywords",
+        "unsupported_no_answer"
+      ],
+      "confusion": {
+        "exact_navigation": {
+          "exact_navigation": 19
+        },
+        "colloquial_typo_spacing_abbrev": {
+          "colloquial_typo_spacing_abbrev": 15,
+          "short_keywords": 5,
+          "multi_constraint": 1,
+          "natural_needs": 1,
+          "exploratory_multi_valid": 1
+        },
+        "exploratory_multi_valid": {
+          "exploratory_multi_valid": 18,
+          "exact_navigation": 1,
+          "short_keywords": 1
+        },
+        "natural_needs": {
+          "natural_needs": 24,
+          "exploratory_multi_valid": 1,
+          "multi_constraint": 1
+        },
+        "multi_constraint": {
+          "natural_needs": 1,
+          "multi_constraint": 21,
+          "short_keywords": 1,
+          "colloquial_typo_spacing_abbrev": 1
+        },
+        "short_keywords": {
+          "exploratory_multi_valid": 2,
+          "multi_constraint": 2,
+          "short_keywords": 12,
+          "colloquial_typo_spacing_abbrev": 2
+        },
+        "ambiguous": {
+          "ambiguous": 23
+        },
+        "unsupported_no_answer": {
+          "unsupported_no_answer": 27
+        }
+      }
+    },
+    "source_truth_answerable": {
+      "n": 180,
+      "raw_agreement": 1.0,
+      "expected_agreement": 0.7449999999999999,
+      "cohens_kappa": 1.0,
+      "counter_a": {
+        "True": 153,
+        "False": 27
+      },
+      "counter_b": {
+        "True": 153,
+        "False": 27
+      },
+      "categories": [
+        "False",
+        "True"
+      ],
+      "confusion": {
+        "True": {
+          "True": 153
+        },
+        "False": {
+          "False": 27
+        }
+      }
+    },
+    "ambiguous": {
+      "n": 180,
+      "raw_agreement": 1.0,
+      "expected_agreement": 0.7770987654320989,
+      "cohens_kappa": 1.0,
+      "counter_a": {
+        "False": 157,
+        "True": 23
+      },
+      "counter_b": {
+        "False": 157,
+        "True": 23
+      },
+      "categories": [
+        "False",
+        "True"
+      ],
+      "confusion": {
+        "False": {
+          "False": 157
+        },
+        "True": {
+          "True": 23
+        }
+      }
+    },
+    "per_gold_grade": {
+      "n": 228,
+      "raw_agreement": 0.7894736842105263,
+      "expected_agreement": 0.3779624499846106,
+      "cohens_kappa": 0.661553686293914,
+      "counter_a": {
+        "1": 44,
+        "3": 106,
+        "2": 78
+      },
+      "counter_b": {
+        "1": 44,
+        "3": 120,
+        "2": 64
+      },
+      "categories": [
+        "1",
+        "2",
+        "3"
+      ],
+      "confusion": {
+        "1": {
+          "1": 44
+        },
+        "3": {
+          "3": 89,
+          "2": 17
+        },
+        "2": {
+          "2": 47,
+          "3": 31
+        }
+      },
+      "sentinel": "ABSENT",
+      "sentinel_meaning": "ABSENT = gold identity present in other annotator but not in this one; not a semantic grade; mechanical absence representation",
+      "shared_identity_only": {
+        "n": 228,
+        "raw_agreement": 0.7894736842105263,
+        "expected_agreement": 0.3779624499846106,
+        "cohens_kappa": 0.661553686293914,
+        "counter_a": {
+          "1": 44,
+          "3": 106,
+          "2": 78
+        },
+        "counter_b": {
+          "1": 44,
+          "3": 120,
+          "2": 64
+        },
+        "categories": [
+          "1",
+          "2",
+          "3"
+        ],
+        "confusion": {
+          "1": {
+            "1": 44
+          },
+          "3": {
+            "3": 89,
+            "2": 17
+          },
+          "2": {
+            "2": 47,
+            "3": 31
+          }
+        }
+      }
+    }
+  },
+  "optional_diagnostics": {
+    "location_bearing": {
+      "n": 180,
+      "raw_agreement": 0.8111111111111111,
+      "expected_agreement": 0.5440123456790124,
+      "cohens_kappa": 0.5857587653986733,
+      "counter_a": {
+        "True": 67,
+        "False": 113
+      },
+      "counter_b": {
+        "True": 59,
+        "False": 121
+      },
+      "categories": [
+        "False",
+        "True"
+      ],
+      "confusion": {
+        "True": {
+          "True": 46,
+          "False": 21
+        },
+        "False": {
+          "False": 100,
+          "True": 13
+        }
+      },
+      "note": "location is non-prereg, diagnostic only; prereg requires stratum/source_truth_answerable/ambiguous/per-gold grade"
+    }
+  },
+  "prereg_compliance": "§4 requires durable raw agreement + Cohen's κ for stratum/source-truth answerability/ambiguity/per-gold grade; this artifact provides N, raw, expected, κ, counters, confusion recomputable from exact input SHAs via deterministic contract above; per-gold grade canonical uses union+sentinel ABSENT transparently, shared-only diagnostic also included."
+}

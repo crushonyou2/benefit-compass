@@ -32,9 +32,10 @@
   "source_truth_rows": 13589,
   "annotation_audit_sha256": "03d2709fe17612d8f21568bf255d3a84f7e7e2f6d640da566aeece2de38d7fa7",
   "disagreement_matrix_sha256": "7c3c24c1088800eb5449231825c890592c9e6f646f5298545b7ee2976eee8f5e",
-  "provenance_sha256": "0ee98af12e8ddf5b2915f6fa29d46e5e5aa09cf562b463ed9341463a5b74e4c2",
+  "provenance_sha256": "233b4af591ff611aba1adc71ce7a7573c94492387c4cbae62c88b6a2bfe8b047",
   "sealed_sha256": "07e088812c54a879ad9ba7c7886a48d33f487b9741eade4236c55cf0ec429384",
   "reviewer_A_sha256": "d096c2ccb5edf67f37ed470b6aee92cba533137402ca6128daf2752e45e9db71",
   "reviewer_B_sha256": "94feebb6359e340b9dd7a64f439ada4db86f68b2260b9afa42b6903bcc46b46a",
-  "adjudicated_sha256": "725fd2f09ccba965d8d42488878f47e3d3d27a3827ff95c286439adbe6233ed9"
+  "adjudicated_sha256": "725fd2f09ccba965d8d42488878f47e3d3d27a3827ff95c286439adbe6233ed9",
+  "agreement_audit_sha256": "d4861d9956e22d7d3e410526cf6ca62916b647049fa9e33b2eca433d7cd4de4c"
 }
