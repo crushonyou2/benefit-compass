@@ -162,13 +162,13 @@ def _is_exact_org(q: str, org: str) -> bool:
 
 
 def _select_representative_chunk(qvec, chunks):
-    """Policy comparison vector: choose chunk minimizing cosine distance (max cosine). Tie chunk_index asc, then policy_chunk.id asc."""
+    """Policy comparison vector: choose chunk minimizing cosine distance (max cosine). Tie chunk_index asc, then policy_chunk.id asc. Exact equality only — no epsilon/near-tie."""
     best = None
     best_cos = None
     for ch in chunks:
         cos = _cosine(qvec, ch["embedding"])
-        # minimal distance = maximal cosine
-        if best is None or cos > best_cos or (math.isclose(cos, best_cos) and (ch["chunk_index"], ch["id"]) < (best["chunk_index"], best["id"])):
+        # D-030 exact contract: minimum cosine distance / maximum cosine absolute priority; only actual cosine equality then tie-break
+        if best is None or cos > best_cos or (cos == best_cos and (ch["chunk_index"], ch["id"]) < (best["chunk_index"], best["id"])):
             best = ch
             best_cos = cos
     return best, best_cos
@@ -889,6 +889,44 @@ def test_pure_representative_chunk_deterministic_tie_break():
     assert math.isclose(cos3, 1.0, rel_tol=1e-9)
     assert _dot(qvec, chunks3[0]["embedding"]) == 2.0 and cos3 != 2.0
 
+
+def test_pure_representative_chunk_near_tie_higher_cosine_wins_despite_worse_tie_break():
+    """Regression: two cosines very close (math.isclose True but not equal) — higher cosine wins despite worse chunk_index/id."""
+    qvec = [1.0, 0.0, 0.0]
+    # chunk_high: exact max cosine 1.0, but worse tie-break (larger index/id)
+    ch_high = {"embedding": [1.0, 0.0, 0.0], "chunk_index": 10, "id": 100}
+    # chunk_near: cosine slightly less but very close (isclose True), better tie-break (smaller index/id)
+    # q=[1,0,0], b=[1,1e-5,0] -> cos = 1/sqrt(1+1e-10) ≈ 0.99999999995, isclose to 1.0 True but !=
+    ch_near = {"embedding": [1.0, 1e-5, 0.0], "chunk_index": 0, "id": 1}
+    cos_high = _cosine(qvec, ch_high["embedding"])
+    cos_near = _cosine(qvec, ch_near["embedding"])
+    assert math.isclose(cos_high, 1.0, rel_tol=1e-9)
+    assert math.isclose(cos_near, 1.0, rel_tol=1e-9) is False or math.isclose(cos_high, cos_near)  # ensure at least pair isclose
+    # verify the pair is isclose True but not equal — this is the regression condition
+    assert math.isclose(cos_high, cos_near) is True, f"cos_high {cos_high} and cos_near {cos_near} should be isclose True"
+    assert cos_high != cos_near, "cosines must not be exactly equal"
+    assert cos_high > cos_near, "high must be strictly greater"
+    # Also verify dot != cosine for high (non-unit case would also, but here high is unit; check near scaled? Use scaled variant below)
+    # Now test selection: regardless of input order, higher cosine must win despite worse tie-break
+    best_a, _ = _select_representative_chunk(qvec, [ch_near, ch_high])
+    assert best_a["id"] == ch_high["id"], "higher cosine must win despite worse chunk_index/id when cosines are near but not equal"
+    best_b, _ = _select_representative_chunk(qvec, [ch_high, ch_near])
+    assert best_b["id"] == ch_high["id"], "order independence: higher cosine wins"
+    # Existing exact-tie fixture must still hold: identical cosines -> tie-break
+    ch_tie1 = {"embedding": [1.0, 0.0, 0.0], "chunk_index": 5, "id": 10}
+    ch_tie2 = {"embedding": [1.0, 0.0, 0.0], "chunk_index": 2, "id": 20}
+    best_tie, cos_tie = _select_representative_chunk(qvec, [ch_tie1, ch_tie2])
+    assert cos_tie == _cosine(qvec, ch_tie1["embedding"]) == _cosine(qvec, ch_tie2["embedding"])
+    assert best_tie["chunk_index"] == 2
+    # Also test scaled non-unit near-tie
+    ch_high_s = {"embedding": [2.0, 0.0, 0.0], "chunk_index": 10, "id": 200}
+    ch_near_s = {"embedding": [2.0, 2e-5, 0.0], "chunk_index": 0, "id": 2}
+    cos_high_s = _cosine(qvec, ch_high_s["embedding"])
+    cos_near_s = _cosine(qvec, ch_near_s["embedding"])
+    assert math.isclose(cos_high_s, cos_near_s) is True
+    assert cos_high_s != cos_near_s
+    best_s, _ = _select_representative_chunk(qvec, [ch_near_s, ch_high_s])
+    assert best_s["id"] == ch_high_s["id"]
 
 def test_pure_exact_normalization_internal_whitespace_collapse():
     """Normalization: NFC -> strip -> collapse internal whitespace -> casefold; internal whitespace collapse."""
