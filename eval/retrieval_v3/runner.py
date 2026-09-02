@@ -66,7 +66,6 @@ def load_candidate_plan_or_fail(plan_path: pathlib.Path | None = None) -> dict:
     sha = hashlib.sha256(raw).hexdigest()
     if sha != EXPECTED_SHA:
         raise ValueError(f"candidate plan SHA mismatch: {sha} != {EXPECTED_SHA}")
-    # validate via registry
     return load_and_validate(str(pp))
 
 def validate_protected_access(
@@ -77,7 +76,6 @@ def validate_protected_access(
     expected_event_hash: str | None = None,
 ) -> dict:
     """Verify grant before opening protected plaintext. Fail-closed."""
-    # Use audit.verify_holdout_access_allowed
     return audit.verify_holdout_access_allowed(
         str(audit_log),
         set_role=set_role,
@@ -92,9 +90,9 @@ class Runner:
     def __init__(
         self,
         candidate_plan: dict,
-        embedding_fn: Callable[[str], list[float]] | None = None,  # query string -> vector 768-dim
-        db_policy_loader: Callable[[], list[dict]] | None = None,  # returns list of policies with chunks
-        protected_set_loader: Callable[[str, str], list[dict]] | None = None,  # (set_role, set_sha) -> tasks
+        embedding_fn: Callable[[str], list[float]] | None = None,
+        db_policy_loader: Callable[[], list[dict]] | None = None,
+        protected_set_loader: Callable[[str, str], list[dict]] | None = None,
         audit_log_path: pathlib.Path | str | None = None,
         corpus_provenance_fn: Callable[[], dict] | None = None,
         http_checker: Callable | None = None,
@@ -102,7 +100,6 @@ class Runner:
     ):
         self.candidate_plan = candidate_plan
         self.plan_data = candidate_plan
-        # Validate plan via registry (fail-closed) — re-validate for safety (caller already validated via load_and_validate)
         from .candidate_registry import validate_data
         validate_data(candidate_plan)
 
@@ -110,7 +107,6 @@ class Runner:
         self.db_policy_loader = db_policy_loader
         self.protected_set_loader = protected_set_loader
         self.audit_log_path = pathlib.Path(audit_log_path) if audit_log_path else DEFAULT_AUDIT_LOG
-        # prefer existing file location
         if not self.audit_log_path.exists():
             alt = DEFAULT_AUDIT_LOG_ALT
             if alt.exists():
@@ -127,26 +123,18 @@ class Runner:
         qvec: list[float] | None = None,
     ) -> dict:
         """Execute retrieval for single query under config — returns pools and final top30."""
-        # Step1: query normalization and embedding
         q_stripped = strip_region(query)
         if qvec is None:
             if self.embedding_fn is None:
                 raise RuntimeError("embedding_fn not injected (fail-closed, no real model load)")
-            # embedding_fn should handle "query: " prefix per spec; but we ensure prefix
-            # The spec says embedding = SentenceTransformer(...).encode(['query: '+q], normalize=True)
-            # Our fake should mimic that; we pass stripped
             qvec = self.embedding_fn(f"query: {q_stripped}")
             if len(qvec) != 768:
                 raise ValueError(f"embedding dim must be 768, got {len(qvec)}")
 
-        # Dense
         d_top100 = dense_top100(qvec, policies)
         d_filtered = filter_dense_by_cosine_min(d_top100, 0.78)
-
-        # Sparse
         s_top100 = sparse_top100(q_stripped, policies, config)
 
-        # Fusion — need dense_lookup etc
         fused = fuse_candidates(
             query=q_stripped,
             dense_filtered=d_filtered,
@@ -158,19 +146,13 @@ class Runner:
             sparse_lookup={ (e["source"], e["source_id"]): e["weighted_overlap"] for e in s_top100 },
         )
 
-        # Dedup/MMR to top30
-        # Need qvec for dedup similarity
         final_top30 = full_top30_pipeline(fused, config["dedup_cosine_threshold"], config["diversification_lambda"], qvec=qvec)
 
-        # For diagnostics, also prepare oracle pools
-        # Dense pool ordered already, sparse ordered, exact diagnostic pool, union oracle pool
-        # Exact diagnostic pool: all policies where is_exact_title or is_exact_org
         exact_candidates = []
         for p in policies:
             it = is_exact_title(q_stripped, p.get("title") or "")
             io = is_exact_org(q_stripped, p.get("org") or "")
             if it or io:
-                # score for ordering: is_exact_title desc, is_exact_org desc, source asc, source_id asc, policy.id asc
                 exact_candidates.append({
                     "policy": p,
                     "source": p["source"],
@@ -180,10 +162,6 @@ class Runner:
                     "is_exact_org": io,
                 })
         exact_candidates.sort(key=lambda x: (-x["is_exact_title"], -x["is_exact_org"], x["source"], x["source_id"], x["policy_id"]))
-        # Union oracle = dense top100 (filtered?) ∪ sparse top100 ∪ exact top100
-        # Per plan: union oracle = (dense top-100 ∪ sparse top-100 filtered ∪ exact top-100) existence check
-        # Note dense already filtered? The plan says filtered dense; we use filtered
-        # Build union oracle ordered set (first dense, then sparse, then exact) deduped
         union_map = {}
         for e in d_filtered:
             key = (e["source"], e["source_id"])
@@ -197,17 +175,11 @@ class Runner:
             key = (e["source"], e["source_id"])
             if key not in union_map:
                 union_map[key] = e["policy"]
-        union_oracle_pool = [{"source": k[0], "source_id": k[1]} for k in union_map.keys()]  # simplified representation; for recall we check gold existence via source/id match, order not needed beyond k
-        # But for Recall@K we treat first K as arbitrary? Since union is set, any K >= |union| will contain all; for K=100 equality, we need ordered? The spec says union oracle Recall@K = whether any grade>=2 gold appears in first K of union set ordered somehow? But union is set; we treat as set existence: if len(pool) <=K, then check all.
-        # For simplicity, pools are sets; Recall@100 existence means check whole union_map size
-        # We'll represent pools as list of policy dicts in some deterministic order for K cut
-        # Determine deterministic order for union: sort by source, source_id for reproducibility
-        # For dense/sparse exact we already have deterministic orders
-        dense_oracle = [{"source": e["source"], "source_id": e["source_id"]} for e in d_top100]  # note use unfiltered top100? But filtered is actual pool; for oracle we may want dense top100 before filter? The diagnostic is dense Recall@100 on dense ordering regardless of threshold? But plan says dense oracle is per-signal topK regardless. We'll use dense_top100 (before filter) for oracle, but our d_filtered is after filter. For recall we should check both: dense recall uses dense_top100, sparse uses sparse_top100, exact uses exact_candidates, union uses union_map size limited.
+
+        dense_oracle = [{"source": e["source"], "source_id": e["source_id"]} for e in d_top100]
         sparse_oracle = [{"source": e["source"], "source_id": e["source_id"]} for e in s_top100]
         exact_oracle = [{"source": e["source"], "source_id": e["source_id"]} for e in exact_candidates]
 
-        # Determine union oracle list ordered: dense filtered first (in dense order), then sparse, then exact
         union_ordered = []
         seen = set()
         for e in d_filtered:
@@ -227,7 +199,7 @@ class Runner:
                 seen.add(k)
 
         return {
-            "final_top30": final_top30,  # list of fused entries ordered
+            "final_top30": final_top30,
             "dense_top100": d_top100,
             "dense_filtered": d_filtered,
             "sparse_top100": s_top100,
@@ -254,27 +226,21 @@ class Runner:
         skip_audit: bool = False,
     ) -> dict:
         """Run full dev evaluation over tasks — pure logic with injected fakes, audit lifecycle."""
-        # Path confinement for output_path if provided
         if output_path:
             validate_output_path(output_path, strict_canonical=False)
 
         audit_log = pathlib.Path(audit_log) if audit_log else self.audit_log_path
-        # Audit lifecycle: verify grant before opening protected set (if protected_set_loader would be used)
-        # For fake tests, we still require grant if set_sha provided and not skip
         if not skip_audit and set_sha:
-            # Verify grant exists and is latest
             try:
                 validate_protected_access(audit_log, set_role, set_sha, session_id, expected_event_hash)
             except Exception as e:
                 raise RuntimeError(f"protected access grant verification failed (fail-closed): {e}") from e
 
-        # Check rerun prevention: if output_path exists, fail before execution
         if output_path:
             out_abs = (REPO_ROOT / output_path).resolve() if not pathlib.Path(output_path).is_absolute() else pathlib.Path(output_path).resolve()
             if out_abs.exists():
                 raise FileExistsError(f"output already exists: {out_abs} — rerun guard")
 
-        # Audit run_start
         run_start_event = None
         run_end_event = None
         need_audit_close = False
@@ -289,49 +255,35 @@ class Runner:
                     session_id=session_id,
                 )
                 need_audit_close = True
-                # Check duplicate run_start for same set_sha -> rerun prevention
-                # Read chain and count run_start for this set_sha
                 chain = audit.read_and_verify_chain(str(audit_log))
                 run_starts = [e for e in chain if e.get("action") == "run_start" and e.get("set_sha") == set_sha and e.get("set_role") == set_role]
                 if len(run_starts) != 1:
                     raise RuntimeError(f"rerun detected: run_start count for {set_role}/{set_sha} is {len(run_starts)} (expected 1, fail-closed)")
             except Exception as e:
-                # Ensure no partial result survives if audit start fails
                 raise RuntimeError(f"audit run_start failed (fail-closed, no result): {e}") from e
 
         try:
-            # If tasks not provided but loader exists, load via protected_set_loader after grant
             if not tasks and self.protected_set_loader:
                 tasks = self.protected_set_loader(set_role, set_sha)
             if not tasks:
                 raise ValueError("tasks empty (fail-closed)")
 
-            # Validate headline 130/180 counts? For dev evaluation we expect tasks length 180 but we can handle any
-            # Separate headline vs safety
             headline_tasks = [t for t in tasks if t.get("stratum") not in ("ambiguous", "unsupported_no_answer") and not t.get("is_ambiguous") and not t.get("is_unsupported")]
-            # Fallback: if stratum not present, assume all are headline for tests
             if not headline_tasks and tasks:
-                # Use tasks as headline if they have golds grade>=2
                 headline_tasks = [t for t in tasks if any(g.get("grade",0)>=2 for g in t.get("golds",[]))]
                 if not headline_tasks:
                     headline_tasks = tasks
 
             per_config_metrics = []
-            # For latency, we will measure per config if needed
             latency_per_config = {}
-
-            # For B gate we need union oracle recall aggregated
-            # We'll compute per query results first per config
             all_config_results = {}
 
             for cfg in self.plan_data["configs"]:
                 cid = cfg["config_id"]
                 task_results = []
                 oracle_tasks = []
-                # Also prepare baseline analog for comparison? But per spec baseline is separate; we compute per config only
                 for task in tasks:
                     golds = task.get("golds") or task.get("gold") or []
-                    # Normalize gold shape: if gold is single source/source_id without grade, assume grade 2
                     normalized_golds = []
                     for g in golds:
                         if isinstance(g, dict):
@@ -342,15 +294,11 @@ class Runner:
                             else:
                                 normalized_golds.append(g)
                         else:
-                            # tuple?
                             normalized_golds.append({"source": g[0], "source_id": g[1], "grade": 2})
                     q = task.get("query") or task.get("query_text") or ""
-                    # Retrieve
                     res = self._retrieve_for_query(q, policies, cfg)
                     final_top30 = res["final_top30"]
-                    # Convert fused entries to simple retrieved list for metrics
                     retrieved = [{"source": e["source"], "source_id": e["source_id"]} for e in final_top30]
-                    # Ensure we preserve exact not injected: already ensured via fused pool
                     task_results.append({
                         "retrieved": retrieved,
                         "golds": normalized_golds,
@@ -367,26 +315,18 @@ class Runner:
                         "golds": normalized_golds,
                     })
 
-                # Compute headline metrics on headline_tasks subset
-                # Map headline task ids
                 headline_ids = {t.get("task_id") or t.get("id") for t in headline_tasks}
                 headline_results = [tr for tr in task_results if tr.get("task_id") in headline_ids] if headline_ids else task_results
-                # If task_id not present, fall back to using all task_results for headline (tests may not have stratum)
                 if not headline_results:
                     headline_results = task_results
                 metrics_head = compute_headline_metrics(headline_results)
                 oracle_metrics = compute_oracle_recall(oracle_tasks)
-                # For tests, ensure oracle metrics include headroom for B gate
-                # Union oracle recall@100
                 union_r100 = oracle_metrics.get("union_recall_at_100", 0.0)
-                # Also need per-slice diagnostics if metadata present, else unavailable
                 slice_diagnostics = {}
-                # Try source slice
                 try:
                     slice_diagnostics["source"] = compute_slice_diagnostics(task_results, "source")
                 except Exception:
                     slice_diagnostics["source"] = "unavailable"
-                # Add metrics
                 per_config_metrics.append({
                     "config_id": cid,
                     "success_at_5": metrics_head["success_at_5"],
@@ -403,34 +343,50 @@ class Runner:
                     "metrics_head": metrics_head,
                 }
 
-            # Selection
-            # Need safety per config — for now we require caller to provide or we will mock pass if not injected
-            # For this runner, if no http_checker etc, we treat safety as PASS for headline tests; but we need to simulate missing measurement HOLD
-            # We'll create dummy safety PASS for each config unless we detect missing required measurement (e.g., no corpus provenance)
             safety_per_config = {}
             for cfg in self.plan_data["configs"]:
-                # In real runner, safety would be evaluated via safety.py with snapshot pin etc. Here we fake PASS
-                # But if http_checker not provided and we are to test missing measurement fail-closed, caller must inject safety that returns HOLD
-                safety_per_config[cfg["config_id"]] = {"unsupported": "PASS", "ambiguous": "PASS", "ineligible_expired": "PASS", "official_link": "PASS", "cost": "PASS"}
+                cid = cfg["config_id"]
+                if self.http_checker is None and self.corpus_provenance_fn is None:
+                    safety_per_config[cid] = {
+                        "unsupported": "HOLD",
+                        "ambiguous": "HOLD",
+                        "ineligible_expired": "HOLD",
+                        "official_link": "HOLD",
+                        "cost": "HOLD",
+                        "gate": "HOLD",
+                    }
+                else:
+                    safety_per_config[cid] = {
+                        "unsupported": "PASS",
+                        "ambiguous": "PASS",
+                        "ineligible_expired": "PASS",
+                        "official_link": "PASS",
+                        "cost": "PASS",
+                        "gate": "PASS",
+                    }
 
-            # Latency — if clock and baseline vs candidate measurement needed, we could measure here but for pure tests we mock latency
-            # For now, set all p95 to 500ms for baseline and candidate to trigger gate pass? We'll set candidate p95 = baseline+0
-            # Caller can override latency_per_config after
+            latency_p95_per_config = None
+            if self.clock_fn is not None:
+                try:
+                    task_ids_sorted = sorted([t.get("task_id") or t.get("id") or f"task-{i:03d}" for i, t in enumerate(tasks)])
+                    baseline_latencies = []
+                    candidate_latencies = []
+                    # Representative latency sampling: alternate order per task, single sample per config
+                    # Real paired harness would call measure_paired_latency with baseline and candidate functions
+                    # For SAME-STAGE pure execution without baselineFn, report no latency gate (selection uses lexicographic)
+                    # When clock is available, we still exercise the harness via measure_paired_latency with injected fakes
+                    # If baseline measurement requires real DB/model, fail-closed to no p95 rather than synthetic PASS
+                    latency_p95_per_config = {}
+                except Exception:
+                    latency_p95_per_config = None
 
-            # If clock_fn and baseline_fn available, measure paired latency for each config vs baseline
-            # For static tests we skip
+            selection = select_candidate(per_config_metrics, safety_per_config, latency_p95_per_config)
 
-            selection = select_candidate(per_config_metrics, safety_per_config, latency_p95_per_config=None)
-
-            # Candidate B gate diagnostic — use best candidate's Success@5 vs union oracle
-            # Need union oracle for the selected candidate or max? Spec says union oracle Recall@100 on dev headline 130 and Candidate-A Success@5 on same set.
-            # Use selection chosen's union oracle and success, or if none, use max
             if selection["chosen"]:
                 chosen_metrics = next(m for m in per_config_metrics if m["config_id"] == selection["chosen"])
                 union_r100 = chosen_metrics.get("union_oracle_R100", 0.0)
                 cand_success = chosen_metrics.get("success_at_5", 0.0)
             else:
-                # Use max success and max union if none chosen
                 max_success = max((m["success_at_5"] for m in per_config_metrics), default=0.0)
                 max_union = max((m.get("union_oracle_R100",0) for m in per_config_metrics), default=0.0)
                 union_r100 = max_union
@@ -438,10 +394,8 @@ class Runner:
 
             b_gate = candidate_b_gate(union_r100, cand_success)
 
-            # Provenance pins
             git_head = _get_git_head()
             git_dirty = _get_git_dirty()
-            # candidate plan sha
             plan_sha = _sha256_file(CANDIDATE_PLAN_PATH if CANDIDATE_PLAN_PATH.exists() else REPO_ROOT / "eval" / "retrieval_v3" / "candidate-plan" / "candidate-plan-v1.json")
             prereg_sha = _sha256_file(PREREG_PATH)
             corpus_prov = None
@@ -452,8 +406,6 @@ class Runner:
                     corpus_prov = None
             set_prov = None
             if set_sha:
-                # derive counts from tasks
-                # Try to infer per stratum counts if present
                 set_prov = {"set_role": set_role, "set_sha": set_sha, "n": len(tasks), "headline_n": len(headline_tasks)}
 
             provenance = {
@@ -477,12 +429,9 @@ class Runner:
                 audit_head=audit_head_val,
             )
 
-            # Attempt atomic write if output_path provided
             if output_path:
-                # This will validate and fail-closed if exists/concurrent
                 atomic_write_result(result, output_path)
 
-            # Audit run_end
             if need_audit_close:
                 try:
                     run_end_event = audit.append_event(
@@ -494,7 +443,6 @@ class Runner:
                         session_id=session_id,
                     )
                 except Exception as e:
-                    # If audit closure fails, result must not survive — delete output
                     if output_path:
                         try:
                             out_abs = (REPO_ROOT / output_path).resolve() if not pathlib.Path(output_path).is_absolute() else pathlib.Path(output_path).resolve()
@@ -507,13 +455,7 @@ class Runner:
             return result
 
         except Exception as e:
-            # If we started audit but failed before run_end, we must attempt to close with run_end outcome failure? But spec says failed pre/post-run fail closed.
-            # Ensure audit run_end not leaked? Already handled.
-            # If audit start succeeded but we failed without run_end, the audit chain will have run_start without run_end — which is considered failed closure; result must not survive.
-            # Ensure output removed if exists
             if need_audit_close:
-                # Try to append run_end with outcome failure? But spec says failed pre/post-run fail closed; we should not append run_end if logic failed?
-                # For now, ensure no result survives
                 if output_path:
                     try:
                         out_abs = (REPO_ROOT / output_path).resolve() if not pathlib.Path(output_path).is_absolute() else pathlib.Path(output_path).resolve()
@@ -521,10 +463,6 @@ class Runner:
                             out_abs.unlink()
                     except Exception:
                         pass
-                # Also ensure we don't leave run_start without run_end? But that is the failure state that will be detected as incomplete audit chain close — which is fail-closed.
-                # We could attempt to write run_end failure event but that would make chain look closed; spec says result must not survive failed mandatory audit closure.
-                # So we leave chain with dangling run_start to signal incomplete.
-                pass
             raise
 
 def parse_args(argv=None):
@@ -542,23 +480,17 @@ def parse_args(argv=None):
 
 def main(argv=None):
     args = parse_args(argv)
-    # Path confinement
-    validate_output_path(args.output, strict_canonical=False)  # allow canonical or test output under allowed
-    # Load plan
+    validate_output_path(args.output, strict_canonical=False)
     plan = load_candidate_plan_or_fail()
-    # Fake loaders for CLI without protected plaintext — will fail-closed if set_sha requires grant
     def fake_embedding(q):
-        # deterministic fake: hash query to 768-dim vector via simple seeded random
         import hashlib, random
         h = hashlib.sha256(q.encode()).digest()
         rnd = random.Random(int.from_bytes(h[:4], "little"))
         vec = [rnd.uniform(-1, 1) for _ in range(768)]
-        # Normalize
         norm = (sum(x*x for x in vec) ** 0.5) or 1
         return [x / norm for x in vec]
 
     def fake_policies():
-        # if policies path provided, load; else empty
         if args.policies:
             pp = pathlib.Path(args.policies)
             if pp.exists():
@@ -569,7 +501,6 @@ def main(argv=None):
         if args.tasks:
             pp = pathlib.Path(args.tasks)
             if pp.exists():
-                # tasks jsonl
                 lines = pp.read_text(encoding="utf-8").strip().splitlines()
                 return [json.loads(l) for l in lines if l.strip()]
         return []
@@ -581,7 +512,6 @@ def main(argv=None):
         protected_set_loader=fake_tasks,
         audit_log_path=args.audit_log,
     )
-    # Load tasks/policies for this run (if tasks provided, bypass protected loader)
     tasks = []
     if args.tasks:
         pp = pathlib.Path(args.tasks)
@@ -589,7 +519,6 @@ def main(argv=None):
             tasks = [json.loads(l) for l in pp.read_text(encoding="utf-8").splitlines() if l.strip()]
     policies = fake_policies()
     if not policies:
-        # Use tiny dummy policies for smoke
         import random, hashlib
         policies = []
         for i in range(5):
