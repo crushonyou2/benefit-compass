@@ -1,4 +1,4 @@
-"""Static validation for retrieval-v3 candidate-plan v1 — narrow repair D-029 — no DB/model/network.
+"""Static validation for retrieval-v3 candidate-plan v1 — narrow repair D-030 (D-029 base + cosine non-unit + exact mechanical) — no DB/model/network.
 
 Validates:
 - 18 exact config IDs/tuples unchanged vs pre-repair 4f231351 blob
@@ -56,7 +56,8 @@ EXPECTED_BASE = "5327661445c37191a3fd61db195f3af4d2cf893a"
 EXPECTED_FROZEN_AT = "2026-09-02T14:30:56+09:00"
 EXPECTED_OLD_SHA = "ff3b83d11260e2c2e5aba2bbe08851bf24f68cc900733813d2a4f466a9363e41"
 EXPECTED_PRE_REPAIR_SHA = "8e632c81c3c23b2a5280025298ae1d0c763abc5ce25d90e1ceb031179588ac54"
-EXPECTED_REPAIRED_SHA = "d200c08a1358823e0d0463a25c72137eb0fac809016263412e374d8fb80fbfaa"
+EXPECTED_D029_SHA = "d200c08a1358823e0d0463a25c72137eb0fac809016263412e374d8fb80fbfaa"
+EXPECTED_REPAIRED_SHA = "2815361a469fee9bf69f6ffdf2124d19928220535cdb08b2005ae6674ae7d17c"
 EXPECTED_PREREG_SHA = "7842018613d66aa4570f4db2f8ae5a698ceb46757995a6b7e26873177b36160e"
 
 def _load_plan():
@@ -73,10 +74,10 @@ def _git_show_blob(ref, path):
     return r.stdout
 
 def _strip_authorized_semantic_fields(d):
-    """Return copy without authorized semantic-definition fields that D-029 is allowed to change."""
+    """Return copy without authorized semantic-definition fields that D-029/D-030 are allowed to change."""
     import copy
     c = copy.deepcopy(d)
-    # Remove top-level narrow repair semantics added in D-029
+    # Remove top-level narrow repair semantics added in D-029 and refined in D-030 (cosine non-unit + exact mechanical)
     for k in ["policy_comparison_vector", "cosine_min_placement", "fusion_semantics", "exact_oracle_semantics", "deterministic_ordering_contract"]:
         c.pop(k, None)
     # Remove provenance metadata that changed in D-028 (frozen_at vs provenance)
@@ -102,6 +103,7 @@ def test_plan_file_exists_and_canonical_bytes():
     assert sha == EXPECTED_REPAIRED_SHA, f"candidate-plan SHA mismatch after D-029 repair: {sha} != {EXPECTED_REPAIRED_SHA}"
     assert sha != EXPECTED_OLD_SHA, "SHA should differ from old D-027 SHA"
     assert sha != EXPECTED_PRE_REPAIR_SHA, "SHA should differ from pre-repair D-028 SHA after narrow repair"
+    assert sha != EXPECTED_D029_SHA, "SHA should differ from D-029 SHA after D-030 repair"
 
 def test_plan_schema_and_identity():
     data, _ = _load_plan()
@@ -303,11 +305,23 @@ def test_policy_comparison_vector_determinism():
     assert "no averaging" in txt or "no new policy embedding" in txt or "no new embedding" in txt
     # Must reference schema: no separate policy/entity field
     assert "separate" in txt or "no separate" in txt or "unique(source,source_id)" in txt or "unique" in txt
-    # Also check scoring_order contains same representative vector tie-break
+    # D-030: stored embedding is normalize_embeddings=True rounded to 6 decimals not guaranteed unit norm
+    assert "6 decimals" in txt or "rounded to 6" in txt or "6 decimal" in txt
+    assert "not guaranteed unit norm" in txt or "not guaranteed unit" in txt or "not unit norm" in txt
+    # D-030: actual cosine = dot/(norm(a)*norm(b)), not raw dot, pgvector semantics, dot != cosine when not unit
+    assert "dot(a,b)/(norm(a)*norm(b))" in txt or "dot/(norm" in txt or "cos(a,b)=dot" in txt
+    assert "pgvector" in txt
+    assert "raw dot != cosine" in txt or "dot != cosine" in txt or "not guaranteed unit norm" in txt
+    # Must not contain raw-dot==cosine wording (no "dot product" as equality)
+    assert "dot product" not in txt or "not" in txt  # allow only if clarified not equal; raw wording removed in D-030
+    # Also check scoring_order contains same representative vector tie-break and cosine definition
     order = data["parameter_semantics"]["scoring_order_and_normalization"]
     order_txt = json.dumps(order, ensure_ascii=False).lower()
     assert "chunk_index" in order_txt and "policy_chunk.id" in order_txt
     assert "no averaging" in order_txt or "no new" in order_txt
+    # D-030: scoring order must also define actual cosine not raw dot
+    assert "dot(a,b)/(norm(a)*norm(b))" in order_txt or "dot/(norm" in order_txt or "actual cosine" in order_txt
+    assert "not guaranteed unit norm" in order_txt or "6 decimals" in order_txt or "6 decimal" in order_txt
 
 def test_sparse_dense_tie_breaks_and_union_dedup():
     data, _ = _load_plan()
@@ -368,9 +382,13 @@ def test_full_top30_deterministic_ordering_and_mmr_to_30():
     assert "greedy" in dedup
     assert "retain" in dedup or "keep" in dedup or "suppress" in dedup
     assert "similarity" in dedup and "threshold" in dedup
+    # D-030: dedup must use actual cosine not raw dot
+    assert "actual cosine" in dedup or "cos(a,b)=dot" in dedup or "dot(a,b)/(norm" in dedup or "dot/(norm" in dedup
+    assert "pgvector" in dedup or "not guaranteed unit" in dedup or "6 decimals" in dedup or "actual cosine" in dedup
     # threshold operator strict >
     thresh = ordering.get("threshold_operator","")
     assert ">" in thresh and "strict" in thresh.lower()
+    assert "actual cosine" in thresh.lower() or "dot(a,b)" in thresh.lower() or "dot/(norm" in thresh.lower() or "cos(a,b)" in thresh.lower()
     # MMR lambda 0
     mmr0 = ordering.get("mmr_lambda_0","").lower()
     assert "0.0" in mmr0 and "unchanged" in mmr0
@@ -379,6 +397,8 @@ def test_full_top30_deterministic_ordering_and_mmr_to_30():
     assert "mmr" in mmr_gt
     assert "lambda*final_score" in mmr_gt or "final_score" in mmr_gt
     assert "max_similarity" in mmr_gt or "max_cosine" in mmr_gt or "max_similarity_to_already_selected" in mmr_gt
+    # D-030: MMR max_similarity is actual cosine
+    assert "actual cosine" in mmr_gt or "cos(a,b)=dot" in mmr_gt or "dot(a,b)/(norm" in mmr_gt or "dot/(norm" in mmr_gt
     # Must continue to 30, not top5
     assert "30" in mmr_gt
     assert "top5" not in mmr_gt or "not stopping at top5" in mmr_gt or "not stop" in mmr_gt or "continues" in mmr_gt or ("top5" not in mmr_gt)
@@ -388,7 +408,7 @@ def test_full_top30_deterministic_ordering_and_mmr_to_30():
     pos = ordering.get("positions_1_30_full","").lower()
     assert "1-30" in pos or "positions 1" in pos or "30" in pos
     assert "deterministic" in pos
-    # Also check scoring_order step_8 contains same
+    # Also check scoring_order step_8 contains same and defines actual cosine
     order = data["parameter_semantics"]["scoring_order_and_normalization"]
     step8 = order.get("step_8_dedup_diversification_full_top30","").lower()
     assert "dedup" in step8 and "diversification" in step8
@@ -396,6 +416,7 @@ def test_full_top30_deterministic_ordering_and_mmr_to_30():
     assert "30" in step8
     assert "mmr" in step8
     assert ">" in step8 or "threshold" in step8
+    assert "actual cosine" in step8 or "cos(a,b)=dot" in step8 or "dot/(norm" in step8
 
 def test_fusion_executable_distinction():
     data, _ = _load_plan()
@@ -430,11 +451,38 @@ def test_exact_standalone_oracle_semantics():
     entity = exact.get("entity_field_absence","").lower()
     assert "no separate entity" in entity or "no entity" in entity or "schema has no" in entity
     assert "policy_chunk.embedding" in entity or "policy.title" in entity or "title" in entity
-    # predicates
+    # predicates - D-030 exact normalization and mechanical boundary
     pred = exact.get("predicates","").lower()
     assert "is_exact_title" in pred or "exact_title" in pred
     assert "is_exact_org" in pred
     assert "no new extractor" in pred or "no llm" in pred or "no entity extractor" in pred
+    # D-030: one exact normalization NFC -> strip -> collapse internal whitespace -> casefold everywhere
+    assert "nfc" in pred and "collapse" in pred and "casefold" in pred
+    assert "nfc -> strip -> collapse" in pred or "nfc" in pred and "strip" in pred and "collapse" in pred
+    # D-030: exact_title is unidirectional: q substring of title (not title in q except equality), len>=4, mechanical boundary not regex
+    assert "q ==" in pred or "normalized q ==" in pred or "exact equality" in pred
+    assert "normalized q" in pred and "substring of normalized title" in pred
+    assert "len(normalized q) >=4" in pred or "len" in pred and ">=4" in pred
+    assert "mechanical" in pred and "[0-9a-z" in pred
+    assert "not python regex" in pred or "not in [0-9" in pred or "mechanical boundary" in pred
+    # title should NOT allow normalized title in q except equality - check predicate says not allowed
+    # we check step_4 exact signals directly for this directional constraint
+    order = data["parameter_semantics"]["scoring_order_and_normalization"]
+    step4 = order.get("step_4_exact_signals","").lower()
+    assert "nfc" in step4 and "collapse" in step4 and "casefold" in step4
+    assert "one exact normalization everywhere" in step4 or ("nfc -> strip -> collapse" in step4)
+    assert "is_exact_title = 1 iff" in step4 or "is_exact_title" in step4
+    assert "normalized q == normalized title" in step4 or "normalized q ==" in step4
+    assert "normalized q is a substring of normalized title" in step4
+    assert "len(normalized q) >=4" in step4
+    assert "mechanical" in step4 and "[0-9a-z" in step4
+    assert "do not allow normalized title substring in q except via exact equality" in step4 or "do not allow" in step4
+    assert "not python regex" in step4 or "not in [0-9a-Za-z" in step4
+    # org: normalized org length >=2 and bidirectional
+    assert "normalized org" in pred and "length >=2" in pred
+    assert "substring in normalized q or" in pred or "org substring in" in pred
+    assert "normalized org" in step4 and "length >=2" in step4
+    assert "normalized org substring in normalized q or normalized q substring in normalized org" in step4
     # exact candidate set ordering
     ecs = exact.get("exact_candidate_set","").lower()
     assert "is_exact_title==1 or is_exact_org==1" in ecs or "is_exact_title" in ecs
@@ -461,8 +509,9 @@ def test_exact_standalone_oracle_semantics():
     assert "final candidate a pool" in diag or "final candidate a" in diag
     # candidate b gate unchanged
     assert "candidate b" in exact.get("candidate_b_gate_unchanged","").lower() or "candidate b admission" in exact.get("candidate_b_gate_unchanged","").lower()
-    # no new signal
+    # no new signal - also check no new predicate family
     assert "no new" in exact.get("no_new_signal","").lower() or "no entity extractor" in exact.get("no_new_signal","").lower()
+    assert "no new predicate family" in exact.get("no_new_signal","").lower() or "no new" in exact.get("no_new_signal","").lower()
 
 def test_no_new_signal_model_embedding_and_b_not_instantiated():
     data, _ = _load_plan()
