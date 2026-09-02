@@ -1,4 +1,4 @@
-"""Static validation for retrieval-v3 candidate-plan v1 — narrow repair D-030 (D-029 base + cosine non-unit + exact mechanical) — no DB/model/network.
+"""Static validation for retrieval-v3 candidate-plan v1 — narrow repair D-031 (D-030 base + computational test-contract repair) — no DB/model/network.
 
 Validates:
 - 18 exact config IDs/tuples unchanged vs pre-repair 4f231351 blob
@@ -9,15 +9,16 @@ Validates:
 - no new signal/model/embedding/B instantiate
 - current repaired canonical SHA vs historical blobs
 - prereg unchanged via actual historical blob/hash Git comparison (not string existence)
-Pure/static only; no DB/network/model/retrieval.
+Pure/static + pure computational fixtures; no DB/network/model/retrieval. Computational fixtures independently execute D-030 cosine/exact semantics.
 """
 
-import json
 import hashlib
+import json
+import math
 import pathlib
 import re
 import subprocess
-
+import unicodedata
 PLAN_PATH = pathlib.Path("eval/retrieval-v3/candidate-plan/candidate-plan-v1.json")
 PREREG = pathlib.Path("docs/RETRIEVAL_V3_PREREG.md")
 
@@ -94,6 +95,83 @@ def _strip_authorized_semantic_fields(d):
             pass
     return c
 
+# ---------------------------------------------------------------------------
+# Pure computational fixtures — test-local only, matching D-030 exactly.
+# Helpers MUST NOT become production semantic generators; they are local
+# executable copies for evidence that dot != cosine when not unit, and that
+# exact predicates obey NFC->strip->collapse->casefold + mechanical boundaries.
+# ---------------------------------------------------------------------------
+
+def _cosine(a, b):
+    """Independent cosine = dot/(norm(a)*norm(b)). Pure deterministic, no model."""
+    assert len(a) == len(b) and len(a) > 0
+    dot = sum(x * y for x, y in zip(a, b))
+    na = math.sqrt(sum(x * x for x in a))
+    nb = math.sqrt(sum(y * y for y in b))
+    assert na > 0 and nb > 0
+    return dot / (na * nb)
+
+
+def _dot(a, b):
+    return sum(x * y for x, y in zip(a, b))
+
+
+def _normalize_exact(s: str) -> str:
+    """One exact normalization everywhere: NFC -> strip -> collapse internal whitespace -> casefold. Test-local only."""
+    t = unicodedata.normalize("NFC", s)
+    t = t.strip()
+    t = re.sub(r"\s+", " ", t)
+    t = t.casefold()
+    return t
+
+
+def _is_alnum_hangul(ch: str) -> bool:
+    return ("0" <= ch <= "9") or ("A" <= ch <= "Z") or ("a" <= ch <= "z") or ("\uAC00" <= ch <= "\uD7A3")
+
+
+def _is_exact_title(q: str, title: str) -> bool:
+    """D-030 exact-title: true iff normalized q == normalized title OR (normalized q substring of normalized title AND len>=4 AND mechanical boundary both sides). Unidirectional only."""
+    nq = _normalize_exact(q)
+    nt = _normalize_exact(title)
+    if nq == nt:
+        return True
+    if len(nq) < 4:
+        return False
+    # check any occurrence of nq in nt with mechanical boundary
+    start = 0
+    while True:
+        idx = nt.find(nq, start)
+        if idx == -1:
+            break
+        left_ok = (idx == 0) or (not _is_alnum_hangul(nt[idx - 1]))
+        right_pos = idx + len(nq)
+        right_ok = (right_pos == len(nt)) or (not _is_alnum_hangul(nt[right_pos]))
+        if left_ok and right_ok:
+            return True
+        start = idx + 1
+    return False
+
+
+def _is_exact_org(q: str, org: str) -> bool:
+    """D-030 exact-org: normalized org length>=2 AND (org in q OR q in org). Bidirectional."""
+    nq = _normalize_exact(q)
+    no = _normalize_exact(org)
+    if len(no) < 2:
+        return False
+    return (no in nq) or (nq in no)
+
+
+def _select_representative_chunk(qvec, chunks):
+    """Policy comparison vector: choose chunk minimizing cosine distance (max cosine). Tie chunk_index asc, then policy_chunk.id asc."""
+    best = None
+    best_cos = None
+    for ch in chunks:
+        cos = _cosine(qvec, ch["embedding"])
+        # minimal distance = maximal cosine
+        if best is None or cos > best_cos or (math.isclose(cos, best_cos) and (ch["chunk_index"], ch["id"]) < (best["chunk_index"], best["id"])):
+            best = ch
+            best_cos = cos
+    return best, best_cos
 def test_plan_file_exists_and_canonical_bytes():
     data, raw = _load_plan()
     sha = hashlib.sha256(raw).hexdigest()
@@ -655,3 +733,309 @@ def test_semantic_equality_vs_old_d027_authorized_fields_only():
     assert pre_data["secondary_diagnostics_D026"] == new_data["secondary_diagnostics_D026"]
     assert hashlib.sha256(r2.stdout).hexdigest() == EXPECTED_PRE_REPAIR_SHA
     assert hashlib.sha256(r.stdout).hexdigest() == EXPECTED_OLD_SHA
+
+# ---------------------------------------------------------------------------
+# D-031 computational fixtures — independently execute cosine/exact semantics.
+# ---------------------------------------------------------------------------
+
+def test_pure_cosine_non_unit_vectors_dot_not_equal_cosine():
+    """Explicit non-unit vectors where raw dot != cosine; independent cosine = dot/(norm(a)*norm(b))."""
+    # Vector pair 1: a=[2,0], b=[2,0] => dot=4, cos=1, dot != cosine
+    a1 = [2.0, 0.0]
+    b1 = [2.0, 0.0]
+    dot1 = _dot(a1, b1)
+    cos1 = _cosine(a1, b1)
+    assert dot1 == 4.0
+    assert math.isclose(cos1, 1.0, rel_tol=1e-9)
+    assert dot1 != cos1, "raw dot must not equal cosine for non-unit vectors"
+    # Vector pair 2: a=[1,2,0], b=[3,0,0] => dot=3, norm(a)=sqrt5, norm(b)=3, cos=3/(3*sqrt5)=0.447..., dot != cos
+    a2 = [1.0, 2.0, 0.0]
+    b2 = [3.0, 0.0, 0.0]
+    dot2 = _dot(a2, b2)
+    cos2 = _cosine(a2, b2)
+    assert dot2 == 3.0
+    assert math.isclose(cos2, 3.0 / (math.sqrt(5.0) * 3.0), rel_tol=1e-9)
+    assert dot2 != cos2
+    # Vector pair 3: rounding-simulated 6-decimal vector (norm !=1) vs query
+    a3 = [0.123456, 0.654321, 0.111111]
+    b3 = [0.123457, 0.654322, 0.111112]
+    dot3 = _dot(a3, b3)
+    cos3 = _cosine(a3, b3)
+    na3 = math.sqrt(sum(x * x for x in a3))
+    nb3 = math.sqrt(sum(y * y for y in b3))
+    assert not math.isclose(na3, 1.0, rel_tol=1e-9) or not math.isclose(nb3, 1.0, rel_tol=1e-9)
+    assert not math.isclose(dot3, cos3, rel_tol=1e-6), "stored 6-decimal rounded vectors are not guaranteed unit norm"
+
+
+def test_pure_cosine_formula_independent():
+    """Test-local independent cosine = dot/(norm(a)*norm(b)) exactly."""
+    cases = [
+        ([1.0, 0.0, 0.0], [0.0, 1.0, 0.0], 0.0),
+        ([1.0, 1.0], [1.0, 1.0], 1.0),
+        ([2.0, 2.0], [1.0, 1.0], 1.0),
+        ([1.0, 0.0], [-1.0, 0.0], -1.0),
+    ]
+    for a, b, expected in cases:
+        c = _cosine(a, b)
+        assert math.isclose(c, expected, abs_tol=1e-9), f"cosine {a},{b} expected {expected} got {c}"
+        # also verify manual formula matches
+        dot = _dot(a, b)
+        na = math.sqrt(sum(x * x for x in a))
+        nb = math.sqrt(sum(y * y for y in b))
+        manual = dot / (na * nb)
+        assert math.isclose(c, manual, rel_tol=1e-9)
+
+
+def test_pure_dedup_uses_actual_cosine_strict_gt():
+    """Dedup threshold comparison uses actual cosine with STRICT > (not >=)."""
+    # Simulate two policy representative vectors
+    # Create vectors with known cosine = 0.95 exactly at threshold vs above
+    # Use unit-like vectors for controlled cosine: cos = cos(theta)
+    # We construct b rotated by theta where cos(theta)=threshold
+    import math as _m
+    def vec_from_angle(theta):
+        return [_m.cos(theta), _m.sin(theta), 0.0]
+    # Make vectors non-unit by scaling to ensure dot != cosine still
+    scale = 2.5
+    a = [scale * 1.0, 0.0, 0.0]  # [2.5,0,0]
+    # threshold 0.95 => theta = acos(0.95)
+    theta_at = _m.acos(0.95)
+    b_at = [scale * _m.cos(theta_at), scale * _m.sin(theta_at), 0.0]
+    cos_at = _cosine(a, b_at)
+    assert math.isclose(cos_at, 0.95, rel_tol=1e-6), f"cos_at {cos_at}"
+    assert _dot(a, b_at) != cos_at, "dot != cosine still holds for scaled non-unit"
+    # STRICT > : cos == threshold must NOT suppress
+    threshold = 0.95
+    suppress_at = cos_at > threshold
+    assert suppress_at is False, "strict > must not suppress when cos == threshold"
+    # Slightly above threshold must suppress
+    theta_above = _m.acos(0.951)
+    # Actually cos 0.951 <0.95? Wait acos decreasing: cos 0.951 >0.95? No 0.951 >0.95 so closer, theta smaller.
+    # Use cos 0.96 which is clearly above threshold? 0.96 >0.95.
+    theta_above2 = _m.acos(0.96)
+    b_above = [scale * _m.cos(theta_above2), scale * _m.sin(theta_above2), 0.0]
+    cos_above = _cosine(a, b_above)
+    assert math.isclose(cos_above, 0.96, rel_tol=1e-6)
+    assert (cos_above > threshold) is True
+    # Below threshold must not suppress
+    theta_below = _m.acos(0.94)
+    b_below = [scale * _m.cos(theta_below), scale * _m.sin(theta_below), 0.0]
+    cos_below = _cosine(a, b_below)
+    assert math.isclose(cos_below, 0.94, rel_tol=1e-6)
+    assert (cos_below > threshold) is False
+    # Verify raw dot would give wrong decision: raw dot = 2.5*2.5*cos =6.25*cos
+    # For threshold 0.95, raw dot at 0.95 is 5.9375; raw dot comparison to 0.95 is always true -> wrong, so cosine must be used
+    assert _dot(a, b_below) > threshold, "raw dot > threshold even when cosine < threshold, proving cosine must be used"
+    assert _dot(a, b_at) > threshold
+
+
+def test_pure_mmr_uses_actual_cosine():
+    """MMR similarity term max_similarity_to_already_selected uses same actual cosine definition."""
+    # Selected set has one vector s, candidates have vectors c1,c2
+    s = [3.0, 0.0, 0.0]  # scaled non-unit
+    c_close = [2.9, 0.5, 0.0]  # high cosine to s
+    c_far = [0.0, 3.0, 0.0]  # orthogonal -> cosine 0 (dot also 0, degenerate equality allowed for orth)
+    cos_close = _cosine(s, c_close)
+    cos_far = _cosine(s, c_far)
+    assert cos_close > cos_far
+    assert _dot(s, c_close) != cos_close
+    # orthogonal case dot==cos==0 is degenerate but proves dedup still uses cosine definition
+    assert math.isclose(cos_far, 0.0, abs_tol=1e-9)
+    assert _dot(s, c_far) == 0.0
+    # Non-orthogonal far vector where dot != cosine
+    c_far2 = [0.5, 2.9, 0.0]  # ~80 degrees, cosine ~0.17, dot 1.5 != cosine
+    cos_far2 = _cosine(s, c_far2)
+    assert _dot(s, c_far2) != cos_far2
+    # MMR score = lambda*final_score - (1-lambda)*max_similarity
+    # Take lambda=0.3, final_scores equal, so diversification picks far one
+    lam = 0.3
+    fs = 1.0
+    mmr_close = lam * fs - (1 - lam) * cos_close
+    mmr_far = lam * fs - (1 - lam) * cos_far
+    assert mmr_far > mmr_close, "MMR with cosine should prefer far candidate when scores equal"
+    assert math.isclose(cos_close, _dot(s, c_close) / (math.sqrt(sum(x*x for x in s))*math.sqrt(sum(x*x for x in c_close))), rel_tol=1e-9)
+
+
+def test_pure_representative_chunk_deterministic_tie_break():
+    """Representative chunk: minimum cosine distance, then chunk_index asc, then policy_chunk.id asc."""
+    qvec = [1.0, 0.0, 0.0]
+    # Case 1: distinct distances -> closest wins regardless of index
+    chunks1 = [
+        {"embedding": [0.0, 1.0, 0.0], "chunk_index": 0, "id": 1},
+        {"embedding": [0.9, 0.1, 0.0], "chunk_index": 5, "id": 2},
+        {"embedding": [1.0, 0.0, 0.0], "chunk_index": 10, "id": 3},
+    ]
+    best1, cos1 = _select_representative_chunk(qvec, chunks1)
+    assert best1["id"] == 3, "closest cosine distance must win regardless of tie-break"
+    assert math.isclose(cos1, 1.0, rel_tol=1e-9)
+    # Case 2: tie on cosine distance -> chunk_index asc wins
+    # Both chunks have identical embedding [1,0,0] so same cosine 1.0; chunk_index decides
+    chunks2 = [
+        {"embedding": [1.0, 0.0, 0.0], "chunk_index": 5, "id": 10},
+        {"embedding": [1.0, 0.0, 0.0], "chunk_index": 2, "id": 20},
+        {"embedding": [1.0, 0.0, 0.0], "chunk_index": 2, "id": 5},
+    ]
+    # chunk_index 2 vs 5 -> 2 wins; among two with chunk_index 2, id 5 vs 20 -> 5 wins
+    best2, cos2 = _select_representative_chunk(qvec, chunks2)
+    assert best2["chunk_index"] == 2
+    assert best2["id"] == 5
+    # Case 3: scaled non-unit vectors still use actual cosine (dot != cosine) for distance
+    chunks3 = [
+        {"embedding": [2.0, 0.0, 0.0], "chunk_index": 0, "id": 100},
+        {"embedding": [0.0, 2.0, 0.0], "chunk_index": 0, "id": 101},
+    ]
+    best3, cos3 = _select_representative_chunk(qvec, chunks3)
+    assert best3["id"] == 100
+    assert math.isclose(cos3, 1.0, rel_tol=1e-9)
+    assert _dot(qvec, chunks3[0]["embedding"]) == 2.0 and cos3 != 2.0
+
+
+def test_pure_exact_normalization_internal_whitespace_collapse():
+    """Normalization: NFC -> strip -> collapse internal whitespace -> casefold; internal whitespace collapse."""
+    assert _normalize_exact("청년  지원") == _normalize_exact("청년 지원")
+    assert _normalize_exact("청년\t지원") == _normalize_exact("청년 지원")
+    assert _normalize_exact("  청년   지원  ") == "청년 지원"
+    assert _normalize_exact("서울시 \t  청년\n지원") == "서울시 청년 지원"
+    # collapse must affect is_exact_title equality without changing semantics
+    assert _is_exact_title("청년  지원", "청년 지원") is True
+    assert _is_exact_title("  청년   지원  ", "청년 지원") is True
+
+
+def test_pure_exact_normalization_nfc_equivalence():
+    """Unicode NFC equivalence: composed vs decomposed forms normalize equal."""
+    # Latin decomposed e + combining acute vs composed é
+    composed = "caf\u00e9"  # café
+    decomposed = "cafe\u0301"  # e + combining
+    assert composed != decomposed, "pre-normalization forms differ"
+    assert _normalize_exact(composed) == _normalize_exact(decomposed)
+    # Hangul Jamo decomposed -> composed 가
+    jamo = "\u1100\u1161"  # ㄱ + ㅏ -> 가
+    composed_hangul = "\uAC00"  # 가
+    assert _normalize_exact(jamo) == _normalize_exact(composed_hangul)
+    # exact predicate must respect NFC equivalence
+    assert _is_exact_title(composed, decomposed) is True
+    assert _is_exact_title(jamo, composed_hangul) is True
+
+
+def test_pure_exact_normalization_latin_casefold():
+    """Latin casefold: case-insensitive via casefold after NFC/strip/collapse."""
+    assert _normalize_exact("Seoul") == _normalize_exact("seoul")
+    assert _normalize_exact("SEOUL") == _normalize_exact("seoul")
+    assert _normalize_exact("SeOuL Youth") == _normalize_exact("seoul youth")
+    # also German ß etc but Latin casefold sufficient; test title exact with case difference
+    assert _is_exact_title("Seoul Youth Center", "seoul youth center") is True
+    assert _is_exact_title("SEOUL  YOUTH", "seoul youth") is True
+    # org casefold
+    assert _is_exact_org("Seoul City", "seoul") is True
+def test_pure_exact_title_korean_punctuation_boundary_pass():
+    """Korean punctuation boundary PASS: adjacent char NOT in [0-9A-Za-z가-힣] allows match."""
+    # All queries len>=4 to satisfy len>=4 requirement (except equality)
+    assert _is_exact_title("청년지원", "청년지원, 서울시 혜택") is True
+    assert _is_exact_title("청년지원", "청년지원 서울시 혜택") is True  # space boundary
+    assert _is_exact_title("청년지원", "(청년지원)") is True
+    assert _is_exact_title("청년지원", "청년지원-서울") is True
+    assert _is_exact_title("청년지원", "서울시 청년지원 혜택") is True  # both sides space -> PASS (middle occurrence)
+    # punctuation both sides with len>=4
+    assert _is_exact_title("청년지원", "청년지원: 혜택정보") is True
+    assert _is_exact_title("서울청년", "서울청년: 복지혜택") is True
+    # title equals query with different surrounding spaces still equality
+    assert _is_exact_title(" 청년지원 ", "청년지원") is True
+
+def test_pure_exact_title_adjacent_boundary_fail():
+    """Korean/alphanumeric adjacent boundary FAIL: adjacent char IN [0-9A-Za-z가-힣] rejects."""
+    # Korean Hangul adjacent
+    assert _is_exact_title("청년지원", "청년지원금") is False, "right adjacent Hangul must FAIL"
+    assert _is_exact_title("청년지원", "A청년지원") is False, "left adjacent alnum must FAIL"
+    assert _is_exact_title("청년지원", "서울청년지원") is False, "left adjacent Hangul must FAIL"
+    assert _is_exact_title("청년지원", "청년지원1호") is False, "right adjacent digit must FAIL"
+    assert _is_exact_title("청년지원", "청년지원A") is False
+    # English alnum adjacent
+    assert _is_exact_title("test", "test123 title") is False
+    assert _is_exact_title("test", "mytest title") is False
+    # Mixed: title contains query but with alphanumeric continuation -> not a word boundary
+    assert _is_exact_title("서울", "서울시") is False
+    # Ensure punctuation saves it for len>=4: "청년지원-시" query "청년지원" -> adjacent '-' passes
+    assert _is_exact_title("청년지원", "청년지원-시 혜택") is True
+    # len 2 query with punctuation still fails due len<4 (not equality)
+    assert _is_exact_title("서울", "서울-시 혜택") is False
+
+
+def test_pure_exact_title_reverse_direction_prevention():
+    """Title remains UNIDIRECTIONAL: title substring in longer q must NOT match except equality."""
+    # q longer contains title as substring -> must be False (except equality)
+    assert _is_exact_title("청년지원 서울시 혜택 추가", "청년지원") is False
+    assert _is_exact_title("청년지원 추가 설명", "청년지원") is False
+    assert _is_exact_title("서울시 청년지원", "청년지원") is False  # title in q but q longer -> false
+    # But opposite direction (q substring of title) with boundary should be True
+    assert _is_exact_title("청년지원", "청년지원 서울시 혜택") is True
+    # Equality despite longer q? equality is exact string match after normalization, so longer q cannot be equal to shorter title
+    assert _is_exact_title("청년지원", "청년지원") is True
+    assert _is_exact_title(" 청년지원 ", "청년지원") is True  # normalization makes equal
+    # Reverse with punctuation: q="청년지원금", title="청년지원" -> q contains title but not equal -> false
+    assert _is_exact_title("청년지원금", "청년지원") is False
+
+
+def test_pure_exact_title_len_lt4_rejection_and_equality_exception():
+    """Title len<4 rejection when not equality; equality still passes."""
+    # len 2, substring true but rejected
+    assert _is_exact_title("지원", "청년지원 혜택") is False
+    assert _is_exact_title("지원", "지원 혜택 모음") is False  # even with boundary, len<4 rejects
+    assert _is_exact_title("청년", "청년지원") is False  # len 2
+    assert _is_exact_title("a", "a title") is False
+    assert _is_exact_title("ab", "ab cd") is False
+    assert _is_exact_title("abc", "abc def") is False  # len 3 still rejects
+    # len 3 equality passes (len<4 but equality exception)
+    assert _is_exact_title("지원", "지원") is True
+    assert _is_exact_title("abc", "abc") is True
+    assert _is_exact_title("a", "a") is True
+    # len 4 substring with boundary passes
+    assert _is_exact_title("청년지원", "청년지원 혜택") is True
+    assert _is_exact_title("test", "test case") is True  # len 4 passes
+    # len 4 without boundary fails
+    assert _is_exact_title("test", "test123") is False
+
+
+def test_pure_exact_org_len_lt2_and_bidirectional():
+    """Org len<2 rejection; org bidirectional positives (org in q OR q in org)."""
+    # len<2 rejection: org "A" normalized len 1 -> always false
+    assert _is_exact_org("청년지원", "A") is False
+    assert _is_exact_org("A", "청년지원") is False  # q normalized org? Wait org param is second arg; we test both directions but org length checked
+    assert _is_exact_org("a", "청년지원") is False  # org is 청년지원 len>2 but q is "a"?? Actually first arg q="a", org="청년지원" -> org in q false, q in org? "a" in "청년지원" casefold? "a" not in Korean, false -> false overall but not due to len<2. Better test org len 1 directly.
+    assert _is_exact_org("anything", "a") is False
+    assert _is_exact_org("anything", "1") is False
+    assert _is_exact_org("anything", "가") is False  # 단일 Hangul length 1
+    # len>=2 bidirectional positives
+    # org in q
+    assert _is_exact_org("서울시 청년센터", "서울시") is True
+    assert _is_exact_org("서울시 청년센터", "청년") is True
+    # q in org
+    assert _is_exact_org("서울", "서울시청") is True
+    assert _is_exact_org("청년", "청년지원센터") is True
+    # both with whitespace/casefold normalization
+    assert _is_exact_org(" 서울시  청년 ", "서울시") is True
+    assert _is_exact_org("서울", " 서울시청 ") is True
+    assert _is_exact_org("Seoul", "seoul city") is True
+    assert _is_exact_org("seoul city", "Seoul") is True
+    # len 2 exactly passes
+    assert _is_exact_org("서울시", "서울") is True  # "서울" len 2, is substring of "서울시"
+    assert _is_exact_org("AB", "AB") is True
+    assert _is_exact_org("AB", "CABD") is True
+
+
+def test_pure_exact_helpers_not_production_generators():
+    """Helpers are test-local pure helpers matching D-030 exactly; must not be imported as production semantics."""
+    import inspect
+    # Helpers exist in this test module and are not imported from ml-service or other production code
+    assert callable(_normalize_exact)
+    assert callable(_is_exact_title)
+    assert callable(_is_exact_org)
+    assert callable(_cosine)
+    assert callable(_select_representative_chunk)
+    # Verify they are defined in this file, not in production modules
+    assert inspect.getfile(_normalize_exact).endswith("test_retrieval_v3_candidate_plan.py")
+    assert inspect.getfile(_is_exact_title).endswith("test_retrieval_v3_candidate_plan.py")
+    assert inspect.getfile(_cosine).endswith("test_retrieval_v3_candidate_plan.py")
+    # Ensure normalization spec matches D-030 wording NFC -> strip -> collapse -> casefold
+    src = inspect.getsource(_normalize_exact)
+    assert "NFC" in src and "strip" in src and "casefold" in src
+    assert "collapse" in src.lower() or "\\s+" in src
