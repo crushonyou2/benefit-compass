@@ -282,7 +282,7 @@
     "range/placeholder/as feasible/adaptive generation — all configs are exact tuples, no result-dependent branching",
     "Candidate B instantiation/tuning before gate — B forbidden unless dev headline 130 union oracle Recall@100 >=97% AND (Recall@100 - Candidate-A Success@5) >=5.0pp"
   ],
-  "frozen_at": "2026-09-02T15:00:00Z",
+  "frozen_at": "2026-09-02T14:30:56+09:00",
   "gating_contract_ref": {
     "dev": "180 total (headline 130 = 21/25/21/25/18/20, safety 50 = 23/27, location 54), holdout 250 total (headline 180 = 28/33/31/36/24/28, safety 70 = 32/38, location 75), Wilson/Clopper headline Success@5 PASS point>=85% AND Wilson lower>=80% on n=180, safety integers 26/27 and 21/23 dev / 37/38 and 29/32 holdout, ineligible/expired 0/250 & 0/1250 holdout 0/180 & 0/900 dev, official-link 100% + HTTP ceil(0.99*unique), MAX24, latency candidate p95 <= baseline+80ms AND <=700ms, audit/provenance/isolation/one-shot/rerun prevention",
     "holdout_note": "Holdout v1 protected freeze 250 (headline 180 safety 70 location 75) already frozen on branch codex/retrieval-v3-holdout-freeze commit 978eeebbe423496cf2e95af410144efaf6fce406 tag retrieval-v3-holdout-v1 object 3028f72122a10feaeb54987d69c3045714babe8a peeled 978eeeb..."
@@ -404,9 +404,20 @@
   },
   "plan_id": "retrieval-v3-candidate-plan-v1",
   "provenance": {
-    "created_by": "Muse Spark 1.2 Contributor:xhigh (plan), delegated agents root gate exempt per contract",
+    "created_by": "Muse Spark 1.2 Contributor:xhigh (plan) via external stage-coordinator pre-launch omp verification; Paseo shell omp binary unavailable; delegated agents root gate exempt per contract",
+    "frozen_at_basis": "D-027 commit timestamp 2026-09-02T14:30:56+09:00; exact pre-commit artifact creation instant not separately durable",
     "investigation_basis": "Read-only inspection of ml-service/app.py (SQL, CANDIDATES, COSINE_MIN, strip_region, youth bias), ml-service/source_ranking.py (LEXICAL_OVERLAP_BIAS, lexical terms), db/schema.sql (policy, policy_chunk, vector 768), docs/RETRIEVAL_V3_PREREG.md §7-§9, memory/DECISIONS.md D-013/D-015/D-026 — no DB/model/embedding execution",
-    "reconciled_start": "branch codex/retrieval-v3-user-search-quality HEAD f5f8377a9710256db4aa4f46e7992b1274c5bf2d clean, local==upstream==actual remote verified, git diff --check PASS, ml-service diff 0, main holdout absent, protected branch/tag refs unchanged"
+    "model_roles_external_verification": {
+      "default": "opencode-go/muse-spark-1.2-contributor:xhigh",
+      "note": "Web coordinator (external stage-coordinator pre-launch verification) ran Windows repo `omp config get modelRoles` before Paseo launch; Paseo shell itself lacked omp binary",
+      "paseo_shell_omp_binary": "unavailable (Paseo shell has no omp binary; external stage-coordinator pre-launch verification + UI-visible confirmation)",
+      "paseo_ui_visible": "Muse Spark 1.2 Contributor / 매우 높음(xhigh) for this workspace",
+      "plan": "opencode-go/muse-spark-1.2-contributor:xhigh",
+      "review": "openai-codex/gpt-5.6-luna:max",
+      "task": "openai-codex/gpt-5.6-luna:xhigh"
+    },
+    "reconciled_start": "branch codex/retrieval-v3-user-search-quality HEAD f5f8377a9710256db4aa4f46e7992b1274c5bf2d clean, local==upstream==actual remote verified, git diff --check PASS, ml-service diff 0, main holdout absent, protected branch/tag refs unchanged",
+    "timestamp_basis": "D-027 commit timestamp; exact pre-commit artifact creation instant not separately durable"
   },
   "secondary_diagnostics_D026": {
     "contract": "category / freshness / common-vs-rare and secondary slice reporting (source/category/freshness/common-vs-rare per-slice Success@5) are non-gating diagnostic only per D-026 bounded correction (2026-09-02). Not a release gate, not freeze/seal hard invariant, not HOLD/NO-GO.",

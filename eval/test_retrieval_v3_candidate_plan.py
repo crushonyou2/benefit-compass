@@ -55,8 +55,9 @@ EXPECTED_SELECTION_ORDERING = "Success@5 desc -> NDCG@5 desc -> MRR@10 desc -> p
 EXPECTED_PLAN_ID = "retrieval-v3-candidate-plan-v1"
 EXPECTED_VERSION = "1.0.0"
 EXPECTED_BASE = "5327661445c37191a3fd61db195f3af4d2cf893a"
-
-
+EXPECTED_FROZEN_AT = "2026-09-02T14:30:56+09:00"
+EXPECTED_OLD_SHA = "ff3b83d11260e2c2e5aba2bbe08851bf24f68cc900733813d2a4f466a9363e41"
+EXPECTED_NEW_SHA = "8e632c81c3c23b2a5280025298ae1d0c763abc5ce25d90e1ceb031179588ac54"
 def _load_plan():
     assert PLAN_PATH.exists(), f"candidate-plan artifact missing: {PLAN_PATH}"
     raw = PLAN_PATH.read_bytes()
@@ -72,6 +73,9 @@ def test_plan_file_exists_and_canonical_bytes():
     assert re.fullmatch(r"[0-9a-f]{64}", sha)
     assert len(raw) > 1000
     assert hashlib.sha256(PLAN_PATH.read_bytes()).hexdigest() == sha
+    # New canonical SHA after provenance correction (D-028)
+    assert sha == EXPECTED_NEW_SHA, f"candidate-plan SHA mismatch after correction: {sha} != {EXPECTED_NEW_SHA}"
+    assert sha != EXPECTED_OLD_SHA, "SHA should differ from old D-027 SHA after correction"
 
 
 def test_plan_schema_and_identity():
@@ -237,3 +241,40 @@ def test_no_candidate_b_configs_and_max24():
     assert len(data["configs"]) <= 24
     ids = [c["config_id"] for c in data["configs"]]
     assert ids == sorted(ids)
+def test_corrected_frozen_at_equals_d027_commit_timestamp():
+    data, _ = _load_plan()
+    assert data.get("frozen_at") == EXPECTED_FROZEN_AT, f"frozen_at must be D-027 commit timestamp {EXPECTED_FROZEN_AT}"
+    prov = data.get("provenance", {})
+    # timestamp basis truthfully recorded
+    assert "D-027 commit timestamp" in prov.get("frozen_at_basis", "") or "D-027 commit timestamp" in prov.get("timestamp_basis", "")
+    assert "not separately durable" in prov.get("frozen_at_basis", "") or "not separately durable" in prov.get("timestamp_basis", "")
+
+def test_model_roles_provenance_correction():
+    data, _ = _load_plan()
+    prov = data.get("provenance", {})
+    ext = prov.get("model_roles_external_verification", {})
+    assert ext.get("default") == "opencode-go/muse-spark-1.2-contributor:xhigh"
+    assert ext.get("plan") == "opencode-go/muse-spark-1.2-contributor:xhigh"
+    assert ext.get("task") == "openai-codex/gpt-5.6-luna:xhigh"
+    assert ext.get("review") == "openai-codex/gpt-5.6-luna:max"
+    assert "Muse Spark" in ext.get("paseo_ui_visible", "")
+    assert "unavailable" in ext.get("paseo_shell_omp_binary", "").lower()
+    assert "external" in ext.get("note", "").lower()
+    # created_by must reflect external verification, not claim Paseo ran omp
+    assert "external" in prov.get("created_by", "").lower()
+    assert "Paseo shell omp binary unavailable" in prov.get("created_by", "") or "unavailable" in prov.get("created_by", "").lower()
+
+def test_semantic_equality_vs_old_d027():
+    # Prove only metadata changed vs fd63d6d historical artifact
+    import subprocess
+    # Get old file bytes from fd63d6d
+    r = subprocess.run(["git", "show", "fd63d6d:eval/retrieval-v3/candidate-plan/candidate-plan-v1.json"], capture_output=True)
+    assert r.returncode == 0, "git show fd63d6d failed"
+    old_data = json.loads(r.stdout.decode("utf-8"))
+    new_data, _ = _load_plan()
+    # Compare semantic keys excluding corrected metadata
+    for key in ["plan_id","version","base_commit","base_commit_tag","branch","standing_contract_refs","candidate_family","max_configs","baseline_identity","parameter_semantics","configs","selection_rule","forbidden_axes","allowed_axes","candidate_b_gate","secondary_diagnostics_D026","gating_contract_ref","assertions"]:
+        assert old_data[key] == new_data[key], f"semantic key {key} must be identical after correction (only metadata allowed to change)"
+    assert old_data["frozen_at"] == "2026-09-02T15:00:00Z"
+    assert new_data["frozen_at"] == EXPECTED_FROZEN_AT
+    assert hashlib.sha256(r.stdout).hexdigest() == EXPECTED_OLD_SHA
