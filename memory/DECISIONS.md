@@ -809,3 +809,63 @@ HARD HOLD only for actual contract violation (forbidden leakage/use, semantic au
 - No protected holdout import into repo, no protected holdout branch/tag creation, no commit/push containing holdout plaintext/evalset, no dev freeze, no candidate implementation/tuning/retrieval execution, no benchmark/latency/model/embedding/DB execution, no one-shot holdout evaluation. Only repo commit in this stage is this plaintext-free D-024/prereg/session-log plan-supersession record.
 
 This D-024 supersedes v2 generation plan `758dd3fe78d7e451282b95c5ce531567b82a8acd861e223ec0f05c73f87d538e` (retrieval-v3-holdout-generation-v2) with v3 `716ffd4f03c74664f5fe4a6f1c2a312da9e474b00d3c03cbac90bbecca37006b` (retrieval-v3-holdout-generation-v3, seed `benefit-compass-retrieval-v3-holdout-v3-2026-09-02`, supplement 138 = 32/14/22/70 with location 8/6/6/14, combined 514/148) per user authorization; D-015/D-016/D-017 numeric/final-eval contracts remain standing. Frozen 376 remains immutable. Standing decisions D-013/D-015/D-016/D-017/D-018/D-019/D-020/D-021/D-022/D-023 remain as corrected. Failed r6 annotations not reused. Next gate after this durable record is **fresh supplement builder execution (§4) then STOP for Web independent review** (no import/tag/start dev).
+
+## D-025 · Retrieval v3 holdout v1 protected freeze — import canonical sealed outputs 250 (headline 180 safety 70 location 75) to `eval/retrieval-v3/holdout/` on protected branch — Web PASS gate — plaintext-free durable identity record on main v3 branch — 2026-09-02 (user-authorized import/freeze stage, Web independent review PASS)
+
+User authorization: **Web independent review verdict PASS for sanitized local freeze** — this stage is therefore authorized to **import/freeze only** (no benchmark execution, no one-shot final evaluation consumption). This D-025 is the **plaintext-free durable freeze identity record on main v3 branch `codex/retrieval-v3-user-search-quality`** after protected holdout freeze is immutable on protected branch/tag and verified on actual remote. No query text, golds, or protected plaintext is copied into this record.
+
+Reconciled base for this decision (before mutation, actual state wins): branch `codex/retrieval-v3-user-search-quality` HEAD `869de6ade8c2576d4a67e1699937536bcb4d124f` clean, `origin/codex/retrieval-v3-user-search-quality` identical `869de6ade8c...` verified via `git ls-remote`, `git status --porcelain` clean, `git diff --check` PASS, `git diff 5327661445c37191a3fd61db195f3af4d2cf893a..HEAD -- ml-service/` **0** (production behavior unchanged), protected branch/tag `codex/retrieval-v3-holdout-freeze` / `retrieval-v3-holdout-v1` absent before creation verified via `git branch --list` / `git tag --list` / `git ls-remote --heads/--tags` (local and actual remote), builder `C:\Users\joji\Documents\programming\bc-v3-holdout-freeze-20260902-v3` with plan `retrieval-v3-holdout-generation-v3` SHA `716ffd4f03c74664f5fe4a6f1c2a312da9e474b00d3c03cbac90bbecca37006b` seed `benefit-compass-retrieval-v3-holdout-v3-2026-09-02` and frozen v2 `ea739eff9e1968dfeaa58565b2ae54ba6fad75153551757a96fe3fb34821060d` preserved, model `Muse Spark 1.2 Contributor / xhigh` verified (isolated worktree, protected branch). Standing decisions D-013/D-015/D-016/D-017/D-018/D-019/D-020/D-021/D-022/D-023/D-024 remain history/contracts as applicable; D-015/D-024 frozen 376 + targeted supplement 138 =514/148 and exact 250/180/70/75 quotas remain standing.
+
+### (1) Web PASS gate and authorized scope
+
+- Web independent review verdict for this sanitized local freeze is **PASS**; this stage is therefore authorized to **import/freeze only** — import the seven canonical sanitized outputs into `eval/retrieval-v3/holdout/` on a fresh isolated protected branch, commit, tag, push, verify, then append this plaintext-free durable identity record on main v3 branch. No `*.INVALID_SYNTHETIC`, quarantine, private candidates, `source_truth`, A/B/C raw workspaces, generation scripts, or builder-private artifacts were imported.
+- This stage is **import/freeze, NOT benchmark execution**: `holdout run_start/run_end` not created, retrieval/DB/model/embedding/benchmark/latency not run, one-shot final evaluation **not consumed**.
+
+### (2) Canonical sealed output identities — independently recomputed before mutation (Web-reconciled)
+
+All seven canonical sanitized outputs were independently recomputed via `hashlib.sha256` on builder bytes before import and verified after import; committed blobs equal canonical bytes:
+
+- `output/evalset.jsonl` SHA256 `addbc03a91b5dd40c71ffe811d525be6ee295c17defc66ca86ea9e51ca2ca71a` (140262 bytes, 250 JSONL rows, LF)
+- `output/SEALED.md` SHA256 `af1b119e6197ed13d27509debb08775c67413b3aaa7443b74972c0341df24e3f` (1522 bytes, LF)
+- `output/manifest.json` SHA256 `4574e374e426dffaaa1f171e8064d06baf953f1f275c2842127344e80a6849a8` (1133 bytes, LF)
+- `output/annotation_audit.json` SHA256 `add18c7c1a3240b9337a526bdc3eea69daf0bea17094466e9eb372bb36a8d721` (760 bytes, LF)
+- `output/fingerprints.json` SHA256 `3463a8a1737c19b9a4a7536d7c8f3d92051c8526506096ecaea2d54d3d7f8bc1` (33369 bytes, LF, `fingerprints.sha256` verified)
+- `output/fingerprints.sha256` SHA256 `b8da1dfda72f6479e80e52681018e8324566e8cef5890a0a0a436d7ea94e4a39` (65 bytes, LF)
+- `output/provenance.json` SHA256 `cf11c85b0da45545943e28e3033fb7385401da8c2e6385f0bd2a19cd50ac70d6` (10398 bytes, LF)
+
+### (3) Protected freeze — isolated worktree, exact import, blob verification, commit, tag
+
+- **Fresh isolated worktree** (plaintext isolation): `C:\Users\joji\Documents\취준자료\safe-builders\benefit-compass-v3-holdout-freeze-20260902` — verified inside intended `safe-builders` path and absent before creation via `pathlib.exists()`; created via `git worktree add <fresh-path> 869de6ade8c2576d4a67e1699937536bcb4d124f` (detached HEAD at base), then `git checkout -b codex/retrieval-v3-holdout-freeze 869de6ade8c...` (protected branch from exact base `869de6ade8c2576d4a67e1699937536bcb4d124f`). Not the main working tree and not the old unrelated `safe-builders\benefit-compass-v3-holdout`.
+- **Narrow .gitattributes/eol handling** to preserve canonical LF bytes for committed blobs despite `core.autocrlf=true`: added `eval/retrieval-v3/holdout/*.json text eol=lf`, `*.jsonl text eol=lf`, `*.md text eol=lf`, `*.sha256 text eol=lf` (alongside existing pilot re-audit `text eol=lf`).
+- **Import ONLY seven canonical outputs** into `eval/retrieval-v3/holdout/` with exact canonical bytes (LF, no normalization beyond preserving canonical bytes): `evalset.jsonl`, `manifest.json`, `annotation_audit.json`, `fingerprints.json`, `fingerprints.sha256`, `provenance.json`, `SEALED.md`. No `*.INVALID_SYNTHETIC`, quarantine, private candidates, `source_truth`, A/B/C workspaces, generation scripts, or builder-private artifacts.
+- **Pre-commit validation** (fail-closed): `git diff --check` PASS (staged `--cached` also PASS), imported file set exact (7 files, no unexpected plaintext exposure), `git diff 869de6a..HEAD -- ml-service/` 0, `git diff HEAD -- ml-service/` 0, row count 250, JSON/JSONL parse PASS, manifest counts/hashes verified (total 250 headline 180 safety 70 location 75 per_stratum 28/33/31/36/24/28/32/38 per_location 8/10/9/11/7/8/10/12 supplement_used 40 frozen_used 210), fingerprints checksum `3463a8a...` == `fingerprints.sha256`, SEALED `af1b119...`, provenance references (`plan_sha 716ffd...`, `frozen_v2 ea739...`, `supplement C b01d78...`), duplicate/history/freshness aggregate contracts (`gold_unique true`, `query_unique true`, `history_query_overlap 0`, `history_gold_overlap 0`, `failed_query_overlap 0`, `supplement_query_overlap_frozen 0`, `history_overlap_g 0`, `frozen_query_overlap 0`, `final_gold_duplicate_all_grades 0`) — all PASS. If any mismatch had occurred, STOP/HOLD before protected tag/push (not observed).
+- **Commit protected freeze** on protected branch only: commit `978eeebbe423496cf2e95af410144efaf6fce406` on `codex/retrieval-v3-holdout-freeze` with message `freeze(retrieval-v3): holdout v1 protected freeze 250 (headline 180 safety 70 location 75) — import canonical sealed outputs from v3 builder 716ffd` (8 files: `.gitattributes` + 7 holdout files).
+- **Committed blob verification** via `git show HEAD:<path> | sha256sum` (bytes): all seven committed blobs equal canonical builder SHAs above (especially `evalset.jsonl` `addbc03...` and `SEALED.md` `af1b119...`), LF, no CRLF.
+
+### (4) Annotated immutable tag — only after local commit verification
+
+- **Annotated tag `retrieval-v3-holdout-v1`** created only after commit verification passed via `git tag -a retrieval-v3-holdout-v1 -m "..."` (annotated, not lightweight, no force/overwrite):
+  - Tag object SHA `3028f72122a10feaeb54987d69c3045714babe8a` (`git rev-parse retrieval-v3-holdout-v1`)
+  - Peeled commit `978eeebbe423496cf2e95af410144efaf6fce406` (`git rev-parse retrieval-v3-holdout-v1^{}` == protected branch HEAD)
+  - Tag message pins holdout evalset SHA `addbc03...`, manifest SHA `4574e374...`, SEALED SHA `af1b119...`, counts (total 250 headline 180 safety 70 location 75), protected branch commit `978eeeb...`, base `869de6a`, worktree path.
+- No lightweight tag, no force/overwrite.
+
+### (5) Push and remote verification
+
+- **Push** protected branch and annotated tag normally via `git push origin codex/retrieval-v3-holdout-freeze` and `git push origin retrieval-v3-holdout-v1` (no force).
+- **Verification**: `git ls-remote --heads origin codex/retrieval-v3-holdout-freeze` and `git ls-remote --tags origin retrieval-v3-holdout-v1` and `git ls-remote https://github.com/crushonyou2/benefit-compass.git` both show:
+  - `refs/heads/codex/retrieval-v3-holdout-freeze` → `978eeebbe423496cf2e95af410144efaf6fce406`
+  - `refs/tags/retrieval-v3-holdout-v1` → `3028f72122a10feaeb54987d69c3045714babe8a` (tag object)
+  - `refs/tags/retrieval-v3-holdout-v1^{}` → `978eeebbe423496cf2e95af410144efaf6fce406` (peeled commit)
+  - Local `978eeeb...` == origin tracking == actual remote verified; tag object and peeled commit identity verified via `git ls-remote` with `^{}` dereference.
+
+### (6) Main v3 branch isolation and plaintext-free enforcement
+
+- **Main v3 branch `codex/retrieval-v3-user-search-quality` never received holdout plaintext** and did not merge/cherry-pick protected commit: `eval/retrieval-v3/holdout/` absent on main branch, `git ls-files` shows no holdout files, `git diff 869de6a..HEAD -- ml-service/` 0, protected plaintext lives only on `codex/retrieval-v3-holdout-freeze` / `retrieval-v3-holdout-v1`.
+- **This D-025 record itself is plaintext-free**: no query text, golds, or `evalset.jsonl` plaintext is copied; only SHAs, counts, commit/tag identities, and gate evidence are recorded. Protected plaintext isolation preserved.
+
+### (7) Unstarted/forbidden — dev/candidate/retrieval/final holdout evaluation remain gated
+
+- **Dev freeze, candidate implementation/tuning, candidate freeze, retrieval execution, final holdout evaluation, rollout — all unstarted and forbidden in this import/freeze stage**: no `run_start`/`run_end` for holdout, no retrieval/DB/model/embedding/benchmark/latency execution, no one-shot final evaluation consumption, no history rewrite/amend/reset/rebase/force-push/tag deletion, production `ml-service` untouched (diff 0). Next stage after this durable record is not dev/candidate but remains gated behind separate candidate-plan freeze and independent review per prereg §9/D-015.
+
+This D-025 is the plaintext-free durable freeze identity record on main v3 branch after protected freeze is immutable. Standing decisions D-013/D-015/D-016/D-017/D-018/D-019/D-020/D-021/D-022/D-023/D-024 remain as corrected; this D-025 does not supersede numeric/final-eval gates. Next gate after this record is not holdout re-import but remains the candidate/dev path gated by separate prereg steps (no holdout re-evaluation in this stage).
