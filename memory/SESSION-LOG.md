@@ -801,3 +801,40 @@ One short section per working session: what was worked on, what was decided (wit
 - **Model:** `Muse Spark 1.2 Contributor / xhigh` ROOT verified (`omp config get modelRoles`); isolated worktree provider `muse-spark-1.2-contributor:xhigh` (same). This one UI-visible session owns the whole import/freeze stage; delegated agents not used for root-gated work.
 
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden-action counts.
+
+## 2026-09-02 — Retrieval v3 D-026 Bounded Correction of Secondary Diagnostic Contract — non-gating, ≥12 hard invariant removed — record/prereg correction only (Web HOLD 이후 narrow correction, protected holdout v1 250 immutable)
+
+- **Stage boundary (bounded correction only, no dataset refreeze/reannotation):** Web HOLD 이후의 narrow prereg/record correction implementation이며 새 dataset-freeze나 재annotation stage가 아니다. protected holdout v1 250은 그대로 immutable 보존하며 재annotation/refreeze/re-import하지 않는다. 이 stage는 `docs/RETRIEVAL_V3_PREREG.md` + `memory/DECISIONS.md` append-only correction (D-026) + `memory/SESSION-LOG.md` append-only correction만을 수행한다.
+
+- **Reconciled base (MANDATORY START, read-only before edits, actual repo/Git/origin/SSOT wins, handoff보다 actual state 우선):** `git branch --show-current` `codex/retrieval-v3-user-search-quality`, `git rev-parse HEAD` `c3808a252082d04c09986eb29c241e747d98bb85` == `origin/codex/retrieval-v3-user-search-quality` == `git ls-remote c3808a2...` (`refs/heads/codex/retrieval-v3-user-search-quality`) clean, `git status --porcelain` clean, `git diff --check` PASS, `git diff 5327661445c37191a3fd61db195f3af4d2cf893a..HEAD -- ml-service/` **0**, `eval/retrieval-v3/holdout/` absent on main (`git ls-files`/`git ls-tree -r HEAD` — protected plaintext는 `codex/retrieval-v3-holdout-freeze` `978eeebbe423496cf2e95af410144efaf6fce406` / `retrieval-v3-holdout-v1` `3028f72122a10feaeb54987d69c3045714babe8a` → `978eeeb...`에만 존재, plaintext-free refs로만 확인), `origin/main`에는 `eval/retrieval-v3/holdout/` plaintext absent 유지 확인, no `git show`/`cat-file`/`checkout`/`restore`/`sparse`/`worktree`로 protected plaintext 복구 없음, expected start 재확인 완료 (branch c3808a2, clean, ml-service diff 0). no retrieval/dev/benchmark/model/DB/embedding/final holdout execution in this stage, protected holdout plaintext 접근 0.
+
+- **Correction intent — D-026 bounded correction (8항):**
+  - (1) `docs/RETRIEVAL_V3_PREREG.md`에서 category / freshness / common-vs-rare (및 secondary slice reporting 전반)를 명확히 **non-gating diagnostic**으로 규정 — not a release gate, not a freeze/seal hard invariant, not HOLD/NO-GO.
+  - (2) 기존 §3 `Each category/common/rare slice has ≥12 tasks in holdout`를 **hard freeze invariant/required seal condition에서 제거** — diagnostic slice 수량/존재가 12 미달하더라도 headline invariants 충족 시 freeze 유효.
+  - (3) diagnostic metadata/slice가 **실제 sealed holdout에 존재하고 authoritative/recomputable한 경우에만 보고**, 존재하지 않거나 authoritative/recomputably 확정 불가 시 **unavailable / insufficiently characterized**로 truthful하게 보고 — missing 자체가 holdout freeze 무효/HOLD/NO-GO hard gate가 되지 않음.
+  - (4) 없는 category/freshness/common-vs-rare metadata를 채우기 위해 **query/gold/plaintext를 읽거나 code/rule/heuristic/prefill/semantic auto-labeling을 사용하지 않음** — source_truth에서 semantic 값을 재생성하는 새 mapping/threshold도 만들지 않음. 이번 stage는 record/prereg correction only.
+  - (5) **D-025와 SESSION-LOG의 기존 “freeze contract 전체 충족” 취지 서술은 삭제/재작성하지 않고 append-only sequential correction으로 정정** — `memory/DECISIONS.md`는 append-only protocol을 지켜 D-026을 추가하고 D-025 역사 보존, SESSION-LOG도 append-only correction 추가 (this entry).
+  - (6) protected holdout 250의 case/query/gold/annotation payload, protected branch/tag/commit, manifest/fingerprint/provenance artifacts는 **변경하지 않음** — main에 holdout plaintext를 가져오지 않음.
+  - (7) headline exact counts/strata, safety unsupported/ambiguous, location exact 75, gold/source-truth validity, provenance/isolation, audit/one-shot/rerun prevention, Success@5/Wilson/Clopper, MAX24, Candidate B, latency/cost, ineligible/expired, official-link 등 **substantive/gating contracts는 완화/변경 없음** — 특히 D-013/D-015/D-017 substantive numeric/final-eval contracts 유지.
+  - (8) retrieval/dev/benchmark/model/DB/embedding/final holdout execution 전부 금지, protected holdout plaintext 접근 금지, `git show`/`cat-file`/`checkout`/`restore`/`sparse`/`worktree` 우회 금지 — 본 stage에서 0건. 불필요한 새 gate/process/dataset regeneration requirement 추가 없음.
+
+- **Implementation (minimal narrow edits, plaintext-free):**
+  - **`docs/RETRIEVAL_V3_PREREG.md` 2 hunks:** (a) top blockquote에 `Bounded correction 2026-09-02 — secondary diagnostic contract (D-026, record/prereg correction only, no dataset refreeze/reannotation, protected holdout v1 250 immutable)` 1줄 추가 — secondary slice 전반 non-gating, §3 ≥12 hard invariant 제거, bounded reporting contract, infer 금지, substantive contracts 유지 명문화; (b) §3 Diagnostics bullet을 `non-gating diagnostic only, no hard freeze invariant`로 교체 — per-slice는 sealed holdout에 metadata 존재+authoritative/recomputable 시에만 보고, 아니면 unavailable/insufficiently characterized truthful 보고, missing 자체가 freeze 무효/HOLD/NO-GO 아님, auto-labeling/mapping 금지, record/prereg correction only 명시. 그 외 headline/safety/location/gold/Wilson/Clopper/MAX24/Candidate B/latency 등 gates는 문구 유지.
+  - **`memory/DECISIONS.md` append-only:** D-026 추가 (next sequential id는 실제 파일 확인 후 D-026이 맞음, D-025가 마지막). D-025 history는 보존, supersession 아님. 위 8항 bounded correction 전부를 standing decision으로 기록.
+  - **`memory/SESSION-LOG.md` append-only:** this entry 추가 — 기존 D-025 “freeze contract 전체 충족” 서술 삭제/재작성 없음.
+  - **Scope enforced:** production/`ml-service`와 `eval` protected artifacts/code/tests는 수정하지 않음 (`ml-service` diff 0).
+
+- **D-025 append-only preservation note:** `memory/DECISIONS.md`의 D-025 `holdout v1 protected freeze 250 (headline 180 safety 70 location 75)` identity record와 `memory/SESSION-LOG.md`의 D-025 stage log는 **삭제/재작성 없이 보존**된다. 본 D-026은 `freeze contract 전체 충족`이 과도하게 넓게 읽힐 수 있는 기존 서술을 **정정**하는 sequential correction이며, D-025의 protected freeze commit/tag/manifest/fingerprint provenance 자체는 immutable로 유지된다.
+
+- **Preserved contracts (no relaxation):** headline 250 strata 28/33/31/36/24/28/32/38 headline 180 safety 70 location 75 8/10/9/11/7/8/10/12, dev 180 headline 130, safety integers 38→37/32→29/27→26/23→21, Wilson/Clopper 95% PASS `point≥85% AND lower≥80%` on n=180, MAX24, Candidate B ≥97%+5pp, latency `≤ baseline+80ms AND ≤700ms`, ineligible/expired `0/250`/`0/1250`, official-link, etc. — **완화 없음**, D-013/D-015/D-017 유지.
+
+- **Validation (before commit, docs-only — no retrieval/benchmark/protected access):**
+  - stale hard-invariant wording `Each category/common/rare slice has ≥12 tasks in holdout for gross bias detection`가 §3에서 제거되고 bounded non-gating wording으로 교체됨을 `rg`로 확인 및 self-review로 의미 충돌 없음 확인.
+  - `git diff --check` PASS, `git diff 5327661445c37191a3fd61db195f3af4d2cf893a..HEAD -- ml-service/` 0, protected holdout 경로 main에서 absent 유지 및 protected branch/tag identity plaintext-free refs로만 확인, no retrieval/benchmark/protected access performed — docs-only이므로 의미 없는 test suite 대신 relevant static/text consistency validation만 수행.
+  - 금지행동 0: no retrieval/dev/benchmark/model/DB/embedding/final holdout execution, no protected holdout plaintext 접근, no `git show`/`cat-file`/`checkout`/`restore`/`sparse`/`worktree` 우회.
+
+- **Owns whole bounded correction stage:** read-only reconcile → prereg 2 hunks → DECISIONS D-026 → SESSION-LOG correction → rg/diff validation → atomic commit + push → local=upstream=actual remote clean 재확인 → STOP. **다음 Web independent review나 dev/retrieval stage로 자동 진입하지 않음.**
+
+- **Model:** `Muse Spark 1.2 Contributor / xhigh` ROOT verified (`omp config get modelRoles`); delegated agents not used for root-gated work. This one UI-visible session owns the whole bounded correction stage.
+
+- **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden-action counts.
