@@ -44,6 +44,9 @@ def validate_output_path(path: str | pathlib.Path, strict_canonical: bool = Fals
     p = pathlib.Path(path)
     if str(p).strip() == "":
         raise ValueError("output path empty (fail-closed)")
+    # Web-HOLD hardening: explicit ".." traversal fail-closed before resolve (narrow repair)
+    if ".." in pathlib.Path(p).parts:
+        raise ValueError(f"path contains .. traversal: {path!r}")
     # Allow temp directory for pure tests (outside repo but inside system temp) — still check traversal/symlink within temp
     if p.is_absolute() and _is_temp_path(p):
         temp_root = pathlib.Path(tempfile.gettempdir()).resolve()
@@ -104,7 +107,7 @@ def validate_output_path(path: str | pathlib.Path, strict_canonical: bool = Fals
                     repo_real = pathlib.Path(os.path.realpath(str(REPO_ROOT)))
                     if not str(abs_path).startswith(str(repo_real)):
                         raise ValueError(f"path outside repo: {path!r}")
-                    if "eval/retrieval" not in str(p):
+                    if "eval/retrieval" not in pathlib.PurePath(p).as_posix():
                         raise ValueError(f"path not under allowed prefix: {path!r}")
             return abs_path
         else:

@@ -100,14 +100,11 @@ class Runner:
         http_checker: Callable | None = None,
         clock_fn: Callable[[], int] | None = None,
     ):
-        self.candidate_plan = load_and_validate  # placeholder? Actually validated already
+        self.candidate_plan = candidate_plan
         self.plan_data = candidate_plan
-        # Validate plan via registry (fail-closed)
+        # Validate plan via registry (fail-closed) — re-validate for safety (caller already validated via load_and_validate)
         from .candidate_registry import validate_data
-        raw = json.dumps(candidate_plan).encode("utf-8")  # not canonical but validate_data will check tuple equality
-        # Instead we rely on already validated plan_data via load_and_validate
-        # Ensure 18 configs etc via validate_data? To avoid double, we call with loaded data
-        # We need raw bytes canonical check separate; skip here as caller validated
+        validate_data(candidate_plan)
 
         self.embedding_fn = embedding_fn
         self.db_policy_loader = db_policy_loader
