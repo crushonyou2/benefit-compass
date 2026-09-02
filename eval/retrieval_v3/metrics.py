@@ -1,32 +1,82 @@
-"""Metrics/diagnostics — Success@1/@3/@5, strict grade3, MRR@10, NDCG@5/@10, oracle Recall, slices. Graded multi-gold equivalence-group aware."""
+"""Metrics/diagnostics — Success@1/@3/@5, strict grade3, MRR@10, NDCG@5/@10, oracle Recall, slices. Graded multi-gold equivalence-group aware. Relevance unit = equivalence_group; members are alternatives. Group gain = max grade within group; exact identity when no equivalence_group."""
 
 from __future__ import annotations
 import math
 from collections import defaultdict
 
-def _is_success_in_topk(retrieved: list[dict], golds: list[dict], k: int) -> bool:
-    """Success if any grade>=2 gold appears in topk. Equivalence-group aware: any member suffices."""
-    # retrieved: list of policies ordered, each has source, source_id
-    # golds: list of {source, source_id, grade, equivalence_group maybe}
-    topk_ids = {(r.get("source"), r.get("source_id")) for r in retrieved[:k]}
+def _build_groups(golds: list[dict]) -> dict:
+    """Build equivalence groups.
+
+    - If gold has equivalence_group (non-empty), key = equivalence_group string; all members sharing same group are alternatives.
+    - Else key = unique per gold identity (source+source_id).
+    - Group grade = max grade among members (canonical graded semantics, highest applicable).
+    - Group members = set of (source, source_id).
+    Returns dict group_key -> {"grade": int, "members": set}
+    """
+    groups = {}
     for g in golds:
-        if g.get("grade", 0) >= 2 and (g.get("source"), g.get("source_id")) in topk_ids:
-            return True
+        eg = g.get("equivalence_group")
+        if eg is None or (isinstance(eg, str) and eg.strip() == ""):
+            # exact identity per gold
+            key = f"__id__:{g.get('source')}\x00{g.get('source_id')}"
+        else:
+            key = f"__group__:{eg}"
+        grade = int(g.get("grade", 0))
+        if key not in groups:
+            groups[key] = {"grade": grade, "members": set()}
+        else:
+            if grade > groups[key]["grade"]:
+                groups[key]["grade"] = grade
+        groups[key]["members"].add((g.get("source"), g.get("source_id")))
+    return groups
+
+def _member_to_group_map(groups: dict) -> dict:
+    """Map (source,source_id) -> group_key for quick lookup."""
+    m = {}
+    for gkey, info in groups.items():
+        for mem in info["members"]:
+            # If multiple groups share same member (should not happen), first wins
+            if mem not in m:
+                m[mem] = gkey
+    return m
+
+def _is_success_in_topk(retrieved: list[dict], golds: list[dict], k: int) -> bool:
+    """Success if any grade>=2 group is satisfied by any retrieved member in topk."""
+    if not golds:
+        return False
+    groups = _build_groups(golds)
+    # Build set of members belonging to grade>=2 groups
+    topk_ids = {(r.get("source"), r.get("source_id")) for r in retrieved[:k]}
+    for gkey, info in groups.items():
+        if info["grade"] >= 2:
+            if info["members"] & topk_ids:
+                return True
     return False
 
 def _is_success_in_topk_strict_grade3(retrieved: list[dict], golds: list[dict], k: int) -> bool:
-    """Strict grade3 success: requires grade==3 gold in topk."""
+    """Strict grade3 success: requires grade==3 group in topk. Use max grade ==3."""
+    if not golds:
+        return False
+    groups = _build_groups(golds)
     topk_ids = {(r.get("source"), r.get("source_id")) for r in retrieved[:k]}
-    for g in golds:
-        if g.get("grade", 0) == 3 and (g.get("source"), g.get("source_id")) in topk_ids:
-            return True
+    for gkey, info in groups.items():
+        if info["grade"] == 3:
+            if info["members"] & topk_ids:
+                return True
     return False
 
 def _first_grade_ge2_rank(retrieved: list[dict], golds: list[dict]) -> int:
-    """Return 1-indexed rank of first grade>=2 gold in retrieved, or 0 if not found."""
-    gold_set = {(g["source"], g["source_id"]) for g in golds if g.get("grade",0) >=2}
+    """Return 1-indexed rank of first grade>=2 group member in retrieved, or 0 if not found. Alternative member match counts."""
+    if not golds:
+        return 0
+    groups = _build_groups(golds)
+    # Build set of members for grade>=2 groups
+    target_members = set()
+    for info in groups.values():
+        if info["grade"] >= 2:
+            target_members.update(info["members"])
     for idx, r in enumerate(retrieved, start=1):
-        if (r.get("source"), r.get("source_id")) in gold_set:
+        if (r.get("source"), r.get("source_id")) in target_members:
             return idx
     return 0
 
@@ -53,19 +103,32 @@ def mrr_at_10(retrieved: list[dict], golds: list[dict]) -> float:
     return 0.0
 
 def dcg_at_k(retrieved: list[dict], golds: list[dict], k: int) -> float:
-    """DCG with gain = grade (3/2/1/0), discount log2(rank+1). Graded multi-gold."""
-    gold_map = {(g["source"], g["source_id"]): g.get("grade",0) for g in golds}
+    """DCG with gain = group grade (max within equivalence_group), discount log2(rank+1). No double-count for same group."""
+    if not golds:
+        return 0.0
+    groups = _build_groups(golds)
+    member_to_group = _member_to_group_map(groups)
     dcg = 0.0
+    seen_groups = set()
     for idx, r in enumerate(retrieved[:k], start=1):
-        grade = gold_map.get((r.get("source"), r.get("source_id")), 0)
-        gain = grade  # 0->0, 1->1, 2->2, 3->3
-        if gain > 0:
-            dcg += gain / math.log2(idx + 1)
+        mem = (r.get("source"), r.get("source_id"))
+        gkey = member_to_group.get(mem)
+        if gkey is None:
+            continue
+        if gkey in seen_groups:
+            continue
+        grade = groups[gkey]["grade"]
+        if grade > 0:
+            dcg += grade / math.log2(idx + 1)
+            seen_groups.add(gkey)
     return dcg
 
 def idcg_at_k(golds: list[dict], k: int) -> float:
-    """Ideal DCG sorted by grade desc. Equivalence-group groups retained as separate entries (each grade entry)."""
-    grades = sorted([g.get("grade",0) for g in golds if g.get("grade",0) >0], reverse=True)
+    """Ideal DCG sorted by group grade desc. One gain per equivalence group, not per gold member."""
+    if not golds:
+        return 0.0
+    groups = _build_groups(golds)
+    grades = sorted([info["grade"] for info in groups.values() if info["grade"] > 0], reverse=True)
     idcg = 0.0
     for idx, grade in enumerate(grades[:k], start=1):
         idcg += grade / math.log2(idx + 1)
@@ -86,35 +149,43 @@ def ndcg_at_10(retrieved: list[dict], golds: list[dict]) -> float:
     return dcg / idcg
 
 def recall_at_k_oracle(oracle_pool: list[dict], golds: list[dict], k: int) -> int:
-    """Oracle Recall@k: whether any grade>=2 gold appears in first k of oracle_pool (unordered set existence if pool is set)."""
+    """Oracle Recall@k: whether any grade>=2 group appears in first k of oracle_pool (unordered set existence if pool is set). Group-aware."""
+    if not golds:
+        return 0
+    groups = _build_groups(golds)
     topk = oracle_pool[:k]
     pool_ids = {(r.get("source"), r.get("source_id")) for r in topk}
-    for g in golds:
-        if g.get("grade",0) >=2 and (g.get("source"), g.get("source_id")) in pool_ids:
-            return 1
+    for gkey, info in groups.items():
+        if info["grade"] >= 2:
+            if info["members"] & pool_ids:
+                return 1
     return 0
 
 def _union_recall_at_k(task_oracle: dict, k: int) -> int:
-    """Union oracle Recall@K = set(dense own topK) ∪ set(sparse own topK) ∪ set(exact own topK)."""
+    """Union oracle Recall@K = set(dense own topK) ∪ set(sparse own topK) ∪ set(exact own topK). Group-aware."""
+    golds = task_oracle.get("golds", [])
+    if not golds:
+        return 0
+    groups = _build_groups(golds)
     dense_ids = {(d.get("source"), d.get("source_id")) for d in task_oracle.get("dense_pool", [])[:k]}
     sparse_ids = {(s.get("source"), s.get("source_id")) for s in task_oracle.get("sparse_pool", [])[:k]}
     exact_ids = {(e.get("source"), e.get("source_id")) for e in task_oracle.get("exact_pool", [])[:k]}
-    # If no per-signal pools but union_pool provided (legacy), fallback to union_pool slicing
     if not dense_ids and not sparse_ids and not exact_ids:
         union_pool = task_oracle.get("union_pool", [])
         pool_ids = {(r.get("source"), r.get("source_id")) for r in union_pool[:k]}
     else:
         pool_ids = dense_ids | sparse_ids | exact_ids
-    for g in task_oracle.get("golds", []):
-        if g.get("grade",0) >= 2 and (g.get("source"), g.get("source_id")) in pool_ids:
-            return 1
+    for gkey, info in groups.items():
+        if info["grade"] >= 2:
+            if info["members"] & pool_ids:
+                return 1
     return 0
 
 def compute_headline_metrics(task_results: list[dict]) -> dict:
     """
     task_results: list of {retrieved: [...], golds: [...], source, stratum, location_bearing, ...}
     Computes Success@1/@3/@5, strict grade3 Success@5, NDCG@5/@10, MRR@10 over headline tasks.
-    Graded multi-gold equivalence-group aware: grade>=2 is success, grade==3 strict separately.
+    Graded multi-gold equivalence-group aware: grade>=2 is success, grade==3 strict separately, group relevance unit.
     """
     n = len(task_results)
     if n == 0:
@@ -138,7 +209,7 @@ def compute_headline_metrics(task_results: list[dict]) -> dict:
         "success_at_3": s3 / n,
         "success_at_5": s5 / n,
         "success_at_5_strict_grade3": s5_g3 / n,
-        "success_at_5_grade3": s5_g3 / n,  # alias
+        "success_at_5_grade3": s5_g3 / n,
         "success_at_1_count": s1,
         "success_at_3_count": s3,
         "success_at_5_count": s5,
@@ -153,18 +224,16 @@ def compute_oracle_recall(tasks_oracles: list[dict]) -> dict:
     """
     tasks_oracles: list of {dense_pool, sparse_pool, exact_pool, union_pool, golds}
     each pool is ordered list.
-    Union@K is set union of per-signal own topK (regression fix C).
+    Union@K is set union of per-signal own topK (regression fix C), group-aware.
     Returns dict per signal per k.
     """
     out = {}
     n = len(tasks_oracles)
     for k in [30, 50, 100]:
-        # per-signal recalls via their own pools
         for signal in ["dense", "sparse", "exact"]:
             hits = sum(recall_at_k_oracle(t.get(f"{signal}_pool", []), t["golds"], k) for t in tasks_oracles)
             out[f"{signal}_recall_at_{k}"] = hits / n if n else 0.0
             out[f"{signal}_recall_at_{k}_count"] = hits
-        # union via set union of own topK
         union_hits = sum(_union_recall_at_k(t, k) for t in tasks_oracles)
         out[f"union_recall_at_{k}"] = union_hits / n if n else 0.0
         out[f"union_recall_at_{k}_count"] = union_hits
@@ -172,8 +241,6 @@ def compute_oracle_recall(tasks_oracles: list[dict]) -> dict:
 
 def compute_slice_diagnostics(task_results: list[dict], slice_key: str) -> dict | str:
     """Per-slice Success@5. slice_key in source/stratum/location. Returns 'unavailable' string if metadata absent (D-026)."""
-    # Secondary metadata unavailable if absent: check if any task has slice_key authoritative
-    # For location_bearing special, check location_bearing field
     has_metadata = False
     for tr in task_results:
         if slice_key == "location_bearing":
@@ -186,15 +253,12 @@ def compute_slice_diagnostics(task_results: list[dict], slice_key: str) -> dict 
                 break
         else:
             if slice_key in tr and tr[slice_key] is not None:
-                # also check gold/task metadata may be inside nested? but flat
                 has_metadata = True
                 break
-            # also check if task has category/freshness/common_vs_rare etc.
             if tr.get(slice_key) is not None:
                 has_metadata = True
                 break
     if not has_metadata:
-        # Per D-026: report as unavailable / insufficiently characterized, not a hard gate
         return "unavailable"
     by_slice = defaultdict(list)
     for tr in task_results:

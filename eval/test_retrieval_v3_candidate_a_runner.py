@@ -9,7 +9,7 @@ from retrieval_v3.normalization import normalize_exact, lexical_overlap_terms, s
 from retrieval_v3.dedup import dedup_greedy, mmr_select, full_top30_pipeline
 from retrieval_v3.fusion import fuse_candidates
 from retrieval_v3.sparse import sparse_top100, compute_weighted_lexical_overlap
-from retrieval_v3.metrics import success_at_5, mrr_at_10, ndcg_at_5, ndcg_at_10, success_at_1, success_at_3, success_at_5_strict_grade3, compute_headline_metrics, compute_oracle_recall, compute_slice_diagnostics
+from retrieval_v3.metrics import success_at_5, mrr_at_10, ndcg_at_5, ndcg_at_10, success_at_1, success_at_3, success_at_5_strict_grade3, dcg_at_k, idcg_at_k, compute_headline_metrics, compute_oracle_recall, compute_slice_diagnostics
 from retrieval_v3.selection import select_candidate, candidate_b_gate, EXPECTED_SAFETY_GATES
 from retrieval_v3.latency import measure_paired_latency
 from retrieval_v3.audit import append_event, read_and_verify_chain, verify_holdout_access_allowed
@@ -242,17 +242,20 @@ def test_metrics_mrr_rank_gt10():
     assert abs(mrr_at_10(retrieved, golds2)-1/6) <1e-9
 
 def test_selection_ordering_and_zero():
+    # Explicit fixtures required after fail-closed fix E: missing safety/latency => HOLD
+    safety_ok = {cid: {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"} for cid in ["candidate-a-01","candidate-a-02","candidate-a-03"]}
     per=[
         {"config_id":"candidate-a-02","success_at_5":0.9,"ndcg_at_5":0.8,"mrr_at_10":0.7},
         {"config_id":"candidate-a-01","success_at_5":0.9,"ndcg_at_5":0.8,"mrr_at_10":0.7},
         {"config_id":"candidate-a-03","success_at_5":0.85,"ndcg_at_5":0.9,"mrr_at_10":0.9},
     ]
-    sel=select_candidate(per)
+    sel=select_candidate(per, safety_per_config=safety_ok, latency_p95_per_config={"candidate-a-01":500,"candidate-a-02":500,"candidate-a-03":500})
     assert sel["chosen"]=="candidate-a-01"
-    sel2=select_candidate(per, latency_p95_per_config={"candidate-a-01":600,"candidate-a-02":500})
+    sel2=select_candidate(per, safety_per_config=safety_ok, latency_p95_per_config={"candidate-a-01":600,"candidate-a-02":500,"candidate-a-03":500})
     assert sel2["chosen"]=="candidate-a-02"
     per_low=[{"config_id":"candidate-a-01","success_at_5":0.8,"ndcg_at_5":0.9,"mrr_at_10":0.9}]
-    sel3=select_candidate(per_low)
+    safety_low = {"candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"}}
+    sel3=select_candidate(per_low, safety_per_config=safety_low, latency_p95_per_config={"candidate-a-01":500})
     assert sel3["chosen"] is None
 
 def test_b_gate_no_impl():
@@ -387,7 +390,11 @@ def test_runner_safety_pass_when_checkers_present():
     with tempfile.TemporaryDirectory() as td:
         audit_log=pathlib.Path(td)/"audit.jsonl"
         out=pathlib.Path(td)/"out.json"
-        runner=Runner(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r,s: tasks, audit_log_path=audit_log, corpus_provenance_fn=lambda: {"total_policies":5, "total_chunks":5}, http_checker=lambda urls: True)
+        cnt=[0]
+        def clock():
+            cnt[0]+=1000000
+            return cnt[0]
+        runner=Runner(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r,s: tasks, audit_log_path=audit_log, corpus_provenance_fn=lambda: {"total_policies":5, "total_chunks":5}, http_checker=lambda urls: True, clock_fn=clock)
         res=runner.run_dev_evaluation(tasks=tasks, policies=policies, session_id="safety-pass", set_role="dev", set_sha=None, audit_log=audit_log, output_path=out, skip_audit=True)
         assert len(res["per_config_metrics"])==18
         assert res["selection"]["chosen"] is not None, "with checkers safety PASS and high success => should have eligible"
@@ -593,6 +600,50 @@ def test_metrics_graded_strict_and_ndcg():
     assert "success_at_1" in hm and "success_at_3" in hm and "success_at_5_strict_grade3" in hm and "ndcg_at_10" in hm
     assert hm["success_at_1"] == 1.0 and hm["mrr_at_10"] == 1.0
 
+def test_metrics_equivalence_group_no_double_count():
+    # Regression D: two grade3 gold IDs share one equivalence_group => one relevance unit, retrieving both cannot yield two gains
+    golds_same_group = [
+        {"source":"youth","source_id":"p1","grade":3,"equivalence_group":"A"},
+        {"source":"youth","source_id":"p2","grade":3,"equivalence_group":"A"},
+    ]
+    # Retrieved contains both p1 and p2 at ranks 1 and 2
+    retrieved_both = [{"source":"youth","source_id":"p1"},{"source":"youth","source_id":"p2"}, {"source":"youth","source_id":"p3"}]
+    retrieved_one = [{"source":"youth","source_id":"p1"}, {"source":"youth","source_id":"p3"}]
+    retrieved_alt = [{"source":"youth","source_id":"p2"}, {"source":"youth","source_id":"p3"}]
+    # Success should be 1 for any single member
+    assert success_at_5(retrieved_one, golds_same_group) == 1
+    assert success_at_5(retrieved_alt, golds_same_group) == 1
+    # DCG: group gain counted once, not twice. DCG for both should equal DCG for one (only first rank counts)
+    dcg_both = dcg_at_k(retrieved_both, golds_same_group, 5)
+    dcg_one = dcg_at_k(retrieved_one, golds_same_group, 5)
+    # Both should be equal because second member of same group not double counted (first rank 1 gain=3, second rank 2 would be ignored)
+    assert abs(dcg_both - dcg_one) < 1e-9, f"dcg double count {dcg_both} vs {dcg_one}"
+    # IDCG: with same group, only one grade3 gain, not two. So IDCG@5 with two members same group should be grade 3 at rank1 only, not 3+3
+    idcg = idcg_at_k(golds_same_group, 5)
+    # Expected idcg = 3 / log2(2) = 3.0 (only one group)
+    import math
+    expected = 3 / math.log2(2)
+    assert abs(idcg - expected) < 1e-9, f"idcg double count {idcg} vs {expected}"
+    # If we had two distinct groups, idcg would be 3/log2(2) + 3/log2(3)
+    golds_two_groups = [
+        {"source":"youth","source_id":"p1","grade":3,"equivalence_group":"A"},
+        {"source":"youth","source_id":"p2","grade":3,"equivalence_group":"B"},
+    ]
+    idcg2 = idcg_at_k(golds_two_groups, 5)
+    expected2 = 3/math.log2(2) + 3/math.log2(3)
+    assert abs(idcg2 - expected2) < 1e-9
+    # NDCG for both same group should be 1.0 when retrieving one member at rank1, not <1 due to missing second
+    ndcg_one = ndcg_at_5(retrieved_one, golds_same_group)
+    assert abs(ndcg_one - 1.0) < 1e-9
+    # Alternative member also 1.0
+    ndcg_alt = ndcg_at_5(retrieved_alt, golds_same_group)
+    assert abs(ndcg_alt - 1.0) < 1e-9
+    # Success/MRR with equivalence_group also via alternative member
+    retrieved_none = [{"source":"youth","source_id":"x"}]
+    assert success_at_5(retrieved_none, golds_same_group) == 0
+    assert mrr_at_10(retrieved_alt, golds_same_group) == 1.0
+
+
 def test_slice_diagnostics_unavailable():
     # Regression D secondary: missing metadata => unavailable, not synthesized
     tr = [{"retrieved":[{"source":"youth","source_id":"p1"}],"golds":[{"source":"youth","source_id":"p1","grade":2}],"source":"youth","stratum":"natural_needs","location_bearing":False,"task_id":"t1"}]
@@ -651,6 +702,11 @@ def test_selection_fail_closed_missing_latency():
     # latency None value => HOLD
     sel2 = select_candidate(per, safety_per_config=safety_ok, latency_p95_per_config={"candidate-a-01":500,"candidate-a-02": None})
     assert sel2["chosen"] == "candidate-a-01"
+    # non-finite latency (inf/nan) => HOLD
+    sel_inf = select_candidate(per, safety_per_config=safety_ok, latency_p95_per_config={"candidate-a-01":500,"candidate-a-02": float("inf")})
+    assert sel_inf["chosen"] == "candidate-a-01"
+    sel_nan = select_candidate(per, safety_per_config=safety_ok, latency_p95_per_config={"candidate-a-01":500,"candidate-a-02": float("nan")})
+    assert sel_nan["chosen"] == "candidate-a-01"
     # ordering exact: S5 desc -> NDCG5 desc -> MRR10 desc -> p95 asc -> config_id asc
     per_order = [
         {"config_id":"candidate-a-02","success_at_5":0.9,"ndcg_at_5":0.8,"mrr_at_10":0.7},
@@ -680,7 +736,7 @@ def test_mirror_hyphen_underscore_identity():
             assert h1 == h2, f"mirror mismatch {name}: {h1[:8]} vs {h2[:8]}"
 
 if __name__=="__main__":
-    tests=[test_18_configs_and_drift, test_non_unit_cosine, test_representative_tie_and_near_tie, test_strict_gt_dedup_boundary, test_mmr_actual_cosine_and_full_top30, test_exact_normalization_and_boundaries, test_cosine_min_placement, test_union_vs_hybrid, test_exact_not_injected, test_deterministic_ordering, test_metrics_mrr_rank_gt10, test_selection_ordering_and_zero, test_b_gate_no_impl, test_latency_harness, test_audit_lifecycle, test_atomic_rerun_concurrent, test_path_confinement, test_runner_safety_hold_when_checkers_absent, test_runner_safety_pass_when_checkers_present, test_runner_latency_wiring, test_cli_orchestrator_e2e, test_fusion_youth_bias_only_youth_source_gov24_zero, test_sparse_only_representative_query_nearest_no_chunk0_fallback, test_oracle_union_set_and_headline130, test_metrics_graded_strict_and_ndcg, test_slice_diagnostics_unavailable, test_selection_fail_closed_missing_gates, test_selection_fail_closed_missing_latency, test_mirror_hyphen_underscore_identity]
+    tests=[test_18_configs_and_drift, test_non_unit_cosine, test_representative_tie_and_near_tie, test_strict_gt_dedup_boundary, test_mmr_actual_cosine_and_full_top30, test_exact_normalization_and_boundaries, test_cosine_min_placement, test_union_vs_hybrid, test_exact_not_injected, test_deterministic_ordering, test_metrics_mrr_rank_gt10, test_selection_ordering_and_zero, test_b_gate_no_impl, test_latency_harness, test_audit_lifecycle, test_atomic_rerun_concurrent, test_path_confinement, test_runner_safety_hold_when_checkers_absent, test_runner_safety_pass_when_checkers_present, test_runner_latency_wiring, test_cli_orchestrator_e2e, test_fusion_youth_bias_only_youth_source_gov24_zero, test_sparse_only_representative_query_nearest_no_chunk0_fallback, test_oracle_union_set_and_headline130, test_metrics_graded_strict_and_ndcg, test_metrics_equivalence_group_no_double_count, test_slice_diagnostics_unavailable, test_selection_fail_closed_missing_gates, test_selection_fail_closed_missing_latency, test_mirror_hyphen_underscore_identity]
     for t in tests:
         try:
             t()
@@ -689,4 +745,4 @@ if __name__=="__main__":
             print(f"FAIL {t.__name__}: {e}")
             import traceback; traceback.print_exc()
             sys.exit(1)
-    print("ALL 29 focused tests PASS")
+    print("ALL 30 focused tests PASS")
