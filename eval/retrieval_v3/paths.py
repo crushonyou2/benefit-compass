@@ -44,9 +44,15 @@ def validate_output_path(path: str | pathlib.Path, strict_canonical: bool = Fals
     p = pathlib.Path(path)
     if str(p).strip() == "":
         raise ValueError("output path empty (fail-closed)")
-    # Web-HOLD hardening: explicit ".." traversal fail-closed before resolve (narrow repair)
-    if ".." in pathlib.Path(p).parts:
+    # Web-HOLD hardening: explicit ".." traversal fail-closed before resolve — OS-agnostic (both "/" and "\" as separators)
+    # Normalize separators to "/" for host-agnostic check: Windows "\" and POSIX "/" both split; preserves pure/static/mock hardening, no DB/model/HTTP
+    normalized_posix = str(p).replace("\\", "/")
+    if ".." in normalized_posix.split("/"):
         raise ValueError(f"path contains .. traversal: {path!r}")
+    # Web-HOLD: .git guard OS-agnostic before resolve — fail-closed for any .git segment unless under results
+    if ".git" in normalized_posix.split("/"):
+        if "results" not in pathlib.PurePath(p).as_posix():
+            raise ValueError(f"path must not point into .git: {path!r}")
     # Allow temp directory for pure tests (outside repo but inside system temp) — still check traversal/symlink within temp
     if p.is_absolute() and _is_temp_path(p):
         temp_root = pathlib.Path(tempfile.gettempdir()).resolve()
@@ -65,7 +71,7 @@ def validate_output_path(path: str | pathlib.Path, strict_canonical: bool = Fals
             raise
         except Exception as e:
             raise ValueError(f"temp path validation failed: {e}") from e
-        if ".git" in str(p).split(os.sep):
+        if ".git" in str(p).replace("\\", "/").split("/"):
             raise ValueError(f"path must not point into .git: {path!r}")
         return abs_path
     # Relative or non-temp absolute
@@ -124,7 +130,7 @@ def validate_output_path(path: str | pathlib.Path, strict_canonical: bool = Fals
         raise
     except Exception as e:
         raise ValueError(f"path validation failed for {path!r}: {e}") from e
-    if ".git" in str(p).split(os.sep):
-        if "results" not in str(p):
+    if ".git" in str(p).replace("\\", "/").split("/"):
+        if "results" not in pathlib.PurePath(p).as_posix():
             raise ValueError(f"path must not point into .git: {path!r}")
     return abs_path

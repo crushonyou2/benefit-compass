@@ -217,10 +217,10 @@ def atomic_write_result(result: dict, output_path: str | pathlib.Path) -> pathli
     if not is_temp_out and not str(out_real_parent).startswith(str(repo_real)):
         raise ValueError(f"output parent outside repo: {out_real_parent}")
     # Also ensure target file's realpath would be inside repo (if symlink)
-    # Since file doesn't exist yet, check logical path string
+    # Since file doesn't exist yet, check logical path string — OS-agnostic via PurePath.as_posix()
     if not is_temp_out and not str(abs_out).startswith(str(repo_real)) and not str(abs_out).startswith(str(canonical_abs.parent)):
-        # allow any under repo
-        if "eval/retrieval" not in str(out):
+        # allow any under repo — Windows hardening: use as_posix() for prefix check (covers "\" vs "/" )
+        if "eval/retrieval" not in pathlib.PurePath(out).as_posix():
             raise ValueError(f"output path not under allowed eval: {out}")
 
     tmp = abs_out.with_name(abs_out.name + f".tmp.{uuid.uuid4().hex}")
