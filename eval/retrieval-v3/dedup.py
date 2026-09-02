@@ -7,30 +7,30 @@ def _actual_cosine(a_vec, b_vec) -> float:
     return cosine_similarity(a_vec, b_vec)
 
 def get_representative_vector(policy: dict, qvec) -> list[float] | None:
-    """Get stored representative vector for policy (already selected per query)."""
-    # Caller should have stored representative_chunk embedding; fallback to first chunk
-    # For dedup, we need per-policy representative vector (selected via dense representative)
-    # We try to get from policy metadata if fused entry already has it; else compute via chunks
-    # This function expects policy dict with chunks and maybe representative_chunk
-    # For generic, we look for policy.get('_representative_embedding') or compute
+    """Get stored representative vector for policy (already selected per query).
+
+    Regression fix B: when qvec is provided, always compute query-nearest chunk
+    via actual cosine (select_representative_chunk) with deterministic tie break
+    (chunk_index asc, id asc); never fallback to chunk0. Chunk0 fallback only
+    when qvec is None. This ensures sparse-only policies use true nearest.
+    """
+    chunks = policy.get("chunks", [])
+    if chunks:
+        if qvec is not None:
+            from .dense import select_representative_chunk
+            best, _ = select_representative_chunk(qvec, chunks)
+            return best["embedding"] if best else None
+    # Check for precomputed representative only when qvec is None or no chunks
     if "_representative_embedding" in policy:
         return policy["_representative_embedding"]
-    # Check if policy has representative_chunk attached
     if "representative_chunk" in policy and policy["representative_chunk"]:
         ch = policy["representative_chunk"]
         if isinstance(ch, dict) and "embedding" in ch:
             return ch["embedding"]
-    chunks = policy.get("chunks", [])
     if not chunks:
         return None
-    # If qvec provided, select representative via dense logic
-    if qvec is not None:
-        from .dense import select_representative_chunk
-        best, _ = select_representative_chunk(qvec, chunks)
-        return best["embedding"] if best else None
-    # fallback: first chunk
+    # fallback: first chunk only when qvec is None
     return chunks[0].get("embedding")
-
 def dedup_greedy(ranked_pool: list[dict], threshold: float, qvec=None) -> list[dict]:
     """
     Greedy dedup: iterate base final order, retain first, suppress later if max actual cosine > threshold (strict >).
@@ -44,16 +44,21 @@ def dedup_greedy(ranked_pool: list[dict], threshold: float, qvec=None) -> list[d
     retained_vecs = []  # parallel
     for entry in ranked_pool:
         policy = entry.get("policy") or entry
-        # Get vector for this entry
-        # Try entry's representative_chunk embedding first
+        # Regression fix B: when qvec is provided, sparse-only must use query-nearest chunk (actual cosine)
+        # Never use chunk0 fallback. So prioritize recomputed vector via get_representative_vector when qvec present.
         vec = None
-        if "representative_chunk" in entry and entry["representative_chunk"] and isinstance(entry["representative_chunk"], dict):
-            vec = entry["representative_chunk"].get("embedding")
-        if vec is None:
-            # fallback to policy chunks via qvec
+        if qvec is not None:
             vec = get_representative_vector(policy, qvec)
+            if vec is None and "representative_chunk" in entry and entry["representative_chunk"] and isinstance(entry["representative_chunk"], dict):
+                vec = entry["representative_chunk"].get("embedding")
+        else:
+            if "representative_chunk" in entry and entry["representative_chunk"] and isinstance(entry["representative_chunk"], dict):
+                vec = entry["representative_chunk"].get("embedding")
+            if vec is None:
+                vec = get_representative_vector(policy, qvec)
+        if vec is None:
             # also fallback to entry's policy vector annotation
-            if vec is None and "embedding" in entry:
+            if "embedding" in entry:
                 vec = entry["embedding"]
         if vec is None:
             # No vector: cannot dedup, retain
@@ -89,17 +94,22 @@ def mmr_select(ranked_pool_deduped: list[dict], lambda_val: float, top_k: int = 
     # For lambda >0
     # Need base rank for tie break: index in ranked_pool_deduped
     base_rank = {id(entry): idx for idx, entry in enumerate(ranked_pool_deduped)}
-    # Also map entry to vector
+    # Also map entry to vector — regression fix B: qvec present => recomputed nearest
     vec_map = {}
     for entry in ranked_pool_deduped:
         policy = entry.get("policy") or entry
         vec = None
-        if "representative_chunk" in entry and entry["representative_chunk"] and isinstance(entry["representative_chunk"], dict):
-            vec = entry["representative_chunk"].get("embedding")
-        if vec is None:
+        if qvec is not None:
             vec = get_representative_vector(policy, qvec)
-            if vec is None and "embedding" in entry:
-                vec = entry["embedding"]
+            if vec is None and "representative_chunk" in entry and entry["representative_chunk"] and isinstance(entry["representative_chunk"], dict):
+                vec = entry["representative_chunk"].get("embedding")
+        else:
+            if "representative_chunk" in entry and entry["representative_chunk"] and isinstance(entry["representative_chunk"], dict):
+                vec = entry["representative_chunk"].get("embedding")
+            if vec is None:
+                vec = get_representative_vector(policy, qvec)
+        if vec is None and "embedding" in entry:
+            vec = entry["embedding"]
         vec_map[id(entry)] = vec
 
     selected = []

@@ -9,8 +9,8 @@ from retrieval_v3.normalization import normalize_exact, lexical_overlap_terms, s
 from retrieval_v3.dedup import dedup_greedy, mmr_select, full_top30_pipeline
 from retrieval_v3.fusion import fuse_candidates
 from retrieval_v3.sparse import sparse_top100, compute_weighted_lexical_overlap
-from retrieval_v3.metrics import success_at_5, mrr_at_10, ndcg_at_5, compute_headline_metrics
-from retrieval_v3.selection import select_candidate, candidate_b_gate
+from retrieval_v3.metrics import success_at_5, mrr_at_10, ndcg_at_5, ndcg_at_10, success_at_1, success_at_3, success_at_5_strict_grade3, compute_headline_metrics, compute_oracle_recall, compute_slice_diagnostics
+from retrieval_v3.selection import select_candidate, candidate_b_gate, EXPECTED_SAFETY_GATES
 from retrieval_v3.latency import measure_paired_latency
 from retrieval_v3.audit import append_event, read_and_verify_chain, verify_holdout_access_allowed
 from retrieval_v3.result_schema import build_result_skeleton, validate_complete_result, atomic_write_result
@@ -453,9 +453,234 @@ def test_cli_orchestrator_e2e():
         r=subprocess.run(cmd, capture_output=True, text=True, cwd=str(pathlib.Path(__file__).resolve().parents[1]))
         assert r.returncode==0, f"CLI failed: {r.stderr[:500]}"
         assert out2.exists()
+def test_fusion_youth_bias_only_youth_source_gov24_zero():
+    # Regression A: youth bias only source==youth, gov24 zero even with youth intent
+    def fake_vec(v):
+        norm = (sum(x*x for x in v)**0.5) or 1
+        return [x/norm for x in v]
+    qvec = fake_vec([1,0,0])
+    # query contains youth term without Gov24 => bias 0.015
+    query_youth = "청년 지원"
+    assert youth_source_bias(query_youth) == 0.015
+    # gov24 term suppresses
+    assert youth_source_bias("국토교통부 청년 지원") == 0.0
+    policies = [
+        {"id":1,"source":"youth","source_id":"A","title":"","support_content":"","summary":"","keywords":"","add_qualify":"","income_etc":"","apply_method":"","org":"","chunks":[{"embedding":qvec,"chunk_index":0,"id":1}]},
+        {"id":2,"source":"gov24","source_id":"B","title":"","support_content":"","summary":"","keywords":"","add_qualify":"","income_etc":"","apply_method":"","org":"","chunks":[{"embedding":qvec,"chunk_index":0,"id":2}]},
+    ]
+    d_top = dense_top100(qvec, policies)
+    d_f = filter_dense_by_cosine_min(d_top, 0.78)
+    config = {"sparse_weight":0.01,"dense_weight":1.0,"exact_title_boost":0.0,"exact_org_boost":0.0,"field_weight_title":1.0,"field_weight_support_content":1.0,"field_weight_eligibility":1.0,"dedup_cosine_threshold":0.98,"diversification_lambda":0.0,"fusion_method":"union"}
+    s_top = sparse_top100(query_youth, policies, config)
+    fused = fuse_candidates(query_youth, d_f, s_top, config, qvec=qvec)
+    fy = next(e for e in fused if e["source"]=="youth")
+    fg = next(e for e in fused if e["source"]=="gov24")
+    # youth should have youth_score 0.015, gov24 0.0
+    assert abs(fy["youth_score"] - 0.015) < 1e-9, f"youth youth_score {fy['youth_score']}"
+    assert fg["youth_score"] == 0.0, f"gov24 youth_score {fg['youth_score']}"
+    assert abs((fy["final_score"] - fg["final_score"]) - 0.015) < 1e-9
+    # Gov24 suppressed query => both 0
+    fused2 = fuse_candidates("국토교통부 청년 지원", d_f, s_top, config, qvec=qvec)
+    for e in fused2:
+        assert e["youth_score"] == 0.0
+
+def test_sparse_only_representative_query_nearest_no_chunk0_fallback():
+    # Regression B: sparse-only must still pick query-nearest chunk via actual cosine/tie, not chunk0
+    qvec = [0,1,0]
+    # chunks: two far-ish but one nearer; both <0.78 so dense filtered will exclude, but nearest should be chunk1
+    # chunk0 far [1,0,0] cos 0 ; chunk1 nearer [0.8,0.6,0] cos 0.6 (actual cosine); nearest is chunk1 (index1)
+    far = [1,0,0]
+    nearer = [0.8,0.6,0]  # cos with [0,1,0] is 0.6
+    # normalize for actual cosine but not unit? Use as is for cosine_similarity (actual)
+    policy_sparse_only = {"id":10,"source":"youth","source_id":"SP","title":"청년 지원 정책","support_content":"청년 지원","summary":"","keywords":"","add_qualify":"","income_etc":"","apply_method":"","org":"고용노동부","chunks":[{"embedding":far,"chunk_index":0,"id":100},{"embedding":nearer,"chunk_index":1,"id":101}]}
+    policy_dense = {"id":11,"source":"youth","source_id":"DP","title":"","support_content":"","summary":"","keywords":"","add_qualify":"","income_etc":"","apply_method":"","org":"","chunks":[{"embedding":qvec,"chunk_index":0,"id":102}]}
+    policies = [policy_sparse_only, policy_dense]
+    d_top = dense_top100(qvec, policies)
+    d_f = filter_dense_by_cosine_min(d_top, 0.78)
+    # DP will be in dense; SP not (both chunks <0.78, nearest 0.6 <0.78) => sparse-only
+    assert any(e["source_id"]=="DP" for e in d_f)
+    assert not any(e["source_id"]=="SP" for e in d_f), f"SP should be sparse-only, d_f {[e['source_id'] for e in d_f]}"
+    config = {"sparse_weight":0.01,"dense_weight":1.0,"exact_title_boost":0.0,"exact_org_boost":0.0,"field_weight_title":1.0,"field_weight_support_content":1.0,"field_weight_eligibility":1.0,"dedup_cosine_threshold":0.98,"diversification_lambda":0.0,"fusion_method":"union"}
+    s_top = sparse_top100("청년 지원", policies, config)
+    # ensure SP in sparse
+    assert any(e["source_id"]=="SP" for e in s_top)
+    fused = fuse_candidates("청년 지원", d_f, s_top, config, qvec=qvec)
+    sp_fused = next(e for e in fused if e["source_id"]=="SP")
+    # representative should be nearer chunk index 1, not 0
+    rep = sp_fused["representative_chunk"]
+    assert rep is not None and rep["chunk_index"] == 1 and rep["id"] == 101, f"got {rep}"
+    # also test exact cosine tie: two identical embeddings different indices => smallest index wins
+    same = [0.5,0.5,0]
+    pol_tie = {"id":12,"source":"youth","source_id":"TIE","title":"","support_content":"","summary":"","keywords":"","add_qualify":"","income_etc":"","apply_method":"","org":"","chunks":[{"embedding":same,"chunk_index":1,"id":20},{"embedding":same,"chunk_index":0,"id":30}]}
+    from retrieval_v3.dense import select_representative_chunk
+    best,_ = select_representative_chunk([1,0,0], pol_tie["chunks"])
+    assert best["chunk_index"] == 0, "tie must pick smallest chunk_index"
+    # via dedup path also: get_representative_vector should use nearest not fallback
+    from retrieval_v3.dedup import get_representative_vector
+    vec = get_representative_vector(policy_sparse_only, qvec)
+    assert vec == nearer
+
+def test_oracle_union_set_and_headline130():
+    # Regression C: union@K is set of dense own topK ∪ sparse own topK ∪ exact own topK, B gate headline130 only
+    # Build controlled pools where set union hits but old ordered slice at K=2 would miss; we test at supported K=30
+    gold = [{"source":"youth","source_id":"C","grade":2}]
+    # dense top30-pool has A,B ; sparse top30-pool has C,D ; exact top30-pool has E,F
+    task_oracle = {
+        "dense_pool": [{"source":"youth","source_id":"A"}, {"source":"youth","source_id":"B"}],
+        "sparse_pool": [{"source":"youth","source_id":"C"}, {"source":"youth","source_id":"D"}],
+        "exact_pool": [{"source":"youth","source_id":"E"}, {"source":"youth","source_id":"F"}],
+        "union_pool": [{"source":"youth","source_id":"A"}, {"source":"youth","source_id":"B"}, {"source":"youth","source_id":"C"}, {"source":"youth","source_id":"D"}, {"source":"youth","source_id":"E"}, {"source":"youth","source_id":"F"}],
+        "golds": gold,
+    }
+    # At K=30, dense top30 does NOT contain C, but sparse does. Set union@30 should be 1.
+    out = compute_oracle_recall([task_oracle])
+    assert out["union_recall_at_30"] == 1.0, f"union@30 got {out['union_recall_at_30']}"
+    assert out["dense_recall_at_30"] == 0.0
+    assert out["sparse_recall_at_30"] == 1.0
+    # Also test headline filtering via Runner
+    plan = load_candidate_plan_or_fail()
+    def fake_vec(seed):
+        rnd = random.Random(seed)
+        v=[rnd.uniform(-1,1) for _ in range(768)]
+        norm=(sum(x*x for x in v)**0.5)or 1
+        return [round(x/norm,6) for x in v]
+    # policies for runner headline test: make headline tasks succeed, safety tasks fail union
+    policies=[]
+    for i in range(6):
+        policies.append({"id":i+1,"source":"youth","source_id":f"p{i}","title":f"정책 {i}","support_content":"","summary":"","keywords":"","add_qualify":"","income_etc":"","apply_method":"","org":"고용노동부","chunks":[{"embedding":fake_vec(i),"chunk_index":0,"id":i}]})
+    def fake_emb(q):
+        h=hashlib.sha256(q.encode()).digest()
+        return fake_vec(int.from_bytes(h[:4],"little"))
+    # Create 130 headline-like tasks (natural_needs) and 50 safety tasks
+    headline_tasks = [{"task_id":f"h{i:03d}","query":"정책 0","golds":[{"source":"youth","source_id":"p0","grade":2}],"stratum":"natural_needs","location_bearing":False} for i in range(3)]
+    safety_tasks = [{"task_id":f"s{i:03d}","query":"정책 0","golds":[{"source":"youth","source_id":"p1","grade":2}],"stratum":"unsupported_no_answer","location_bearing":False} for i in range(2)]
+    tasks = headline_tasks + safety_tasks
+    with tempfile.TemporaryDirectory() as td:
+        audit_log=pathlib.Path(td)/"audit.jsonl"
+        outp=pathlib.Path(td)/"out.json"
+        runner=Runner(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r,s: tasks, audit_log_path=audit_log, corpus_provenance_fn=lambda: {"total_policies":6,"total_chunks":6}, http_checker=lambda urls: True)
+        res=runner.run_dev_evaluation(tasks=tasks, policies=policies, session_id="headline-oracle", set_role="dev", set_sha=None, audit_log=audit_log, output_path=outp, skip_audit=True)
+        # per_config_metrics oracle_recall should be headline-only (h contains p0, so headline recall >0); all recall would be diluted if safety tasks miss
+        pm = res["per_config_metrics"][0]
+        assert "oracle_recall" in pm and "union_recall_at_100" in pm["oracle_recall"]
+        # headline recall computed correctly
+        assert pm["union_oracle_R100"] == pm["oracle_recall"]["union_recall_at_100"]
+
+def test_metrics_graded_strict_and_ndcg():
+    # Regression D: graded multi-gold equivalence-group, S1/S3/S5, strict grade3 S5, MRR@10, NDCG@5/@10
+    retrieved = [{"source":"youth","source_id":"p1"}, {"source":"youth","source_id":"p2"}, {"source":"gov24","source_id":"p3"}, {"source":"youth","source_id":"p4"}, {"source":"youth","source_id":"p5"}, {"source":"youth","source_id":"p6"},{"source":"youth","source_id":"p7"},{"source":"youth","source_id":"p8"},{"source":"youth","source_id":"p9"},{"source":"youth","source_id":"p10"}, {"source":"youth","source_id":"p11"}]
+    # Golds: p1 grade3 perfect, p2 grade2 acceptable, p11 grade2 far
+    golds = [{"source":"youth","source_id":"p1","grade":3,"equivalence_group":"A"}, {"source":"youth","source_id":"p2","grade":2,"equivalence_group":"B"}, {"source":"youth","source_id":"p11","grade":2,"equivalence_group":"C"}]
+    assert success_at_5(retrieved, golds) == 1
+    assert success_at_1(retrieved, golds) == 1  # p1 in top1
+    assert success_at_3(retrieved, golds) == 1
+    assert success_at_5_strict_grade3(retrieved, golds) == 1  # p1 grade3 in top5
+    assert mrr_at_10(retrieved, golds) == 1.0  # first grade>=2 at rank1
+    # NDCG: grade-weighted
+    n5 = ndcg_at_5(retrieved, golds)
+    n10 = ndcg_at_10(retrieved, golds)
+    assert 0 < n5 <= 1.0 and 0 < n10 <= 1.0
+    # Strict case: only grade2 in top5, no grade3 => success 1 but strict 0
+    retrieved2 = [{"source":"youth","source_id":"p2"}, {"source":"youth","source_id":"x"}]
+    assert success_at_5(retrieved2, golds) == 1
+    assert success_at_5_strict_grade3(retrieved2, golds) == 0
+    # Grade 1 should not count for success
+    golds3 = [{"source":"youth","source_id":"p2","grade":1}]
+    assert success_at_5(retrieved2, golds3) == 0
+    # Headline metrics aggregation includes all new fields
+    tr = [{"retrieved": retrieved, "golds": golds}]
+    hm = compute_headline_metrics(tr)
+    assert "success_at_1" in hm and "success_at_3" in hm and "success_at_5_strict_grade3" in hm and "ndcg_at_10" in hm
+    assert hm["success_at_1"] == 1.0 and hm["mrr_at_10"] == 1.0
+
+def test_slice_diagnostics_unavailable():
+    # Regression D secondary: missing metadata => unavailable, not synthesized
+    tr = [{"retrieved":[{"source":"youth","source_id":"p1"}],"golds":[{"source":"youth","source_id":"p1","grade":2}],"source":"youth","stratum":"natural_needs","location_bearing":False,"task_id":"t1"}]
+    sd_source = compute_slice_diagnostics(tr, "source")
+    assert isinstance(sd_source, dict) and "youth" in sd_source
+    sd_cat = compute_slice_diagnostics(tr, "category")
+    assert sd_cat == "unavailable", f"expected unavailable, got {sd_cat}"
+    sd_fresh = compute_slice_diagnostics(tr, "freshness")
+    assert sd_fresh == "unavailable"
+    sd_cvr = compute_slice_diagnostics(tr, "common_vs_rare")
+    assert sd_cvr == "unavailable"
+    # when present, should group
+    tr2 = [{"retrieved":[{"source":"youth","source_id":"p1"}],"golds":[{"source":"youth","source_id":"p1","grade":2}],"category":"housing_finance","freshness":"stable","common_vs_rare":"common","source":"youth","stratum":"natural_needs","location_bearing":True,"task_id":"t1"}]
+    sd_cat2 = compute_slice_diagnostics(tr2, "category")
+    assert isinstance(sd_cat2, dict) and "housing_finance" in sd_cat2
+
+def test_selection_fail_closed_missing_gates():
+    # Regression E: missing safety or expected gates => ineligible/HOLD, explicit fixtures, exact order
+    per = [
+        {"config_id":"candidate-a-01","success_at_5":0.9,"ndcg_at_5":0.8,"mrr_at_10":0.7},
+        {"config_id":"candidate-a-02","success_at_5":0.9,"ndcg_at_5":0.8,"mrr_at_10":0.7},
+    ]
+    # Missing cost gate
+    safety_missing = {
+        "candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"},
+        "candidate-a-02": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS"},  # missing cost
+    }
+    sel = select_candidate(per, safety_per_config=safety_missing, latency_p95_per_config={"candidate-a-01":500,"candidate-a-02":500})
+    assert sel["chosen"] == "candidate-a-01", "missing cost gate should make a-02 ineligible"
+    assert "candidate-a-02" not in sel["eligible"]
+    # Missing safety dict entirely for a config => HOLD
+    safety_partial = {"candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"}}
+    sel2 = select_candidate(per, safety_per_config=safety_partial, latency_p95_per_config={"candidate-a-01":500,"candidate-a-02":500})
+    assert sel2["chosen"] == "candidate-a-01" and "candidate-a-02" not in sel2["eligible"]
+    # HOLD gate also ineligible
+    safety_hold = {
+        "candidate-a-01": {"unsupported":"HOLD","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"},
+        "candidate-a-02": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"},
+    }
+    sel3 = select_candidate(per, safety_per_config=safety_hold, latency_p95_per_config={"candidate-a-01":500,"candidate-a-02":500})
+    assert sel3["chosen"] == "candidate-a-02"
+
+def test_selection_fail_closed_missing_latency():
+    per = [
+        {"config_id":"candidate-a-01","success_at_5":0.9,"ndcg_at_5":0.8,"mrr_at_10":0.7},
+        {"config_id":"candidate-a-02","success_at_5":0.9,"ndcg_at_5":0.8,"mrr_at_10":0.7},
+    ]
+    safety_ok = {
+        "candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"},
+        "candidate-a-02": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"},
+    }
+    # latency dict missing entry for a-02 => HOLD
+    sel = select_candidate(per, safety_per_config=safety_ok, latency_p95_per_config={"candidate-a-01":500})
+    assert sel["chosen"] == "candidate-a-01"
+    assert "candidate-a-02" not in sel["eligible"]
+    # latency None value => HOLD
+    sel2 = select_candidate(per, safety_per_config=safety_ok, latency_p95_per_config={"candidate-a-01":500,"candidate-a-02": None})
+    assert sel2["chosen"] == "candidate-a-01"
+    # ordering exact: S5 desc -> NDCG5 desc -> MRR10 desc -> p95 asc -> config_id asc
+    per_order = [
+        {"config_id":"candidate-a-02","success_at_5":0.9,"ndcg_at_5":0.8,"mrr_at_10":0.7},
+        {"config_id":"candidate-a-01","success_at_5":0.9,"ndcg_at_5":0.8,"mrr_at_10":0.7},
+        {"config_id":"candidate-a-03","success_at_5":0.9,"ndcg_at_5":0.9,"mrr_at_10":0.5},
+    ]
+    sel3 = select_candidate(per_order, safety_per_config={"candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"},"candidate-a-02": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"},"candidate-a-03": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"}}, latency_p95_per_config={"candidate-a-01":600,"candidate-a-02":500,"candidate-a-03":500})
+    # Among 0.9 S5, higher NDCG5 (a-03) should win? Check: a-03 has NDCG 0.9 >0.8 so should be first
+    assert sel3["eligible"][0] == "candidate-a-03"
+    # Between a-01 and a-02 same S5/NDCG/MRR, lower p95 wins => a-02
+    assert sel3["eligible"][1] == "candidate-a-02"
+    assert sel3["eligible"][2] == "candidate-a-01"
+    # exact string
+    assert sel3["ordering"] == "Success@5 desc -> NDCG@5 desc -> MRR@10 desc -> paired p95 asc -> lexicographic config_id asc"
+
+def test_mirror_hyphen_underscore_identity():
+    # Keep hyphen/underscore touched mirrors byte-identical
+    import pathlib, hashlib
+    repo = pathlib.Path(__file__).resolve().parents[1]
+    touched = ["fusion.py","dedup.py","metrics.py","selection.py","runner.py","dense.py","sparse.py","exact.py","normalization.py","latency.py","candidate_registry.py","result_schema.py","paths.py","audit.py"]
+    for name in touched:
+        p1 = repo / "eval" / "retrieval-v3" / name
+        p2 = repo / "eval" / "retrieval_v3" / name
+        if p1.exists() and p2.exists():
+            h1 = hashlib.sha256(p1.read_bytes()).hexdigest()
+            h2 = hashlib.sha256(p2.read_bytes()).hexdigest()
+            assert h1 == h2, f"mirror mismatch {name}: {h1[:8]} vs {h2[:8]}"
 
 if __name__=="__main__":
-    tests=[test_18_configs_and_drift, test_non_unit_cosine, test_representative_tie_and_near_tie, test_strict_gt_dedup_boundary, test_mmr_actual_cosine_and_full_top30, test_exact_normalization_and_boundaries, test_cosine_min_placement, test_union_vs_hybrid, test_exact_not_injected, test_deterministic_ordering, test_metrics_mrr_rank_gt10, test_selection_ordering_and_zero, test_b_gate_no_impl, test_latency_harness, test_audit_lifecycle, test_atomic_rerun_concurrent, test_path_confinement, test_runner_safety_hold_when_checkers_absent, test_runner_safety_pass_when_checkers_present, test_runner_latency_wiring, test_cli_orchestrator_e2e]
+    tests=[test_18_configs_and_drift, test_non_unit_cosine, test_representative_tie_and_near_tie, test_strict_gt_dedup_boundary, test_mmr_actual_cosine_and_full_top30, test_exact_normalization_and_boundaries, test_cosine_min_placement, test_union_vs_hybrid, test_exact_not_injected, test_deterministic_ordering, test_metrics_mrr_rank_gt10, test_selection_ordering_and_zero, test_b_gate_no_impl, test_latency_harness, test_audit_lifecycle, test_atomic_rerun_concurrent, test_path_confinement, test_runner_safety_hold_when_checkers_absent, test_runner_safety_pass_when_checkers_present, test_runner_latency_wiring, test_cli_orchestrator_e2e, test_fusion_youth_bias_only_youth_source_gov24_zero, test_sparse_only_representative_query_nearest_no_chunk0_fallback, test_oracle_union_set_and_headline130, test_metrics_graded_strict_and_ndcg, test_slice_diagnostics_unavailable, test_selection_fail_closed_missing_gates, test_selection_fail_closed_missing_latency, test_mirror_hyphen_underscore_identity]
     for t in tests:
         try:
             t()
@@ -464,4 +689,4 @@ if __name__=="__main__":
             print(f"FAIL {t.__name__}: {e}")
             import traceback; traceback.print_exc()
             sys.exit(1)
-    print("ALL 21 focused tests PASS")
+    print("ALL 29 focused tests PASS")

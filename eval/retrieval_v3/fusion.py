@@ -81,7 +81,7 @@ def fuse_candidates(
         "field_weight_eligibility": config.get("field_weight_eligibility", 1.0),
     }
 
-    youth_bias = youth_source_bias(query)  # fixed, added to final_score
+    base_youth_bias = youth_source_bias(query)  # 0 or 0.015 fixed, youth intent without Gov24
 
     fused = []
     for key in union_keys:
@@ -137,7 +137,21 @@ def fuse_candidates(
         else:
             it, io, exact_score = _exact_scores(query, title, org, exact_title_boost, exact_org_boost)
 
-        final_score = dense_score + sparse_score + exact_score + youth_bias
+        # Youth bias: only source==youth gets bias; gov24 zero (regression fix A)
+        # base_youth_bias is 0 or 0.015 based on query intent without Gov24 terms;
+        # per-policy gate on source
+        youth_score = base_youth_bias if source == "youth" else 0.0
+
+        final_score = dense_score + sparse_score + exact_score + youth_score
+
+        # Representative chunk for dedup/MMR: sparse-only must still be query-nearest actual cosine (B)
+        rep_chunk = next((e.get("representative_chunk") for e in dense_filtered if (e["source"], e["source_id"]) == key), None)
+        if rep_chunk is None and qvec is not None and policy.get("chunks"):
+            from .dense import select_representative_chunk as _sel
+            rep_chunk, _ = _sel(qvec, policy["chunks"])
+        elif rep_chunk is None and policy.get("chunks"):
+            # No qvec: fallback to first chunk only when query vector unavailable
+            rep_chunk = policy["chunks"][0]
 
         fused.append({
             "policy": policy,
@@ -151,11 +165,9 @@ def fuse_candidates(
             "exact_title": it,
             "exact_org": io,
             "exact_score": exact_score,
-            "youth_score": youth_bias,
+            "youth_score": youth_score,
             "final_score": final_score,
-            # preserve representative chunk for dedup later if needed
-            "representative_chunk": next((e.get("representative_chunk") for e in dense_filtered if (e["source"], e["source_id"])==key), None)
-                      or next((policy.get("chunks", [{}])[0] if policy.get("chunks") else None for _ in [1]), None),
+            "representative_chunk": rep_chunk,
         })
 
     # Dedup already via union keys; but ensure canonical dedup (already)

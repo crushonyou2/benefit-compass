@@ -305,6 +305,9 @@ class Runner:
                         "source": task.get("source"),
                         "stratum": task.get("stratum"),
                         "location_bearing": task.get("location_bearing"),
+                        "category": task.get("category"),
+                        "freshness": task.get("freshness"),
+                        "common_vs_rare": task.get("common_vs_rare"),
                         "task_id": task.get("task_id") or task.get("id"),
                     })
                     oracle_tasks.append({
@@ -319,30 +322,53 @@ class Runner:
                 headline_results = [tr for tr in task_results if tr.get("task_id") in headline_ids] if headline_ids else task_results
                 if not headline_results:
                     headline_results = task_results
+                # For oracle, filter to headline only for B gate (C regression: headline130 only)
+                headline_oracle_tasks = []
+                for tr, ot in zip(task_results, oracle_tasks):
+                    if tr.get("task_id") in headline_ids or not headline_ids:
+                        headline_oracle_tasks.append(ot)
+                if not headline_oracle_tasks:
+                    headline_oracle_tasks = oracle_tasks
                 metrics_head = compute_headline_metrics(headline_results)
-                oracle_metrics = compute_oracle_recall(oracle_tasks)
-                union_r100 = oracle_metrics.get("union_recall_at_100", 0.0)
+                # Union oracle Recall@K is set union per C — computed inside metrics via set union
+                oracle_metrics_headline = compute_oracle_recall(headline_oracle_tasks)
+                oracle_metrics_all = compute_oracle_recall(oracle_tasks)
+                # For B gate use headline union R100 only
+                union_r100 = oracle_metrics_headline.get("union_recall_at_100", 0.0)
                 slice_diagnostics = {}
-                try:
-                    slice_diagnostics["source"] = compute_slice_diagnostics(task_results, "source")
-                except Exception:
-                    slice_diagnostics["source"] = "unavailable"
+                # D-026: secondary slices report unavailable if metadata absent
+                for sk in ["source", "stratum", "location_bearing", "category", "freshness", "common_vs_rare"]:
+                    try:
+                        sd = compute_slice_diagnostics(task_results, sk)
+                        # Metrics returns "unavailable" string when absent; preserve
+                        slice_diagnostics[sk] = sd
+                    except Exception as e:
+                        slice_diagnostics[sk] = "unavailable"
                 per_config_metrics.append({
                     "config_id": cid,
+                    "success_at_1": metrics_head.get("success_at_1", 0.0),
+                    "success_at_3": metrics_head.get("success_at_3", 0.0),
                     "success_at_5": metrics_head["success_at_5"],
+                    "success_at_5_strict_grade3": metrics_head.get("success_at_5_strict_grade3", 0.0),
+                    "success_at_5_grade3": metrics_head.get("success_at_5_strict_grade3", 0.0),
                     "ndcg_at_5": metrics_head["ndcg_at_5"],
+                    "ndcg_at_10": metrics_head.get("ndcg_at_10", 0.0),
                     "mrr_at_10": metrics_head["mrr_at_10"],
                     "n": metrics_head["n"],
                     "success_count": metrics_head["success_at_5_count"],
-                    "oracle_recall": oracle_metrics,
+                    "success_at_1_count": metrics_head.get("success_at_1_count", 0),
+                    "success_at_3_count": metrics_head.get("success_at_3_count", 0),
+                    "success_at_5_strict_grade3_count": metrics_head.get("success_at_5_strict_grade3_count", 0),
+                    "oracle_recall": oracle_metrics_headline,
+                    "oracle_recall_all": oracle_metrics_all,
                     "union_oracle_R100": union_r100,
+                    "slice_diagnostics": slice_diagnostics,
                 })
                 all_config_results[cid] = {
                     "task_results": task_results,
                     "oracle_tasks": oracle_tasks,
                     "metrics_head": metrics_head,
                 }
-
             safety_per_config = {}
             for cfg in self.plan_data["configs"]:
                 cid = cfg["config_id"]
