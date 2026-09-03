@@ -439,3 +439,31 @@ def test_http_tls_and_mixed_terminal_boundaries():
     assert check_single_url_with_mock("https://example.com/t4", [MockHttpResponse(status=500), MockHttpResponse(is_network_error=True)], [MockHttpResponse(status=200)]) is True
     assert check_single_url_with_mock("https://example.com/t5", [MockHttpResponse(is_tls_error=True), MockHttpResponse(status=500)], [MockHttpResponse(status=200)]) is False
     assert check_single_url_with_mock("https://example.com/t6", [MockHttpResponse(status=500), MockHttpResponse(is_tls_error=True)], [MockHttpResponse(status=200)]) is True
+
+def test_http_overflow_after_network_never_falls_back():
+    # Web repro correction-9: 3 hops, 4th-hop network retry, 4th-hop redirect => terminal overflow
+    # supersedes the network cause; GET must not rescue it.
+    ok = check_single_url_with_mock(
+        "https://example.com/o1",
+        [MockHttpResponse(status=301, redirect_location="a"), MockHttpResponse(status=301, redirect_location="b"), MockHttpResponse(status=301, redirect_location="c"), MockHttpResponse(is_network_error=True), MockHttpResponse(status=301, redirect_location="d")],
+        [MockHttpResponse(status=200)]
+    )
+    assert ok is False
+
+def test_http_overflow_after_tls_never_falls_back():
+    # Same terminal priority for TLS cause before overflow.
+    ok = check_single_url_with_mock(
+        "https://example.com/o2",
+        [MockHttpResponse(status=301, redirect_location="a"), MockHttpResponse(status=301, redirect_location="b"), MockHttpResponse(status=301, redirect_location="c"), MockHttpResponse(is_tls_error=True), MockHttpResponse(status=301, redirect_location="d")],
+        [MockHttpResponse(status=200)]
+    )
+    assert ok is False
+
+def test_http_overflow_with_get_supplied_never_falls_back():
+    # Compact pin: plain 4-redirect overflow authorizes no GET fallback regardless of prior causes.
+    ok = check_single_url_with_mock(
+        "https://example.com/o3",
+        [MockHttpResponse(status=301, redirect_location="1"), MockHttpResponse(status=301, redirect_location="2"), MockHttpResponse(status=301, redirect_location="3"), MockHttpResponse(status=301, redirect_location="4")],
+        [MockHttpResponse(status=200)]
+    )
+    assert ok is False

@@ -1184,3 +1184,14 @@ One short section per working session: what was worked on, what was decided (wit
 - **Owns whole correction-8 in one session:** reconcile → method-aware fix → matrix tests → 198 PASS + proofs → D-046 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
 - **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` ROOT/plan (D-036 gate still); delegates exempt.
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
+
+## 2026-09-03 — Retrieval v3 SAME-STAGE correction-9 — redirect-overflow terminal priority — D-047
+
+- **Reconciled start:** `codex/retrieval-v3-user-search-quality` HEAD `5345888` clean (`local==origin`), `git diff --check` PASS, `ml-service` diff 0, plan `2815361a` / prereg `78420186` unchanged, `dev/`+`holdout/`/result/audit absent, OMP `18.1.5` / ROOT-plan `muse-spark-1.3:xhigh` per D-036. Web reran 67/198 PASS, then reproduced overflow-cause leak. No protected plaintext, no FIRST dev, no real IO.
+- **Repair (mirrors byte-identical):** overflow returns `(False, False)` unconditionally — terminal 4th redirect supersedes prior network/TLS causes. All other correction-8 semantics unchanged.
+- **Tests:** 3 new overflow regressions (net/TLS repros + compact pin); safety 34→37, runner 67 unchanged.
+- **Verification:** 201 PASS (67+39+6+37+9+8+17+8+10), `git diff --check` PASS, plan/prereg unchanged, `ml-service` 0, isolation + mirror identity PASS, no result, no `run_start` consumed. Forbidden 0 (see D-047).
+- **VERDICT: FIRST protected-dev REMAINS BLOCKED** unless ALL pre-gate blockers actually resolved. Do NOT launch.
+- **Owns whole correction-9 in one session:** reconcile → overflow fix → 3 tests → 201 PASS + proofs → D-047 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
+- **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` ROOT/plan (D-036 gate still); delegates exempt.
+- **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.

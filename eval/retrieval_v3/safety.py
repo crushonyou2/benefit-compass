@@ -191,7 +191,9 @@ def check_single_url_with_mock(
                 return False, saw_fallback_cause
             redirects += 1
             if redirects > MAX_REDIRECTS:
-                return False, saw_fallback_cause
+                # Terminal redirect overflow supersedes all prior retry/fallback causes: failure
+                # with fallback unconditionally False (exceeding 3 redirects => FAILURE per prereg).
+                return False, False
             # Next hop starts with a fresh retry budget AND fresh fallback state; the redirect
             # supersedes the earlier failure, which must not leak into the later hop.
             saw_fallback_cause = False

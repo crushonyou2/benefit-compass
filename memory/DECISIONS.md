@@ -1675,3 +1675,34 @@ D-045's correction stands except as narrowed above (method-aware/mock-exhaustion
 UNCHANGED: dev safety PASS structurally impossible (D-044) and ineligible/expired measurement HOLD with not-established status (D-045).
 
 Standing decisions D-013/D-015/D-016/D-017/D-018…D-045 remain as history/corrected where applicable. Next gate is **STOP for Web read-only independent review** (not FIRST dev retrieval, not candidate tuning).
+
+## D-047 · Retrieval v3 SAME-STAGE correction-9 — redirect-overflow terminal priority — 2026-09-03 (user-authorized, one session owns repair+tests+commit+push)
+
+This is a **narrow SAME-STAGE correction-9** on base `534588863406eab93ef519969e5a3646ecf868ec` that does NOT rewrite D-037..D-046 history (D-046 text untouched; correction-8 declared incomplete ONLY for redirect-overflow fallback-state priority). Web adversarial review independently reran 67/67 focused + 198/198 pure suite on `5345888`, then found ONE remaining terminal-state leak in the same helper. No plan/prereg/config/gate/threshold change, no production change, no FIRST dev, no protected plaintext, no real DB/model/network/HTTP/latency benchmark.
+
+Reconciled base (read-only before mutation): branch `codex/retrieval-v3-user-search-quality` HEAD `534588863406eab93ef519969e5a3646ecf868ec` clean (`local==origin`, `git diff --check` PASS), `ml-service` diff 0 vs `5327661445c37191a3fd61db195f3af4d2cf893a`, plan `2815361a469fee9bf69f6ffdf2124d19928220535cdb08b2005ae6674ae7d17c` / prereg `7842018613d66aa4570f4db2f8ae5a698ceb46757995a6b7e26873177b36160e` unchanged, `eval/retrieval-v3/dev/` + `holdout/` absent on main, canonical dev result/audit absent. Runtime OMP `18.1.5` / ROOT-plan `opencode-go/muse-spark-1.3-contributor:xhigh` per D-036 (D-036 gate still in force).
+
+### Web repros fixed (one-line terminal priority; all other semantics unchanged)
+
+- **Leak:** `run_method` on the 4th redirect returned `(False, saw_fallback_cause)`. When the 4th hop's first attempt was network/TLS error (retry-eligible, cause recorded) and the retry returned redirect, the cause was still set at the overflow check — HEAD wrongly fell back to GET and could succeed. Repros: HEAD [301,301,301,network,301] + GET [200] was True (MUST be False); same for TLS.
+- **Fix:** on `redirects > MAX_REDIRECTS`, return failure with fallback unconditionally False — terminal redirect overflow (prereg: exceeding 3 redirects => FAILURE) supersedes all prior retry/fallback causes. Plain 4×301 stays False; 3-hops-then-200 stays True; every correction-8 matrix case re-verified unchanged (39-case matrix + overflow probes, pure). Constants, thresholds, docs untouched; no real HTTP.
+
+### Preserved unchanged
+
+D-046 method-aware/exhaustion/redirect-cause rules; D-044 structural Candidate-A unsupported/ambiguous NO-GO; D-045 eligibility not-established HOLD. No new abstention mechanism/threshold, no result-based tuning, never default `eligible=True`, no synthesis/heuristics, gate never relaxed.
+
+### Tests (pure/static/mock only; safety 34 → 37; runner unchanged 67)
+
+- New (3): `test_http_overflow_after_network_never_falls_back`, `test_http_overflow_after_tls_never_falls_back` (exact Web repros), `test_http_overflow_with_get_supplied_never_falls_back` (compact pin that overflow never authorizes GET regardless of prior causes).
+- All correction-8 matrix tests unchanged and passing.
+
+### Verification (pure/static/mock only, before commit)
+
+- 201 PASS across the same 9 files (67+39+6+37+9+8+17+8+10); `git diff --check` PASS; plan/prereg SHAs unchanged; `ml-service` diff 0; `dev/`+`holdout/` absent; canonical dev result/audit absent (no `run_start` consumed); mirror identity PASS (safety pair byte-identical; all other pairs untouched).
+- Forbidden 0: protected dev/holdout plaintext/recovery 0 (`git show`/`cat-file`/`checkout`/`restore`/`sparse`/`worktree`/traversal for protected data 0), FIRST dev retrieval 0, DB connection/query 0, model/embedding load 0, real network/HTTP 0, latency benchmark 0, result inspection/tuning 0, plan/prereg/gate/config semantic change 0, `ml-service` change 0, Candidate B instantiate 0, amend/rebase/reset/force/history rewrite 0, tag move/delete/force 0, force push 0.
+
+### VERDICT: FIRST protected-dev launch REMAINS BLOCKED unless ALL standing pre-gate blockers are actually resolved (not authorized; do not launch)
+
+UNCHANGED: dev safety PASS structurally impossible (D-044) and ineligible/expired measurement HOLD with not-established status (D-045/D-046).
+
+Standing decisions D-013/D-015/D-016/D-017/D-018…D-046 remain as history/corrected where applicable. Next gate is **STOP for Web read-only independent review** (not FIRST dev retrieval, not candidate tuning).
