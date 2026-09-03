@@ -1329,3 +1329,14 @@ One short section per working session: what was worked on, what was decided (wit
 - **Owns whole stage in one session:** reconcile → implement/freeze → 370 PASS + proofs → D-059 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
 - **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` plan (task-provided expected; live role re-verification not repeated in D-059); delegates exempt (serial shared-mutation boundary; no subagents).
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
+
+## 2026-09-04 — Retrieval v3 SAME-STAGE Web HOLD narrow repair — link-provenance + HTTP canonical reachability — D-060
+
+- **Reconciled start:** `codex/retrieval-v3-user-search-quality` HEAD `ff9a57917b68a2f2a041f1d576680b8edbbbbce8` clean (local=upstream=direct actual remote), `git diff --check` PASS, `ml-service` diff 0 vs `5327661`; frozen SHA256 verified (prereg `78420186`, plan-v4 `a25d9c48`, safe-action `c512fb56`, policy-v2 `6fee9ec2`, link-v1 `343324a9`); canonical result/audit/dev/holdout absent; one-shot unconsumed; D-060 free; OMP `18.1.5` `opencode-go/muse-spark-1.3-contributor:xhigh`. Actual matched expected on all points.
+- **Web HOLD fixed (B1/B2 only; A PASS kept, C HOLD kept):** canonical `build_real_adapters` now auto-binds same-session `get_link_raw` (SAME REPEATABLE READ `SELECT source,source_id,raw ORDER BY`, lazy cached, IO-free construction, fail-closed duplicates/missing/non-dict); `RealSafetyAdapter` now executes frozen D-057 `check_url_with_transport` once per deduped URL iff `official_link` PASS, else HOLD (`ceil(.99*unique)` PASS/NO-GO). V1 derivation exact; no second HTTP implementation; no runner code change needed. Both runtime mirrors byte-identical.
+- **Verification:** NEW D-060 14 PASS + corrected D-059 HOLD->PASS (34 PASS + 1 SKIP focused); D-054–D-059 + D-057 reruns + safety/runner/result-schema suites pure/static/mock only (full counts recorded pre-commit); `py_compile`/`git diff --check` PASS; V1 bytes + frozen five SHAs unchanged (V2 new only); `ml-service` 0; mirrors byte-identical; results/audit absent; one-shot unconsumed; no secrets/path leakage.
+- **Remaining HOLD (FIRST dev NOT ready):** COST remains the sole known launch blocker unless another real blocker is found. B repaired mock-only; no FIRST-dev-ready claim.
+- **VERDICT: FIRST protected-dev REMAINS BLOCKED. Do NOT launch.**
+- **Owns whole stage in one session:** reconcile → repair+mirror → focused + regression PASS → D-060 + V2 + SESSION-LOG → atomic commit+push → STOP. Next: **Web read-only independent review**.
+- **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` plan; delegates exempt (serial shared-mutation boundary; no subagents).
+- **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.

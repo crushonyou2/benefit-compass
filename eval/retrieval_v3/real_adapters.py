@@ -103,6 +103,16 @@ SELECT p.id, p.source, p.source_id, p.title, p.org, p.support_content,
 FROM policy p LEFT JOIN policy_chunk c ON c.policy_id = p.id
 ORDER BY p.source, p.source_id, c.chunk_index, c.id
 """
+# D-060 link provenance same-snapshot raw evidence (V1 section 4, V2 correction).
+# Read-only raw re-derivation source on the SAME governing REPEATABLE READ
+# connection/transaction (no second connection, SELECT only, deterministic
+# order, no ranking/output influence). Available only after capture (pinned
+# snapshot established); construction remains IO-free.
+RAW_EVIDENCE_SQL = """
+SELECT p.source, p.source_id, p.raw
+FROM policy p
+ORDER BY p.source, p.source_id
+"""
 
 # Production D-003 baseline SQL (ml-service/app.py SQL) with the runtime
 # CURRENT_DATE in BOTH expiry predicates replaced by the explicit pinned
@@ -276,6 +286,7 @@ class RealEvaluationSession:
         self._fingerprint: str | None = None
         self._rows_scanned = 0
         self._d003_queries = 0
+        self._raw_cache: dict | None = None
 
     @property
     def is_closed(self) -> bool:
@@ -574,6 +585,44 @@ class RealEvaluationSession:
         if self._policies is None:
             raise RuntimeError("URL lookup before corpus load (fail-closed)")
         return {(p["source"], p["source_id"]): p.get("apply_url") for p in self._policies}
+
+    def _load_raw_map(self) -> dict:
+        """Same-snapshot (source, source_id) -> raw map on the governing connection (D-060)."""
+        if self._closed:
+            raise RuntimeError("raw evidence on closed session (fail-closed)")
+        if self._pinned is None:
+            raise RuntimeError("raw evidence before capture completion is forbidden (fail-closed)")
+        if self._raw_cache is not None:
+            return self._raw_cache
+        rows = self.execute_readonly(RAW_EVIDENCE_SQL)
+        out: dict = {}
+        for row in rows:
+            if not isinstance(row, (list, tuple)) or len(row) != 3:
+                raise ValueError("raw evidence row malformed (fail-closed)")
+            src, sid, raw = row
+            if not isinstance(src, str) or not src.strip():
+                raise ValueError("raw evidence missing source identity (fail-closed)")
+            if not isinstance(sid, str) or not sid.strip():
+                raise ValueError("raw evidence missing source_id identity (fail-closed)")
+            key = (src, sid)
+            if key in out:
+                raise ValueError(f"duplicate raw evidence identity {key!r} (fail-closed)")
+            if isinstance(raw, str):
+                try:
+                    raw = json.loads(raw)
+                except Exception:
+                    pass
+            out[key] = raw
+        self._raw_cache = out
+        return out
+
+    def get_link_raw(self, source: object, source_id: object) -> Any:
+        """Lazy same-session raw for one identity (D-060; no IO at bind, cached after first read)."""
+        if not isinstance(source, str) or not source.strip():
+            return None
+        if not isinstance(source_id, str) or not source_id.strip():
+            return None
+        return self._load_raw_map().get((source, source_id))
 
     def note_d003_query(self) -> None:
         self._d003_queries += 1
@@ -1115,11 +1164,32 @@ class RealSafetyAdapter:
                 official_link = {"gate": "NO-GO", "unique": len(unique_urls), "mismatches": mismatches, **url_diagnostics}
             else:
                 official_link = {"gate": "PASS", "unique": len(unique_urls), "mismatches": [], **url_diagnostics}
-        http_resolution = {
-            "gate": "HOLD",
-            "detail": "visible apply_url denominator frozen per link provenance V1; benchmark HTTP runs only during FIRST dev on that denominator (D-059 holds, fail-closed HOLD)",
-            **url_diagnostics,
-        }
+        # D-060: frozen HTTP state machine auto-execution (D-057 machinery, no second implementation).
+        # Authoritative denominator requires official_link PASS (unique>0, no unknown identity,
+        # raw evidence complete, no table-vs-raw drift). Otherwise HOLD (never PASS on
+        # non-authoritative denominator). Denominator 0/incomplete => HOLD.
+        if not unique_urls:
+            http_resolution = {"gate": "HOLD", "detail": "visible apply_url denominator 0 (missing measurement, fail-closed HOLD)", **url_diagnostics}
+        elif unknown_identity:
+            http_resolution = {"gate": "HOLD", "detail": f"missing snapshot apply_url for {unknown_identity} visible identities (fail-closed HOLD)", **url_diagnostics}
+        elif self._raw_lookup is None:
+            http_resolution = {"gate": "HOLD", "detail": "missing raw derivation evidence for link denominator (fail-closed HOLD)", **url_diagnostics}
+        elif official_link.get("gate") != "PASS":
+            http_resolution = {"gate": "HOLD", "detail": "link provenance not authoritative, HTTP not executed (fail-closed HOLD)", **url_diagnostics}
+        else:
+            successes = 0
+            for u in unique_urls:
+                try:
+                    ok = check_url_with_transport(u, self._http_transport)
+                except Exception:
+                    ok = False
+                if ok:
+                    successes += 1
+            required = math.ceil(0.99 * len(unique_urls))
+            if successes >= required:
+                http_resolution = {"gate": "PASS", "unique": len(unique_urls), "successes": successes, "required": required, **url_diagnostics}
+            else:
+                http_resolution = {"gate": "NO-GO", "unique": len(unique_urls), "successes": successes, "required": required, "detail": f"http successes {successes} < required {required} (fail-closed NO-GO)", **url_diagnostics}
         cost = {
             "gate": "HOLD",
             "detail": COST_BASELINE_BLOCKER,
@@ -1147,10 +1217,15 @@ def build_real_adapters(
     http_transport: Callable | None = None,
     raw_lookup: dict | Callable | None = None,
 ) -> dict:
-    """Bind all eight real adapter surfaces to ONE governing session (D-056, D-059)."""
-    # D-059: construction performs no IO (raw_lookup stored only; same-snapshot raws supplied after grant in FIRST dev).
+    """Bind all eight real adapter surfaces to ONE governing session (D-056, D-059, D-060)."""
+    # D-060: canonical default auto-binds same-session raw evidence lazily (no IO here).
+    # Explicit dict/callable still overrides (test seam); sessions without get_link_raw keep None (D-056 HOLD).
     if not isinstance(session, RealEvaluationSession):
         raise ValueError("real adapters require the governing RealEvaluationSession (fail-closed)")
+    if raw_lookup is None:
+        getter = getattr(session, "get_link_raw", None)
+        if callable(getter):
+            raw_lookup = getter
     embedding = RealEmbeddingAdapter(model_loader=model_loader)
     protected_loader = RealProtectedLoader(materialized_path=materialized_path, allowed_base=evalset_base)
     safety = RealSafetyAdapter(session, http_transport=http_transport, raw_lookup=raw_lookup)

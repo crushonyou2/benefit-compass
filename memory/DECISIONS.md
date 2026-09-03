@@ -2136,3 +2136,43 @@ FIRST protected dev 0; `protected_access_start`/`run_start` against real sets 0;
 ### VERDICT: FIRST protected-dev launch REMAINS BLOCKED (not authorized; do not launch)
 
 A (authorized-base) + B (link provenance measurement) are now mechanically reachable and proven synthetic-only, but C (cost per-query rows) is a precise structural HOLD with no comparable DB measurement without new implementation. A truthful partial D-059 is preferable to false launch readiness. Next gate after this record and its atomic commit/push is **STOP for Web read-only independent review** (not FIRST dev, not candidate tuning). Do NOT authorize or execute FIRST protected dev from this workspace.
+
+## D-060 · Retrieval v3 SAME-STAGE Web HOLD narrow repair — link-provenance + HTTP canonical reachability — 2026-09-04 (user-authorized, one session owns reconcile+repair+tests+commit+push, then STOP for Web review)
+
+User explicitly approved proceeding. This workspace owns fresh read-only reconcile -> narrow repair -> pure/static/mock validation -> append-only D-060 durable correction -> ONE normal atomic commit+push -> verify local=upstream=actual remote clean -> STOP for Web independent review. No FIRST protected dev. D-059 history preserved verbatim; this D-060 corrects only implementation reachability prospectively.
+
+### 0) Reconciled base (before mutation, actual state wins)
+
+Branch `codex/retrieval-v3-user-search-quality` HEAD `ff9a57917b68a2f2a041f1d576680b8edbbbbce8` clean, local=upstream=direct actual remote identical, `git diff --check` PASS, `git diff 5327661445c37191a3fd61db195f3af4d2cf893a -- ml-service` 0, frozen SHA256 verified (prereg `7842018613d66aa4570f4db2f8ae5a698ceb46757995a6b7e26873177b36160e`, plan-v4 `a25d9c482094696ff7a438593979813ac568c91a977a2543a50618ca4f5177d6`, safe-action `c512fb5627179697a987b05a2431b8f7e30d1153af2ff6dca37995f6b232a35d`, production-exclusion-v2 `6fee9ec22d5d3ac153ff19a6b1b5d27ab6a6a43bda11e35821d689f938968fe5`, link-sup-v1 `343324a90921ced43765237a6847cb826af48b77e7d8bafb59c6389ccba72fab`), main protected dev/holdout/result/audit absent, one-shot unconsumed, D-060 free, OMP `18.1.5` effective default/plan `opencode-go/muse-spark-1.3-contributor:xhigh`.
+
+### 1) Web independent review findings reconciled (A/B1/B2/C)
+
+- A) D-059 authorized external materialized-base repair is independently PASS. Not redesigned.
+- B1) D-059 link provenance semantics frozen, but canonical reachability broken: `RealSafetyAdapter` needs `raw_lookup` for table-vs-raw derivation; `main_canonical_dev` -> `build_real_adapters()` passed no `raw_lookup`, so canonical FIRST-dev constructed `_raw_lookup=None` and `official_link` deterministically HOLD. Confirmed in committed bytes (`build_real_adapters` passed `raw_lookup` through defaulting None; canonical caller omitted it).
+- B2) D-057 already froze the exact real HTTP machinery (`check_url_with_transport` owns retry/redirect/fallback; `http_client_transport` is one single-attempt primitive), but `RealSafetyAdapter.__call__` never called it; `http_resolution` hard-coded HOLD. D-059 test asserting transport calls stay `[]` froze the bug rather than canonical FIRST-dev reachability. Confirmed in committed bytes.
+- C) Cost remains truthful structural HOLD. Cost semantics, thresholds, execution architecture, index assumptions untouched; no FIRST-dev launch-ready claim attempted.
+
+### 2) Narrow repair (frozen semantics untouched; both runtime mirrors byte-identical)
+
+- Same-snapshot raw provenance auto-wiring: new `RAW_EVIDENCE_SQL` (`SELECT p.source, p.source_id, p.raw FROM policy p ORDER BY p.source, p.source_id`, SELECT-only deterministic, no ranking/output influence) + `RealEvaluationSession._load_raw_map` / `get_link_raw(source, source_id)` (lazy cached map via `execute_readonly` on the SAME governing REPEATABLE READ connection; no second connection; available ONLY after capture; construction/parsing IO-free; JSON-string raws parsed pure; duplicate/malformed identity rows raise; missing/non-dict/malformed query identity yield adapter HOLD). `build_real_adapters` canonical default auto-binds `session.get_link_raw` when caller passes None (explicit dict/callable still overrides as test seam; sessions without the getter keep None for D-056 HOLD). `main_canonical_dev` needs no code change (builder default now mechanically reachable).
+- Frozen HTTP state machine auto-execution: reuses D-057 `check_url_with_transport` + `http_client_transport` exactly (no second implementation, constants/semantics unchanged). Once `official_link` PASS (authoritative denominator: unique>0, no unknown identity, raw complete, no drift), executes `check_url_with_transport` exactly once per deduped unique URL via `self._http_transport`; produces `unique`/`successes`/`required=ceil(.99*unique)`, PASS iff `successes>=required` else NO-GO. Denominator 0 / unknown / `raw_lookup None` / `official_link != PASS` => HOLD with no HTTP execution (never PASS on non-authoritative denominator). Trimmed exact-string dedupe preserved; no URL/secret leak beyond standing schema.
+- V1 derivation semantics exact: Gov24 online-else-detail, Youth aply-else-ref1, ref2 excluded, trim-only, case-sensitive http(s) prefix, no invented domain. Cost gate untouched (HOLD, `extra_model_calls 0`, no ratios).
+
+### 3) Tests — canonical hole fixed (pure/static/mock only)
+
+- Corrected D-059 obsolete assertion narrowly in place (`test_b_http_still_hold_no_benchmark_in_d059` now proves PASS with exactly one transport call on the deduped denominator; comment documents D-059 stage-only fact superseded; all other D-059 tests verbatim).
+- New `eval/test_retrieval_v3_d060_link_reachability.py` 14 PASS through `build_real_adapters` / canonical wiring (not only direct construction): IO-free construction + auto-bind; same-session no-second-connection + cached single RAW query; pre-capture forbidden; duplicate/malformed/missing/non-dict fail-closed with no HTTP; trim-exact dedupe single call; PASS/NO-GO/HOLD matrix; 100-unique 99%-threshold (99 PASS / 98 NO-GO over 20x5 tasks); explicit-injection override seam; D-057 state-machine spot-checks unchanged; static fail-on-old proof (new markers absent at `ff9a579` by construction).
+- D-057 check_url semantics independently verified unchanged (existing D-057 suite rerun; no constant/branch change).
+
+### 4) Append-only contract correction
+
+- New `docs/RETRIEVAL_V3_LINK_PROVENANCE_SUPERSESSION_V2.md` imports V1 semantic rules and supersedes ONLY V1/D-059 implementation-reachability statements; explicitly corrects D-059 "A+B mechanically reachable" as false at `ff9a579` with the exact repaired call graph above. V1 bytes unchanged; prereg/plan-v4/safe-action/production-exclusion-v2 untouched; no candidate-plan-v5 (18/18 unchanged).
+- Repaired call graph: `main_canonical_dev` -> `build_real_adapters(session)` [auto `session.get_link_raw`] -> `RealSafetyAdapter(session, http_transport, raw_lookup=session.get_link_raw)` -> table `apply_url` + same-session raw re-derivation -> `official_link` -> conditional frozen HTTP -> `http_resolution`; `cost` HOLD.
+
+### 5) Protected/one-shot hard boundary — forbidden 0 in this stage
+
+FIRST protected dev 0; `protected_access_start`/`run_start` 0; canonical result/audit creation 0; protected dev/holdout plaintext access/recovery 0 (no `git show`/`cat-file`/`checkout`/`restore`/sparse/new worktree/traversal); holdout access 0; candidate tuning/threshold/model/embedding/LLM/Candidate-B/18-tuple/MAX24/safe-action/production-exclusion/headline/location/latency change 0; `ml-service` change 0; dataset regenerate/reannotate/refreeze 0; history rewrite/amend/rebase/reset/force/tag move/delete/force-push 0; live HTTP/latency benchmark/model load 0; native user-home absolute paths in durable docs/artifacts 0.
+
+### VERDICT: FIRST protected-dev launch REMAINS BLOCKED (not authorized; do not launch)
+
+B canonical reachability repaired and proven mock-only, but C cost remains the sole known launch blocker unless another real blocker is found. Do NOT claim FIRST-dev-ready. Next gate after this record and its atomic commit+push is **STOP for Web independent review** (not FIRST dev, not candidate tuning). Do NOT authorize or execute FIRST protected dev from this workspace.

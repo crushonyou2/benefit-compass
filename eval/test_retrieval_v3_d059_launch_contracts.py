@@ -306,6 +306,9 @@ def test_b_hold_when_raw_missing_or_denominator_zero_or_unknown():
 
 
 def test_b_http_still_hold_no_benchmark_in_d059():
+    # D-060 correction: D-059 stage-only HOLD (calls == []) is superseded as an
+    # implementation-stage-only fact. With authoritative provenance (official PASS),
+    # the frozen D-057 state machine now executes exactly once per deduped URL.
     sess = _FakeSession(policies=[{"source": "gov24", "source_id": "g1"}], url_map={("gov24", "g1"): "https://apply.example/g"})
     calls = []
 
@@ -316,8 +319,12 @@ def test_b_http_still_hold_no_benchmark_in_d059():
 
     raw = {"serviceList": {"상세조회URL": "https://www.gov.kr/d"}, "serviceDetail": {"온라인신청사이트URL": "https://apply.example/g"}}
     ev = RealSafetyAdapter(sess, http_transport=transport, raw_lookup={("gov24", "g1"): raw})(_safety_payload([("gov24", "g1")]))
-    assert ev["http_resolution"]["gate"] == "HOLD"
-    assert calls == []
+    assert ev["official_link"]["gate"] == "PASS"
+    assert ev["http_resolution"]["gate"] == "PASS"
+    assert ev["http_resolution"]["unique"] == 1
+    assert ev["http_resolution"]["successes"] == 1
+    assert ev["http_resolution"]["required"] == 1
+    assert calls == ["https://apply.example/g"]
 
 
 # ---- C) cost structural HOLD ----
