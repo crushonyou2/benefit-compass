@@ -279,6 +279,11 @@ def validate_complete_result(result: dict):
                     # A bare {gate, index_ratio, rows_ratio, extra_model_calls} is a
                     # forgeable PASS with no measurement behind it — reject. HOLD
                     # stays incomplete-capable (missing measurement must be HOLD).
+                    # D-064: exact index-ratio persistence boundary (no tolerance).
+                    # Persisted index_ratio must equal candidate_bytes/baseline_bytes
+                    # exactly, and PASS additionally requires the exact integer bound
+                    # candidate_bytes<=2*baseline_bytes (a forged 2.0 inside old
+                    # isclose tolerance must not hide a true bytes NO-GO).
                     if not _is_strict_int(_cg.get("task_count")) or not _is_strict_int(_cg.get("measured_count")):
                         raise ValueError(f"canonical safety {cid}.cost needs task_count/measured_count strict ints")
                     if _cg.get("measured_count") != _cg.get("task_count"):
@@ -298,9 +303,9 @@ def validate_complete_result(result: dict):
                     if _cg.get("candidate_bytes") != _cg.get("baseline_bytes") + _cg.get("aux_bytes"):
                         raise ValueError(f"canonical safety {cid}.cost needs candidate_bytes==baseline_bytes+aux_bytes")
                     _expect_ratio = _cg.get("candidate_bytes") / _cg.get("baseline_bytes")
-                    if not math.isclose(_cg.get("index_ratio"), _expect_ratio, rel_tol=1e-9, abs_tol=0.0):
+                    if _cg.get("index_ratio") != _expect_ratio:
                         raise ValueError(f"canonical safety {cid}.cost index_ratio inconsistent with candidate_bytes/baseline_bytes")
-                    _ok = _cg.get("index_ratio") <= 2.0 and _cg.get("rows_ratio") <= 3.0 and _cg.get("extra_model_calls") == 0
+                    _ok = _cg.get("candidate_bytes") <= 2 * _cg.get("baseline_bytes") and _cg.get("index_ratio") <= 2.0 and _cg.get("rows_ratio") <= 3.0 and _cg.get("extra_model_calls") == 0
                     if (_cg.get("gate") == "PASS") != _ok:
                         raise ValueError(f"canonical safety {cid}.cost gate inconsistent with ratios/calls")
             latency_map = result.get("latency_per_config")
