@@ -250,3 +250,108 @@ def test_safety_orchestrator_reachability_without_protected_plaintext():
         "c"*64
     )
     assert gate == "PASS"
+
+def test_http_head_network_error_retries_same_method_first():
+    # Web repro: HEAD network-error -> HEAD 200 must succeed via same-method retry (not instant fallback).
+    ok = check_single_url_with_mock(
+        "https://example.com/r1",
+        [MockHttpResponse(is_network_error=True), MockHttpResponse(status=200)],
+        []
+    )
+    assert ok is True
+
+def test_http_head_timeout_retries_same_method_first():
+    # Web repro: HEAD timeout -> HEAD 200 must succeed via same-method retry.
+    ok = check_single_url_with_mock(
+        "https://example.com/r2",
+        [MockHttpResponse(is_timeout=True), MockHttpResponse(status=200)],
+        []
+    )
+    assert ok is True
+
+def test_http_redirect_hop_has_own_retry_budget():
+    # Web repro: HEAD 301 -> 500 -> 200 must succeed (hop 2 retries within its own budget).
+    ok = check_single_url_with_mock(
+        "https://example.com/r3",
+        [MockHttpResponse(status=301, redirect_location="https://example.com/r3b"), MockHttpResponse(status=500), MockHttpResponse(status=200)],
+        []
+    )
+    assert ok is True
+
+def test_http_head_500_then_500_no_fallback_fail():
+    # Other 5xx exhausts same-method budget with no GET fallback.
+    ok = check_single_url_with_mock(
+        "https://example.com/r4",
+        [MockHttpResponse(status=500), MockHttpResponse(status=500)],
+        [MockHttpResponse(status=200)]
+    )
+    assert ok is False
+
+def test_http_head_timeout_only_never_falls_back():
+    # Prereg wording exact: fallback triggers are 405/501/network/TLS, not timeout; timeout-only exhaustion fails.
+    ok = check_single_url_with_mock(
+        "https://example.com/r5",
+        [MockHttpResponse(is_timeout=True), MockHttpResponse(is_timeout=True)],
+        [MockHttpResponse(status=200)]
+    )
+    assert ok is False
+
+def test_http_head_network_exhausted_falls_back_get():
+    # Network failure honors its same-method budget first, then GET fallback under same protocol.
+    ok = check_single_url_with_mock(
+        "https://example.com/r6",
+        [MockHttpResponse(is_network_error=True), MockHttpResponse(is_network_error=True)],
+        [MockHttpResponse(status=200)]
+    )
+    assert ok is True
+
+def test_http_get_own_retry_budget_after_fallback():
+    # GET fallback has its own 2-attempt budget: 405 then GET 500 -> GET 200.
+    ok = check_single_url_with_mock(
+        "https://example.com/r7",
+        [MockHttpResponse(status=405)],
+        [MockHttpResponse(status=500), MockHttpResponse(status=200)]
+    )
+    assert ok is True
+
+def test_http_redirect_then_head_405_falls_back_get():
+    # Redirect hop preserving method, then hop failure with fallback cause, then GET success.
+    ok = check_single_url_with_mock(
+        "https://example.com/r8",
+        [MockHttpResponse(status=301, redirect_location="https://example.com/r8b"), MockHttpResponse(status=405), MockHttpResponse(status=405)],
+        [MockHttpResponse(status=200)]
+    )
+    assert ok is True
+
+def test_abstention_credit_empty_only():
+    # Interface-forced semantics: only actually-empty retrieval counts as safe abstention; no thresholds.
+    from retrieval_v3.safety import abstention_credit
+    assert abstention_credit([]) is True
+    assert abstention_credit([{"source": "youth", "source_id": "p0"}]) is False
+    try:
+        abstention_credit(None)
+        assert False, "non-list retrieved must fail closed"
+    except ValueError:
+        pass
+    try:
+        abstention_credit("youth/p0")
+        assert False, "non-list retrieved must fail closed"
+    except ValueError:
+        pass
+
+def test_ineligible_missing_flags_hold_never_default_pass():
+    # No authoritative per-policy eligible+expired evidence => HOLD; never synthesize eligible=True.
+    pin = "d" * 64
+    snap = {"snapshot_id": "test", "sha256": pin}
+    top5 = {"t001": [("youth", "p0")] * 5}
+    gate, det = check_ineligible_expired(top5, snap, pin, 1, 5)
+    assert gate == "HOLD", "empty eligible_map must HOLD (missing evidence, no eligible=True default)"
+    # Entry missing expired flag => HOLD, not PASS.
+    snap2 = {"snapshot_id": "test", "sha256": pin, "eligible_map": {("youth", "p0"): {"eligible": True}}}
+    gate2, _ = check_ineligible_expired(top5, snap2, pin, 1, 5)
+    assert gate2 == "HOLD", "entry missing expired flag must HOLD"
+    # Control: complete evidence measures (all eligible, none expired) => PASS.
+    snap3 = {"snapshot_id": "test", "sha256": pin, "eligible_map": {("youth", "p0"): {"eligible": True, "expired": False}}}
+    gate3, det3 = check_ineligible_expired(top5, snap3, pin, 1, 5)
+    assert gate3 == "PASS"
+    assert det3["intrusions_task"] == 0 and det3["intrusions_slot"] == 0

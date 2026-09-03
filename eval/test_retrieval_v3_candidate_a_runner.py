@@ -1796,8 +1796,42 @@ def test_canonical_safety_latency_math_bounds():
         except ValueError:
             pass
 
+def test_abstention_structural_no_go_all_configs():
+    # Pre-execution structural fact (no FIRST dev needed): with nonempty corpus every config retrieves
+    # nonempty for every non-blank query on every channel path (sparse emits per-policy entries unconditionally;
+    # fusion union covers sparse; dedup retains first; MMR picks to exhaustion). Under interface-forced
+    # abstention semantics (only empty retrieval counts as safe abstention, no clarification channel),
+    # every unsupported/ambiguous task is therefore "answered": 0/27 and 0/23 => dev safety structurally NO-GO.
+    from retrieval_v3.safety import abstention_credit, evaluate_full_dev_safety
+    plan = load_candidate_plan_or_fail()
+    assert len(plan["configs"]) == 18
+    def fake_vec(seed):
+        rnd = random.Random(seed)
+        v = [rnd.uniform(-1, 1) for _ in range(768)]
+        norm = (sum(x * x for x in v) ** 0.5) or 1
+        return [round(x / norm, 6) for x in v]
+    policies = [
+        {"id": 1, "source": "youth", "source_id": "p0", "title": "청년 지원 정책", "support_content": "지원 내용", "summary": "", "keywords": "", "add_qualify": "", "income_etc": "", "apply_method": "", "org": "고용노동부", "chunks": [{"embedding": fake_vec(0), "chunk_index": 0, "id": 0}]},
+        {"id": 2, "source": "gov24", "source_id": "g0", "title": "정부 지원 사업", "support_content": "사업 내용", "summary": "", "keywords": "", "add_qualify": "", "income_etc": "", "apply_method": "", "org": "문화체육관광부", "chunks": [{"embedding": fake_vec(1), "chunk_index": 0, "id": 1}]},
+    ]
+    def fake_emb(q):
+        h = hashlib.sha256(q.encode()).digest()
+        return fake_vec(int.from_bytes(h[:4], "little"))
+    runner = Runner(candidate_plan=plan, embedding_fn=fake_emb)
+    q = "해당 없음 문의"
+    assert q.strip()
+    for cfg in plan["configs"]:
+        res = runner._retrieve_for_query(q, policies, cfg)
+        assert len(res["final_top30"]) > 0, f"{cfg['config_id']} must retrieve nonempty with nonempty corpus"
+        retrieved = [{"source": e["source"], "source_id": e["source_id"]} for e in res["final_top30"]]
+        assert abstention_credit(retrieved) is False
+    # Deterministic consequence: 0 correct abstentions => dev gates NO-GO (26/27 and 21/23 required).
+    out = evaluate_full_dev_safety([False] * 27, [False] * 23, None, None, None, None, None, None, None)
+    assert out["unsupported"]["gate"] == "NO-GO" and out["unsupported"]["success"] == 0
+    assert out["ambiguous"]["gate"] == "NO-GO" and out["ambiguous"]["success"] == 0
+
 if __name__=="__main__":
-    tests=[test_18_configs_and_drift, test_non_unit_cosine, test_representative_tie_and_near_tie, test_strict_gt_dedup_boundary, test_mmr_actual_cosine_and_full_top30, test_exact_normalization_and_boundaries, test_cosine_min_placement, test_union_vs_hybrid, test_exact_not_injected, test_deterministic_ordering, test_metrics_mrr_rank_gt10, test_selection_ordering_and_zero, test_b_gate_no_impl, test_latency_harness, test_audit_lifecycle, test_atomic_rerun_concurrent, test_path_confinement, test_runner_safety_hold_when_checkers_absent, test_runner_safety_hold_even_with_checkers_pre_dev, test_runner_latency_wiring, test_cli_orchestrator_e2e, test_fusion_youth_bias_only_youth_source_gov24_zero, test_sparse_only_representative_query_nearest_no_chunk0_fallback, test_oracle_union_set_and_headline130, test_metrics_graded_strict_and_ndcg, test_metrics_equivalence_group_no_double_count, test_slice_diagnostics_unavailable, test_selection_fail_closed_missing_gates, test_selection_fail_closed_missing_latency, test_execution_lifecycle_audit_closure_on_failure, test_execution_lifecycle_path_and_result_os_agnostic, test_headline_no_silent_fallback_safety_only, test_gold_missing_grade_fail_closed, test_empty_query_fail_closed, test_latency_no_fabricated_default_static, test_mirror_hyphen_underscore_identity, test_selection_http_resolution_required, test_headline_missing_stratum_not_headline, test_headline_empty_golds_fail_closed, test_retrieve_blank_fail_closed_lowest, test_canonical_dev_mode_grant_before_loader_and_counts, test_canonical_counts_mismatch_fail_closed, test_safety_real_interfaces, test_d003_baseline_forbids_candidate_a01, test_audit_preflight_no_duplicate_run_start, test_audit_windows_lock_serialized, test_path_sibling_rejected, test_candidate_b_no_finalist_not_evaluated, test_canonical_result_n_headline, test_protected_access_end_exact_outcome, test_canonical_grant_lifecycle_success_exact_one, test_canonical_grant_loader_failure_closes_failure, test_canonical_grant_pre_run_failure_closes_failure, test_canonical_grant_execution_failure_closes_failure, test_canonical_no_close_on_failed_verification, test_canonical_cli_forbids_fakes_and_uses_real_adapters, test_canonical_output_exact_and_missing_field, test_canonical_requires_adapters_pre_grant, test_canonical_cli_wires_real_adapters, test_latency_gate_eligibility_650_570_700, test_canonical_result_evidence_and_consistency, test_canonical_latency_evidence_strict_tampers, test_canonical_corpus_mandatory_failure_close, test_canonical_safety_full_evidence_preserved, test_canonical_corpus_provenance_required, test_canonical_safety_latency_math_bounds]
+    tests=[test_18_configs_and_drift, test_non_unit_cosine, test_representative_tie_and_near_tie, test_strict_gt_dedup_boundary, test_mmr_actual_cosine_and_full_top30, test_exact_normalization_and_boundaries, test_cosine_min_placement, test_union_vs_hybrid, test_exact_not_injected, test_deterministic_ordering, test_metrics_mrr_rank_gt10, test_selection_ordering_and_zero, test_b_gate_no_impl, test_latency_harness, test_audit_lifecycle, test_atomic_rerun_concurrent, test_path_confinement, test_runner_safety_hold_when_checkers_absent, test_runner_safety_hold_even_with_checkers_pre_dev, test_runner_latency_wiring, test_cli_orchestrator_e2e, test_fusion_youth_bias_only_youth_source_gov24_zero, test_sparse_only_representative_query_nearest_no_chunk0_fallback, test_oracle_union_set_and_headline130, test_metrics_graded_strict_and_ndcg, test_metrics_equivalence_group_no_double_count, test_slice_diagnostics_unavailable, test_selection_fail_closed_missing_gates, test_selection_fail_closed_missing_latency, test_execution_lifecycle_audit_closure_on_failure, test_execution_lifecycle_path_and_result_os_agnostic, test_headline_no_silent_fallback_safety_only, test_gold_missing_grade_fail_closed, test_empty_query_fail_closed, test_latency_no_fabricated_default_static, test_mirror_hyphen_underscore_identity, test_selection_http_resolution_required, test_headline_missing_stratum_not_headline, test_headline_empty_golds_fail_closed, test_retrieve_blank_fail_closed_lowest, test_canonical_dev_mode_grant_before_loader_and_counts, test_canonical_counts_mismatch_fail_closed, test_safety_real_interfaces, test_d003_baseline_forbids_candidate_a01, test_audit_preflight_no_duplicate_run_start, test_audit_windows_lock_serialized, test_path_sibling_rejected, test_candidate_b_no_finalist_not_evaluated, test_canonical_result_n_headline, test_protected_access_end_exact_outcome, test_canonical_grant_lifecycle_success_exact_one, test_canonical_grant_loader_failure_closes_failure, test_canonical_grant_pre_run_failure_closes_failure, test_canonical_grant_execution_failure_closes_failure, test_canonical_no_close_on_failed_verification, test_canonical_cli_forbids_fakes_and_uses_real_adapters, test_canonical_output_exact_and_missing_field, test_canonical_requires_adapters_pre_grant, test_canonical_cli_wires_real_adapters, test_latency_gate_eligibility_650_570_700, test_canonical_result_evidence_and_consistency, test_canonical_latency_evidence_strict_tampers, test_canonical_corpus_mandatory_failure_close, test_canonical_safety_full_evidence_preserved, test_canonical_corpus_provenance_required, test_canonical_safety_latency_math_bounds, test_abstention_structural_no_go_all_configs]
     for t in tests:
         try:
             t()
@@ -1806,4 +1840,4 @@ if __name__=="__main__":
             print(f"FAIL {t.__name__}: {e}")
             import traceback; traceback.print_exc()
             sys.exit(1)
-    print("ALL 66 focused tests PASS")
+    print("ALL 67 focused tests PASS")

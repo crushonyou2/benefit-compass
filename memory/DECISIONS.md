@@ -1570,3 +1570,43 @@ Reconciled base (read-only before mutation): branch `codex/retrieval-v3-user-sea
 - Forbidden 0 in this stage: FIRST dev 0, protected plaintext via `git show`/`cat-file`/`checkout`/`restore`/`sparse`/`worktree`/traversal 0, real retrieval/DB/model/embedding/network/HTTP/latency 0 (mock injection + synthetic tasks/adapters only), holdout/tuning 0, plan/prereg/config/gate/`ml-service` change 0, B instantiate 0, history rewrite/amend/rebase/reset/force 0, tag move/delete/force 0.
 
 Standing decisions D-013/D-015/D-016/D-017/D-018…D-042 remain as history/corrected where applicable. Next gate after this record and its atomic commit/push is **STOP for Web read-only independent review** (not FIRST dev retrieval, not candidate tuning).
+
+## D-044 · Retrieval v3 SAME-STAGE pre-gate safety-contract repair — frozen HTTP protocol, abstention semantics, eligibility HOLD — 2026-09-03 (user-authorized, one session owns repair+tests+commit+push)
+
+This is a **narrow SAME-STAGE safety-contract repair** on base `6e65ac8b74860147dedd9bf52db21c6fad0f1743` under Web FIRST protected-dev pre-gate HOLD. It does NOT rewrite D-037..D-043 history and changes no plan/prereg/config/gate/threshold/MAX24/Candidate-B rule and no `ml-service` production behavior. No FIRST dev executed; no protected plaintext touched. Web read-only review reran prior suites PASS, then reproduced residual canonical artifact-validator holes (fixed in D-043) and the pre-gate blockers below.
+
+Reconciled base (read-only before mutation): branch `codex/retrieval-v3-user-search-quality` HEAD `6e65ac8b74860147dedd9bf52db21c6fad0f1743` clean (`local==origin`, `git diff --check` PASS), `ml-service` diff 0 vs `5327661445c37191a3fd61db195f3af4d2cf893a`, plan `2815361a469fee9bf69f6ffdf2124d19928220535cdb08b2005ae6674ae7d17c` / prereg `7842018613d66aa4570f4db2f8ae5a698ceb46757995a6b7e26873177b36160e` unchanged, `eval/retrieval-v3/dev/` + `holdout/` absent on main. Runtime OMP `18.1.5` / ROOT-plan `opencode-go/muse-spark-1.3-contributor:xhigh` per D-036 (D-036 gate still in force).
+
+### 1) Frozen HTTP protocol state machine fixed (prereg exact, not new)
+
+Web pure-mock repros on committed bytes: HEAD network-error → HEAD 200 returned False; HEAD timeout → HEAD 200 False; redirect 301 → 500 → 200 False. Root causes in `check_single_url_with_mock`: (a) any network/TLS/405/501 on the FIRST attempt returned `fallback_eligible` immediately, consuming no same-method retry; (b) the retry counter counted redirect hops as attempts, so a post-redirect failure had no budget left. Rewrote `run_method` per prereg §9 exact wording (connect 5/read 10 constants unchanged): 1 retry = max 2 attempts PER request URL/method, no backoff; redirects ≤3 preserving method with a fresh 2-attempt budget per hop; 2xx success; other 4xx/5xx fail only after same-method retry; HEAD 405/501 or network/TLS error on any attempt → GET fallback under the same protocol; timeout alone is retry-only (fallback trigger list is 405/501/network/TLS per prereg wording) — timeout-only exhaustion fails with no fallback. Mock sequences consumed one entry per request; exhaustion fails. No real HTTP.
+
+### 2) Unsupported/ambiguous action semantics closed (mechanical, no new threshold)
+
+Standing prereg: unsupported correct = safe abstention/no-answer; ambiguous = clarification-or-safe-abstention; global abstention threshold explicitly out of scope. The frozen Runner safety-adapter interface represents only retrieval presence (`task_results[].retrieved`) with no abstain/clarify action. Mechanically, only an actually-empty retrieval counts as safe abstention — encoded as pure `abstention_credit(retrieved)` (empty list True; nonempty False; non-list fail-closed; no scores/overlap/heuristics). FIRST-dev `safety_evidence_fn` MUST use this predicate per task. Structural consequence proven pre-execution from committed code (no FIRST dev needed to learn it): `compute_sparse_scores` emits one entry per policy unconditionally → `sparse_top100` nonempty iff corpus nonempty → fusion union covers sparse → dedup retains first → MMR picks to exhaustion → `final_top30` nonempty for every non-blank query on all 18 configs (pinned by `test_abstention_structural_no_go_all_configs`). With a nonempty production corpus every unsupported/ambiguous task is therefore "answered": 0/27 (needs 26) and 0/23 (needs 21) → **dev safety gates structurally NO-GO**. Recorded truthfully; no PASS manufactured.
+
+### 3) Ineligible/expired authoritative evidence: absent → HOLD durable (no synthesis)
+
+Repo + freeze-manifest/artifact-name inspection only (no protected plaintext): production policy schema (per `ml-service/app.py` SELECTs) carries `biz_end` but NO `eligible`/`expired` flag columns; `biz_end` is a runtime date filter, not a frozen per-policy flag. No frozen authoritative source-truth snapshot with per-policy `eligible`+`expired` exists (`results/` empty; only plan/pilot heritage). Prereg anticipates exactly this ("if table lacks such flags, measurement is missing" → HOLD). Verified no `eligible=True` default exists anywhere; missing flags already return HOLD. Made durable with explicit regressions (empty map HOLD, entry-missing-`expired` HOLD, complete-map PASS control) and no gate relaxation. Bounded later-stage adapter contract is the standing shape (`eligible_map[(source,source_id)]={eligible,expired}` + sha256 pin) — unchanged, still unfulfilled until such a snapshot is frozen.
+
+### 4) Stale audit test synchronized (test-only)
+
+`test_protected_access_lifecycle_v3` appended `protected_access_end` without `outcome` and expected close to work — stale since D-039 exact success/failure schema (suite showed 1 failed / 24 passed pre-fix). Added `outcome="success"`; contract unchanged.
+
+### Tests (pure/static/mock only; runner 66 → 67; all-green 190)
+
+- `test_retrieval_v3_safety.py` 16 → 26: Web repro regressions (network/timeout retry-first, redirect-hop budget) + retry/redirect-hop extras (500-exhaustion no-fallback, timeout-only no-fallback, network-exhaustion fallback, GET own budget, redirect-then-405 fallback) + `abstention_credit` truth table + missing-flag HOLD durability with PASS control.
+- `test_retrieval_v3_candidate_a_runner.py` 66 → 67: `test_abstention_structural_no_go_all_configs` (18-config nonempty retrieval + 0/27 & 0/23 NO-GO consequence via `evaluate_full_dev_safety`).
+- `test_retrieval_v3_audit.py`: outcome sync (9 tests pass).
+- Footer list + count updated to 67.
+
+### Verification (pure/static/mock only, before commit)
+
+- 190 PASS across 9 files (runner 67 + plan 39 + sha 6 + safety 26 + audit 9 + pilot 8 + prereg_repair 17 + provenance 8 + reaudit 10); `git diff --check` PASS; plan/prereg SHAs unchanged; `ml-service` diff 0; `dev/`+`holdout/` absent; mirror identity PASS (15 pairs byte-identical incl. safety); no canonical result written; no audit `run_start` consumed (only temp audit logs).
+- Forbidden 0: protected dev/holdout plaintext access or recovery 0 (`git show`/`cat-file`/`checkout`/`restore`/`sparse`/`worktree`/traversal for protected data 0), FIRST dev retrieval 0, DB/model/embedding/network/HTTP/latency benchmark 0, tuning 0, plan/prereg/gate/config semantic change 0, `ml-service` modification 0, Candidate B instantiate 0, history rewrite/amend/rebase/reset/force/tag move 0, force push 0.
+
+### LAUNCH VERDICT: FIRST protected-dev launch REMAINS BLOCKED (not authorized)
+
+Do NOT launch. Reasons: (a) dev safety PASS is structurally impossible by construction — Candidate A always retrieves nonempty with a nonempty corpus, so unsupported/ambiguous correct-handling is deterministically 0/27 and 0/23 against 26/21 floors (a FIRST run cannot change this; only a scoped abstention mechanism — currently out of scope per prereg — could); (b) ineligible/expired authoritative per-policy evidence does not exist, so that gate would measure HOLD. Both are pre-execution facts; running FIRST dev would spend the protected one-shot surface to relearn them.
+
+Standing decisions D-013/D-015/D-016/D-017/D-018…D-043 remain as history/corrected where applicable. Next gate is **STOP for Web read-only independent review** (not FIRST dev retrieval, not candidate tuning).

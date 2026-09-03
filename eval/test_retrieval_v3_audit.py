@@ -96,7 +96,7 @@ def test_protected_access_lifecycle_v3():
         except AuditError:
             pass
         # close grant
-        append_event(log, action="protected_access_end", set_role="holdout", set_sha=sha, git_head="0"*40, git_dirty=False, session_id="s1")
+        append_event(log, action="protected_access_end", set_role="holdout", set_sha=sha, git_head="0"*40, git_dirty=False, session_id="s1", outcome="success")
         # now verify should fail (stale)
         try:
             verify_holdout_access_allowed(log, set_role="holdout", set_sha=sha, session_id="s1")

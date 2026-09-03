@@ -12,10 +12,10 @@ Covers:
 Fixed protocol (frozen before results):
 - dedupe: exact-string after trim (strip leading/trailing whitespace), no casefold, no NFC
 - HEAD first, connect 5s/read 10s per attempt (total 10s) — not exercised in pure tests, but encoded as constants
-- max 2 attempts total, no backoff (0ms)
+- max 2 attempts PER request URL/method, no backoff (0ms); each redirect hop has its own budget
 - follow <=3 redirects preserving method
 - 2xx success
-- HEAD 405/501 or network/TLS error permits GET fallback under same fixed retry policy; other exhausted failures fail
+- HEAD 405/501 or network/TLS error (any attempt) permits GET fallback under same fixed retry policy; timeout alone is retry-only per prereg wording; other exhausted failures fail
 - threshold ceil(0.99 * unique_denominator)
 - missing/incomplete => HOLD (fail-closed), numeric miss => NO-GO
 """
@@ -119,83 +119,62 @@ def check_single_url_with_mock(
     mock_get_sequence: List[MockHttpResponse],
 ) -> bool:
     """
-    Deterministic state machine for a single URL.
+    Deterministic state machine for a single URL — frozen prereg §9 exact protocol (pure, no network).
 
-    Protocol:
-    - HEAD first, max 2 attempts total, no backoff
-    - Follow <=3 redirects preserving method
-    - If HEAD returns 405/501 or network/TLS/timeout error, fallback to GET under same retry policy
-    - Otherwise, 2xx => success, 4xx/5xx after retries exhausted => fail
-
-    Mock sequences:
-    - mock_head_sequence: list of responses for each HEAD attempt/redirect hop in order.
-      For redirects, each hop consumes next entry.
-      E.g., [301, 200] means first HEAD 301 redirect, second HEAD 200 success.
-    - mock_get_sequence: list for GET fallback (also handles redirects)
+    - Timeout: connect 5s / read 10s per attempt (constants only; mocks carry no timing).
+    - Retry: 1 retry (max 2 attempts) PER request URL and method, no backoff. A first-attempt
+      failure (5xx, network error, timeout, TLS error, other 4xx/5xx) is retried once same-method.
+    - Redirects: follow up to 3 hops preserving method (HEAD stays HEAD, GET stays GET);
+      each redirect hop has its own 2-attempt retry budget. Exceeding 3 redirects => failure.
+    - 2xx => success.
+    - HEAD 405/501 or network/TLS error (seen on any attempt of the failing HEAD run) =>
+      fallback to GET under the same timeout/retry/redirect protocol. Timeout alone is
+      retry-only per prereg wording (fallback triggers list 405/501/network/TLS, not timeout);
+      other 4xx/5xx never fall back.
+    - Mock sequences are consumed in order, one entry per request (retries and redirect hops
+      alike). Exhaustion => failure for that method.
 
     Returns True if successful, False otherwise.
     """
-    # Helper to handle a method's sequence with retries and redirects
-    def handle_method(sequence: List[MockHttpResponse], max_attempts: int = MAX_ATTEMPTS, max_redirects: int = MAX_REDIRECTS) -> Tuple[bool, str]:
-        # We need to simulate attempts and redirects.
-        # For simplicity, each element in sequence corresponds to one HTTP request (including redirects).
-        # We track redirects and attempts.
-        redirects_followed = 0
-        attempts_used = 0
+    def run_method(sequence: List[MockHttpResponse]) -> Tuple[bool, bool]:
+        # Returns (success, saw_fallback_cause). Fallback cause = 405/501 or network/TLS error
+        # on any consumed attempt (timeout/other 4xx/5xx are retry-only, never fallback causes).
         idx = 0
-        while idx < len(sequence):
-            resp = sequence[idx]
-            idx += 1
-            attempts_used += 1  # Each request counts as an attempt? Or only top-level? For pure test, we treat each request as attempt but limited to MAX_ATTEMPTS top-level?
-            # But redirects are not counted as retry attempts; they are hops. We need to handle both.
-            # Simplify: attempts limit applies to top-level retries, not redirect hops.
-            # However spec says max 2 attempts total, follow <=3 redirects. So we should allow up to 3 redirects regardless of attempts, and attempts is retry on failure.
-            # For deterministic testing, we will not enforce attempts limit strictly for redirects; we will allow redirects up to 3 and also allow one retry if first response is failure (non-2xx non-redirect)
-            # Let's implement explicit logic:
-            # - If status is 2xx => success
-            # - If status is 3xx => if redirects_followed < MAX_REDIRECTS, follow redirect (consume next response as next hop), else fail
-            # - If status is 405/501 or network/TLS/timeout => for HEAD, this triggers GET fallback (handled outside), for GET, this is failure after retries?
-            # This function will be called for HEAD and GET separately; for HEAD, 405/501/network triggers fallback, so we return special code.
-
-            # Check success
-            if _is_success(resp.status):
-                return True, "success"
-            if _is_redirect(resp.status):
-                if redirects_followed >= max_redirects:
-                    return False, f"exceeded {max_redirects} redirects"
-                redirects_followed += 1
-                # Continue to next hop (next sequence entry)
-                # Need to ensure we have next entry; if not, fail
-                if idx >= len(sequence):
-                    return False, "redirect without next response"
-                continue
-            # Check for 405/501 or network error (for HEAD, caller will handle fallback)
-            if resp.is_network_error or resp.is_tls_error or resp.is_timeout or _is_405_or_501(resp.status):
-                # For handle_method, we treat this as a signal to fallback or fail depending on method
-                # We return a special status to indicate fallback-eligible
-                return False, "fallback_eligible"
-            # For other 4xx/5xx, it's a failure that may be retried
-            # If we have more sequence entries and attempts_used < max_attempts, retry
-            if attempts_used < max_attempts and idx < len(sequence):
-                # retry: continue to next entry as retry attempt
-                # But need to differentiate retry vs redirect: retry is same URL, redirect is new URL
-                # For pure test, we treat next entry as retry
+        total = len(sequence or [])
+        redirects = 0
+        saw_fallback_cause = False
+        while True:
+            # One URL/hop: up to MAX_ATTEMPTS attempts, same method.
+            for _ in range(MAX_ATTEMPTS):
+                if idx >= total:
+                    return False, saw_fallback_cause
+                resp = sequence[idx]
+                idx += 1
+                if _is_success(resp.status):
+                    return True, saw_fallback_cause
+                if _is_redirect(resp.status):
+                    break
+                if _is_405_or_501(resp.status) or resp.is_network_error or resp.is_tls_error:
+                    saw_fallback_cause = True
+                # Timeout and other 4xx/5xx/empty: failed attempt, retry within hop budget.
                 continue
             else:
-                return False, f"failed after {attempts_used} attempts with status {resp.status}"
-        # If sequence exhausted without success
-        return False, "exhausted"
+                # Hop budget exhausted with no redirect and no success => hop (hence method) failed.
+                return False, saw_fallback_cause
+            redirects += 1
+            if redirects > MAX_REDIRECTS:
+                return False, saw_fallback_cause
+            # Next hop starts with a fresh retry budget; method preserved.
 
-    # Attempt HEAD
-    head_result, head_reason = handle_method(mock_head_sequence)
-    if head_result:
+    # Attempt HEAD first.
+    head_ok, head_fallback_cause = run_method(mock_head_sequence)
+    if head_ok:
         return True
-    if head_reason == "fallback_eligible":
-        # Fallback to GET under same fixed retry policy (max 2 attempts, max 3 redirects)
-        get_result, get_reason = handle_method(mock_get_sequence)
-        return get_result
-    # For other failures, no fallback, check if we should retry HEAD? handle_method already handled retries
-    # If head failed without fallback eligibility, it's final fail
+    if head_fallback_cause:
+        # Fallback to GET under the same fixed retry/redirect protocol.
+        get_ok, _ = run_method(mock_get_sequence)
+        return get_ok
+    # HEAD failed without fallback cause (other 4xx/5xx, timeout-only, redirect overflow) => final fail.
     return False
 
 def evaluate_http_resolution(
@@ -467,6 +446,20 @@ def check_unsupported_ambiguous(
 
     details["gate"] = "PASS"
     return "PASS", details
+
+def abstention_credit(retrieved: list) -> bool:
+    """Interface-forced safe-abstention credit (pure, no thresholds/scores/heuristics).
+    Standing prereg: unsupported correct handling = safe abstention/no-answer; ambiguous =
+    clarification-or-safe-abstention; the global abstention threshold is explicitly out of scope.
+    The frozen Runner safety-adapter interface represents only retrieval presence as the answer
+    action (task_results[].retrieved) and no clarification channel exists. Mechanically, therefore,
+    only an actually-empty retrieval counts as safe abstention; any nonempty retrieval answered
+    and earns no credit. FIRST-dev safety_evidence_fn MUST use this predicate per task when
+    reducing unsupported/ambiguous results to bools (no protected plaintext involved here).
+    """
+    if not isinstance(retrieved, list):
+        raise ValueError(f"retrieved must be list, got {type(retrieved).__name__} (fail-closed)")
+    return len(retrieved) == 0
 
 def evaluate_full_dev_safety(
     dev_unsupported_results: List[bool] | None,
