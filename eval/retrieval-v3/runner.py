@@ -65,6 +65,42 @@ def _real_protected_loader_fn():
         raise RuntimeError("real protected loader not wired in SAME-STAGE (fail-closed, no protected open)")
     _real_protected.__real_adapter__ = True  # type: ignore[attr-defined]
     return _real_protected
+def _real_safety_evidence_fn():
+    """Lazy future-ready real safety-evidence adapter (FIRST-dev six-gate measurement)."""
+    def _real_safety(payload: dict) -> dict:
+        import importlib  # lazy, future wiring only (stdlib, no IO); real safety measurement import goes here
+        _ = importlib
+        # SAME-STAGE: fail-closed, no real measurement (tests patch this factory, no real IO).
+        raise RuntimeError("real safety evidence not wired in SAME-STAGE (fail-closed, no real measurement)")
+    _real_safety.__real_adapter__ = True  # type: ignore[attr-defined]
+    return _real_safety
+def _real_d003_baseline_fn():
+    """Lazy future-ready real D-003 production-baseline adapter (task_id/query + descriptor)."""
+    def _real_d003(task_id: str, query: str, baseline: dict) -> Any:
+        import importlib  # lazy, future wiring only (stdlib, no IO); real baseline retrieval import goes here
+        _ = importlib
+        # SAME-STAGE: fail-closed, no real retrieval (tests patch this factory, no real IO).
+        raise RuntimeError("real D-003 baseline not wired in SAME-STAGE (fail-closed, no real retrieval)")
+    _real_d003.__real_adapter__ = True  # type: ignore[attr-defined]
+    return _real_d003
+def _real_clock_fn():
+    """Lazy future-ready real clock adapter (ns)."""
+    def _real_clock() -> int:
+        import importlib  # lazy, future wiring only (stdlib, no IO); real clock source goes here
+        _ = importlib
+        # SAME-STAGE: fail-closed, no timing outside patched tests (tests patch this factory, no real IO).
+        raise RuntimeError("real clock not wired in SAME-STAGE (fail-closed, patched tests only)")
+    _real_clock.__real_adapter__ = True  # type: ignore[attr-defined]
+    return _real_clock
+def _real_corpus_provenance_fn():
+    """Lazy future-ready real corpus-provenance adapter."""
+    def _real_corpus() -> dict:
+        import importlib  # lazy, future wiring only (stdlib, no IO); real corpus pin import goes here
+        _ = importlib
+        # SAME-STAGE: fail-closed, no real DB/corpus IO (tests patch this factory, no real IO).
+        raise RuntimeError("real corpus provenance not wired in SAME-STAGE (fail-closed, no real IO)")
+    _real_corpus.__real_adapter__ = True  # type: ignore[attr-defined]
+    return _real_corpus
 def _is_real_adapter(fn: object) -> bool:
     return bool(getattr(fn, "__real_adapter__", False))
 def _is_canonical_output_path(output_path: str | pathlib.Path | None) -> bool:
@@ -184,7 +220,7 @@ class Runner:
         http_checker: Callable | None = None,
         clock_fn: Callable[[], int] | None = None,
         safety_evidence_fn: Callable[[dict], dict] | None = None,
-        d003_baseline_fn: Callable[[str], Any] | None = None,
+        d003_baseline_fn: Callable[[str, str, dict], Any] | None = None,
         adapter_kind: str = "mock",
     ):
         self.candidate_plan = candidate_plan
@@ -342,6 +378,16 @@ class Runner:
             validate_output_path(output_path, strict_canonical=bool(is_canonical))
             if is_canonical and not _is_canonical_output_path(output_path):
                 raise ValueError(f"canonical dev result must write exact canonical output (fail-closed): got {output_path!r}")
+        # D-041 correction-4: mandatory lazy REAL adapters wired before grant (presence checked pre-verification;
+        # no close needed on this failure; unpatched factories raise without IO; tests patch with synthetics).
+        if is_canonical and self.safety_evidence_fn is None:
+            raise ValueError("canonical protected-dev mode requires safety_evidence_fn (lazy REAL six-gate measurement, patched only in tests, fail-closed)")
+        if is_canonical and self.d003_baseline_fn is None:
+            raise ValueError("canonical protected-dev mode requires d003_baseline_fn (lazy REAL production baseline, patched only in tests, fail-closed)")
+        if is_canonical and self.clock_fn is None:
+            raise ValueError("canonical protected-dev mode requires clock_fn (lazy REAL ns clock, patched only in tests, fail-closed)")
+        if is_canonical and self.corpus_provenance_fn is None:
+            raise ValueError("canonical protected-dev mode requires corpus_provenance_fn (lazy REAL corpus pin, patched only in tests, fail-closed)")
         audit_log = pathlib.Path(audit_log) if audit_log else self.audit_log_path
         # D-040 grant lifecycle flags: verified once, closed exactly once, never closed on failed verification.
         grant_verified = False
@@ -600,14 +646,18 @@ class Runner:
                     }
 
             latency_p95_per_config = None
+            latency_evidence_per_config = None
+            latency_gate_per_config = None
             if self.clock_fn is not None:
                 try:
                     # D-039: D-003 production baseline paired latency. candidate-a-01 is FORBIDDEN as baseline
-                    # (it manufactured latency PASS); baseline must come from d003_baseline_fn (D003_BASELINE descriptor).
+                    # (it manufactured latency PASS); baseline must come from d003_baseline_fn(task_id, query, D003_BASELINE descriptor).
                     if self.d003_baseline_fn is None:
                         raise RuntimeError("d003 baseline fn missing (fail-closed HOLD: no D-003 paired measurement)")
                     task_ids_sorted = sorted([t.get("task_id") or t.get("id") or f"task-{i:03d}" for i, t in enumerate(tasks)])
                     latencies = {}
+                    latency_evidence_per_config = {}
+                    latency_gate_per_config = {}
                     for cfg in self.plan_data["configs"]:
                         def _baseline_fn(tid):
                             task = next((tt for tt in tasks if (tt.get("task_id") or tt.get("id")) == tid), None)
@@ -616,7 +666,7 @@ class Runner:
                             q = task.get("query") or task.get("query_text") or ""
                             if not isinstance(q, str) or not q.strip():
                                 raise ValueError(f"latency empty query (fail-closed): {tid}")
-                            self.d003_baseline_fn(tid)
+                            self.d003_baseline_fn(tid, q, D003_BASELINE)
                         def _candidate_fn(tid, _cfg=cfg):
                             task = next((tt for tt in tasks if (tt.get("task_id") or tt.get("id")) == tid), None)
                             if task is None:
@@ -629,10 +679,15 @@ class Runner:
                         cand_p95 = res.get("candidate", {}).get("p95") if isinstance(res.get("candidate"), dict) else res.get("candidate_p95")
                         # SAME-STAGE fail-closed: no fabricated default; missing p95 stays None -> selection HOLD.
                         latencies[cfg["config_id"]] = cand_p95 if cand_p95 is not None else None
+                        # D-041: full paired evidence per config (n/warmup/baseline+candidate p50/p95/p99+gate) for canonical result.
+                        latency_evidence_per_config[cfg["config_id"]] = res
+                        latency_gate_per_config[cfg["config_id"]] = res.get("gate") if isinstance(res, dict) else None
                     latency_p95_per_config = latencies
                 except Exception:
                     latency_p95_per_config = None
-            selection = select_candidate(per_config_metrics, safety_per_config, latency_p95_per_config)
+                    latency_evidence_per_config = None
+                    latency_gate_per_config = None
+            selection = select_candidate(per_config_metrics, safety_per_config, latency_p95_per_config, latency_gate_per_config)
             if selection["chosen"]:
                 chosen_metrics = next(m for m in per_config_metrics if m["config_id"] == selection["chosen"])
                 union_r100 = chosen_metrics.get("union_oracle_R100", 0.0)
@@ -674,6 +729,8 @@ class Runner:
                 corpus_provenance=corpus_prov,
                 set_provenance=set_prov,
                 audit_head=audit_head_val,
+                safety_per_config=safety_per_config,
+                latency_per_config=latency_evidence_per_config,
             )
 
             if output_path:
@@ -888,9 +945,14 @@ def main_canonical_dev(args):
         raise ValueError(f"canonical-dev must write exact canonical output (fail-closed): got {args.output!r}")
     plan = load_candidate_plan_or_fail()
     # Lazy future-ready real adapters: factories called here (not at import); unpatched they raise without IO.
+    # D-041: mandatory safety/D003/clock/corpus adapters wired before grant (presence checked pre-verification).
     real_embedding = _real_embedding_fn()
     real_policies_loader = _real_policy_loader_fn()
     real_protected_loader = _real_protected_loader_fn()
+    real_safety = _real_safety_evidence_fn()
+    real_d003 = _real_d003_baseline_fn()
+    real_clock = _real_clock_fn()
+    real_corpus = _real_corpus_provenance_fn()
     runner = Runner(
         candidate_plan=plan,
         embedding_fn=real_embedding,
@@ -898,6 +960,10 @@ def main_canonical_dev(args):
         protected_set_loader=real_protected_loader,
         audit_log_path=args.audit_log,
         adapter_kind="real",
+        safety_evidence_fn=real_safety,
+        d003_baseline_fn=real_d003,
+        clock_fn=real_clock,
+        corpus_provenance_fn=real_corpus,
     )
     # Policies via real adapter only (SAME-STAGE fail-closed raises here, before grant verification, no grant close).
     policies = real_policies_loader()

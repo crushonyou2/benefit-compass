@@ -33,6 +33,8 @@ def build_result_skeleton(
     corpus_provenance: dict | None = None,
     set_provenance: dict | None = None,
     audit_head: str | None = None,
+    safety_per_config: dict | None = None,
+    latency_per_config: dict | None = None,
 ) -> dict:
     """Build complete result dict."""
     # provenance must contain candidate_plan_sha, prereg_sha
@@ -104,6 +106,8 @@ def build_result_skeleton(
         "per_config_metrics": per_config_metrics,
         "selection": selection,
         "candidate_b_gate": candidate_b_gate,
+        "safety_per_config": safety_per_config,
+        "latency_per_config": latency_per_config,
         "per_config_count": len(per_config_metrics),
         "created_at": provenance.get("created_at") or __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat().replace("+00:00", "Z"),
     }
@@ -160,6 +164,54 @@ def validate_complete_result(result: dict):
             _validate_hex64(set_prov["set_sha"], "set_sha")
             # D-039: canonical result n=180/headline_n=130 when set_sha present (fail-closed).
             # D-040 correction-3: missing field also fails (exact canonical output requires both pins).
+            # D-041 correction-4: canonical requires complete 18-key safety+latency evidence and selection consistency.
+            # Noncanonical mock (no set_sha) stays lightweight: no evidence requirement.
+            expected_ids = [f"candidate-a-{i:02d}" for i in range(1, 19)]
+            safety_map = result.get("safety_per_config")
+            if not isinstance(safety_map, dict) or sorted(safety_map.keys()) != expected_ids:
+                raise ValueError("canonical safety_per_config must carry complete 18 config keys (fail-closed)")
+            for cid in expected_ids:
+                rep = safety_map.get(cid)
+                if not isinstance(rep, dict):
+                    raise ValueError(f"canonical safety {cid} must be dict")
+                for gate in ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost"):
+                    if rep.get(gate) not in ("PASS", "NO-GO", "HOLD"):
+                        raise ValueError(f"canonical safety {cid}.{gate} must be PASS/NO-GO/HOLD")
+            latency_map = result.get("latency_per_config")
+            if not isinstance(latency_map, dict) or sorted(latency_map.keys()) != expected_ids:
+                raise ValueError("canonical latency_per_config must carry complete 18 config keys (fail-closed)")
+            for cid in expected_ids:
+                ev = latency_map.get(cid)
+                if not isinstance(ev, dict):
+                    raise ValueError(f"canonical latency {cid} must be dict")
+                if ev.get("gate") not in ("PASS", "NO-GO", "HOLD"):
+                    raise ValueError(f"canonical latency {cid}.gate must be PASS/NO-GO/HOLD")
+                for side in ("baseline", "candidate"):
+                    blk = ev.get(side)
+                    if not isinstance(blk, dict):
+                        raise ValueError(f"canonical latency {cid}.{side} must be dict")
+                    for stat in ("p50", "p95", "p99"):
+                        val = blk.get(stat)
+                        if not isinstance(val, (int, float)):
+                            raise ValueError(f"canonical latency {cid}.{side}.{stat} must be numeric")
+                if not isinstance(ev.get("n"), int) or not isinstance(ev.get("warmup_n"), int):
+                    raise ValueError(f"canonical latency {cid} must carry int n/warmup_n")
+            sel = result.get("selection") or {}
+            eligible = sel.get("eligible")
+            chosen = sel.get("chosen")
+            if not isinstance(eligible, list) or any(e not in expected_ids for e in eligible):
+                raise ValueError("canonical selection.eligible must list known config ids only")
+            if chosen is not None and chosen not in eligible:
+                raise ValueError("canonical selection.chosen must be in eligible (fail-closed consistency)")
+            for cid in (eligible + ([chosen] if chosen else [])):
+                m = next((p for p in result.get("per_config_metrics", []) if p.get("config_id") == cid), None)
+                if m is None or not isinstance(m.get("success_at_5"), (int, float)) or not m.get("success_at_5") >= 0.85:
+                    raise ValueError(f"canonical eligible {cid} must carry success_at_5>=0.85")
+                for gate in ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost"):
+                    if safety_map.get(cid, {}).get(gate) != "PASS":
+                        raise ValueError(f"canonical eligible {cid} must carry six-gate safety PASS")
+                if latency_map.get(cid, {}).get("gate") != "PASS":
+                    raise ValueError(f"canonical eligible {cid} must carry latency gate PASS")
             if set_prov.get("n") != 180:
                 raise ValueError(f"canonical set_provenance.n must be 180, got {set_prov.get('n')!r}")
             if set_prov.get("headline_n") != 130:

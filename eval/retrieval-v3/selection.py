@@ -45,6 +45,7 @@ def select_candidate(
     per_config_metrics: list[dict],
     safety_per_config: dict[str, dict] | None = None,
     latency_p95_per_config: dict[str, float] | None = None,
+    latency_gate_per_config: dict[str, str] | None = None,
 ) -> dict:
     """
     per_config_metrics: list of {config_id, success_at_5, ndcg_at_5, mrr_at_10, ...}
@@ -73,12 +74,23 @@ def select_candidate(
         rep = safety_per_config.get(cid, {})
         if not _safety_passes(rep):
             continue
-        # latency fail-closed: missing entry or non-finite => HOLD => ineligible
+        # D-041: absolute user-centered ceiling always enforced (candidate p95 >700 => ineligible even legacy).
+        # D-041: when measure gate map is provided (canonical), REQUIRE gate PASS (relative +80 and 700 via measure).
         if cid not in latency_p95_per_config:
             continue
         p95_val = latency_p95_per_config[cid]
         if p95_val is None or not _is_finite_latency(p95_val):
             continue
+        try:
+            if float(p95_val) > 700:
+                continue
+        except Exception:
+            continue
+        if latency_gate_per_config is not None:
+            if cid not in latency_gate_per_config:
+                continue
+            if latency_gate_per_config[cid] != "PASS":
+                continue
         if success >= 0.85:
             eligible.append(m)
 

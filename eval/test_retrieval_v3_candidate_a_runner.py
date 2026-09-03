@@ -950,6 +950,23 @@ def _make_canonical_180():
             t["location_bearing"] = True
             loc_made += 1
     return tasks
+def _canonical_test_adapters(safety_gate="HOLD"):
+    # D-041: canonical requires safety/D003/clock/corpus adapters pre-grant; tests patch with synthetics (no real IO).
+    from retrieval_v3.runner import D003_BASELINE as _D003
+    gates = ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost")
+    def safety_fn(payload):
+        return {g: {"gate": safety_gate} for g in gates}
+    calls = {"n": 0}
+    def d003_fn(tid, query, baseline):
+        assert baseline == _D003, "descriptor must be exact D003_BASELINE"
+        calls["n"] += 1
+    cnt = [0]
+    def clock_fn():
+        cnt[0] += 1000000
+        return cnt[0]
+    def corpus_fn():
+        return {"total_policies": 1, "snapshot": "test"}
+    return {"safety_evidence_fn": safety_fn, "d003_baseline_fn": d003_fn, "clock_fn": clock_fn, "corpus_provenance_fn": corpus_fn}
 
 def test_selection_http_resolution_required():
     per = [{"config_id": "candidate-a-01", "success_at_5": 0.9, "ndcg_at_5": 0.8, "mrr_at_10": 0.7}]
@@ -1035,14 +1052,14 @@ def test_canonical_dev_mode_grant_before_loader_and_counts():
         return tasks180
     with tempfile.TemporaryDirectory() as td:
         audit_log = pathlib.Path(td) / "audit.jsonl"
-        runner = Runner(candidate_plan=plan, protected_set_loader=loader, audit_log_path=audit_log, adapter_kind="real")
+        runner = Runner(candidate_plan=plan, protected_set_loader=loader, audit_log_path=audit_log, adapter_kind="real", **_canonical_test_adapters())
         try:
             runner.run_dev_evaluation(tasks=[], policies=[], session_id="no-grant", set_role="dev", set_sha=sha, audit_log=audit_log, output_path=None, skip_audit=False)
             assert False, "canonical without grant must fail before loader"
         except RuntimeError as e:
             assert "grant" in str(e).lower()
         assert called["n"] == 0, "loader must never run without grant"
-        runner2 = Runner(candidate_plan=plan, protected_set_loader=loader, audit_log_path=audit_log, adapter_kind="real")
+        runner2 = Runner(candidate_plan=plan, protected_set_loader=loader, audit_log_path=audit_log, adapter_kind="real", **_canonical_test_adapters())
         try:
             runner2.run_dev_evaluation(tasks=[{"task_id": "x"}], policies=[], session_id="direct", set_role="dev", set_sha=sha, audit_log=audit_log, output_path=None, skip_audit=False)
             assert False, "canonical direct tasks must be rejected (no fake adapters)"
@@ -1088,6 +1105,7 @@ def test_d003_baseline_forbids_candidate_a01():
     assert "d003_baseline_fn" in src
     assert "baseline_cfg = self.plan_data" not in src, "candidate-a-01 must not be baseline"
     assert "D003_BASELINE" in src
+    assert "d003_baseline_fn(tid, q, D003_BASELINE)" in src, "baseline callback must receive task_id/query + exact descriptor"
     plan = load_candidate_plan_or_fail()
     def fake_vec(seed):
         rnd = random.Random(seed)
@@ -1110,7 +1128,10 @@ def test_d003_baseline_forbids_candidate_a01():
         res = runner.run_dev_evaluation(tasks=tasks, policies=policies, session_id="no-d003", set_role="dev", set_sha=None, audit_log=audit_log, output_path=out, skip_audit=True)
         assert res["selection"]["chosen"] is None, "missing D-003 baseline must HOLD"
         calls = {"n": 0}
-        def d003(tid):
+        from retrieval_v3.runner import D003_BASELINE as _D003
+        def d003(tid, query, baseline):
+            assert baseline == _D003, "baseline callback must receive exact D003_BASELINE descriptor (never candidate config)"
+            assert isinstance(tid, str) and isinstance(query, str) and query.strip()
             calls["n"] += 1
         audit_log2 = pathlib.Path(td) / "audit2.jsonl"
         out2 = pathlib.Path(td) / "out2.json"
@@ -1207,7 +1228,10 @@ def test_canonical_result_n_headline():
     from retrieval_v3.result_schema import validate_complete_result
     from retrieval_v3.candidate_registry import EXPECTED_SHA, EXPECTED_PREREG_SHA
     per = [{"config_id": f"candidate-a-{i:02d}", "success_at_5": 0.9, "ndcg_at_5": 0.8, "mrr_at_10": 0.7} for i in range(1, 19)]
-    base = {"schema_version": 1, "git_head": "0" * 40, "git_dirty": False, "candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA, "provenance": {"candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA}, "per_config_metrics": per, "selection": {"chosen": None}, "candidate_b_gate": {"admitted": False, "instantiated": False, "status": "not_evaluated"}}
+    _ids = [f"candidate-a-{i:02d}" for i in range(1, 19)]
+    _saf = {c: {"unsupported": "HOLD", "ambiguous": "HOLD", "ineligible_expired": "HOLD", "official_link": "HOLD", "http_resolution": "HOLD", "cost": "HOLD"} for c in _ids}
+    _lat = {c: {"n": 180, "warmup_n": 30, "baseline": {"p50": 500, "p95": 500, "p99": 500}, "candidate": {"p50": 500, "p95": 500, "p99": 500}, "gate": "PASS"} for c in _ids}
+    base = {"schema_version": 1, "git_head": "0" * 40, "git_dirty": False, "candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA, "provenance": {"candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA}, "per_config_metrics": per, "selection": {"chosen": None, "eligible": []}, "candidate_b_gate": {"admitted": False, "instantiated": False, "status": "not_evaluated"}, "safety_per_config": _saf, "latency_per_config": _lat}
     bad = dict(base, set_provenance={"set_role": "dev", "set_sha": "1" * 64, "n": 5, "headline_n": 5})
     try:
         validate_complete_result(bad)
@@ -1257,7 +1281,7 @@ def test_canonical_grant_lifecycle_success_exact_one():
     with tempfile.TemporaryDirectory() as td:
         log = pathlib.Path(td) / "audit.jsonl"
         _audit.append_event(str(log), action="protected_access_start", set_role="dev", set_sha=sha, session_id=sid, candidate_id="v3-candidate-dev-v1", outcome="success")
-        runner = Runner(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=loader, audit_log_path=log, adapter_kind="real")
+        runner = Runner(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=loader, audit_log_path=log, adapter_kind="real", **_canonical_test_adapters())
         res = runner.run_dev_evaluation(tasks=[], policies=policies, session_id=sid, set_role="dev", set_sha=sha, audit_log=log, output_path=None, skip_audit=False)
         assert res["set_provenance"]["n"] == 180 and res["set_provenance"]["headline_n"] == 130
         chain = _audit.read_and_verify_chain(str(log))
@@ -1286,7 +1310,7 @@ def test_canonical_grant_loader_failure_closes_failure():
     with tempfile.TemporaryDirectory() as td:
         log = pathlib.Path(td) / "audit.jsonl"
         _audit.append_event(str(log), action="protected_access_start", set_role="dev", set_sha=sha, session_id=sid, candidate_id="v3-candidate-dev-v1", outcome="success")
-        runner = Runner(candidate_plan=plan, protected_set_loader=bad_loader, audit_log_path=log, adapter_kind="real")
+        runner = Runner(candidate_plan=plan, protected_set_loader=bad_loader, audit_log_path=log, adapter_kind="real", **_canonical_test_adapters())
         try:
             runner.run_dev_evaluation(tasks=[], policies=[], session_id=sid, set_role="dev", set_sha=sha, audit_log=log, output_path=None, skip_audit=False)
             assert False, "loader failure must raise"
@@ -1309,7 +1333,7 @@ def test_canonical_grant_pre_run_failure_closes_failure():
         log = pathlib.Path(td) / "audit.jsonl"
         _audit.append_event(str(log), action="protected_access_start", set_role="dev", set_sha=sha, session_id=sid, candidate_id="v3-candidate-dev-v1", outcome="success")
         _audit.append_event(str(log), action="run_start", set_role="dev", set_sha=sha, session_id="other-session", candidate_id="v3-candidate-dev-v1")
-        runner = Runner(candidate_plan=plan, protected_set_loader=lambda r, s: tasks180, audit_log_path=log, adapter_kind="real")
+        runner = Runner(candidate_plan=plan, protected_set_loader=lambda r, s: tasks180, audit_log_path=log, adapter_kind="real", **_canonical_test_adapters())
         try:
             runner.run_dev_evaluation(tasks=[], policies=[], session_id=sid, set_role="dev", set_sha=sha, audit_log=log, output_path=None, skip_audit=False)
             assert False, "pre-run duplicate must raise"
@@ -1338,7 +1362,7 @@ def test_canonical_grant_execution_failure_closes_failure():
     with tempfile.TemporaryDirectory() as td:
         log = pathlib.Path(td) / "audit.jsonl"
         _audit.append_event(str(log), action="protected_access_start", set_role="dev", set_sha=sha, session_id=sid, candidate_id="v3-candidate-dev-v1", outcome="success")
-        runner = Runner(candidate_plan=plan, embedding_fn=bad_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r, s: tasks180, audit_log_path=log, adapter_kind="real")
+        runner = Runner(candidate_plan=plan, embedding_fn=bad_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r, s: tasks180, audit_log_path=log, adapter_kind="real", **_canonical_test_adapters())
         try:
             runner.run_dev_evaluation(tasks=[], policies=policies, session_id=sid, set_role="dev", set_sha=sha, audit_log=log, output_path=None, skip_audit=False)
             assert False, "execution failure must raise"
@@ -1361,7 +1385,7 @@ def test_canonical_no_close_on_failed_verification():
         def loader(role, sh):
             called["n"] += 1
             return []
-        runner = Runner(candidate_plan=plan, protected_set_loader=loader, audit_log_path=log, adapter_kind="real")
+        runner = Runner(candidate_plan=plan, protected_set_loader=loader, audit_log_path=log, adapter_kind="real", **_canonical_test_adapters())
         try:
             runner.run_dev_evaluation(tasks=[], policies=[], session_id="no-grant-here", set_role="dev", set_sha=sha, audit_log=log, output_path=None, skip_audit=False)
             assert False, "missing grant must fail"
@@ -1376,7 +1400,7 @@ def test_canonical_no_close_on_failed_verification():
         log2 = pathlib.Path(td) / "audit2.jsonl"
         _audit.append_event(str(log2), action="protected_access_start", set_role="dev", set_sha=sha, session_id="s-closed", candidate_id="v3-candidate-dev-v1", outcome="success")
         _audit.append_event(str(log2), action="protected_access_end", set_role="dev", set_sha=sha, session_id="s-closed", candidate_id="v3-candidate-dev-v1", outcome="success")
-        runner2 = Runner(candidate_plan=plan, protected_set_loader=loader, audit_log_path=log2, adapter_kind="real")
+        runner2 = Runner(candidate_plan=plan, protected_set_loader=loader, audit_log_path=log2, adapter_kind="real", **_canonical_test_adapters())
         try:
             runner2.run_dev_evaluation(tasks=[], policies=[], session_id="s-closed", set_role="dev", set_sha=sha, audit_log=log2, output_path=None, skip_audit=False)
             assert False, "closed grant must fail verification"
@@ -1440,7 +1464,10 @@ def test_canonical_output_exact_and_missing_field():
     from retrieval_v3.candidate_registry import EXPECTED_SHA, EXPECTED_PREREG_SHA
     from retrieval_v3.paths import CANONICAL_DEV_OUTPUT_REL
     per = [{"config_id": f"candidate-a-{i:02d}", "success_at_5": 0.9, "ndcg_at_5": 0.8, "mrr_at_10": 0.7} for i in range(1, 19)]
-    base = {"schema_version": 1, "git_head": "0" * 40, "git_dirty": False, "candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA, "provenance": {"candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA}, "per_config_metrics": per, "selection": {"chosen": None}, "candidate_b_gate": {"admitted": False, "instantiated": False, "status": "not_evaluated"}}
+    _ids = [f"candidate-a-{i:02d}" for i in range(1, 19)]
+    _saf = {c: {"unsupported": "HOLD", "ambiguous": "HOLD", "ineligible_expired": "HOLD", "official_link": "HOLD", "http_resolution": "HOLD", "cost": "HOLD"} for c in _ids}
+    _lat = {c: {"n": 180, "warmup_n": 30, "baseline": {"p50": 500, "p95": 500, "p99": 500}, "candidate": {"p50": 500, "p95": 500, "p99": 500}, "gate": "PASS"} for c in _ids}
+    base = {"schema_version": 1, "git_head": "0" * 40, "git_dirty": False, "candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA, "provenance": {"candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA}, "per_config_metrics": per, "selection": {"chosen": None, "eligible": []}, "candidate_b_gate": {"admitted": False, "instantiated": False, "status": "not_evaluated"}, "safety_per_config": _saf, "latency_per_config": _lat}
     for bad_prov in ({"set_role": "dev", "set_sha": "1" * 64}, {"set_role": "dev", "set_sha": "1" * 64, "n": 180}, {"set_role": "dev", "set_sha": "1" * 64, "headline_n": 130}, {"set_role": "dev", "set_sha": "1" * 64, "n": 5, "headline_n": 5}):
         bad = dict(base, set_provenance=bad_prov)
         try:
@@ -1479,8 +1506,129 @@ def test_canonical_output_exact_and_missing_field():
     assert _is_canonical_output_path("eval/retrieval_v3/results/v3-candidate-dev-result.json") is True
     assert _is_canonical_output_path(str(out)) is False
 
+def test_canonical_requires_adapters_pre_grant():
+    # D-041: canonical requires safety/D003/clock/corpus adapters BEFORE grant (no close on this pre-check failure).
+    from retrieval_v3 import audit as _audit
+    plan = load_candidate_plan_or_fail()
+    sha = "d" * 64
+    sid = "adapter-pregrant"
+    tasks180 = _make_canonical_180()
+    def loader(role, sh):
+        return tasks180
+    for drop in ("safety_evidence_fn", "d003_baseline_fn", "clock_fn", "corpus_provenance_fn"):
+        with tempfile.TemporaryDirectory() as td:
+            log = pathlib.Path(td) / "audit.jsonl"
+            _audit.append_event(str(log), action="protected_access_start", set_role="dev", set_sha=sha, session_id=sid, candidate_id="v3-candidate-dev-v1", outcome="success")
+            kw = _canonical_test_adapters()
+            kw.pop(drop)
+            runner = Runner(candidate_plan=plan, protected_set_loader=loader, audit_log_path=log, adapter_kind="real", **kw)
+            try:
+                runner.run_dev_evaluation(tasks=[], policies=[], session_id=sid, set_role="dev", set_sha=sha, audit_log=log, output_path=None, skip_audit=False)
+                assert False, f"missing {drop} must fail pre-grant"
+            except ValueError as e:
+                assert "requires" in str(e).lower() and drop.split("_")[0] in str(e).lower(), f"unexpected error for {drop}: {e}"
+            chain = _audit.read_and_verify_chain(str(log))
+            assert len([e for e in chain if e.get("action") == "protected_access_end"]) == 0, f"pre-grant failure must not close grant ({drop})"
+            assert len([e for e in chain if e.get("action") == "run_start"]) == 0
+
+def test_canonical_cli_wires_real_adapters():
+    # D-041: canonical CLI wires all lazy REAL adapters before grant; unpatched factories fail-closed without IO.
+    import pathlib as _pl
+    from retrieval_v3.runner import parse_args, main_canonical_dev, _real_safety_evidence_fn, _real_d003_baseline_fn, _real_clock_fn, _real_corpus_provenance_fn
+    src = (_pl.Path(__file__).resolve().parent / "retrieval_v3" / "runner.py").read_text(encoding="utf-8")
+    for name in ("_real_safety_evidence_fn", "_real_d003_baseline_fn", "_real_clock_fn", "_real_corpus_provenance_fn"):
+        assert f"def {name}" in src, f"lazy factory {name} required"
+    assert "safety_evidence_fn=real_safety" in src and "d003_baseline_fn=real_d003" in src
+    assert "clock_fn=real_clock" in src and "corpus_provenance_fn=real_corpus" in src
+    calls = [lambda: _real_safety_evidence_fn()({"config_id": "candidate-a-01"}), lambda: _real_d003_baseline_fn()("t001", "query text", {}), lambda: _real_clock_fn()(), lambda: _real_corpus_provenance_fn()()]
+    for mk in calls:
+        try:
+            mk()
+            assert False, "unpatched real adapter must fail-closed"
+        except RuntimeError as e:
+            assert "SAME-STAGE" in str(e) or "not wired" in str(e)
+    for fn in (_real_safety_evidence_fn(), _real_d003_baseline_fn(), _real_clock_fn(), _real_corpus_provenance_fn()):
+        assert getattr(fn, "__real_adapter__", False) is True
+    # Canonical CLI fails fail-closed at real policy load (before grant verification, no audit IO, no real IO).
+    from retrieval_v3.paths import CANONICAL_DEV_OUTPUT_REL
+    args = parse_args(["--session-id", "cli-wire", "--set-role", "dev", "--set-sha", "c" * 64, "--output", str(CANONICAL_DEV_OUTPUT_REL)])
+    try:
+        main_canonical_dev(args)
+        assert False, "SAME-STAGE canonical CLI must fail-closed on unwired real policy loader"
+    except RuntimeError as e:
+        assert "not wired" in str(e) or "SAME-STAGE" in str(e)
+
+def test_latency_gate_eligibility_650_570_700():
+    # D-041: eligibility REQUIRES measure_paired_latency gate PASS (relative +80 and absolute 700).
+    from retrieval_v3.latency import evaluate_latency_gate
+    assert evaluate_latency_gate(650, 500) is False, "650 vs baseline 500 (+150) must be NO-GO"
+    assert evaluate_latency_gate(570, 500) is True, "570 vs baseline 500 (+70, <=700) must be PASS"
+    assert evaluate_latency_gate(701, 500) is False, ">700 must be NO-GO"
+    assert evaluate_latency_gate(700, 620) is True, "700 exactly with headroom must be PASS"
+    assert evaluate_latency_gate(781, 700) is False, "+81 over baseline must be NO-GO"
+    full_pass = {"candidate-a-01": {"unsupported": "PASS", "ambiguous": "PASS", "ineligible_expired": "PASS", "official_link": "PASS", "http_resolution": "PASS", "cost": "PASS"}}
+    per = [{"config_id": "candidate-a-01", "success_at_5": 0.9, "ndcg_at_5": 0.8, "mrr_at_10": 0.7}]
+    sel = select_candidate(per, safety_per_config=full_pass, latency_p95_per_config={"candidate-a-01": 650}, latency_gate_per_config={"candidate-a-01": "NO-GO"})
+    assert sel["chosen"] is None, "650/NO-GO must be ineligible"
+    sel2 = select_candidate(per, safety_per_config=full_pass, latency_p95_per_config={"candidate-a-01": 570}, latency_gate_per_config={"candidate-a-01": "PASS"})
+    assert sel2["chosen"] == "candidate-a-01", "570/PASS must be eligible"
+    sel3 = select_candidate(per, safety_per_config=full_pass, latency_p95_per_config={"candidate-a-01": 701}, latency_gate_per_config={"candidate-a-01": "NO-GO"})
+    assert sel3["chosen"] is None, ">700/NO-GO must be ineligible"
+    sel4 = select_candidate(per, safety_per_config=full_pass, latency_p95_per_config={"candidate-a-01": 701})
+    assert sel4["chosen"] is None, ">700 must be ineligible even on legacy path (absolute ceiling)"
+
+def test_canonical_result_evidence_and_consistency():
+    # D-041: canonical result preserves 18-key six-gate safety + paired latency evidence; selection consistent; mock lightweight.
+    import copy
+    from retrieval_v3.result_schema import validate_complete_result
+    from retrieval_v3 import audit as _audit
+    plan = load_candidate_plan_or_fail()
+    sha = "e" * 64
+    sid = "evidence-check"
+    tasks180 = _make_canonical_180()
+    def fake_vec(seed):
+        rnd = random.Random(seed)
+        v = [rnd.uniform(-1, 1) for _ in range(768)]
+        norm = (sum(x * x for x in v) ** 0.5) or 1
+        return [round(x / norm, 6) for x in v]
+    policies = [{"id": 1, "source": "youth", "source_id": "p0", "title": "policy 0", "support_content": "", "summary": "", "keywords": "", "add_qualify": "", "income_etc": "", "apply_method": "", "org": "org", "chunks": [{"embedding": fake_vec(0), "chunk_index": 0, "id": 0}]}]
+    def fake_emb(q):
+        h = hashlib.sha256(q.encode()).digest()
+        return fake_vec(int.from_bytes(h[:4], "little"))
+    with tempfile.TemporaryDirectory() as td:
+        log = pathlib.Path(td) / "audit.jsonl"
+        _audit.append_event(str(log), action="protected_access_start", set_role="dev", set_sha=sha, session_id=sid, candidate_id="v3-candidate-dev-v1", outcome="success")
+        runner = Runner(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r, s: tasks180, audit_log_path=log, adapter_kind="real", **_canonical_test_adapters())
+        res = runner.run_dev_evaluation(tasks=[], policies=policies, session_id=sid, set_role="dev", set_sha=sha, audit_log=log, output_path=None, skip_audit=False)
+        expected_ids = [f"candidate-a-{i:02d}" for i in range(1, 19)]
+        assert sorted(res["safety_per_config"].keys()) == expected_ids, "safety evidence must span 18 configs"
+        assert sorted(res["latency_per_config"].keys()) == expected_ids, "latency evidence must span 18 configs"
+        for cid in expected_ids:
+            assert set(res["safety_per_config"][cid].keys()) >= {"unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost"}
+            lat = res["latency_per_config"][cid]
+            assert lat["n"] == 180 and lat["warmup_n"] == 30, f"{cid} latency must record n=180 warmup=30"
+            assert lat["gate"] in ("PASS", "NO-GO", "HOLD")
+            for side in ("baseline", "candidate"):
+                for stat in ("p50", "p95", "p99"):
+                    assert isinstance(lat[side][stat], (int, float)), f"{cid}.{side}.{stat} numeric"
+        validate_complete_result(res)
+        bad = copy.deepcopy(res)
+        bad["safety_per_config"].pop(expected_ids[0])
+        try:
+            validate_complete_result(bad)
+            assert False, "incomplete safety map must fail"
+        except ValueError:
+            pass
+        bad2 = copy.deepcopy(res)
+        bad2["selection"] = dict(res["selection"], eligible=[expected_ids[0]], chosen=expected_ids[1])
+        try:
+            validate_complete_result(bad2)
+            assert False, "chosen outside eligible must fail"
+        except ValueError:
+            pass
+
 if __name__=="__main__":
-    tests=[test_18_configs_and_drift, test_non_unit_cosine, test_representative_tie_and_near_tie, test_strict_gt_dedup_boundary, test_mmr_actual_cosine_and_full_top30, test_exact_normalization_and_boundaries, test_cosine_min_placement, test_union_vs_hybrid, test_exact_not_injected, test_deterministic_ordering, test_metrics_mrr_rank_gt10, test_selection_ordering_and_zero, test_b_gate_no_impl, test_latency_harness, test_audit_lifecycle, test_atomic_rerun_concurrent, test_path_confinement, test_runner_safety_hold_when_checkers_absent, test_runner_safety_hold_even_with_checkers_pre_dev, test_runner_latency_wiring, test_cli_orchestrator_e2e, test_fusion_youth_bias_only_youth_source_gov24_zero, test_sparse_only_representative_query_nearest_no_chunk0_fallback, test_oracle_union_set_and_headline130, test_metrics_graded_strict_and_ndcg, test_metrics_equivalence_group_no_double_count, test_slice_diagnostics_unavailable, test_selection_fail_closed_missing_gates, test_selection_fail_closed_missing_latency, test_execution_lifecycle_audit_closure_on_failure, test_execution_lifecycle_path_and_result_os_agnostic, test_headline_no_silent_fallback_safety_only, test_gold_missing_grade_fail_closed, test_empty_query_fail_closed, test_latency_no_fabricated_default_static, test_mirror_hyphen_underscore_identity, test_selection_http_resolution_required, test_headline_missing_stratum_not_headline, test_headline_empty_golds_fail_closed, test_retrieve_blank_fail_closed_lowest, test_canonical_dev_mode_grant_before_loader_and_counts, test_canonical_counts_mismatch_fail_closed, test_safety_real_interfaces, test_d003_baseline_forbids_candidate_a01, test_audit_preflight_no_duplicate_run_start, test_audit_windows_lock_serialized, test_path_sibling_rejected, test_candidate_b_no_finalist_not_evaluated, test_canonical_result_n_headline, test_protected_access_end_exact_outcome, test_canonical_grant_lifecycle_success_exact_one, test_canonical_grant_loader_failure_closes_failure, test_canonical_grant_pre_run_failure_closes_failure, test_canonical_grant_execution_failure_closes_failure, test_canonical_no_close_on_failed_verification, test_canonical_cli_forbids_fakes_and_uses_real_adapters, test_canonical_output_exact_and_missing_field]
+    tests=[test_18_configs_and_drift, test_non_unit_cosine, test_representative_tie_and_near_tie, test_strict_gt_dedup_boundary, test_mmr_actual_cosine_and_full_top30, test_exact_normalization_and_boundaries, test_cosine_min_placement, test_union_vs_hybrid, test_exact_not_injected, test_deterministic_ordering, test_metrics_mrr_rank_gt10, test_selection_ordering_and_zero, test_b_gate_no_impl, test_latency_harness, test_audit_lifecycle, test_atomic_rerun_concurrent, test_path_confinement, test_runner_safety_hold_when_checkers_absent, test_runner_safety_hold_even_with_checkers_pre_dev, test_runner_latency_wiring, test_cli_orchestrator_e2e, test_fusion_youth_bias_only_youth_source_gov24_zero, test_sparse_only_representative_query_nearest_no_chunk0_fallback, test_oracle_union_set_and_headline130, test_metrics_graded_strict_and_ndcg, test_metrics_equivalence_group_no_double_count, test_slice_diagnostics_unavailable, test_selection_fail_closed_missing_gates, test_selection_fail_closed_missing_latency, test_execution_lifecycle_audit_closure_on_failure, test_execution_lifecycle_path_and_result_os_agnostic, test_headline_no_silent_fallback_safety_only, test_gold_missing_grade_fail_closed, test_empty_query_fail_closed, test_latency_no_fabricated_default_static, test_mirror_hyphen_underscore_identity, test_selection_http_resolution_required, test_headline_missing_stratum_not_headline, test_headline_empty_golds_fail_closed, test_retrieve_blank_fail_closed_lowest, test_canonical_dev_mode_grant_before_loader_and_counts, test_canonical_counts_mismatch_fail_closed, test_safety_real_interfaces, test_d003_baseline_forbids_candidate_a01, test_audit_preflight_no_duplicate_run_start, test_audit_windows_lock_serialized, test_path_sibling_rejected, test_candidate_b_no_finalist_not_evaluated, test_canonical_result_n_headline, test_protected_access_end_exact_outcome, test_canonical_grant_lifecycle_success_exact_one, test_canonical_grant_loader_failure_closes_failure, test_canonical_grant_pre_run_failure_closes_failure, test_canonical_grant_execution_failure_closes_failure, test_canonical_no_close_on_failed_verification, test_canonical_cli_forbids_fakes_and_uses_real_adapters, test_canonical_output_exact_and_missing_field, test_canonical_requires_adapters_pre_grant, test_canonical_cli_wires_real_adapters, test_latency_gate_eligibility_650_570_700, test_canonical_result_evidence_and_consistency]
     for t in tests:
         try:
             t()
@@ -1489,4 +1637,4 @@ if __name__=="__main__":
             print(f"FAIL {t.__name__}: {e}")
             import traceback; traceback.print_exc()
             sys.exit(1)
-    print("ALL 57 focused tests PASS")
+    print("ALL 61 focused tests PASS")
