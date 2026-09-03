@@ -48,6 +48,8 @@ def build_result_skeleton(
     audit_head: str | None = None,
     safety_per_config: dict | None = None,
     latency_per_config: dict | None = None,
+    # D-054: pinned evaluation context {db_session_timezone, evaluation_as_of_date}.
+    evaluation_context: dict | None = None,
 ) -> dict:
     """Build complete result dict."""
     # provenance must contain candidate_plan_sha, prereg_sha
@@ -121,6 +123,7 @@ def build_result_skeleton(
         "candidate_b_gate": candidate_b_gate,
         "safety_per_config": safety_per_config,
         "latency_per_config": latency_per_config,
+        "evaluation_context": evaluation_context,
         "per_config_count": len(per_config_metrics),
         "created_at": provenance.get("created_at") or __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat().replace("+00:00", "Z"),
     }
@@ -220,21 +223,23 @@ def validate_complete_result(result: dict):
                         raise ValueError(f"canonical safety {cid}.ambiguous needs success int 0..23 + required21/denominator23")
                     if (_ag.get("gate") == "PASS") != (_ag.get("success") >= 21):
                         raise ValueError(f"canonical safety {cid}.ambiguous gate inconsistent with success/21")
-                _ig = rep.get("ineligible_expired")
+                # D-054: effective gate is production_exclusion (plan-v4). The old
+                # ineligible/expired key is not an effective required key (extra keys ignored).
+                _ig = rep.get("production_exclusion")
                 if not isinstance(_ig, dict) or _ig.get("gate") not in ("PASS", "NO-GO", "HOLD"):
-                    raise ValueError(f"canonical safety {cid}.ineligible_expired must be structured PASS/NO-GO/HOLD")
+                    raise ValueError(f"canonical safety {cid}.production_exclusion must be structured PASS/NO-GO/HOLD")
                 if _ig.get("gate") in ("PASS", "NO-GO"):
                     if _ig.get("expected_tasks") != 180 or _ig.get("expected_slots") != 900:
-                        raise ValueError(f"canonical safety {cid}.ineligible_expired needs expected_tasks180/expected_slots900")
+                        raise ValueError(f"canonical safety {cid}.production_exclusion needs expected_tasks180/expected_slots900")
                     if not _is_strict_int(_ig.get("intrusions_task")) or not _is_strict_int(_ig.get("intrusions_slot")):
-                        raise ValueError(f"canonical safety {cid}.ineligible_expired needs intrusion counts")
+                        raise ValueError(f"canonical safety {cid}.production_exclusion needs intrusion counts")
                     if not 0 <= _ig.get("intrusions_task") <= 180 or not 0 <= _ig.get("intrusions_slot") <= 900:
-                        raise ValueError(f"canonical safety {cid}.ineligible_expired intrusions must be task 0..180 slot 0..900")
+                        raise ValueError(f"canonical safety {cid}.production_exclusion intrusions must be task 0..180 slot 0..900")
                     if _ig.get("intrusions_task") > _ig.get("intrusions_slot"):
-                        raise ValueError(f"canonical safety {cid}.ineligible_expired task intrusions cannot exceed slot intrusions")
+                        raise ValueError(f"canonical safety {cid}.production_exclusion task intrusions cannot exceed slot intrusions")
                     _clean = _ig.get("intrusions_task") == 0 and _ig.get("intrusions_slot") == 0
                     if (_ig.get("gate") == "PASS") != _clean:
-                        raise ValueError(f"canonical safety {cid}.ineligible_expired gate inconsistent with intrusions")
+                        raise ValueError(f"canonical safety {cid}.production_exclusion gate inconsistent with intrusions")
                 _og = rep.get("official_link")
                 if not isinstance(_og, dict) or _og.get("gate") not in ("PASS", "NO-GO", "HOLD"):
                     raise ValueError(f"canonical safety {cid}.official_link must be structured PASS/NO-GO/HOLD")
@@ -310,7 +315,7 @@ def validate_complete_result(result: dict):
                 m = next((p for p in result.get("per_config_metrics", []) if p.get("config_id") == cid), None)
                 if m is None or not isinstance(m.get("success_at_5"), (int, float)) or not m.get("success_at_5") >= 0.85:
                     raise ValueError(f"canonical eligible {cid} must carry success_at_5>=0.85")
-                for gate in ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost"):
+                for gate in ("unsupported", "ambiguous", "production_exclusion", "official_link", "http_resolution", "cost"):
                     _gv = safety_map.get(cid, {}).get(gate)
                     _gs = _gv if isinstance(_gv, str) else (isinstance(_gv, dict) and _gv.get("gate"))
                     if _gs != "PASS":
@@ -321,6 +326,24 @@ def validate_complete_result(result: dict):
                 raise ValueError(f"canonical set_provenance.n must be 180, got {set_prov.get('n')!r}")
             if set_prov.get("headline_n") != 130:
                 raise ValueError(f"canonical set_provenance.headline_n must be 130, got {set_prov.get('headline_n')!r}")
+            # D-054: canonical pins the captured evaluation context in the result and
+            # in corpus provenance (structured, no new gate/action). Fail-closed.
+            _ctx = result.get("evaluation_context")
+            if not isinstance(_ctx, dict):
+                raise ValueError("canonical evaluation_context must be pinned dict (fail-closed)")
+            _tz = _ctx.get("db_session_timezone")
+            if not isinstance(_tz, str) or not _tz.strip():
+                raise ValueError("canonical evaluation_context.db_session_timezone must be nonempty str (fail-closed)")
+            _asof = _ctx.get("evaluation_as_of_date")
+            import re as _re3
+            if not isinstance(_asof, str) or not _re3.match(r"^\d{4}-\d{2}-\d{2}$", _asof):
+                raise ValueError(f"canonical evaluation_context.evaluation_as_of_date must be ISO YYYY-MM-DD, got {_asof!r} (fail-closed)")
+            _corp = result.get("corpus_provenance")
+            if not isinstance(_corp, dict):
+                raise ValueError("canonical corpus_provenance must be dict carrying pinned context (fail-closed)")
+            for _k in ("db_session_timezone", "evaluation_as_of_date"):
+                if _corp.get(_k) != _ctx.get(_k):
+                    raise ValueError(f"canonical corpus_provenance.{_k} must equal pinned evaluation_context (fail-closed)")
     # corpus provenance pin
     corpus = result.get("corpus_provenance")
     if corpus:

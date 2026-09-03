@@ -11,6 +11,10 @@ from typing import Any, Callable
 
 from .candidate_registry import load_and_validate, EXPECTED_SHA, EXPECTED_PREREG_SHA
 from .normalization import strip_region, lexical_overlap_terms, youth_source_bias, normalize_exact
+from .safe_action import classify_safe_action
+from .production_exclusion import filter_policies_for_retrieval
+from .evaluation_context import capture_pinned_context, validate_pinned_context
+from .safety import evaluate_owned_unsupported, evaluate_owned_ambiguous, check_production_exclusion, cross_check_owned_core, action_correct_for_role
 from .exact import is_exact_title, is_exact_org
 from .dense import dense_top100, filter_dense_by_cosine_min, cosine_similarity
 from .sparse import sparse_top100
@@ -27,9 +31,8 @@ REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 DEFAULT_AUDIT_LOG = REPO_ROOT / "eval" / "retrieval-v3" / "audit" / "events.jsonl"
 DEFAULT_AUDIT_LOG_ALT = REPO_ROOT / "eval" / "retrieval_v3" / "audit" / "events.jsonl"
 
-CANDIDATE_PLAN_PATH = REPO_ROOT / "eval" / "retrieval-v3" / "candidate-plan" / "candidate-plan-v1.json"
+CANDIDATE_PLAN_PATH = REPO_ROOT / "eval" / "retrieval-v3" / "candidate-plan" / "candidate-plan-v4.json"
 PREREG_PATH = REPO_ROOT / "docs" / "RETRIEVAL_V3_PREREG.md"
-# D-039: explicit headline strata allowlist (D-015 §3 first six only). Missing/unknown stratum is never headline.
 HEADLINE_STRATA = frozenset({"exact_navigation", "natural_needs", "exploratory_multi_valid", "multi_constraint", "short_keywords", "colloquial_typo_spacing_abbrev"})
 # D-039 canonical protected-dev invariants (D-015 §3 exact; D-003 production baseline descriptor).
 DEV_CANONICAL_N = 180
@@ -75,14 +78,23 @@ def _real_safety_evidence_fn():
     _real_safety.__real_adapter__ = True  # type: ignore[attr-defined]
     return _real_safety
 def _real_d003_baseline_fn():
-    """Lazy future-ready real D-003 production-baseline adapter (task_id/query + descriptor)."""
-    def _real_d003(task_id: str, query: str, baseline: dict) -> Any:
+    """Lazy future-ready real D-003 production-baseline adapter (task_id/query + descriptor + pinned context)."""
+    def _real_d003(task_id: str, query: str, baseline: dict, evaluation_context: dict | None = None) -> Any:
         import importlib  # lazy, future wiring only (stdlib, no IO); real baseline retrieval import goes here
         _ = importlib
         # SAME-STAGE: fail-closed, no real retrieval (tests patch this factory, no real IO).
         raise RuntimeError("real D-003 baseline not wired in SAME-STAGE (fail-closed, no real retrieval)")
     _real_d003.__real_adapter__ = True  # type: ignore[attr-defined]
     return _real_d003
+def _real_evaluation_context_fn():
+    """Lazy future-ready real evaluation-context capture adapter (DB executor)."""
+    def _real_context_exec(sql: str) -> Any:
+        import importlib  # lazy, future wiring only (stdlib, no IO); real DB connection import goes here
+        _ = importlib
+        # SAME-STAGE: fail-closed, no real DB connection/query (tests patch with synthetics, no real IO).
+        raise RuntimeError("real evaluation-context capture not wired in SAME-STAGE (fail-closed, no real DB)")
+    _real_context_exec.__real_adapter__ = True  # type: ignore[attr-defined]
+    return _real_context_exec
 def _real_clock_fn():
     """Lazy future-ready real clock adapter (ns)."""
     def _real_clock() -> int:
@@ -179,7 +191,7 @@ def _sha256_file(path: pathlib.Path) -> str:
 def load_candidate_plan_or_fail(plan_path: pathlib.Path | None = None) -> dict:
     pp = pathlib.Path(plan_path) if plan_path else CANDIDATE_PLAN_PATH
     if not pp.exists():
-        alt = REPO_ROOT / "eval" / "retrieval_v3" / "candidate-plan" / "candidate-plan-v1.json"
+        alt = REPO_ROOT / "eval" / "retrieval_v3" / "candidate-plan" / "candidate-plan-v4.json"
         if alt.exists():
             pp = alt
         else:
@@ -220,7 +232,8 @@ class Runner:
         http_checker: Callable | None = None,
         clock_fn: Callable[[], int] | None = None,
         safety_evidence_fn: Callable[[dict], dict] | None = None,
-        d003_baseline_fn: Callable[[str, str, dict], Any] | None = None,
+        d003_baseline_fn: Callable | None = None,
+        evaluation_context_exec_fn: Callable[[str], Any] | None = None,
         adapter_kind: str = "mock",
     ):
         self.candidate_plan = candidate_plan
@@ -241,6 +254,9 @@ class Runner:
         # D-039: real safety measurement + D-003 baseline hooks. None => pre-dev HOLD (fail-closed).
         self.safety_evidence_fn = safety_evidence_fn
         self.d003_baseline_fn = d003_baseline_fn
+        # D-054: evaluation-context capture executor (SHOW TimeZone + SELECT CURRENT_DATE).
+        # Canonical requires it pre-grant; None => pre-dev HOLD for production_exclusion (fail-closed).
+        self.evaluation_context_exec_fn = evaluation_context_exec_fn
         # D-040: canonical-dev requires real adapters (mock CLI keeps fakes separately).
         if adapter_kind not in ("mock", "real"):
             raise ValueError(f"adapter_kind must be mock/real, got {adapter_kind!r}")
@@ -388,7 +404,25 @@ class Runner:
             raise ValueError("canonical protected-dev mode requires clock_fn (lazy REAL ns clock, patched only in tests, fail-closed)")
         if is_canonical and self.corpus_provenance_fn is None:
             raise ValueError("canonical protected-dev mode requires corpus_provenance_fn (lazy REAL corpus pin, patched only in tests, fail-closed)")
+        # D-054: evaluation-context capture executor required pre-grant (presence checked
+        # pre-verification; no close needed on this failure; tests patch with synthetics).
+        if is_canonical and self.evaluation_context_exec_fn is None:
+            raise ValueError("canonical protected-dev mode requires evaluation_context_exec_fn (lazy REAL capture adapter, patched only in tests, fail-closed)")
         audit_log = pathlib.Path(audit_log) if audit_log else self.audit_log_path
+        # D-054: capture the pinned evaluation context EXACTLY ONCE here — after effective
+        # plan-v4 validation (Runner.__init__) and BEFORE grant verification, protected
+        # loader, corpus/task validation, and run_start. Immutable for the entire run,
+        # shared by Candidate A, the paired D-003 baseline, filter, and audit.
+        # Pre-grant failure raises with no grant-close side-effect (fail-closed, no fallback).
+        pinned_context: dict | None = None
+        if self.evaluation_context_exec_fn is not None:
+            try:
+                pinned_context = capture_pinned_context(self.evaluation_context_exec_fn)
+                validate_pinned_context(pinned_context)
+            except Exception as e:
+                raise RuntimeError(f"evaluation-context capture failed (fail-closed, no fallback date): {e}") from e
+        elif is_canonical:
+            raise ValueError("canonical protected-dev mode requires evaluation_context_exec_fn (fail-closed)")
         # D-040 grant lifecycle flags: verified once, closed exactly once, never closed on failed verification.
         grant_verified = False
         grant_closed = False
@@ -410,6 +444,9 @@ class Runner:
                 candidate_id="v3-candidate-dev-v1",
                 session_id=session_id,
                 outcome=outcome,
+                # D-054: pinned context rides the existing close event (no new gate/action).
+                db_session_timezone=(pinned_context or {}).get("db_session_timezone"),
+                evaluation_as_of_date=(pinned_context or {}).get("evaluation_as_of_date"),
             )
             grant_closed = True
         if is_canonical:
@@ -470,6 +507,14 @@ class Runner:
                         raise ValueError("canonical corpus_provenance.snapshot must be nonempty (fail-closed)")
                 else:
                     raise ValueError("canonical corpus_provenance.snapshot identity required (fail-closed)")
+            # D-054: runner-owned pinned context overwrites into corpus provenance (fail-closed
+            # against corpus forgery; canonical requires a pinned date for filter+audit).
+            if is_canonical:
+                if pinned_context is None:
+                    raise ValueError("canonical run requires pinned evaluation context (fail-closed)")
+                corpus_prov = {**corpus_prov, "db_session_timezone": pinned_context["db_session_timezone"], "evaluation_as_of_date": pinned_context["evaluation_as_of_date"]}
+            elif pinned_context is not None and isinstance(corpus_prov, dict):
+                corpus_prov = {**corpus_prov, "db_session_timezone": pinned_context["db_session_timezone"], "evaluation_as_of_date": pinned_context["evaluation_as_of_date"]}
         except Exception as e:
             if is_canonical and grant_verified and not grant_closed:
                 try:
@@ -497,6 +542,9 @@ class Runner:
                     set_sha=set_sha,
                     candidate_id="v3-candidate-dev-v1",
                     session_id=session_id,
+                    # D-054: pinned context on the existing run event (no new gate/action).
+                    db_session_timezone=(pinned_context or {}).get("db_session_timezone"),
+                    evaluation_as_of_date=(pinned_context or {}).get("evaluation_as_of_date"),
                 )
                 need_audit_close = True
                 chain = audit.read_and_verify_chain(str(audit_log))
@@ -518,6 +566,32 @@ class Runner:
                 raise ValueError("tasks empty (fail-closed)")
             if is_canonical:
                 validate_canonical_dev_tasks(tasks)
+            # D-054: unfiltered pinned corpus lookup (input-side evidence for the
+            # independent audit; never based only on the filtered output).
+            biz_end_lookup: dict = {}
+            for _p in (policies or []):
+                if isinstance(_p, dict):
+                    biz_end_lookup[(_p.get("source"), _p.get("source_id"))] = _p.get("biz_end")
+            # D-054: pre-retrieval D-003 exclusion on the pinned date, once per run and
+            # shared by all 18 configs. Excluded rows cannot enter dense/sparse/exact pools.
+            if pinned_context is not None:
+                retrieval_policies = filter_policies_for_retrieval(policies or [], pinned_context["evaluation_as_of_date"])
+            else:
+                retrieval_policies = policies
+            # D-054: frozen safe-action classification — query-only (raw query_text only),
+            # BEFORE any retrieval call, once per task/session, shared identically across
+            # all 18 configs. Retrieval cannot influence the action.
+            def _task_role(t: dict) -> str | None:
+                if t.get("is_unsupported") is True or t.get("stratum") == "unsupported_no_answer":
+                    return "unsupported"
+                if t.get("is_ambiguous") is True or t.get("stratum") == "ambiguous":
+                    return "ambiguous"
+                return None
+            actions_by_tid: dict = {}
+            for _t in tasks:
+                _tid = _t.get("task_id") or _t.get("id")
+                _q = _t.get("query") or _t.get("query_text") or ""
+                actions_by_tid[_tid] = classify_safe_action(_q)
 
             headline_tasks = [t for t in tasks if t.get("stratum") in HEADLINE_STRATA and not t.get("is_ambiguous") and not t.get("is_unsupported")]
             # D-039: explicit allowlist only (D-037 `not in safety` silently included missing/unknown stratum as headline).
@@ -549,11 +623,18 @@ class Runner:
                     q = task.get("query") or task.get("query_text") or ""
                     if not isinstance(q, str) or not q.strip():
                         raise ValueError(f"empty query (fail-closed): task {task.get('task_id') or task.get('id')}")
-                    res = self._retrieve_for_query(q, policies, cfg)
+                    res = self._retrieve_for_query(q, retrieval_policies, cfg)
                     final_top30 = res["final_top30"]
-                    retrieved = [{"source": e["source"], "source_id": e["source_id"]} for e in final_top30]
+                    internal = [{"source": e["source"], "source_id": e["source_id"]} for e in final_top30]
+                    _action = actions_by_tid[task.get("task_id") or task.get("id")]
+                    # D-054: ANSWER exposes the normal visible ranking; ABSTAIN/CLARIFY
+                    # expose no policy recommendation (visible suppressed, headline miss).
+                    # Internal ranking is preserved separately for the audit.
+                    visible = internal if _action == "ANSWER" else []
                     task_results.append({
-                        "retrieved": retrieved,
+                        "retrieved": visible,
+                        "retrieved_internal": internal,
+                        "safe_action": _action,
                         "golds": normalized_golds,
                         "source": task.get("source"),
                         "stratum": task.get("stratum"),
@@ -619,36 +700,74 @@ class Runner:
                     "oracle_tasks": oracle_tasks,
                     "metrics_head": metrics_head,
                 }
+            # D-054: runner-owned core evidence. Unsupported/ambiguous bools are mechanically
+            # derived from the frozen safe-action actions (exact 27/23 denominators), never from
+            # retrieval emptiness. The injected adapter may supply only the other frozen gates
+            # (official_link/http_resolution/cost); its core gates are recomputed/cross-checked
+            # exactly (forgery => HOLD, never PASS).
+            _dev_u_bools: list = []
+            _dev_a_bools: list = []
+            for _t in tasks:
+                _role = _task_role(_t)
+                _tid2 = _t.get("task_id") or _t.get("id")
+                if _role == "unsupported":
+                    _dev_u_bools.append(action_correct_for_role(actions_by_tid[_tid2], "unsupported"))
+                elif _role == "ambiguous":
+                    _dev_a_bools.append(action_correct_for_role(actions_by_tid[_tid2], "ambiguous"))
+            owned_unsupported = evaluate_owned_unsupported(_dev_u_bools)
+            owned_ambiguous = evaluate_owned_ambiguous(_dev_a_bools)
             safety_per_config = {}
             safety_evidence_per_config = {}
             for cfg in self.plan_data["configs"]:
                 cid = cfg["config_id"]
                 try:
+                    # D-054: independent INTERNAL final-top-5 audit for this config over EVERY
+                    # task regardless of visible ANSWER/ABSTAIN/CLARIFY, on the pinned date.
+                    _tres = (all_config_results.get(cid) or {}).get("task_results", [])
+                    _internal_top5: dict = {}
+                    for _tr in _tres:
+                        _items = _tr.get("retrieved_internal") or []
+                        _internal_top5[_tr.get("task_id")] = list(_items[:5])
+                    if pinned_context is not None:
+                        _pe_gate, _pe_det = check_production_exclusion(
+                            _internal_top5, biz_end_lookup, pinned_context["evaluation_as_of_date"], len(tasks), len(tasks) * 5
+                        )
+                    else:
+                        _pe_gate, _pe_det = "HOLD", {"gate": "HOLD", "error": "missing pinned evaluation context"}
+                    owned = {
+                        "unsupported": owned_unsupported,
+                        "ambiguous": owned_ambiguous,
+                        "production_exclusion": {"gate": _pe_gate, **_pe_det},
+                    }
                     # D-039: real safety measurement interfaces exist via safety_evidence_fn (FIRST dev only).
                     # SAME-STAGE pre-dev (no evidence fn): HOLD with pre_dev_no_real_measurement (no fabrication).
                     if self.safety_evidence_fn is not None:
                         ev = self.safety_evidence_fn({"config_id": cid, "config": cfg, "results": all_config_results.get(cid)})
-                        need = ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost")
+                        need = ("unsupported", "ambiguous", "production_exclusion", "official_link", "http_resolution", "cost")
                         for k in need:
                             if k not in ev:
                                 raise ValueError(f"safety evidence missing gate {k} (fail-closed)")
                             gv = ev[k] if isinstance(ev[k], str) else ev[k].get("gate")
                             if gv not in ("PASS", "NO-GO", "HOLD"):
                                 raise ValueError(f"safety evidence gate {k} invalid {gv!r} (fail-closed)")
-                        overall = "PASS" if all((ev[k] if isinstance(ev[k], str) else ev[k].get("gate")) == "PASS" for k in need) else ("NO-GO" if any((ev[k] if isinstance(ev[k], str) else ev[k].get("gate")) == "NO-GO" for k in need) else "HOLD")
-                        # Selection map keeps gate strings (derived); artifact map keeps original structured dicts.
-                        safety_per_config[cid] = {
-                            "unsupported": ev["unsupported"] if isinstance(ev["unsupported"], str) else ev["unsupported"].get("gate"),
-                            "ambiguous": ev["ambiguous"] if isinstance(ev["ambiguous"], str) else ev["ambiguous"].get("gate"),
-                            "ineligible_expired": ev["ineligible_expired"] if isinstance(ev["ineligible_expired"], str) else ev["ineligible_expired"].get("gate"),
-                            "official_link": ev["official_link"] if isinstance(ev["official_link"], str) else ev["official_link"].get("gate"),
-                            "http_resolution": ev["http_resolution"] if isinstance(ev["http_resolution"], str) else ev["http_resolution"].get("gate"),
-                            "cost": ev["cost"] if isinstance(ev["cost"], str) else ev["cost"].get("gate"),
-                            "gate": overall,
-                            "detail": "measured_via_safety_evidence_fn",
+                        cross_check_owned_core(owned, ev)
+                        _other = {}
+                        for k in ("official_link", "http_resolution", "cost"):
+                            _other[k] = ev[k] if isinstance(ev[k], str) else ev[k].get("gate")
+                        _six = {
+                            "unsupported": owned["unsupported"]["gate"],
+                            "ambiguous": owned["ambiguous"]["gate"],
+                            "production_exclusion": owned["production_exclusion"]["gate"],
+                            **_other,
                         }
+                        overall = "PASS" if all(v == "PASS" for v in _six.values()) else ("NO-GO" if any(v == "NO-GO" for v in _six.values()) else "HOLD")
+                        # Selection map keeps gate strings; artifact map keeps structured dicts.
+                        safety_per_config[cid] = {**_six, "gate": overall, "detail": "owned_core_cross_checked"}
                         safety_evidence_per_config[cid] = {
-                            k: (ev[k] if isinstance(ev[k], dict) else {"gate": ev[k]}) for k in need
+                            "unsupported": owned["unsupported"],
+                            "ambiguous": owned["ambiguous"],
+                            "production_exclusion": owned["production_exclusion"],
+                            **{k: (ev[k] if isinstance(ev[k], dict) else {"gate": ev[k]}) for k in ("official_link", "http_resolution", "cost")},
                         }
                     else:
                         gate_u = "HOLD"
@@ -660,7 +779,7 @@ class Runner:
                         safety_per_config[cid] = {
                             "unsupported": gate_u,
                             "ambiguous": gate_u,
-                            "ineligible_expired": gate_ineligible,
+                            "production_exclusion": gate_ineligible,
                             "official_link": gate_official,
                             "http_resolution": gate_http,
                             "cost": cost_gate,
@@ -668,13 +787,13 @@ class Runner:
                             "detail": "pre_dev_no_real_measurement",
                         }
                         safety_evidence_per_config[cid] = {
-                            k: {"gate": "HOLD", "detail": "pre_dev_no_real_measurement"} for k in ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost")
+                            k: {"gate": "HOLD", "detail": "pre_dev_no_real_measurement"} for k in ("unsupported", "ambiguous", "production_exclusion", "official_link", "http_resolution", "cost")
                         }
                 except Exception as e:
                     safety_per_config[cid] = {
                         "unsupported": "HOLD",
                         "ambiguous": "HOLD",
-                        "ineligible_expired": "HOLD",
+                        "production_exclusion": "HOLD",
                         "official_link": "HOLD",
                         "http_resolution": "HOLD",
                         "cost": "HOLD",
@@ -682,7 +801,7 @@ class Runner:
                         "error": str(e)[:200],
                     }
                     safety_evidence_per_config[cid] = {
-                        k: {"gate": "HOLD", "error": str(e)[:200]} for k in ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost")
+                        k: {"gate": "HOLD", "error": str(e)[:200]} for k in ("unsupported", "ambiguous", "production_exclusion", "official_link", "http_resolution", "cost")
                     }
 
             latency_p95_per_config = None
@@ -691,7 +810,9 @@ class Runner:
             if self.clock_fn is not None:
                 try:
                     # D-039: D-003 production baseline paired latency. candidate-a-01 is FORBIDDEN as baseline
-                    # (it manufactured latency PASS); baseline must come from d003_baseline_fn(task_id, query, D003_BASELINE descriptor).
+                    # (it manufactured latency PASS); baseline must come from d003_baseline_fn(task_id, query,
+                    # D003_BASELINE descriptor, pinned evaluation context). D-054: the descriptor itself is
+                    # unchanged; the pinned context travels separately (same date candidate + baseline).
                     if self.d003_baseline_fn is None:
                         raise RuntimeError("d003 baseline fn missing (fail-closed HOLD: no D-003 paired measurement)")
                     task_ids_sorted = sorted([t.get("task_id") or t.get("id") or f"task-{i:03d}" for i, t in enumerate(tasks)])
@@ -706,7 +827,7 @@ class Runner:
                             q = task.get("query") or task.get("query_text") or ""
                             if not isinstance(q, str) or not q.strip():
                                 raise ValueError(f"latency empty query (fail-closed): {tid}")
-                            self.d003_baseline_fn(tid, q, D003_BASELINE)
+                            self.d003_baseline_fn(tid, q, D003_BASELINE, pinned_context)
                         def _candidate_fn(tid, _cfg=cfg):
                             task = next((tt for tt in tasks if (tt.get("task_id") or tt.get("id")) == tid), None)
                             if task is None:
@@ -714,7 +835,7 @@ class Runner:
                             q = task.get("query") or task.get("query_text") or ""
                             if not isinstance(q, str) or not q.strip():
                                 raise ValueError(f"latency empty query (fail-closed): {tid}")
-                            self._retrieve_for_query(q, policies, _cfg)
+                            self._retrieve_for_query(q, retrieval_policies, _cfg)
                         res = measure_paired_latency(task_ids_sorted, _baseline_fn, _candidate_fn, clock_fn=self.clock_fn, warmup_n=30)
                         cand_p95 = res.get("candidate", {}).get("p95") if isinstance(res.get("candidate"), dict) else res.get("candidate_p95")
                         # SAME-STAGE fail-closed: no fabricated default; missing p95 stays None -> selection HOLD.
@@ -738,7 +859,7 @@ class Runner:
                 b_gate = {"admitted": False, "instantiated": False, "status": "not_evaluated", "reason": "no finalist (fail-closed: B evaluated on chosen finalist only)", "union_oracle_recall_100": None, "candidate_a_success_5": None, "headroom_pp": None}
             git_head = _get_git_head()
             git_dirty = _get_git_dirty()
-            plan_sha = _sha256_file(CANDIDATE_PLAN_PATH if CANDIDATE_PLAN_PATH.exists() else REPO_ROOT / "eval" / "retrieval_v3" / "candidate-plan" / "candidate-plan-v1.json")
+            plan_sha = _sha256_file(CANDIDATE_PLAN_PATH if CANDIDATE_PLAN_PATH.exists() else REPO_ROOT / "eval" / "retrieval_v3" / "candidate-plan" / "candidate-plan-v4.json")
             prereg_sha = _sha256_file(PREREG_PATH)
             # D-042: corpus_prov gathered pre-run (fail-closed there); reuse here without re-calling.
             set_prov = None
@@ -765,6 +886,8 @@ class Runner:
                 audit_head=audit_head_val,
                 safety_per_config=safety_evidence_per_config,
                 latency_per_config=latency_evidence_per_config,
+                # D-054: pinned evaluation context in the canonical result (structured, no new gate).
+                evaluation_context=pinned_context,
             )
             # D-042: canonical self-validation before publish (fail-closed even with output None; triggers failure close).
             if is_canonical:
@@ -782,6 +905,9 @@ class Runner:
                         set_sha=set_sha,
                         candidate_id="v3-candidate-dev-v1",
                         session_id=session_id,
+                        # D-054: pinned context on the existing run event (no new gate/action).
+                        db_session_timezone=(pinned_context or {}).get("db_session_timezone"),
+                        evaluation_as_of_date=(pinned_context or {}).get("evaluation_as_of_date"),
                     )
                     run_end_appended = True
                 except Exception as e:
@@ -828,6 +954,9 @@ class Runner:
                         set_sha=set_sha,
                         candidate_id="v3-candidate-dev-v1",
                         session_id=session_id,
+                        # D-054: pinned context on the existing run event (no new gate/action).
+                        db_session_timezone=(pinned_context or {}).get("db_session_timezone"),
+                        evaluation_as_of_date=(pinned_context or {}).get("evaluation_as_of_date"),
                     )
                     run_end_appended = True
                 except Exception as audit_e:
@@ -983,6 +1112,7 @@ def main_canonical_dev(args):
     plan = load_candidate_plan_or_fail()
     # Lazy future-ready real adapters: factories called here (not at import); unpatched they raise without IO.
     # D-041: mandatory safety/D003/clock/corpus adapters wired before grant (presence checked pre-verification).
+    # D-054: mandatory evaluation-context capture adapter wired before grant (same rule).
     real_embedding = _real_embedding_fn()
     real_policies_loader = _real_policy_loader_fn()
     real_protected_loader = _real_protected_loader_fn()
@@ -990,6 +1120,7 @@ def main_canonical_dev(args):
     real_d003 = _real_d003_baseline_fn()
     real_clock = _real_clock_fn()
     real_corpus = _real_corpus_provenance_fn()
+    real_context_exec = _real_evaluation_context_fn()
     runner = Runner(
         candidate_plan=plan,
         embedding_fn=real_embedding,
@@ -1001,6 +1132,7 @@ def main_canonical_dev(args):
         d003_baseline_fn=real_d003,
         clock_fn=real_clock,
         corpus_provenance_fn=real_corpus,
+        evaluation_context_exec_fn=real_context_exec,
     )
     # Policies via real adapter only (SAME-STAGE fail-closed raises here, before grant verification, no grant close).
     policies = real_policies_loader()

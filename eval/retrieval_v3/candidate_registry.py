@@ -1,14 +1,21 @@
-"""Candidate A registry — frozen 18 configs, MAX24, fail-closed."""
+"""Candidate A registry — effective plan v4 pin, frozen 18 configs, MAX24, fail-closed."""
 from __future__ import annotations
 import hashlib
 import json
 import pathlib
 import re
 
-PLAN_PATH = pathlib.Path("eval/retrieval-v3/candidate-plan/candidate-plan-v1.json")
-PLAN_PATH_ALT = pathlib.Path("eval/retrieval_v3/candidate-plan/candidate-plan-v1.json")
-EXPECTED_SHA = "2815361a469fee9bf69f6ffdf2124d19928220535cdb08b2005ae6674ae7d17c"
+# D-054: canonical Candidate-A loading pins effective candidate-plan-v4 exactly.
+# candidate-plan-v1/v2/v3 bytes are immutable history, never loaded canonically.
+PLAN_PATH = pathlib.Path("eval/retrieval-v3/candidate-plan/candidate-plan-v4.json")
+PLAN_PATH_ALT = pathlib.Path("eval/retrieval_v3/candidate-plan/candidate-plan-v4.json")
+EXPECTED_SHA = "a25d9c482094696ff7a438593979813ac568c91a977a2543a50618ca4f5177d6"
+EXPECTED_PLAN_ID = "retrieval-v3-candidate-plan-v4"
+EXPECTED_VERSION = "4.0.0"
 EXPECTED_PREREG_SHA = "7842018613d66aa4570f4db2f8ae5a698ceb46757995a6b7e26873177b36160e"
+# D-054: frozen policy refs that v4 must carry (fail-closed on drift).
+EXPECTED_SAFE_ACTION_SHA = "c512fb5627179697a987b05a2431b8f7e30d1153af2ff6dca37995f6b232a35d"
+EXPECTED_PROD_EXCL_SHA = "6fee9ec22d5d3ac153ff19a6b1b5d27ab6a6a43bda11e35821d689f938968fe5"
 MAX_CONFIGS = 24
 EXPECTED_COUNT = 18
 
@@ -74,11 +81,24 @@ def load_and_validate(path: str | pathlib.Path | None = None) -> dict:
     return validate_data(data, raw)
 
 def validate_data(data: dict, raw: bytes | None = None) -> dict:
-    # basic identity
-    if data.get("plan_id") != "retrieval-v3-candidate-plan-v1":
-        raise ValueError(f"plan_id mismatch: {data.get('plan_id')!r}")
-    if data.get("version") != "1.0.0":
-        raise ValueError("version mismatch")
+    # D-054: effective plan identity is v4 exactly.
+    if data.get("plan_id") != EXPECTED_PLAN_ID:
+        raise ValueError(f"plan_id mismatch: {data.get('plan_id')!r} (effective must be {EXPECTED_PLAN_ID})")
+    if data.get("version") != EXPECTED_VERSION:
+        raise ValueError(f"version mismatch: {data.get('version')!r} (effective must be {EXPECTED_VERSION})")
+    # D-054: frozen policy refs/SHAs must be carried exactly (fail-closed on drift).
+    _sa = data.get("safe_action_policy", {}) if isinstance(data.get("safe_action_policy"), dict) else {}
+    if _sa.get("policy_sha256") != EXPECTED_SAFE_ACTION_SHA:
+        raise ValueError(f"safe_action_policy SHA drift: got {_sa.get('policy_sha256')!r} (fail-closed)")
+    _pe = data.get("production_exclusion_policy", {}) if isinstance(data.get("production_exclusion_policy"), dict) else {}
+    if _pe.get("policy_sha256") != EXPECTED_PROD_EXCL_SHA:
+        raise ValueError(f"production_exclusion_policy SHA drift: got {_pe.get('policy_sha256')!r} (fail-closed)")
+    # D-054: effective safety gate is production_exclusion (old ineligible/expired key gone).
+    _gates = data.get("selection_rule", {}).get("safety_gates_dev", {}) if isinstance(data.get("selection_rule"), dict) else {}
+    if "production_exclusion_intrusion" not in _gates:
+        raise ValueError("selection_rule.safety_gates_dev must carry production_exclusion_intrusion (fail-closed)")
+    if "ineligible_expired_intrusion" in _gates:
+        raise ValueError("selection_rule must not retain ineligible_expired_intrusion as effective gate (fail-closed)")
     if data.get("max_configs") != MAX_CONFIGS:
         raise ValueError(f"max_configs must be {MAX_CONFIGS}, got {data.get('max_configs')}")
     if data.get("branch") != "codex/retrieval-v3-user-search-quality":

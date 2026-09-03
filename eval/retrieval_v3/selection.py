@@ -4,12 +4,12 @@ from __future__ import annotations
 from typing import Any
 import math
 
-# Expected gates per prereg §9 and candidate-plan selection_rule — must all be present and PASS
-EXPECTED_SAFETY_GATES = {"unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost"}
+# D-054: effective six gates per candidate-plan-v4 (production_exclusion replaces the old ineligible/expired gate).
+EXPECTED_SAFETY_GATES = {"unsupported", "ambiguous", "production_exclusion", "official_link", "http_resolution", "cost"}
 
 def _safety_passes(safety_report: dict) -> bool:
     """
-    safety_report: dict with keys for each gate: unsupported, ambiguous, ineligible_expired, official_link, cost, http_resolution etc each with PASS/NO-GO/HOLD
+    safety_report: dict with keys for each gate: unsupported, ambiguous, production_exclusion, official_link, cost, http_resolution etc each with PASS/NO-GO/HOLD
     Dev safety must PASS (HOLD is fail for selection). Per prereg: missing measurement => HOLD => not PASS => ineligible.
     So require all expected gates PASS and any present gate PASS. Missing expected gate => HOLD => not PASS.
     Returns False if missing safety or any gate not PASS.

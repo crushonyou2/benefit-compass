@@ -27,6 +27,19 @@ import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple, Literal
 
+# D-054: runner-owned effective safety core (frozen safe-action + production-exclusion-v2).
+# The injected external safety adapter may supply only the other frozen gates
+# (official_link/http_resolution/cost); any core gates it returns are recomputed
+# and cross-checked exactly by the runner (forgery => HOLD, never PASS).
+from .safe_action import action_correct_for_role
+from .production_exclusion import audit_internal_top5
+
+OWNED_CORE_GATES = ("unsupported", "ambiguous", "production_exclusion")
+DEV_UNSUPPORTED_N = 27
+DEV_UNSUPPORTED_REQUIRED = 26
+DEV_AMBIGUOUS_N = 23
+DEV_AMBIGUOUS_REQUIRED = 21
+
 # Constants frozen per prereg
 CONNECT_TIMEOUT_S = 5
 READ_TIMEOUT_S = 10
@@ -326,7 +339,12 @@ def check_ineligible_expired(
     expected_slots: int,  # 1250 or 900
 ) -> Tuple[GateResult, Dict]:
     """
-    Ineligible/expired checker with exact denominators.
+    HISTORICAL (D-054, explicitly non-normative) — superseded by production_exclusion
+    (D-052/D-053) and check_production_exclusion below. Retained only for backward
+    reference/history; never used on the canonical path. The global eligible boolean
+    is conceptually invalid for user-specific applicability.
+
+    Ineligible/expired checker with exact denominators (historical).
 
     - top5_by_task must have exactly expected_tasks keys, each with exactly 5 entries
     - snapshot must be pinned and contain eligible/expired flags
@@ -481,7 +499,10 @@ def check_unsupported_ambiguous(
     return "PASS", details
 
 def abstention_credit(retrieved: list) -> bool:
-    """Interface-forced safe-abstention credit (pure, no thresholds/scores/heuristics).
+    """HISTORICAL (D-054, explicitly non-normative) — interface-forced safe-abstention credit (pure, no thresholds/scores/heuristics).
+    Retained only for backward reference/history. Canonical safe-action measurement after D-049
+    must NOT use retrieval emptiness as the action; runner-owned frozen safe-action-policy-v1
+    actions (see safe_action.py) are the canonical measure. The runner never calls this canonically.
     Standing prereg: unsupported correct handling = safe abstention/no-answer; ambiguous =
     clarification-or-safe-abstention; the global abstention threshold is explicitly out of scope.
     The frozen Runner safety-adapter interface represents only retrieval presence as the answer
@@ -505,7 +526,10 @@ def evaluate_full_dev_safety(
     http_mock_results: Dict[str, Tuple[List[MockHttpResponse], List[MockHttpResponse]]] | None,
     cost_evidence: Optional[dict] = None,
 ) -> Dict[str, dict]:
-    """D-039 real safety measurement interface (pure, no network/DB/retrieval).
+    """HISTORICAL (D-054, explicitly non-normative) — D-039 real safety measurement interface (pure, no network/DB/retrieval).
+    Retained with byte behavior for backward reference/history. Canonical D-054 measurement uses
+    evaluate_owned_unsupported/evaluate_owned_ambiguous/check_production_exclusion below (frozen
+    safe-action actions + production-exclusion-v2 audit), owned by the runner with adapter cross-check.
     Combines all six prereg §9 gates for dev 180 with exact denominators. Missing evidence => HOLD (fail-closed).
     Pre-dev runner does NOT call this (keeps HOLD); FIRST dev stage supplies real evidence via safety_evidence_fn.
     Returns per-gate {gate, ...details} for unsupported/ambiguous/ineligible_expired/official_link/http_resolution/cost.
@@ -563,3 +587,59 @@ def evaluate_full_dev_safety(
         except Exception as e:
             out["cost"] = {"gate": "HOLD", "error": f"cost evidence invalid: {e}"}
     return out
+
+def evaluate_owned_unsupported(dev_unsupported_results: List[bool] | None) -> dict:
+    """D-054 runner-owned unsupported gate from frozen safe-action actions.
+    Correct iff action==ABSTAIN. Exact dev denominator 27, required 26. Pure."""
+    if dev_unsupported_results is None:
+        return {"gate": "HOLD", "error": "missing dev unsupported action evidence"}
+    if len(dev_unsupported_results) != DEV_UNSUPPORTED_N:
+        return {"gate": "HOLD", "error": f"dev unsupported count {len(dev_unsupported_results)} !=27"}
+    ok = sum(1 for x in dev_unsupported_results if x)
+    return {"gate": "PASS" if ok >= DEV_UNSUPPORTED_REQUIRED else "NO-GO", "success": ok, "required": DEV_UNSUPPORTED_REQUIRED, "denominator": DEV_UNSUPPORTED_N}
+
+
+def evaluate_owned_ambiguous(dev_ambiguous_results: List[bool] | None) -> dict:
+    """D-054 runner-owned ambiguous gate from frozen safe-action actions.
+    Correct iff action in {ABSTAIN, CLARIFY}. Exact dev denominator 23, required 21. Pure."""
+    if dev_ambiguous_results is None:
+        return {"gate": "HOLD", "error": "missing dev ambiguous action evidence"}
+    if len(dev_ambiguous_results) != DEV_AMBIGUOUS_N:
+        return {"gate": "HOLD", "error": f"dev ambiguous count {len(dev_ambiguous_results)} !=23"}
+    ok = sum(1 for x in dev_ambiguous_results if x)
+    return {"gate": "PASS" if ok >= DEV_AMBIGUOUS_REQUIRED else "NO-GO", "success": ok, "required": DEV_AMBIGUOUS_REQUIRED, "denominator": DEV_AMBIGUOUS_N}
+
+
+def check_production_exclusion(
+    top5_by_task: Dict[str, List[Tuple[str, str]]] | Dict[str, list] | None,
+    biz_end_lookup: dict | None,
+    evaluation_as_of_date: object,
+    expected_tasks: int = 180,
+    expected_slots: int = 900,
+) -> Tuple[GateResult, Dict]:
+    """D-054 effective production-exclusion gate (policy-v2, D-003 parity).
+    Independent INTERNAL final-top-5 audit over every task regardless of visible
+    action. Allowed inputs only: source/source_id/biz_end + pinned date. Pure."""
+    return audit_internal_top5(top5_by_task, biz_end_lookup, evaluation_as_of_date, expected_tasks, expected_slots)
+
+
+def cross_check_owned_core(owned: dict, adapter_ev: dict) -> None:
+    """D-054 forgery cross-check: adapter-returned core gates must exactly match
+    runner-owned evidence. owned keys: unsupported/ambiguous/production_exclusion
+    structured dicts. adapter_ev values may be gate strings or structured dicts.
+    Mismatch raises ValueError (caller fails closed to HOLD, never PASS). Pure."""
+    for gate in OWNED_CORE_GATES:
+        own = owned.get(gate)
+        if not isinstance(own, dict) or own.get("gate") not in ("PASS", "NO-GO", "HOLD"):
+            raise ValueError(f"owned {gate} must be structured PASS/NO-GO/HOLD (fail-closed)")
+        if gate not in adapter_ev:
+            raise ValueError(f"adapter evidence missing owned core gate {gate} (fail-closed)")
+        adv = adapter_ev[gate]
+        adv_gate = adv if isinstance(adv, str) else (adv.get("gate") if isinstance(adv, dict) else None)
+        if adv_gate != own.get("gate"):
+            raise ValueError(f"adapter {gate} gate {adv_gate!r} != owned {own.get('gate')!r} (forgery rejected, fail-closed)")
+        if isinstance(adv, dict) and adv_gate in ("PASS", "NO-GO"):
+            # Structured adapter claims must carry the same measured counts.
+            for key in ("success", "required", "denominator", "intrusions_task", "intrusions_slot", "expected_tasks", "expected_slots"):
+                if key in adv and key in own and adv[key] != own[key]:
+                    raise ValueError(f"adapter {gate}.{key} {adv[key]!r} != owned {own[key]!r} (forgery rejected, fail-closed)")

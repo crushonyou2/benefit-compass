@@ -247,6 +247,14 @@ def _validate_payload(payload: dict[str, Any]) -> None:
         v = payload[k]
         if v is not None and not isinstance(v, str):
             raise AuditSchemaError(f"{k} must be str or None, got {type(v).__name__}: {v!r}")
+    # D-054: optional pinned context, validated when present (old events omit both).
+    if "db_session_timezone" in payload and payload["db_session_timezone"] is not None:
+        if not isinstance(payload["db_session_timezone"], str) or not payload["db_session_timezone"].strip():
+            raise AuditSchemaError(f"db_session_timezone must be nonempty str, got {payload['db_session_timezone']!r}")
+    if "evaluation_as_of_date" in payload and payload["evaluation_as_of_date"] is not None:
+        import re as _re2
+        if not isinstance(payload["evaluation_as_of_date"], str) or not _re2.match(r"^\d{4}-\d{2}-\d{2}$", payload["evaluation_as_of_date"]):
+            raise AuditSchemaError(f"evaluation_as_of_date must be ISO YYYY-MM-DD, got {payload['evaluation_as_of_date']!r}")
 
 
 def read_and_verify_chain(log_path: str | os.PathLike) -> list[dict[str, Any]]:
@@ -314,6 +322,11 @@ def append_event(
     utc_timestamp: str | None = None,
     event_id: str | None = None,
     process_id: int | None = None,
+    # D-054: pinned evaluation-context provenance (optional, backward-compatible structured
+    # metadata on existing run events — NOT a new gate/action). Old events without these
+    # keys stay valid; hash-chain validation stays deterministic (sorted canonical JSON).
+    db_session_timezone: str | None = None,
+    evaluation_as_of_date: str | None = None,
 ) -> dict[str, Any]:
     """Append one event atomically after verifying existing chain. Fail-closed.
 
@@ -379,6 +392,16 @@ def append_event(
             "outcome": outcome,
             "previous_event_hash": prev_hash.lower(),
         }
+        # D-054: optional pinned context rides on existing events only when provided.
+        if db_session_timezone is not None:
+            if not isinstance(db_session_timezone, str) or not db_session_timezone.strip():
+                raise AuditSchemaError(f"db_session_timezone must be nonempty str, got {db_session_timezone!r}")
+            payload_without_hash["db_session_timezone"] = db_session_timezone
+        if evaluation_as_of_date is not None:
+            import re as _re
+            if not isinstance(evaluation_as_of_date, str) or not _re.match(r"^\d{4}-\d{2}-\d{2}$", evaluation_as_of_date):
+                raise AuditSchemaError(f"evaluation_as_of_date must be ISO YYYY-MM-DD, got {evaluation_as_of_date!r}")
+            payload_without_hash["evaluation_as_of_date"] = evaluation_as_of_date
         _validate_payload(payload_without_hash)
         event_hash = _compute_event_hash(payload_without_hash)
         event = {**payload_without_hash, "event_hash": event_hash}

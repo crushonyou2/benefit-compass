@@ -243,7 +243,7 @@ def test_metrics_mrr_rank_gt10():
 
 def test_selection_ordering_and_zero():
     # Explicit fixtures required after fail-closed fix E: missing safety/latency => HOLD
-    safety_ok = {cid: {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"} for cid in ["candidate-a-01","candidate-a-02","candidate-a-03"]}
+    safety_ok = {cid: {"unsupported":"PASS","ambiguous":"PASS","production_exclusion":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"} for cid in ["candidate-a-01","candidate-a-02","candidate-a-03"]}
     per=[
         {"config_id":"candidate-a-02","success_at_5":0.9,"ndcg_at_5":0.8,"mrr_at_10":0.7},
         {"config_id":"candidate-a-01","success_at_5":0.9,"ndcg_at_5":0.8,"mrr_at_10":0.7},
@@ -254,7 +254,7 @@ def test_selection_ordering_and_zero():
     sel2=select_candidate(per, safety_per_config=safety_ok, latency_p95_per_config={"candidate-a-01":600,"candidate-a-02":500,"candidate-a-03":500})
     assert sel2["chosen"]=="candidate-a-02"
     per_low=[{"config_id":"candidate-a-01","success_at_5":0.8,"ndcg_at_5":0.9,"mrr_at_10":0.9}]
-    safety_low = {"candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"}}
+    safety_low = {"candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","production_exclusion":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"}}
     sel3=select_candidate(per_low, safety_per_config=safety_low, latency_p95_per_config={"candidate-a-01":500})
     assert sel3["chosen"] is None
 
@@ -401,7 +401,7 @@ def test_runner_safety_hold_even_with_checkers_pre_dev():
         assert len(res["per_config_metrics"])==18
         assert res["selection"]["chosen"] is None, "pre-dev no real safety measurement => HOLD, no eligible even with checkers"
         for cid, rep in res.get("safety_per_config", {}).items():
-            for gate in ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost"):
+            for gate in ("unsupported", "ambiguous", "production_exclusion", "official_link", "http_resolution", "cost"):
                 assert isinstance(rep.get(gate), dict) and rep[gate].get("gate") == "HOLD", f"D-042 full evidence: {cid}.{gate} must be structured HOLD"
 def test_runner_latency_wiring():
     plan=load_candidate_plan_or_fail()
@@ -673,20 +673,20 @@ def test_selection_fail_closed_missing_gates():
     ]
     # Missing cost gate
     safety_missing = {
-        "candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"},
-        "candidate-a-02": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS"},  # missing cost
+        "candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","production_exclusion":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"},
+        "candidate-a-02": {"unsupported":"PASS","ambiguous":"PASS","production_exclusion":"PASS","official_link":"PASS","http_resolution":"PASS"},  # missing cost
     }
     sel = select_candidate(per, safety_per_config=safety_missing, latency_p95_per_config={"candidate-a-01":500,"candidate-a-02":500})
     assert sel["chosen"] == "candidate-a-01", "missing cost gate should make a-02 ineligible"
     assert "candidate-a-02" not in sel["eligible"]
     # Missing safety dict entirely for a config => HOLD
-    safety_partial = {"candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"}}
+    safety_partial = {"candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","production_exclusion":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"}}
     sel2 = select_candidate(per, safety_per_config=safety_partial, latency_p95_per_config={"candidate-a-01":500,"candidate-a-02":500})
     assert sel2["chosen"] == "candidate-a-01" and "candidate-a-02" not in sel2["eligible"]
     # HOLD gate also ineligible
     safety_hold = {
-        "candidate-a-01": {"unsupported":"HOLD","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"},
-        "candidate-a-02": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"},
+        "candidate-a-01": {"unsupported":"HOLD","ambiguous":"PASS","production_exclusion":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"},
+        "candidate-a-02": {"unsupported":"PASS","ambiguous":"PASS","production_exclusion":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"},
     }
     sel3 = select_candidate(per, safety_per_config=safety_hold, latency_p95_per_config={"candidate-a-01":500,"candidate-a-02":500})
     assert sel3["chosen"] == "candidate-a-02"
@@ -697,8 +697,8 @@ def test_selection_fail_closed_missing_latency():
         {"config_id":"candidate-a-02","success_at_5":0.9,"ndcg_at_5":0.8,"mrr_at_10":0.7},
     ]
     safety_ok = {
-        "candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"},
-        "candidate-a-02": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"},
+        "candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","production_exclusion":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"},
+        "candidate-a-02": {"unsupported":"PASS","ambiguous":"PASS","production_exclusion":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"},
     }
     # latency dict missing entry for a-02 => HOLD
     sel = select_candidate(per, safety_per_config=safety_ok, latency_p95_per_config={"candidate-a-01":500})
@@ -718,7 +718,7 @@ def test_selection_fail_closed_missing_latency():
         {"config_id":"candidate-a-01","success_at_5":0.9,"ndcg_at_5":0.8,"mrr_at_10":0.7},
         {"config_id":"candidate-a-03","success_at_5":0.9,"ndcg_at_5":0.9,"mrr_at_10":0.5},
     ]
-    sel3 = select_candidate(per_order, safety_per_config={"candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"},"candidate-a-02": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"},"candidate-a-03": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"}}, latency_p95_per_config={"candidate-a-01":600,"candidate-a-02":500,"candidate-a-03":500})
+    sel3 = select_candidate(per_order, safety_per_config={"candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","production_exclusion":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"},"candidate-a-02": {"unsupported":"PASS","ambiguous":"PASS","production_exclusion":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"},"candidate-a-03": {"unsupported":"PASS","ambiguous":"PASS","production_exclusion":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"}}, latency_p95_per_config={"candidate-a-01":600,"candidate-a-02":500,"candidate-a-03":500})
     # Among 0.9 S5, higher NDCG5 (a-03) should win? Check: a-03 has NDCG 0.9 >0.8 so should be first
     assert sel3["eligible"][0] == "candidate-a-03"
     # Between a-01 and a-02 same S5/NDCG/MRR, lower p95 wins => a-02
@@ -953,13 +953,15 @@ def _make_canonical_180():
     return tasks
 def _canonical_test_adapters(safety_gate="HOLD"):
     # D-041: canonical requires safety/D003/clock/corpus adapters pre-grant; tests patch with synthetics (no real IO).
+    # D-054: + evaluation_context_exec_fn (synthetic SHOW TimeZone / SELECT CURRENT_DATE); D003 takes pinned context.
     from retrieval_v3.runner import D003_BASELINE as _D003
-    gates = ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost")
+    gates = ("unsupported", "ambiguous", "production_exclusion", "official_link", "http_resolution", "cost")
     def safety_fn(payload):
         return {g: {"gate": safety_gate} for g in gates}
     calls = {"n": 0}
-    def d003_fn(tid, query, baseline):
+    def d003_fn(tid, query, baseline, evaluation_context=None):
         assert baseline == _D003, "descriptor must be exact D003_BASELINE"
+        assert evaluation_context == {"db_session_timezone": "GMT", "evaluation_as_of_date": "2026-09-03"}, "baseline must receive the same pinned context"
         calls["n"] += 1
     cnt = [0]
     def clock_fn():
@@ -967,17 +969,20 @@ def _canonical_test_adapters(safety_gate="HOLD"):
         return cnt[0]
     def corpus_fn():
         return {"total_policies": 1, "snapshot": "test"}
-    return {"safety_evidence_fn": safety_fn, "d003_baseline_fn": d003_fn, "clock_fn": clock_fn, "corpus_provenance_fn": corpus_fn}
+    def context_exec_fn(sql):
+        assert sql in ("SHOW TimeZone", "SELECT CURRENT_DATE"), f"capture inventory must be exactly the two statements, got {sql!r}"
+        return {"SHOW TimeZone": "GMT", "SELECT CURRENT_DATE": "2026-09-03"}[sql]
+    return {"safety_evidence_fn": safety_fn, "d003_baseline_fn": d003_fn, "clock_fn": clock_fn, "corpus_provenance_fn": corpus_fn, "evaluation_context_exec_fn": context_exec_fn}
 
 def test_selection_http_resolution_required():
     per = [{"config_id": "candidate-a-01", "success_at_5": 0.9, "ndcg_at_5": 0.8, "mrr_at_10": 0.7}]
-    no_http = {"candidate-a-01": {"unsupported": "PASS", "ambiguous": "PASS", "ineligible_expired": "PASS", "official_link": "PASS", "cost": "PASS"}}
+    no_http = {"candidate-a-01": {"unsupported": "PASS", "ambiguous": "PASS", "production_exclusion": "PASS", "official_link": "PASS", "cost": "PASS"}}
     sel = select_candidate(per, safety_per_config=no_http, latency_p95_per_config={"candidate-a-01": 500})
     assert sel["chosen"] is None, "missing http_resolution must be ineligible (D-039)"
-    hold_http = {"candidate-a-01": {"unsupported": "PASS", "ambiguous": "PASS", "ineligible_expired": "PASS", "official_link": "PASS", "http_resolution": "HOLD", "cost": "PASS"}}
+    hold_http = {"candidate-a-01": {"unsupported": "PASS", "ambiguous": "PASS", "production_exclusion": "PASS", "official_link": "PASS", "http_resolution": "HOLD", "cost": "PASS"}}
     sel2 = select_candidate(per, safety_per_config=hold_http, latency_p95_per_config={"candidate-a-01": 500})
     assert sel2["chosen"] is None
-    full = {"candidate-a-01": {"unsupported": "PASS", "ambiguous": "PASS", "ineligible_expired": "PASS", "official_link": "PASS", "http_resolution": "PASS", "cost": "PASS"}}
+    full = {"candidate-a-01": {"unsupported": "PASS", "ambiguous": "PASS", "production_exclusion": "PASS", "official_link": "PASS", "http_resolution": "PASS", "cost": "PASS"}}
     sel3 = select_candidate(per, safety_per_config=full, latency_p95_per_config={"candidate-a-01": 500})
     assert sel3["chosen"] == "candidate-a-01"
 
@@ -1086,6 +1091,7 @@ def test_safety_real_interfaces():
     from retrieval_v3.safety import evaluate_full_dev_safety, MockHttpResponse
     got = evaluate_full_dev_safety(None, None, None, None, None, None, None, None, None)
     assert all(v["gate"] == "HOLD" for v in got.values()), "missing evidence must HOLD all six"
+    # D-054: evaluate_full_dev_safety is HISTORICAL (non-normative); it still carries the old key.
     assert set(got) == {"unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost"}
     top5 = {f"t{i:03d}": [("youth", f"p{i}_{k}") for k in range(5)] for i in range(180)}
     emap = {}
@@ -1099,14 +1105,13 @@ def test_safety_real_interfaces():
     mocks = {u: ([MockHttpResponse(status=200)], []) for u in urls}
     full = evaluate_full_dev_safety([True] * 27, [True] * 23, top5, snap, pin, urls, exp, mocks, {"index_ratio": 1.5, "rows_ratio": 2.0, "extra_model_calls": 0})
     assert all(v["gate"] == "PASS" for v in full.values()), f"complete evidence must PASS all six: {full}"
-
 def test_d003_baseline_forbids_candidate_a01():
     import pathlib as _pl
     src = (_pl.Path(__file__).resolve().parent / "retrieval_v3" / "runner.py").read_text(encoding="utf-8")
     assert "d003_baseline_fn" in src
     assert "baseline_cfg = self.plan_data" not in src, "candidate-a-01 must not be baseline"
     assert "D003_BASELINE" in src
-    assert "d003_baseline_fn(tid, q, D003_BASELINE)" in src, "baseline callback must receive task_id/query + exact descriptor"
+    assert "d003_baseline_fn(tid, q, D003_BASELINE, pinned_context)" in src, "baseline callback must receive task_id/query + exact descriptor + pinned context separately"
     plan = load_candidate_plan_or_fail()
     def fake_vec(seed):
         rnd = random.Random(seed)
@@ -1130,7 +1135,7 @@ def test_d003_baseline_forbids_candidate_a01():
         assert res["selection"]["chosen"] is None, "missing D-003 baseline must HOLD"
         calls = {"n": 0}
         from retrieval_v3.runner import D003_BASELINE as _D003
-        def d003(tid, query, baseline):
+        def d003(tid, query, baseline, evaluation_context=None):
             assert baseline == _D003, "baseline callback must receive exact D003_BASELINE descriptor (never candidate config)"
             assert isinstance(tid, str) and isinstance(query, str) and query.strip()
             calls["n"] += 1
@@ -1230,9 +1235,9 @@ def test_canonical_result_n_headline():
     from retrieval_v3.candidate_registry import EXPECTED_SHA, EXPECTED_PREREG_SHA
     per = [{"config_id": f"candidate-a-{i:02d}", "success_at_5": 0.9, "ndcg_at_5": 0.8, "mrr_at_10": 0.7} for i in range(1, 19)]
     _ids = [f"candidate-a-{i:02d}" for i in range(1, 19)]
-    _saf = {c: {g: {"gate": "HOLD"} for g in ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost")} for c in _ids}
+    _saf = {c: {g: {"gate": "HOLD"} for g in ("unsupported", "ambiguous", "production_exclusion", "official_link", "http_resolution", "cost")} for c in _ids}
     _lat = {c: {"n": 180, "warmup_n": 30, "baseline": {"p50": 500, "p95": 500, "p99": 500}, "candidate": {"p50": 500, "p95": 500, "p99": 500}, "gate": "PASS"} for c in _ids}
-    base = {"schema_version": 1, "git_head": "0" * 40, "git_dirty": False, "candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA, "provenance": {"candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA}, "per_config_metrics": per, "selection": {"chosen": None, "eligible": []}, "candidate_b_gate": {"admitted": False, "instantiated": False, "status": "not_evaluated"}, "safety_per_config": _saf, "latency_per_config": _lat, "corpus_provenance": {"total_policies": 1, "snapshot": "test"}}
+    base = {"schema_version": 1, "git_head": "0" * 40, "git_dirty": False, "candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA, "provenance": {"candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA}, "per_config_metrics": per, "selection": {"chosen": None, "eligible": []}, "candidate_b_gate": {"admitted": False, "instantiated": False, "status": "not_evaluated"}, "safety_per_config": _saf, "latency_per_config": _lat, "corpus_provenance": {"total_policies": 1, "snapshot": "test", "db_session_timezone": "GMT", "evaluation_as_of_date": "2026-09-03"}, "evaluation_context": {"db_session_timezone": "GMT", "evaluation_as_of_date": "2026-09-03"}}
     bad = dict(base, set_provenance={"set_role": "dev", "set_sha": "1" * 64, "n": 5, "headline_n": 5})
     try:
         validate_complete_result(bad)
@@ -1466,9 +1471,9 @@ def test_canonical_output_exact_and_missing_field():
     from retrieval_v3.paths import CANONICAL_DEV_OUTPUT_REL
     per = [{"config_id": f"candidate-a-{i:02d}", "success_at_5": 0.9, "ndcg_at_5": 0.8, "mrr_at_10": 0.7} for i in range(1, 19)]
     _ids = [f"candidate-a-{i:02d}" for i in range(1, 19)]
-    _saf = {c: {g: {"gate": "HOLD"} for g in ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost")} for c in _ids}
+    _saf = {c: {g: {"gate": "HOLD"} for g in ("unsupported", "ambiguous", "production_exclusion", "official_link", "http_resolution", "cost")} for c in _ids}
     _lat = {c: {"n": 180, "warmup_n": 30, "baseline": {"p50": 500, "p95": 500, "p99": 500}, "candidate": {"p50": 500, "p95": 500, "p99": 500}, "gate": "PASS"} for c in _ids}
-    base = {"schema_version": 1, "git_head": "0" * 40, "git_dirty": False, "candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA, "provenance": {"candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA}, "per_config_metrics": per, "selection": {"chosen": None, "eligible": []}, "candidate_b_gate": {"admitted": False, "instantiated": False, "status": "not_evaluated"}, "safety_per_config": _saf, "latency_per_config": _lat, "corpus_provenance": {"total_policies": 1, "snapshot": "test"}}
+    base = {"schema_version": 1, "git_head": "0" * 40, "git_dirty": False, "candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA, "provenance": {"candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA}, "per_config_metrics": per, "selection": {"chosen": None, "eligible": []}, "candidate_b_gate": {"admitted": False, "instantiated": False, "status": "not_evaluated"}, "safety_per_config": _saf, "latency_per_config": _lat, "corpus_provenance": {"total_policies": 1, "snapshot": "test", "db_session_timezone": "GMT", "evaluation_as_of_date": "2026-09-03"}, "evaluation_context": {"db_session_timezone": "GMT", "evaluation_as_of_date": "2026-09-03"}}
     for bad_prov in ({"set_role": "dev", "set_sha": "1" * 64}, {"set_role": "dev", "set_sha": "1" * 64, "n": 180}, {"set_role": "dev", "set_sha": "1" * 64, "headline_n": 130}, {"set_role": "dev", "set_sha": "1" * 64, "n": 5, "headline_n": 5}):
         bad = dict(base, set_provenance=bad_prov)
         try:
@@ -1516,7 +1521,7 @@ def test_canonical_requires_adapters_pre_grant():
     tasks180 = _make_canonical_180()
     def loader(role, sh):
         return tasks180
-    for drop in ("safety_evidence_fn", "d003_baseline_fn", "clock_fn", "corpus_provenance_fn"):
+    for drop in ("safety_evidence_fn", "d003_baseline_fn", "clock_fn", "corpus_provenance_fn", "evaluation_context_exec_fn"):
         with tempfile.TemporaryDirectory() as td:
             log = pathlib.Path(td) / "audit.jsonl"
             _audit.append_event(str(log), action="protected_access_start", set_role="dev", set_sha=sha, session_id=sid, candidate_id="v3-candidate-dev-v1", outcome="success")
@@ -1534,21 +1539,23 @@ def test_canonical_requires_adapters_pre_grant():
 
 def test_canonical_cli_wires_real_adapters():
     # D-041: canonical CLI wires all lazy REAL adapters before grant; unpatched factories fail-closed without IO.
+    # D-054: + evaluation-context capture adapter (same rule).
     import pathlib as _pl
-    from retrieval_v3.runner import parse_args, main_canonical_dev, _real_safety_evidence_fn, _real_d003_baseline_fn, _real_clock_fn, _real_corpus_provenance_fn
+    from retrieval_v3.runner import parse_args, main_canonical_dev, _real_safety_evidence_fn, _real_d003_baseline_fn, _real_clock_fn, _real_corpus_provenance_fn, _real_evaluation_context_fn
     src = (_pl.Path(__file__).resolve().parent / "retrieval_v3" / "runner.py").read_text(encoding="utf-8")
-    for name in ("_real_safety_evidence_fn", "_real_d003_baseline_fn", "_real_clock_fn", "_real_corpus_provenance_fn"):
+    for name in ("_real_safety_evidence_fn", "_real_d003_baseline_fn", "_real_clock_fn", "_real_corpus_provenance_fn", "_real_evaluation_context_fn"):
         assert f"def {name}" in src, f"lazy factory {name} required"
     assert "safety_evidence_fn=real_safety" in src and "d003_baseline_fn=real_d003" in src
     assert "clock_fn=real_clock" in src and "corpus_provenance_fn=real_corpus" in src
-    calls = [lambda: _real_safety_evidence_fn()({"config_id": "candidate-a-01"}), lambda: _real_d003_baseline_fn()("t001", "query text", {}), lambda: _real_clock_fn()(), lambda: _real_corpus_provenance_fn()()]
+    assert "evaluation_context_exec_fn=real_context_exec" in src
+    calls = [lambda: _real_safety_evidence_fn()({"config_id": "candidate-a-01"}), lambda: _real_d003_baseline_fn()("t001", "query text", {}), lambda: _real_clock_fn()(), lambda: _real_corpus_provenance_fn()(), lambda: _real_evaluation_context_fn()("SHOW TimeZone")]
     for mk in calls:
         try:
             mk()
             assert False, "unpatched real adapter must fail-closed"
         except RuntimeError as e:
             assert "SAME-STAGE" in str(e) or "not wired" in str(e)
-    for fn in (_real_safety_evidence_fn(), _real_d003_baseline_fn(), _real_clock_fn(), _real_corpus_provenance_fn()):
+    for fn in (_real_safety_evidence_fn(), _real_d003_baseline_fn(), _real_clock_fn(), _real_corpus_provenance_fn(), _real_evaluation_context_fn()):
         assert getattr(fn, "__real_adapter__", False) is True
     # Canonical CLI fails fail-closed at real policy load (before grant verification, no audit IO, no real IO).
     from retrieval_v3.paths import CANONICAL_DEV_OUTPUT_REL
@@ -1567,7 +1574,7 @@ def test_latency_gate_eligibility_650_570_700():
     assert evaluate_latency_gate(701, 500) is False, ">700 must be NO-GO"
     assert evaluate_latency_gate(700, 620) is True, "700 exactly with headroom must be PASS"
     assert evaluate_latency_gate(781, 700) is False, "+81 over baseline must be NO-GO"
-    full_pass = {"candidate-a-01": {"unsupported": "PASS", "ambiguous": "PASS", "ineligible_expired": "PASS", "official_link": "PASS", "http_resolution": "PASS", "cost": "PASS"}}
+    full_pass = {"candidate-a-01": {"unsupported": "PASS", "ambiguous": "PASS", "production_exclusion": "PASS", "official_link": "PASS", "http_resolution": "PASS", "cost": "PASS"}}
     per = [{"config_id": "candidate-a-01", "success_at_5": 0.9, "ndcg_at_5": 0.8, "mrr_at_10": 0.7}]
     sel = select_candidate(per, safety_per_config=full_pass, latency_p95_per_config={"candidate-a-01": 650}, latency_gate_per_config={"candidate-a-01": "NO-GO"})
     assert sel["chosen"] is None, "650/NO-GO must be ineligible"
@@ -1605,7 +1612,7 @@ def test_canonical_result_evidence_and_consistency():
         assert sorted(res["safety_per_config"].keys()) == expected_ids, "safety evidence must span 18 configs"
         assert sorted(res["latency_per_config"].keys()) == expected_ids, "latency evidence must span 18 configs"
         for cid in expected_ids:
-            assert set(res["safety_per_config"][cid].keys()) >= {"unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost"}
+            assert set(res["safety_per_config"][cid].keys()) >= {"unsupported", "ambiguous", "production_exclusion", "official_link", "http_resolution", "cost"}
             lat = res["latency_per_config"][cid]
             assert lat["n"] == 180 and lat["warmup_n"] == 30, f"{cid} latency must record n=180 warmup=30"
             assert lat["gate"] in ("PASS", "NO-GO", "HOLD")
@@ -1630,12 +1637,14 @@ def test_canonical_result_evidence_and_consistency():
 
 def _canonical_evidence_base():
     # D-042: minimal valid canonical evidence (HOLD safety, PASS latency) for tamper regressions; no real IO.
+    # D-054: + pinned evaluation context in result and corpus provenance (structured, no new gate).
     from retrieval_v3.candidate_registry import EXPECTED_SHA, EXPECTED_PREREG_SHA
     per = [{"config_id": f"candidate-a-{i:02d}", "success_at_5": 0.9, "ndcg_at_5": 0.8, "mrr_at_10": 0.7} for i in range(1, 19)]
     ids = [f"candidate-a-{i:02d}" for i in range(1, 19)]
-    saf = {c: {g: {"gate": "HOLD", "detail": "test"} for g in ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost")} for c in ids}
+    saf = {c: {g: {"gate": "HOLD", "detail": "test"} for g in ("unsupported", "ambiguous", "production_exclusion", "official_link", "http_resolution", "cost")} for c in ids}
     lat = {c: {"n": 180, "warmup_n": 30, "baseline": {"p50": 500, "p95": 500, "p99": 500}, "candidate": {"p50": 570, "p95": 570, "p99": 570}, "gate": "PASS"} for c in ids}
-    return {"schema_version": 1, "git_head": "0" * 40, "git_dirty": False, "candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA, "provenance": {"candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA}, "per_config_metrics": per, "selection": {"chosen": None, "eligible": []}, "candidate_b_gate": {"admitted": False, "instantiated": False, "status": "not_evaluated"}, "safety_per_config": saf, "latency_per_config": lat, "corpus_provenance": {"total_policies": 1, "snapshot": "test"}, "set_provenance": {"set_role": "dev", "set_sha": "1" * 64, "n": 180, "headline_n": 130}}
+    ctx = {"db_session_timezone": "GMT", "evaluation_as_of_date": "2026-09-03"}
+    return {"schema_version": 1, "git_head": "0" * 40, "git_dirty": False, "candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA, "provenance": {"candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA}, "per_config_metrics": per, "selection": {"chosen": None, "eligible": []}, "candidate_b_gate": {"admitted": False, "instantiated": False, "status": "not_evaluated"}, "safety_per_config": saf, "latency_per_config": lat, "corpus_provenance": {"total_policies": 1, "snapshot": "test", "db_session_timezone": "GMT", "evaluation_as_of_date": "2026-09-03"}, "evaluation_context": ctx, "set_provenance": {"set_role": "dev", "set_sha": "1" * 64, "n": 180, "headline_n": 130}}
 
 def test_canonical_latency_evidence_strict_tampers():
     # D-042(1): n/warmup exact, finite numerics, PASS-or-NO-GO only, gate consistent with numbers.
@@ -1689,6 +1698,8 @@ def test_canonical_corpus_mandatory_failure_close():
 
 def test_canonical_safety_full_evidence_preserved():
     # D-042(3): artifact keeps structured per-gate dicts (not gate strings); strip/alter rejects; full PASS validates.
+    # D-054: unsupported/ambiguous/production_exclusion are runner-owned (frozen actions + internal audit);
+    # the adapter's core gates must exactly match owned evidence (forgery => HOLD).
     import copy
     from retrieval_v3.result_schema import validate_complete_result
     from retrieval_v3 import audit as _audit
@@ -1696,19 +1707,24 @@ def test_canonical_safety_full_evidence_preserved():
     sha = "a" * 64
     sid = "safety-full"
     tasks180 = _make_canonical_180()
+    for t in tasks180:
+        if t.get("stratum") == "unsupported_no_answer":
+            t["query"] = t["query"] + " 외국인 관광객"
+        elif t.get("stratum") == "ambiguous":
+            t["query"] = t["query"] + " 지원금 알려줘"
     def fake_vec(seed):
         rnd = random.Random(seed)
         v = [rnd.uniform(-1, 1) for _ in range(768)]
         norm = (sum(x * x for x in v) ** 0.5) or 1
         return [round(x / norm, 6) for x in v]
-    policies = [{"id": 1, "source": "youth", "source_id": "p0", "title": "policy 0", "support_content": "", "summary": "", "keywords": "", "add_qualify": "", "income_etc": "", "apply_method": "", "org": "org", "chunks": [{"embedding": fake_vec(0), "chunk_index": 0, "id": 0}]}]
+    policies = [{"id": i, "source": "youth", "source_id": f"p{i}", "title": f"policy {i}", "support_content": "", "summary": "", "keywords": "", "add_qualify": "", "income_etc": "", "apply_method": "", "org": "org", "chunks": [{"embedding": fake_vec(i), "chunk_index": 0, "id": i}]} for i in range(6)]
     def fake_emb(q):
         h = hashlib.sha256(q.encode()).digest()
         return fake_vec(int.from_bytes(h[:4], "little"))
     full_pass = {
-        "unsupported": {"gate": "PASS", "success": 26, "required": 26, "denominator": 27},
-        "ambiguous": {"gate": "PASS", "success": 21, "required": 21, "denominator": 23},
-        "ineligible_expired": {"gate": "PASS", "expected_tasks": 180, "expected_slots": 900, "intrusions_task": 0, "intrusions_slot": 0},
+        "unsupported": {"gate": "PASS", "success": 27, "required": 26, "denominator": 27},
+        "ambiguous": {"gate": "PASS", "success": 23, "required": 21, "denominator": 23},
+        "production_exclusion": {"gate": "PASS", "expected_tasks": 180, "expected_slots": 900, "intrusions_task": 0, "intrusions_slot": 0},
         "official_link": {"gate": "PASS", "unique": 2, "mismatches": []},
         "http_resolution": {"gate": "PASS", "unique": 100, "successes": 99, "required": 99},
         "cost": {"gate": "PASS", "index_ratio": 1.5, "rows_ratio": 2.0, "extra_model_calls": 0},
@@ -1721,15 +1737,16 @@ def test_canonical_safety_full_evidence_preserved():
         runner = Runner(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r, s: tasks180, audit_log_path=log, adapter_kind="real", **kw)
         res = runner.run_dev_evaluation(tasks=[], policies=policies, session_id=sid, set_role="dev", set_sha=sha, audit_log=log, output_path=None, skip_audit=False)
         c0 = "candidate-a-01"
-        for gate in ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost"):
+        for gate in ("unsupported", "ambiguous", "production_exclusion", "official_link", "http_resolution", "cost"):
             assert isinstance(res["safety_per_config"][c0][gate], dict), f"artifact must keep structured {gate}, not gate string"
-        assert res["safety_per_config"][c0]["unsupported"]["success"] == 26
+        assert res["safety_per_config"][c0]["unsupported"]["success"] == 27
+        assert res["safety_per_config"][c0]["ambiguous"]["success"] == 23
         assert res["safety_per_config"][c0]["http_resolution"]["required"] == 99
         assert res["safety_per_config"][c0]["cost"]["extra_model_calls"] == 0
         validate_complete_result(res)
         # Gate-strings-only artifact rejected.
         bad = copy.deepcopy(res)
-        bad["safety_per_config"][c0] = {g: "PASS" for g in ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost")}
+        bad["safety_per_config"][c0] = {g: "PASS" for g in ("unsupported", "ambiguous", "production_exclusion", "official_link", "http_resolution", "cost")}
         try:
             validate_complete_result(bad)
             assert False, "gate-strings-only safety must fail"
@@ -1766,7 +1783,7 @@ def test_canonical_corpus_provenance_required():
         except ValueError:
             pass
     ok = copy.deepcopy(_canonical_evidence_base())
-    ok["corpus_provenance"] = {"total_policies": 13589, "snapshot": {"pin": "a" * 64}}
+    ok["corpus_provenance"] = {"total_policies": 13589, "snapshot": {"pin": "a" * 64}, "db_session_timezone": "GMT", "evaluation_as_of_date": "2026-09-03"}
     validate_complete_result(ok)
 
 def test_canonical_safety_latency_math_bounds():
@@ -1782,8 +1799,8 @@ def test_canonical_safety_latency_math_bounds():
     cases.append(("unsupported-999", _mk(lambda d: d["safety_per_config"][c0].update({"unsupported": {"gate": "PASS", "success": 999, "required": 26, "denominator": 27}}))))
     cases.append(("unsupported-neg", _mk(lambda d: d["safety_per_config"][c0].update({"unsupported": {"gate": "NO-GO", "success": -1, "required": 26, "denominator": 27}}))))
     cases.append(("ambiguous-999", _mk(lambda d: d["safety_per_config"][c0].update({"ambiguous": {"gate": "PASS", "success": 999, "required": 21, "denominator": 23}}))))
-    cases.append(("intrusion-overflow", _mk(lambda d: d["safety_per_config"][c0].update({"ineligible_expired": {"gate": "NO-GO", "expected_tasks": 180, "expected_slots": 900, "intrusions_task": 181, "intrusions_slot": 901}}))))
-    cases.append(("task-gt-slot", _mk(lambda d: d["safety_per_config"][c0].update({"ineligible_expired": {"gate": "NO-GO", "expected_tasks": 180, "expected_slots": 900, "intrusions_task": 5, "intrusions_slot": 2}}))))
+    cases.append(("intrusion-overflow", _mk(lambda d: d["safety_per_config"][c0].update({"production_exclusion": {"gate": "NO-GO", "expected_tasks": 180, "expected_slots": 900, "intrusions_task": 181, "intrusions_slot": 901}}))))
+    cases.append(("task-gt-slot", _mk(lambda d: d["safety_per_config"][c0].update({"production_exclusion": {"gate": "NO-GO", "expected_tasks": 180, "expected_slots": 900, "intrusions_task": 5, "intrusions_slot": 2}}))))
     cases.append(("official-over", _mk(lambda d: d["safety_per_config"][c0].update({"official_link": {"gate": "NO-GO", "unique": 1, "mismatches": [("u1", "x"), ("u2", "y")]}}))))
     cases.append(("http-over", _mk(lambda d: d["safety_per_config"][c0].update({"http_resolution": {"gate": "NO-GO", "unique": 100, "successes": 101, "required": 99}}))))
     cases.append(("cost-negative", _mk(lambda d: d["safety_per_config"][c0].update({"cost": {"gate": "NO-GO", "index_ratio": -1.5, "rows_ratio": 2.0, "extra_model_calls": 0}}))))
@@ -1799,9 +1816,11 @@ def test_canonical_safety_latency_math_bounds():
 def test_abstention_structural_no_go_all_configs():
     # Pre-execution structural fact (no FIRST dev needed): with nonempty corpus every config retrieves
     # nonempty for every non-blank query on every channel path (sparse emits per-policy entries unconditionally;
-    # fusion union covers sparse; dedup retains first; MMR picks to exhaustion). Under interface-forced
-    # abstention semantics (only empty retrieval counts as safe abstention, no clarification channel),
-    # every unsupported/ambiguous task is therefore "answered": 0/27 and 0/23 => dev safety structurally NO-GO.
+    # fusion union covers sparse; dedup retains first; MMR picks to exhaustion).
+    # D-054: the interface-forced abstention_credit exercised below is HISTORICAL (non-normative);
+    # canonical safe-action measurement uses frozen safe-action-policy-v1 actions (see
+    # test_retrieval_v3_d054_contracts.py), not retrieval emptiness. This test pins the historical
+    # helper behavior only: nonempty retrieval earns no empty-retrieval credit.
     from retrieval_v3.safety import abstention_credit, evaluate_full_dev_safety
     plan = load_candidate_plan_or_fail()
     assert len(plan["configs"]) == 18
@@ -1825,7 +1844,9 @@ def test_abstention_structural_no_go_all_configs():
         assert len(res["final_top30"]) > 0, f"{cfg['config_id']} must retrieve nonempty with nonempty corpus"
         retrieved = [{"source": e["source"], "source_id": e["source_id"]} for e in res["final_top30"]]
         assert abstention_credit(retrieved) is False
-    # Deterministic consequence: 0 correct abstentions => dev gates NO-GO (26/27 and 21/23 required).
+    # Deterministic historical-helper consequence: 0 empty-retrievals => 0/27 and 0/23 NO-GO
+    # under the historical empty-list semantics (26/27 and 21/23 required). Canonical D-054
+    # gates are action-derived and measured independently (see d054 contracts).
     out = evaluate_full_dev_safety([False] * 27, [False] * 23, None, None, None, None, None, None, None)
     assert out["unsupported"]["gate"] == "NO-GO" and out["unsupported"]["success"] == 0
     assert out["ambiguous"]["gate"] == "NO-GO" and out["ambiguous"]["success"] == 0
