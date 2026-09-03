@@ -1206,3 +1206,15 @@ One short section per working session: what was worked on, what was decided (wit
 - **Owns whole gate in one session:** reconcile → safety/eligibility investigation → 201 PASS + proofs → D-048 + SESSION-LOG → atomic docs-only commit/push → STOP. Next: **Web read-only independent review**.
 - **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` ROOT/plan (D-036 gate still); delegates exempt.
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
+
+## 2026-09-03 — Retrieval v3 SAME-STAGE Web-HOLD correction + safe-action freeze + eligibility reconciliation — D-049
+
+- **Reconciled start:** `codex/retrieval-v3-user-search-quality` HEAD `fab9910` clean (`local==origin==actual remote` via direct `ls-remote`), `git diff --check` PASS, `ml-service` diff 0 vs `5327661`, plan `2815361a` / prereg `78420186` unchanged, `dev/`+`holdout/`+result/audit absent (`results/` empty), one-shot unconsumed, OMP `18.1.5` / ROOT-plan `muse-spark-1.3:xhigh` per D-036. User-approved stage; actual state matched handoff on all points.
+- **D-048 correction (append-only):** kept V1-as-is structural NO-GO; corrected pre-dev-proof over-gate (lifecycle = freeze ONE deterministic policy → review → implement → dev measures); corrected eligibility overclaim (Youth raw codes were leads, not semantics).
+- **Safe-action freeze (design only, no runner/safety/prod edit):** query-only norm-v1 + U(18)→ABSTAIN / G(13)+R(11)→CLARIFY / else ANSWER, precedence ABSTAIN>CLARIFY>ANSWER, forbidden label/score inputs, D-004 clean. Artifacts: policy `c512fb56`, plan-v2 `fa370e65` (18-tuple/contracts identical, single common policy, MAX24 intact), supersession doc `472b6183`, test `612c35ac` (12 pure).
+- **Eligibility (read-only aggregates + official code table):** Youth codes distributed as led (승인 constant; 신청기간 특정1311/마감888/상시432; dates partial); official `API코드정보.xlsx` SHA `81cd89dd` establishes 승인≠eligible, 마감 structured but Youth-only, no official expired mapping; Gov24 10958 rows have no structured equivalent (신청기한 2563 distinct free-text). Report `eea3c5ce`. NO map frozen; gate HOLD.
+- **Verification:** 213 PASS (201+12), `git diff --check` PASS, plan/prereg unchanged, `ml-service` 0, isolation intact. Forbidden 0 (see D-049).
+- **VERDICT: FIRST protected-dev REMAINS BLOCKED. Do NOT launch.**
+- **Owns whole stage in one session:** reconcile → correction → policy/plan-v2 freeze → eligibility recon → 213 PASS + proofs → D-049 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
+- **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` ROOT/plan (D-036 gate still); delegates exempt.
+- **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.

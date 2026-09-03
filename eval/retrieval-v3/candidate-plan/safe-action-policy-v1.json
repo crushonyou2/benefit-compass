@@ -1,0 +1,134 @@
+{
+  "action_enum": {
+    "ABSTAIN": "Expose no policy answer and no policy recommendation for this query.",
+    "ANSWER": "Expose the normal policy answer / visible top-5 for this query.",
+    "CLARIFY": "Ask the user for the missing information and expose no policy answer or recommendation until clarified."
+  },
+  "allowed_input_schema": {
+    "query_text": "string — the production-visible raw user query only. No other input is read."
+  },
+  "blank_rule": "If N(query_text) is empty, output ABSTAIN (fail-closed). Frozen dev/holdout queries are non-blank by freeze validation, so this branch is unreachable in protected measurement; it exists only to keep the function total.",
+  "candidate_plan_ref": "eval/retrieval-v3/candidate-plan/candidate-plan-v1.json",
+  "d004_compliance": "No continuous-score cutoff is used anywhere: no COSINE_MIN reuse, no dense-cosine/sparse-overlap/lexical-count threshold, no embedding/model/LLM signal, no retrieval output is read at all. All predicates are existential substring checks over finite versioned string lexicons applied to the normalized query only.",
+  "design_basis": "Qualitative design evidence only: retrieval-blind pilot-100 (eval/retrieval-v3/pilot/pilot_tasks.jsonl) strata shapes — unsupported_no_answer out-of-domain luxury/speculative markers and ambiguous underspecified generic-request frames. Pilot is retrieval-blind (no scores) and is NOT treated as corpus-grounded performance proof. Exactly ONE policy variant was specified; no alternatives were optimized or compared against pilot or any protected labels/results.",
+  "determinism": "The function is a pure function of query_text: fixed normalization, fixed finite lexicons, existential (order-independent) substring predicates, fixed precedence. Same input bytes always yield the same action. No randomness, no time/config dependence, no result-dependent branch.",
+  "evaluation_stage": "Evaluated BEFORE any retrieval, identically for all 18 candidate-a-01..18 configs. Retrieval may still be computed later for diagnostics, but a non-ANSWER action suppresses the visible answer and internal retrieval presence never manufactures safety credit when the visible action is unsafe.",
+  "forbidden_input_schema": [
+    "stratum",
+    "golds / grades / equivalence groups",
+    "case id / task id",
+    "annotation fields (answerable, ambiguous, ambiguity_type, location_bearing, category, freshness, common_vs_rare)",
+    "protected metadata of any kind",
+    "dev / holdout labels, results, or result-derived statistics",
+    "retrieval scores, dense cosine, sparse/lexical overlap counts, embeddings, exact-match boosts, youth bias, or any Candidate-A internal state",
+    "filenames, orderings, or any other path that can encode the above"
+  ],
+  "lexicons": {
+    "G_BENEFIT": {
+      "entries": [
+        "지원금",
+        "혜택",
+        "지원",
+        "복지",
+        "대출",
+        "교육",
+        "보육",
+        "문화",
+        "의료비",
+        "창업",
+        "주거",
+        "이사",
+        "포인트"
+      ],
+      "id": "g-v1",
+      "match": "substring of N(query_text)",
+      "note": "Generic benefit nouns observed in pilot ambiguous underspecified frames. Presence alone never triggers; conjunction with R_FRAME is required."
+    },
+    "R_FRAME": {
+      "entries": [
+        "받고 싶어요",
+        "뭐 있",
+        "알려줘",
+        "알려주세요",
+        "받을 수 있을",
+        "궁금해",
+        "있나요",
+        "있죠",
+        "되나요",
+        "있을까",
+        "신청하고 싶어요"
+      ],
+      "id": "r-v1",
+      "match": "substring of N(query_text)",
+      "note": "Vague existence/request frames observed in pilot ambiguous queries (ambiguity types underspecified_intent / missing_eligibility / missing_location / vague_benefit_type). Specific question frames (e.g. 언제까지, 어디서, 얼마, 조건, 서류, 기간) are deliberately absent: specific questions about a named policy must ANSWER."
+    },
+    "U_ABSTAIN": {
+      "entries": [
+        "외국인 관광객",
+        "해외 유학",
+        "비행기표",
+        "주식 투자",
+        "손실 보전",
+        "명품",
+        "사치",
+        "골프",
+        "회원권",
+        "암호화폐",
+        "가상자산",
+        "외제차",
+        "게임기",
+        "유튜브",
+        "콘서트",
+        "레스토랑",
+        "반려동물 미용",
+        "헬스장"
+      ],
+      "id": "u-v1",
+      "match": "substring of N(query_text)",
+      "note": "Out-of-domain luxury/speculative/foreign-tourist markers covering all 15 pilot unsupported_no_answer shapes with narrow compounds (never bare 유학/반려동물/바우처/코인, which collide with legitimate youth-exchange, pet-care, voucher, or coin policies). Deliberately narrow to protect headline; protected-domain recall is NOT claimed."
+    }
+  },
+  "limitations": [
+    "Fixtures in the accompanying test are representative pure checks of mechanics and precedence only; they do NOT prove protected safety performance.",
+    "Headline misses are possible (e.g. a specific named-policy query containing both a G_BENEFIT noun and an R_FRAME string is forced to CLARIFY). This is accepted pre-result: the protected dev measures the actual tradeoff.",
+    "Unsupported queries outside U_ABSTAIN answer normally and ambiguous queries outside the G+R conjunction answer normally; coverage limits are measured by dev, not argued here."
+  ],
+  "normalization": {
+    "id": "norm-v1",
+    "note": "Identical to the exact normalization already frozen in candidate-plan-v1 step_4 (NFC -> strip -> collapse internal whitespace -> casefold), restricted to the query operand.",
+    "steps": [
+      "NFC normalize",
+      "strip leading/trailing whitespace",
+      "collapse every internal run of whitespace ([\\s]+) to one ASCII space",
+      "casefold"
+    ]
+  },
+  "output_schema": {
+    "action": "one of ANSWER | ABSTAIN | CLARIFY"
+  },
+  "parents": {
+    "candidate_plan_v1": "eval/retrieval-v3/candidate-plan/candidate-plan-v1.json",
+    "candidate_plan_v1_sha256": "2815361a469fee9bf69f6ffdf2124d19928220535cdb08b2005ae6674ae7d17c",
+    "prereg": "docs/RETRIEVAL_V3_PREREG.md",
+    "prereg_sha256": "7842018613d66aa4570f4db2f8ae5a698ceb46757995a6b7e26873177b36160e"
+  },
+  "policy_id": "retrieval-v3-safe-action-policy-v1",
+  "precedence": [
+    "P_U true -> ABSTAIN (ABSTAIN is correct for unsupported and acceptable for ambiguous, so it wins overlaps)",
+    "else P_C true -> CLARIFY",
+    "else -> ANSWER"
+  ],
+  "predicates": {
+    "P_C": "exists g in G_BENEFIT with g substring of N(query_text) AND exists r in R_FRAME with r substring of N(query_text)",
+    "P_U": "exists u in U_ABSTAIN with u substring of N(query_text)"
+  },
+  "pseudocode": "N = norm_v1(query_text); if N == '': return ABSTAIN; if any(u in N for u in U_ABSTAIN): return ABSTAIN; if any(g in N for g in G_BENEFIT) and any(r in N for r in R_FRAME): return CLARIFY; return ANSWER",
+  "scope": "Fixed and common to all 18 candidate-a-01..18 configs. The action policy is NOT a dev-scored tuning axis, does NOT expand MAX24, and does NOT alter any ranking tuple, ranking semantics, final-pool semantics, selection ordering, embedding, Candidate-B gate, integer gate, latency/cost, or audit/one-shot contract.",
+  "scoring_semantics": {
+    "ambiguous_correct": "ABSTAIN or CLARIFY",
+    "headline_success": "action == ANSWER AND a grade>=2 gold is in the visible top-5; ABSTAIN/CLARIFY on headline are misses",
+    "unsupported_correct": "ABSTAIN only"
+  },
+  "status": "frozen pre-result (D-049 stage). DESIGN/FREEZE ONLY — not implemented in eval/retrieval-v3/runner.py or safety.py in this stage. Implementation is a later separately reviewed stage.",
+  "version": "1.0.0"
+}
