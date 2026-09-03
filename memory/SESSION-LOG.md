@@ -1229,3 +1229,11 @@ One short section per working session: what was worked on, what was decided (wit
 - **Owns whole correction in one session:** reconcile → v2/test fix → 216 PASS + proofs → D-050 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
 - **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` plan (live-verified); delegates exempt.
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
+
+## 2026-09-04 — Chat On Steroids native-path privacy rule — D-051
+
+- User reported repeated sensitive-sharing confirmations classifying a Windows native repository path as `physical address` during Chat On Steroids calls.
+- Confirmed the practical fix is to avoid user-specific native absolute paths in tool args and worker context/messages. App virtual aliases may exist, but shell `workdir` support must be verified per action rather than assumed.
+- Applied project-wide rule in `AGENTS.md` and `CLAUDE.md`: prefer current cwd + repo-relative paths; worker instructions refer to the current benefit-compass repository without native home paths.
+- Durable decision: D-051. Genuine sensitive-information confirmations remain intact; no safety bypass is attempted.
+- Retrieval v3 state/contract unchanged; this is tool-addressing/project-guidance only.
