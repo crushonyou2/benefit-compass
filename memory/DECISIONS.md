@@ -1610,3 +1610,34 @@ Repo + freeze-manifest/artifact-name inspection only (no protected plaintext): p
 Do NOT launch. Reasons: (a) dev safety PASS is structurally impossible by construction — Candidate A always retrieves nonempty with a nonempty corpus, so unsupported/ambiguous correct-handling is deterministically 0/27 and 0/23 against 26/21 floors (a FIRST run cannot change this; only a scoped abstention mechanism — currently out of scope per prereg — could); (b) ineligible/expired authoritative per-policy evidence does not exist, so that gate would measure HOLD. Both are pre-execution facts; running FIRST dev would spend the protected one-shot surface to relearn them.
 
 Standing decisions D-013/D-015/D-016/D-017/D-018…D-043 remain as history/corrected where applicable. Next gate is **STOP for Web read-only independent review** (not FIRST dev retrieval, not candidate tuning).
+
+## D-045 · Retrieval v3 SAME-STAGE correction-7 — HTTP exact-protocol refinement + eligibility existence wording correction — 2026-09-03 (user-authorized, one session owns repair+tests+commit+push)
+
+This is a **narrow SAME-STAGE correction-7** on base `bac14bffc6884bad46fad950e38ce49e062d6ed8` that does NOT rewrite D-037..D-044 history (D-044 text untouched). Web read-only review independently reran 67/67 focused + 190/190 full pure suite on `bac14bf`, then found ONE concrete fixed-protocol blocker plus one durable wording overclaim. No plan/prereg/config/gate/threshold change, no production change, no FIRST dev, no protected plaintext, no real DB/model/network/HTTP/latency benchmark.
+
+Reconciled base (read-only before mutation): branch `codex/retrieval-v3-user-search-quality` HEAD `bac14bffc6884bad46fad950e38ce49e062d6ed8` clean (`local==origin`, `git diff --check` PASS), `ml-service` diff 0 vs `5327661445c37191a3fd61db195f3af4d2cf893a`, plan `2815361a469fee9bf69f6ffdf2124d19928220535cdb08b2005ae6674ae7d17c` / prereg `7842018613d66aa4570f4db2f8ae5a698ceb46757995a6b7e26873177b36160e` unchanged, `eval/retrieval-v3/dev/` + `holdout/` absent on main, canonical dev result/audit absent. Runtime OMP `18.1.5` / ROOT-plan `opencode-go/muse-spark-1.3-contributor:xhigh` per D-036 (D-036 gate still in force).
+
+### 1) HTTP frozen-protocol exact correction (prereg lines 191-196 exact, not new)
+
+Web independent repros on committed bytes: HEAD [405,200] + GET [500,500] returned True (MUST be False); HEAD [501,200] + GET [500,500] True (MUST be False); HEAD [404,200] returned True (MUST be False). Root causes: 405/501 consumed the same-method retry (converting specific fallback semantics into a second HEAD path), and ordinary 4xx was retry-eligible though absent from the prereg retry list (5xx/network/timeout/TLS only). Rewrote the per-hop attempt rules with a terminal-outcome fallback cause: 405/501 chooses GET fallback at once (no second HEAD entry is ever consumed); ordinary 4xx fails at once with no retry and no fallback (killing earlier causes); 5xx consumes the one same-method retry but never falls back; network/TLS retries first and falls back only if attempts exhaust with network/TLS cause (last attempt decides); timeout stays retry-only (not a fallback trigger); redirects ≤3 preserving method with a fresh budget per hop. Verified matrix (pure): A/B/C all False; positives kept — HEAD [500,200]/[network,200]/[timeout,200] True, timeout-only exhaustion False, 301→500→200 True, 405→GET[500,200] True. Constants (connect 5/read 10, no backoff), thresholds, and docs untouched; no real HTTP.
+
+### 2) D-044 eligibility existence claim corrected (append-only; D-044 preserved)
+
+D-044 stated no authoritative per-policy eligible+expired evidence exists. Web did NOT query the live DB by design, so non-existence was overclaimed. Corrected status from the evidence actually established: current canonical repo/runtime plus protected freeze manifest/provenance metadata inspected without protected plaintext do NOT provide an executable pinned per-policy eligible+expired/equivalent map; static production schema shows `biz_end` but no explicit eligible/expired columns; the live DB/source-truth table was NOT queried pre-gate. Correct status is therefore **not established / unavailable to the current canonical runner — measurement remains HOLD until an already-authoritative frozen/pre-evaluation source is located and pinned under the standing prereg**. Never default `eligible=True`, never synthesize flags, never infer heuristics, gate never relaxed. D-044's structural Candidate-A unsupported/ambiguous finding (always-nonempty retrieval → 0/27 vs 26, 0/23 vs 21) is preserved in full: no new abstention mechanism/threshold, no result-based tuning.
+
+### Tests (pure/static/mock only; safety 26 → 29; runner unchanged 67)
+
+- New (3): `test_http_405_second_head_must_not_rescue`, `test_http_501_second_head_must_not_rescue`, `test_http_ordinary_404_no_retry_no_fallback` (exact Web A/B/C repros).
+- All pre-existing HTTP cases re-verified unchanged (200, 301→200, 405→GET200, network→GET200, 404-fail, 500→200 retry, 4-redirect overflow, plus correction-6 retry/hop/fallback boundaries).
+- Footer counts: runner file untouched (67); safety file has no footer counter.
+
+### Verification (pure/static/mock only, before commit)
+
+- 193 PASS across the same 9 files (67+39+6+29+9+8+17+8+10); `git diff --check` PASS; plan/prereg SHAs unchanged; `ml-service` diff 0; `dev/`+`holdout/` absent; canonical dev result/audit absent (no `run_start` consumed); mirror identity PASS (safety pair byte-identical; all other pairs untouched).
+- Forbidden 0: protected dev/holdout plaintext or recovery 0 (`git show`/`cat-file`/`checkout`/`restore`/`sparse`/`worktree`/traversal for protected data 0), FIRST dev retrieval 0, DB connection/query 0, model/embedding load 0, real network/HTTP 0, latency benchmark 0, result inspection/tuning 0, plan/prereg/gate/config semantic change 0, `ml-service` change 0, Candidate B instantiate 0, amend/rebase/reset/force/history rewrite 0, tag move/delete/force 0, force push 0.
+
+### VERDICT: FIRST protected-dev launch REMAINS BLOCKED unless ALL standing pre-gate blockers are actually resolved (not authorized; do not launch)
+
+UNCHANGED from D-044: dev safety PASS remains structurally impossible (always-nonempty retrieval → 0/27 vs 26, 0/23 vs 21), and ineligible/expired measurement remains HOLD (now with the corrected not-established status). A FIRST run would spend protected one-shot surface relearning pre-execution facts.
+
+Standing decisions D-013/D-015/D-016/D-017/D-018…D-044 remain as history/corrected where applicable. Next gate is **STOP for Web read-only independent review** (not FIRST dev retrieval, not candidate tuning).

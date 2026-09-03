@@ -1160,3 +1160,15 @@ One short section per working session: what was worked on, what was decided (wit
 - **Owns whole repair in one session:** reconcile → HTTP/abstain/eligibility/audit fixes → mirror sync → tests → 190 PASS + SHA/isolation proofs → D-044 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
 - **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` ROOT/plan (D-036 gate still); delegates exempt.
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
+
+## 2026-09-03 — Retrieval v3 SAME-STAGE correction-7 — HTTP exact refinement + eligibility wording — D-045
+
+- **Reconciled start:** `codex/retrieval-v3-user-search-quality` HEAD `bac14bf` clean (`local==origin`), `git diff --check` PASS, `ml-service` diff 0, plan `2815361a` / prereg `78420186` unchanged, `dev/`+`holdout/` absent, result/audit absent, OMP `18.1.5` / ROOT-plan `muse-spark-1.3:xhigh` per D-036. Web reran 67/190 PASS, then reproduced A/B/C protocol defects. No protected plaintext, no FIRST dev, no real IO.
+- **Repairs (mirrors byte-identical):** 405/501 immediate fallback (no second HEAD rescue); ordinary 4xx immediate fail (no retry/fallback); 5xx retry-only; network/TLS retry-then-fallback on exhaustion cause; timeout retry-only; per-hop budgets (prereg lines 191-196 exact; constants/docs untouched).
+- **Wording (append-only, D-044 preserved):** eligibility non-existence overclaimed (live DB never queried by design) → corrected to not-established/unavailable, measurement HOLD until authoritative frozen source located+ pinned. Structural abstention finding preserved.
+- **Tests:** 3 new A/B/C repros; all prior HTTP cases kept; safety 26→29, runner 67 unchanged.
+- **Verification:** 193 PASS (67+39+6+29+9+8+17+8+10), `git diff --check` PASS, plan/prereg unchanged, `ml-service` 0, isolation + mirror identity PASS, no result, no `run_start` consumed. Forbidden 0 (see D-045).
+- **VERDICT: FIRST protected-dev REMAINS BLOCKED** unless ALL pre-gate blockers actually resolved. Do NOT launch.
+- **Owns whole correction-7 in one session:** reconcile → HTTP exact fix → A/B/C tests → 193 PASS + proofs → D-045 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
+- **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` ROOT/plan (D-036 gate still); delegates exempt.
+- **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.

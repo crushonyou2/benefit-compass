@@ -355,3 +355,30 @@ def test_ineligible_missing_flags_hold_never_default_pass():
     gate3, det3 = check_ineligible_expired(top5, snap3, pin, 1, 5)
     assert gate3 == "PASS"
     assert det3["intrusions_task"] == 0 and det3["intrusions_slot"] == 0
+
+def test_http_405_second_head_must_not_rescue():
+    # Web repro A: HEAD 405 chooses GET fallback at once; second HEAD 200 must not rescue; GET fails => False.
+    ok = check_single_url_with_mock(
+        "https://example.com/a405",
+        [MockHttpResponse(status=405), MockHttpResponse(status=200)],
+        [MockHttpResponse(status=500), MockHttpResponse(status=500)]
+    )
+    assert ok is False
+
+def test_http_501_second_head_must_not_rescue():
+    # Web repro B: HEAD 501 fallback governs; second HEAD 200 must not rescue; GET fails => False.
+    ok = check_single_url_with_mock(
+        "https://example.com/b501",
+        [MockHttpResponse(status=501), MockHttpResponse(status=200)],
+        [MockHttpResponse(status=500), MockHttpResponse(status=500)]
+    )
+    assert ok is False
+
+def test_http_ordinary_404_no_retry_no_fallback():
+    # Web repro C: ordinary 4xx is not in the prereg retry list and has no fallback; immediate fail.
+    ok = check_single_url_with_mock(
+        "https://example.com/c404",
+        [MockHttpResponse(status=404), MockHttpResponse(status=200)],
+        []
+    )
+    assert ok is False
