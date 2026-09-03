@@ -269,10 +269,8 @@ class Runner:
                 raise ValueError("tasks empty (fail-closed)")
 
             headline_tasks = [t for t in tasks if t.get("stratum") not in ("ambiguous", "unsupported_no_answer") and not t.get("is_ambiguous") and not t.get("is_unsupported")]
-            if not headline_tasks and tasks:
-                headline_tasks = [t for t in tasks if any(g.get("grade",0)>=2 for g in t.get("golds",[]))]
-                if not headline_tasks:
-                    headline_tasks = tasks
+            # SAME-STAGE fail-closed: no silent fallback to grade-based or full-task headline.
+            # Empty headline stays empty (metrics n=0 -> selection HOLD), never silently includes safety tasks.
 
             per_config_metrics = []
             latency_per_config = {}
@@ -288,14 +286,13 @@ class Runner:
                     for g in golds:
                         if isinstance(g, dict):
                             if "grade" not in g:
-                                g2 = dict(g)
-                                g2["grade"] = 2
-                                normalized_golds.append(g2)
-                            else:
-                                normalized_golds.append(g)
+                                raise ValueError(f"gold missing explicit grade (fail-closed): task {task.get('task_id') or task.get('id')}")
+                            normalized_golds.append(g)
                         else:
-                            normalized_golds.append({"source": g[0], "source_id": g[1], "grade": 2})
+                            raise ValueError(f"gold tuple form without explicit grade forbidden (fail-closed): task {task.get('task_id') or task.get('id')}")
                     q = task.get("query") or task.get("query_text") or ""
+                    if not isinstance(q, str) or not q.strip():
+                        raise ValueError(f"empty query (fail-closed): task {task.get('task_id') or task.get('id')}")
                     res = self._retrieve_for_query(q, policies, cfg)
                     final_top30 = res["final_top30"]
                     retrieved = [{"source": e["source"], "source_id": e["source_id"]} for e in final_top30]
@@ -319,16 +316,13 @@ class Runner:
                     })
 
                 headline_ids = {t.get("task_id") or t.get("id") for t in headline_tasks}
-                headline_results = [tr for tr in task_results if tr.get("task_id") in headline_ids] if headline_ids else task_results
-                if not headline_results:
-                    headline_results = task_results
+                # SAME-STAGE fail-closed: explicit stratum headline only, no silent full-task inclusion.
+                headline_results = [tr for tr in task_results if tr.get("task_id") in headline_ids]
                 # For oracle, filter to headline only for B gate (C regression: headline130 only)
                 headline_oracle_tasks = []
                 for tr, ot in zip(task_results, oracle_tasks):
-                    if tr.get("task_id") in headline_ids or not headline_ids:
+                    if tr.get("task_id") in headline_ids:
                         headline_oracle_tasks.append(ot)
-                if not headline_oracle_tasks:
-                    headline_oracle_tasks = oracle_tasks
                 metrics_head = compute_headline_metrics(headline_results)
                 # Union oracle Recall@K is set union per C — computed inside metrics via set union
                 oracle_metrics_headline = compute_oracle_recall(headline_oracle_tasks)
@@ -373,46 +367,15 @@ class Runner:
             for cfg in self.plan_data["configs"]:
                 cid = cfg["config_id"]
                 try:
-                    from .safety import check_unsupported_ambiguous
-                    has_unsupported = any(t.get("stratum") == "unsupported_no_answer" for t in tasks)
-                    has_ambiguous = any(t.get("stratum") == "ambiguous" for t in tasks)
-                    if not has_unsupported and not has_ambiguous:
-                        gate_u = "PASS"
-                    else:
-                        dev_u = []
-                        dev_a = []
-                        holdout_u = None
-                        holdout_a = None
-                        if has_unsupported:
-                            dev_u = [True for t in tasks if t.get("stratum") == "unsupported_no_answer"]
-                        if has_ambiguous:
-                            dev_a = [True for t in tasks if t.get("stratum") == "ambiguous"]
-                        gate_u, _ = check_unsupported_ambiguous(
-                            holdout_unsupported_results=holdout_u,
-                            holdout_ambiguous_results=holdout_a,
-                            dev_unsupported_results=dev_u if dev_u else None,
-                            dev_ambiguous_results=dev_a if dev_a else None,
-                        )
+                    # SAME-STAGE fail-closed: pre-dev runner has no real safety measurement from retrieval results.
+                    # Previous vacuous [True...] + checker-presence PASS fabricated safety; now always HOLD.
+                    # Real wiring belongs to FIRST dev retrieval stage; forbidden pre-dev. Injection points preserved.
+                    gate_u = "HOLD"
                     gate_ineligible = "HOLD"
-                    try:
-                        if self.corpus_provenance_fn is not None:
-                            prov = self.corpus_provenance_fn()
-                            if prov and isinstance(prov, dict) and prov.get("total_policies"):
-                                gate_ineligible = "PASS"
-                    except Exception:
-                        gate_ineligible = "HOLD"
-                    if self.http_checker is None:
-                        gate_official = "HOLD"
-                        gate_http = "HOLD"
-                    else:
-                        gate_official = "PASS"
-                        gate_http = "PASS"
-                    overall = "HOLD" if "HOLD" in (gate_u, gate_ineligible, gate_official, gate_http) else "PASS"
-                    if gate_u == "NO-GO" or gate_ineligible == "NO-GO" or gate_official == "NO-GO":
-                        overall = "NO-GO"
-                    cost_gate = "HOLD" if self.corpus_provenance_fn is None else "PASS"
-                    if overall == "HOLD" or cost_gate == "HOLD":
-                        overall = "HOLD"
+                    gate_official = "HOLD"
+                    gate_http = "HOLD"
+                    cost_gate = "HOLD"
+                    overall = "HOLD"
                     safety_per_config[cid] = {
                         "unsupported": gate_u,
                         "ambiguous": gate_u,
@@ -421,6 +384,7 @@ class Runner:
                         "http_resolution": gate_http,
                         "cost": cost_gate,
                         "gate": overall,
+                        "detail": "pre_dev_no_real_measurement",
                     }
                 except Exception as e:
                     safety_per_config[cid] = {
@@ -428,6 +392,7 @@ class Runner:
                         "ambiguous": "HOLD",
                         "ineligible_expired": "HOLD",
                         "official_link": "HOLD",
+                        "http_resolution": "HOLD",
                         "cost": "HOLD",
                         "gate": "HOLD",
                         "error": str(e)[:200],
@@ -441,16 +406,25 @@ class Runner:
                     latencies = {}
                     for cfg in self.plan_data["configs"]:
                         def _baseline_fn(tid, _cfg=baseline_cfg):
-                            task = next((tt for tt in tasks if (tt.get("task_id") or tt.get("id")) == tid), tasks[0])
+                            task = next((tt for tt in tasks if (tt.get("task_id") or tt.get("id")) == tid), None)
+                            if task is None:
+                                raise ValueError(f"latency task id not found (fail-closed): {tid}")
                             q = task.get("query") or task.get("query_text") or ""
+                            if not isinstance(q, str) or not q.strip():
+                                raise ValueError(f"latency empty query (fail-closed): {tid}")
                             self._retrieve_for_query(q, policies, _cfg)
                         def _candidate_fn(tid, _cfg=cfg):
-                            task = next((tt for tt in tasks if (tt.get("task_id") or tt.get("id")) == tid), tasks[0])
+                            task = next((tt for tt in tasks if (tt.get("task_id") or tt.get("id")) == tid), None)
+                            if task is None:
+                                raise ValueError(f"latency task id not found (fail-closed): {tid}")
                             q = task.get("query") or task.get("query_text") or ""
+                            if not isinstance(q, str) or not q.strip():
+                                raise ValueError(f"latency empty query (fail-closed): {tid}")
                             self._retrieve_for_query(q, policies, _cfg)
                         res = measure_paired_latency(task_ids_sorted, _baseline_fn, _candidate_fn, clock_fn=self.clock_fn, warmup_n=30)
                         cand_p95 = res.get("candidate", {}).get("p95") if isinstance(res.get("candidate"), dict) else res.get("candidate_p95")
-                        latencies[cfg["config_id"]] = cand_p95 if cand_p95 is not None else res.get("p95", 500.0)
+                        # SAME-STAGE fail-closed: no fabricated default; missing p95 stays None -> selection HOLD.
+                        latencies[cfg["config_id"]] = cand_p95 if cand_p95 is not None else None
                     latency_p95_per_config = latencies
                 except Exception:
                     latency_p95_per_config = None

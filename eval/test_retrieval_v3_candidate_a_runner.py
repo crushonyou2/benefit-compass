@@ -372,7 +372,9 @@ def test_runner_safety_hold_when_checkers_absent():
         assert res["selection"]["chosen"] is None, "without snapshot/http checker safety must be HOLD => no eligible"
         assert res["candidate_b_gate"]["instantiated"] is False
 
-def test_runner_safety_pass_when_checkers_present():
+def test_runner_safety_hold_even_with_checkers_pre_dev():
+    # SAME-STAGE HOLD repair: pre-dev runner has no real safety measurement from retrieval results.
+    # Previous vacuous [True...] + checker-presence PASS fabricated safety; now always HOLD fail-closed.
     plan=load_candidate_plan_or_fail()
     def fake_vec(seed):
         rnd=random.Random(seed)
@@ -397,7 +399,9 @@ def test_runner_safety_pass_when_checkers_present():
         runner=Runner(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r,s: tasks, audit_log_path=audit_log, corpus_provenance_fn=lambda: {"total_policies":5, "total_chunks":5}, http_checker=lambda urls: True, clock_fn=clock)
         res=runner.run_dev_evaluation(tasks=tasks, policies=policies, session_id="safety-pass", set_role="dev", set_sha=None, audit_log=audit_log, output_path=out, skip_audit=True)
         assert len(res["per_config_metrics"])==18
-        assert res["selection"]["chosen"] is not None, "with checkers safety PASS and high success => should have eligible"
+        assert res["selection"]["chosen"] is None, "pre-dev no real safety measurement => HOLD, no eligible even with checkers"
+        for cid, rep in res.get("safety_per_config", {}).items():
+            assert rep.get("gate") == "HOLD" and rep.get("detail") == "pre_dev_no_real_measurement"
 def test_runner_latency_wiring():
     plan=load_candidate_plan_or_fail()
     def fake_vec(seed):
@@ -834,9 +838,92 @@ def test_mirror_hyphen_underscore_identity():
             h1 = hashlib.sha256(p1.read_bytes()).hexdigest()
             h2 = hashlib.sha256(p2.read_bytes()).hexdigest()
             assert h1 == h2, f"mirror mismatch {name}: {h1[:8]} vs {h2[:8]}"
+def test_headline_no_silent_fallback_safety_only():
+    # SAME-STAGE: safety-only tasks must NOT silently become headline; headline stays empty (n=0 -> HOLD).
+    plan=load_candidate_plan_or_fail()
+    def fake_vec(seed):
+        rnd=random.Random(seed)
+        v=[rnd.uniform(-1,1) for _ in range(768)]
+        norm=(sum(x*x for x in v)**0.5)or 1
+        return [round(x/norm,6) for x in v]
+    policies=[]
+    for i in range(5):
+        chunks=[{"embedding": fake_vec(i),"chunk_index":0,"id":i}]
+        policies.append({"id":i+1,"source":"youth","source_id":f"p{i}","title":f"정책 {i}","support_content":"","summary":"","keywords":"","add_qualify":"","income_etc":"","apply_method":"","org":"고용노동부","chunks":chunks})
+    def fake_emb(q):
+        h=hashlib.sha256(q.encode()).digest()
+        return fake_vec(int.from_bytes(h[:4],"little"))
+    tasks=[
+        {"task_id":"u0","query":"정책 0","golds":[],"stratum":"unsupported_no_answer","location_bearing":False},
+        {"task_id":"u1","query":"정책 1","golds":[],"stratum":"unsupported_no_answer","location_bearing":False},
+        {"task_id":"a0","query":"정책 2","golds":[{"source":"youth","source_id":"p0","grade":2}],"stratum":"ambiguous","location_bearing":False},
+    ]
+    with tempfile.TemporaryDirectory() as td:
+        audit_log=pathlib.Path(td)/"audit.jsonl"
+        out=pathlib.Path(td)/"out.json"
+        runner=Runner(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r,s: tasks, audit_log_path=audit_log)
+        res=runner.run_dev_evaluation(tasks=tasks, policies=policies, session_id="headline-failclosed", set_role="dev", set_sha=None, audit_log=audit_log, output_path=out, skip_audit=True)
+        for m in res["per_config_metrics"]:
+            assert m["n"] == 0, f"headline must stay empty for safety-only tasks, got n={m['n']}"
+            assert m["success_at_5"] == 0.0
+        assert res["selection"]["chosen"] is None
+
+def test_gold_missing_grade_fail_closed():
+    plan=load_candidate_plan_or_fail()
+    def fake_vec(seed):
+        rnd=random.Random(seed)
+        v=[rnd.uniform(-1,1) for _ in range(768)]
+        norm=(sum(x*x for x in v)**0.5)or 1
+        return [round(x/norm,6) for x in v]
+    policies=[{"id":1,"source":"youth","source_id":"p0","title":"정책 0","support_content":"","summary":"","keywords":"","add_qualify":"","income_etc":"","apply_method":"","org":"고용노동부","chunks":[{"embedding":fake_vec(0),"chunk_index":0,"id":0}]}]
+    def fake_emb(q):
+        h=hashlib.sha256(q.encode()).digest()
+        return fake_vec(int.from_bytes(h[:4],"little"))
+    tasks=[{"task_id":"t0","query":"정책 0","golds":[{"source":"youth","source_id":"p0"}],"stratum":"natural_needs","location_bearing":False}]
+    with tempfile.TemporaryDirectory() as td:
+        audit_log=pathlib.Path(td)/"audit.jsonl"
+        out=pathlib.Path(td)/"out.json"
+        runner=Runner(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r,s: tasks, audit_log_path=audit_log)
+        try:
+            runner.run_dev_evaluation(tasks=tasks, policies=policies, session_id="gold-grade", set_role="dev", set_sha=None, audit_log=audit_log, output_path=out, skip_audit=True)
+            assert False, "missing gold grade must fail-closed"
+        except ValueError as e:
+            assert "grade" in str(e).lower()
+
+def test_empty_query_fail_closed():
+    plan=load_candidate_plan_or_fail()
+    def fake_vec(seed):
+        rnd=random.Random(seed)
+        v=[rnd.uniform(-1,1) for _ in range(768)]
+        norm=(sum(x*x for x in v)**0.5)or 1
+        return [round(x/norm,6) for x in v]
+    policies=[{"id":1,"source":"youth","source_id":"p0","title":"정책 0","support_content":"","summary":"","keywords":"","add_qualify":"","income_etc":"","apply_method":"","org":"고용노동부","chunks":[{"embedding":fake_vec(0),"chunk_index":0,"id":0}]}]
+    def fake_emb(q):
+        h=hashlib.sha256(q.encode()).digest()
+        return fake_vec(int.from_bytes(h[:4],"little"))
+    tasks=[{"task_id":"t0","query":"   ","golds":[{"source":"youth","source_id":"p0","grade":2}],"stratum":"natural_needs","location_bearing":False}]
+    with tempfile.TemporaryDirectory() as td:
+        audit_log=pathlib.Path(td)/"audit.jsonl"
+        out=pathlib.Path(td)/"out.json"
+        runner=Runner(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r,s: tasks, audit_log_path=audit_log)
+        try:
+            runner.run_dev_evaluation(tasks=tasks, policies=policies, session_id="empty-q", set_role="dev", set_sha=None, audit_log=audit_log, output_path=out, skip_audit=True)
+            assert False, "empty query must fail-closed"
+        except ValueError as e:
+            assert "empty query" in str(e).lower()
+
+def test_latency_no_fabricated_default_static():
+    # Static: runner must not fabricate p95 (500.0) nor silently fall back to tasks[0] on id miss.
+    import pathlib as _pl
+    src=(_pl.Path(__file__).resolve().parent / "retrieval_v3" / "runner.py").read_text(encoding="utf-8")
+    assert "500.0" not in src, "fabricated latency default 500.0 forbidden"
+    assert ", tasks[0]" not in src, "silent tasks[0] fallback forbidden (fail-closed required)"
+    assert "headline_tasks = tasks" not in src
+    assert "headline_results = task_results" not in src
+    assert "headline_oracle_tasks = oracle_tasks" not in src
 
 if __name__=="__main__":
-    tests=[test_18_configs_and_drift, test_non_unit_cosine, test_representative_tie_and_near_tie, test_strict_gt_dedup_boundary, test_mmr_actual_cosine_and_full_top30, test_exact_normalization_and_boundaries, test_cosine_min_placement, test_union_vs_hybrid, test_exact_not_injected, test_deterministic_ordering, test_metrics_mrr_rank_gt10, test_selection_ordering_and_zero, test_b_gate_no_impl, test_latency_harness, test_audit_lifecycle, test_atomic_rerun_concurrent, test_path_confinement, test_runner_safety_hold_when_checkers_absent, test_runner_safety_pass_when_checkers_present, test_runner_latency_wiring, test_cli_orchestrator_e2e, test_fusion_youth_bias_only_youth_source_gov24_zero, test_sparse_only_representative_query_nearest_no_chunk0_fallback, test_oracle_union_set_and_headline130, test_metrics_graded_strict_and_ndcg, test_metrics_equivalence_group_no_double_count, test_slice_diagnostics_unavailable, test_selection_fail_closed_missing_gates, test_selection_fail_closed_missing_latency, test_execution_lifecycle_audit_closure_on_failure, test_execution_lifecycle_path_and_result_os_agnostic, test_mirror_hyphen_underscore_identity]
+    tests=[test_18_configs_and_drift, test_non_unit_cosine, test_representative_tie_and_near_tie, test_strict_gt_dedup_boundary, test_mmr_actual_cosine_and_full_top30, test_exact_normalization_and_boundaries, test_cosine_min_placement, test_union_vs_hybrid, test_exact_not_injected, test_deterministic_ordering, test_metrics_mrr_rank_gt10, test_selection_ordering_and_zero, test_b_gate_no_impl, test_latency_harness, test_audit_lifecycle, test_atomic_rerun_concurrent, test_path_confinement, test_runner_safety_hold_when_checkers_absent, test_runner_safety_hold_even_with_checkers_pre_dev, test_runner_latency_wiring, test_cli_orchestrator_e2e, test_fusion_youth_bias_only_youth_source_gov24_zero, test_sparse_only_representative_query_nearest_no_chunk0_fallback, test_oracle_union_set_and_headline130, test_metrics_graded_strict_and_ndcg, test_metrics_equivalence_group_no_double_count, test_slice_diagnostics_unavailable, test_selection_fail_closed_missing_gates, test_selection_fail_closed_missing_latency, test_execution_lifecycle_audit_closure_on_failure, test_execution_lifecycle_path_and_result_os_agnostic, test_headline_no_silent_fallback_safety_only, test_gold_missing_grade_fail_closed, test_empty_query_fail_closed, test_latency_no_fabricated_default_static, test_mirror_hyphen_underscore_identity]
     for t in tests:
         try:
             t()
@@ -845,4 +932,4 @@ if __name__=="__main__":
             print(f"FAIL {t.__name__}: {e}")
             import traceback; traceback.print_exc()
             sys.exit(1)
-    print("ALL 32 focused tests PASS")
+    print("ALL 36 focused tests PASS")
