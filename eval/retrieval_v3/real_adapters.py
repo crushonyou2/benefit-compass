@@ -273,26 +273,58 @@ class RealEvaluationSession:
                     "evaluation DB connect failed "
                     f"({type(e).__name__}, fail-closed)"
                 ) from None
+            self._conn = conn
             try:
                 conn.set_session(readonly=True, autocommit=False, isolation_level="REPEATABLE READ")
             except Exception as e:
+                cfg_type = type(e).__name__
+                try:
+                    conn.close()
+                except Exception as ce:
+                    self._conn = None
+                    self._closed = True
+                    raise RuntimeError(
+                        "evaluation DB session config failed "
+                        f"({cfg_type}, fail-closed) and cleanup close also failed "
+                        f"({type(ce).__name__}, fail-closed)"
+                    ) from None
+                self._conn = None
+                self._closed = True
                 raise RuntimeError(
                     "evaluation DB session config failed "
-                    f"({type(e).__name__}, fail-closed)"
+                    f"({cfg_type}, fail-closed)"
                 ) from None
-            self._conn = conn
             return self._conn
         try:
             import psycopg2  # lazy: no driver import at module import
 
             conn = psycopg2.connect(dsn)
-            conn.set_session(readonly=True, autocommit=False, isolation_level="REPEATABLE READ")
         except Exception as e:
             raise RuntimeError(
                 "evaluation DB connect failed "
                 f"({type(e).__name__}, fail-closed FIRST-dev preflight blocker)"
             ) from None
         self._conn = conn
+        try:
+            conn.set_session(readonly=True, autocommit=False, isolation_level="REPEATABLE READ")
+        except Exception as e:
+            cfg_type = type(e).__name__
+            try:
+                conn.close()
+            except Exception as ce:
+                self._conn = None
+                self._closed = True
+                raise RuntimeError(
+                    "evaluation DB session config failed "
+                    f"({cfg_type}, fail-closed) and cleanup close also failed "
+                    f"({type(ce).__name__}, fail-closed)"
+                ) from None
+            self._conn = None
+            self._closed = True
+            raise RuntimeError(
+                "evaluation DB session config failed "
+                f"({cfg_type}, fail-closed)"
+            ) from None
         return self._conn
 
     def _run_capture_statement(self, sql: str) -> Any:

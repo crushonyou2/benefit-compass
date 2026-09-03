@@ -2054,3 +2054,44 @@ Keep D-056's three truthful preflight HOLDs unchanged; do not solve here: (1) no
 ### VERDICT: FIRST protected-dev launch REMAINS BLOCKED (not authorized; do not launch)
 
 Real HTTP ownership and consistent-snapshot session repaired and proven with fake/injected tests only; no live retrieval/ranking/latency benchmark in D-057. Next gate after this record and its atomic commit/push is **STOP for Web read-only independent review** (not FIRST dev, not candidate tuning). Do NOT authorize or execute FIRST protected dev from this workspace.
+
+## D-058 · Retrieval v3 SAME-STAGE Web HOLD narrow repair — set_session-failure exact-once session cleanup — 2026-09-04 (user-authorized, one session owns repair+tests+commit+push, then STOP for Web review)
+
+### 0) Reconciled base (before mutation, actual repo/Git/origin/SSOT wins, read-only)
+
+Branch `codex/retrieval-v3-user-search-quality` HEAD `13301ab03b38bf3962946c353f073ba23ca09424` clean, `origin/codex/retrieval-v3-user-search-quality` identical `13301ab...` verified via `git ls-remote`, `git status --porcelain` clean, `git diff --check` PASS, `git diff 5327661445c37191a3fd61db195f3af4d2cf893a..HEAD -- ml-service/` **0** (production behavior unchanged), canonical dev result/audit/dev/holdout paths absent, one-shot unconsumed, frozen four SHAs verified (prereg `7842018613d66aa4570f4db2f8ae5a698ceb46757995a6b7e26873177b36160e`, plan-v4 `a25d9c482094696ff7a438593979813ac568c91a977a2543a50618ca4f5177d6`, safe-action `c512fb5627179697a987b05a2431b8f7e30d1153af2ff6dca37995f6b232a35d`, production-exclusion-v2 `6fee9ec22d5d3ac153ff19a6b1b5d27ab6a6a43bda11e35821d689f938968fe5`), D-058 id free (no `D-058` in `memory/`), OMP 18.1.5, effective `opencode-go/muse-spark-1.3-contributor:xhigh`. D-051 repo-relative path rule observed throughout. D-057 history/bytes preserved verbatim; this stage repairs only the Web lifecycle blocker below.
+
+### 1) Web HOLD root cause (exact, D-057 semantics otherwise preserved)
+
+- D-057 correctly made `RealEvaluationSession` one read-only REPEATABLE READ transaction (`autocommit=False`) with single-attempt HTTP ownership. Web independent review reproduced 19/19 focused + 344/344 Retrieval-v3 PASS and closed both original D-057 blockers.
+- NEW narrow lifecycle blocker: in `RealEvaluationSession._ensure_conn()`, connection creation succeeded but `conn.set_session(readonly=True, autocommit=False, isolation_level="REPEATABLE READ")` raised. `self._conn` was assigned only AFTER successful `set_session`, so the opened connection reference was lost; later `session.close()` saw `self._conn=None` and never closed it.
+- Web pure fake repro on BOTH injected `_connect_fn` path and fake psycopg2 real path: `RuntimeError` as expected, close calls after config failure = 0, close calls after `session.close()` = 0 — violating D-057 exact-once resource cleanup/fail-closed lifecycle. No permission granted to change transaction semantics, HTTP, ranking, gates, or preflight blockers.
+
+### 2) Narrow repair (frozen bytes untouched; `eval/retrieval-v3/real_adapters.py` + `eval/retrieval_v3/real_adapters.py` byte-identical)
+
+- `_ensure_conn()` now owns the local connection immediately once connect succeeds (`self._conn = conn` BEFORE `set_session`) on BOTH injected `_connect_fn` and normal `psycopg2.connect` paths — same contract, no bypass.
+- `set_session` success: D-057 exact semantics unchanged — `readonly=True, autocommit=False, isolation_level="REPEATABLE READ"` before first cursor/statement, one governing connection for SHOW TimeZone -> SELECT CURRENT_DATE -> corpus load/fingerprint -> all D-003 baseline SQL; no commit, no timezone SET, no second CURRENT_DATE; normal `session.close()` exact-once.
+- `set_session` failure AFTER connect: the just-opened connection is closed exactly once before surfacing secret-free `RuntimeError("evaluation DB session config failed (<CfgType>, fail-closed)")` (type name + fixed wording only; no DSN/credentials/exception text/connection repr). `self._conn` is cleared to `None` and the session is marked closed so it stays fail-closed with no silent retry/reconnect; later `session.close()` cannot re-close the same resource (deterministic).
+- Dual failure (`set_session` raises AND cleanup `close()` raises): cleanup still attempted exactly once; surfaced error is secret-free `RuntimeError("evaluation DB session config failed (<CfgType>, fail-closed) and cleanup close also failed (<CloseType>, fail-closed)")`, preserving both facts with type names only.
+- Connect-itself failure (no connection object exists): existing secret-free fail-closed `connect failed` behavior preserved (real path keeps `FIRST-dev preflight blocker` suffix); no fake close requirement.
+- No broadened resource semantics: no new retries, no rollback/commit side effects, no new transactions, no connection pool.
+
+### 3) Verification (pure/static/mock/integration only, before commit)
+
+- NEW `eval/test_retrieval_v3_d058_session_cleanup.py` **6 PASS**: injected config-failure closes exactly once + `_conn=None` + fail-closed + no reconnect + later `close()` no re-close; injected error secret-free with `ValueError` type name; fake-psycopg2 real path identical cleanup (injected==real); dual-failure single close attempt with `config failed ... cleanup ...` + `ValueError`/`OSError` type names + secret-free + non-reusable; success path keeps D-057 exact `set_session` tuple + config-before-first-cursor + normal close exact-once; connect-failure secret-free with no close target.
+- Regression proof: the 3 config-failure tests FAIL on committed `13301ab` (stash check: close count 0 vs expected 1; real path surfaced `connect failed` instead of `session config failed`), the other 3 pass there — so the new file guards exactly this root cause.
+- D-057 focused **19 PASS** unchanged; D-056 focused **40 PASS** unchanged; D-058 focused **6 PASS**.
+- Retrieval-v3 exact group **350 PASS** (17 files: prior 16-file 344 + new 6, no double-count; `350 passed in 176.17s`).
+- `py_compile` PASS; top-level import-purity PASS (new test imports only `datetime`/`pathlib`/`sys`/`pytest`/`retrieval_v3.real_adapters`, no new top-level DB/model/network IO); `git diff --check` PASS; mirrors byte-identical (`real_adapters.py` both sides, LF); all four frozen SHAs unchanged; `ml-service` diff 0; dev/holdout/canonical result/audit absent; one-shot unconsumed; working tree only intended files (2 mirrored adapters + 1 new test).
+
+### 4) Protected/one-shot hard boundary — forbidden 0 in this stage
+
+Protected dev/holdout plaintext access or recovery 0, `protected_access_start`/`run_start` against real sets 0, FIRST dev/result inspection/scoring/tuning 0, DB writes/DDL/timezone override 0, secrets printed/logged 0, real retrieval/latency/HTTP benchmark 0, real benchmark HTTP 0, model download/load/encode 0, alternate model 0, Candidate B instantiate/tune 0, holdout access/materialization 0, `ml-service` change 0, dataset regenerate/reannotate/refreeze 0, prereg/plan/policy/supersession mutation 0, D-057 HTTP/transaction/ranking/gate/preflight-blocker semantic change 0, history rewrite/amend/rebase/reset/force/tag move/delete/force-push 0, native user-home absolute paths in docs/messages 0.
+
+### 5) Remaining preflight HOLDs — unchanged, FIRST dev NOT authorized
+
+Keep D-056's three truthful preflight HOLDs unchanged; do not solve here: (1) no standing authorized materialized protected-dev evalset path; (2) no authoritative official_link/source-match mapping; (3) baseline cost counters unavailable until the paired FIRST-dev measurement. Therefore FIRST protected-dev launch remains BLOCKED after D-058 unless a later Web gate explicitly clears these. No fabricated readiness or PASS evidence. Do NOT broaden to DATABASE_URL materialization/launcher design.
+
+### VERDICT: FIRST protected-dev launch REMAINS BLOCKED (not authorized; do not launch)
+
+Set_session-failure connection leak repaired and proven with pure fake/injected tests only; no live retrieval/ranking/latency benchmark in D-058. Next gate after this record and its atomic commit/push is **STOP for Web read-only independent review** (not FIRST dev, not candidate tuning). Do NOT authorize or execute FIRST protected dev from this workspace.

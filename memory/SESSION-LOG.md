@@ -1305,3 +1305,15 @@ One short section per working session: what was worked on, what was decided (wit
 - **Owns whole stage in one session:** reconcile → repair+mirror → 344 PASS + proofs → D-057 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
 - **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` plan; delegates exempt (serial shared-mutation boundary; scouts unavailable, all work direct).
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
+
+## 2026-09-04 — Retrieval v3 SAME-STAGE Web HOLD narrow repair — set_session-failure exact-once cleanup — D-058
+
+- **Reconciled start:** `codex/retrieval-v3-user-search-quality` HEAD `13301ab03b38bf3962946c353f073ba23ca09424` clean (`local==upstream==actual remote` via direct `ls-remote`), `git diff --check` PASS, `ml-service` diff 0 vs `5327661`; frozen SHAs verified (prereg `78420186`, plan-v4 `a25d9c48`, safe-action `c512fb56`, policy-v2 `6fee9ec2`); canonical dev result/audit/dev/holdout absent; one-shot unconsumed; D-051 repo-relative path rule observed throughout. D-058 id free; D-057 history untouched. Actual state matched expected on all points.
+- **Web blocker fixed (only session lifecycle):** `_ensure_conn()` lost the opened connection when `set_session(readonly/autocommit=False/REPEATABLE READ)` raised (`self._conn` assigned only after success) — close counts 0 even after `session.close()` on both injected and fake-psycopg2 paths.
+- **Repair (frozen bytes untouched):** own `self._conn` immediately after connect on both paths; `set_session` failure closes the just-opened connection exactly once then raises secret-free `session config failed` (dual failure adds `cleanup close also failed`, type names only); `self._conn=None` + marked closed so no reuse/retry and later `close()` cannot re-close; connect-itself failure keeps existing secret-free `connect failed`; no retries/rollback/pool.
+- **Verification:** NEW D-058 6 PASS (fail-on-`13301ab` proven: 3 config-failure tests fail there) + D-057 19 + D-056 40 = retrieval-v3 filter **350 PASS** (17 files, `350 passed in 176.17s`); `py_compile`/import-purity/`git diff --check` PASS; mirrors byte-identical; frozen SHAs unchanged; `ml-service` 0; forbidden counts all 0.
+- **Remaining blockers (FIRST-dev preflight still HOLD, by design):** no authorized materialized dev evalset path; no authoritative official_link/source-match mapping; no baseline cost counters until paired measurement.
+- **VERDICT: FIRST protected-dev REMAINS BLOCKED. Do NOT launch.**
+- **Owns whole stage in one session:** reconcile → repair+mirror → 350 PASS + proofs → D-058 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
+- **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` plan; delegates exempt (serial shared-mutation boundary; scouts unavailable, all work direct).
+- **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
