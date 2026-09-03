@@ -1641,3 +1641,37 @@ D-044 stated no authoritative per-policy eligible+expired evidence exists. Web d
 UNCHANGED from D-044: dev safety PASS remains structurally impossible (always-nonempty retrieval → 0/27 vs 26, 0/23 vs 21), and ineligible/expired measurement remains HOLD (now with the corrected not-established status). A FIRST run would spend protected one-shot surface relearning pre-execution facts.
 
 Standing decisions D-013/D-015/D-016/D-017/D-018…D-044 remain as history/corrected where applicable. Next gate is **STOP for Web read-only independent review** (not FIRST dev retrieval, not candidate tuning).
+
+## D-046 · Retrieval v3 SAME-STAGE correction-8 — method-aware HTTP protocol + mock-exhaustion fail-closed — 2026-09-03 (user-authorized, one session owns repair+tests+commit+push)
+
+This is a **narrow SAME-STAGE correction-8** on base `b85f6cc4ecda9c441ad49c69fa47891805fa68f7` that does NOT rewrite D-037..D-045 history (D-045 text untouched; D-045's correction-7 is declared incomplete ONLY for method-aware/mock-exhaustion/redirect-cause behavior). Web read-only review independently reran 67/67 focused + 193/193 pure suite on `b85f6cc`, then reproduced SAME-root-cause holes the suite missed. No plan/prereg/config/gate/threshold change, no production change, no FIRST dev, no protected plaintext, no real DB/model/network/HTTP/latency benchmark.
+
+Reconciled base (read-only before mutation): branch `codex/retrieval-v3-user-search-quality` HEAD `b85f6cc4ecda9c441ad49c69fa47891805fa68f7` clean (`local==origin`, `git diff --check` PASS), `ml-service` diff 0 vs `5327661445c37191a3fd61db195f3af4d2cf893a`, plan `2815361a469fee9bf69f6ffdf2124d19928220535cdb08b2005ae6674ae7d17c` / prereg `7842018613d66aa4570f4db2f8ae5a698ceb46757995a6b7e26873177b36160e` unchanged, `eval/retrieval-v3/dev/` + `holdout/` absent on main, canonical dev result/audit absent. Runtime OMP `18.1.5` / ROOT-plan `opencode-go/muse-spark-1.3-contributor:xhigh` per D-036 (D-036 gate still in force).
+
+### Web repros fixed (method-aware `run_method(sequence, *, is_head)` state machine)
+
+- **GET 501/405 ordinary:** HEAD-only 405/501 special logic also governed GET, so HEAD [405] + GET [501,200] returned False (MUST be True: GET 501 is ordinary 5xx with its one GET retry) and HEAD [501] + GET [501,200] False (MUST be True). Inside GET (no further fallback method), 501 is ordinary 5xx (retry once, never fallback cause) and 405 is ordinary 4xx (immediate fail; a second GET entry never rescues it).
+- **Mock-exhaustion fail-closed:** HEAD [network-error] alone + GET [200] returned True by treating a missing REQUIRED retry as an exhausted network retry authorizing GET. Exhaustion is missing evidence, not an exhausted retry: a missing entry where any request or REQUIRED retry belongs now fails closed with no fallback authorized. The stale old test expecting single-network→fallback was updated to the fail-closed expectation; the correct positive stays HEAD [network,network] + GET [200] → True.
+- **Redirect-cause isolation:** HEAD [network,301] with no new-hop entry + GET [200] returned True via leaked prior-hop fallback cause. A redirect now supersedes the earlier failure (fresh budget AND fresh fallback state); the new hop's missing entry fails closed. HEAD [network,301,200] stays True via the HEAD path.
+- Preserved/matrix-pinned: HEAD [500,200]/[timeout,200]/[network,200]/[TLS,200] True; [500,500] and timeout+timeout with GET200 False; [network,network]/[TLS,TLS] + GET200 True; terminal-cause rule ([network,500] False vs [500,network] True, same for TLS); HEAD 405/501 immediate with no second-HEAD rescue; ordinary 404 no retry/fallback; GET timeout/network retry True; GET exhausted 5xx/network/timeout False with no recursive fallback; 301→500→200 and 500→301→200 True; >3 redirects False. Full 39-case matrix verified pure pre-commit. Constants, thresholds, docs untouched; no real HTTP.
+
+### Eligibility wording (D-045 preserved; D-044 structural finding preserved)
+
+D-045's correction stands except as narrowed above (method-aware/mock-exhaustion/redirect-cause only). D-044's structural Candidate-A unsupported/ambiguous NO-GO (always-nonempty retrieval → 0/27 vs 26, 0/23 vs 21) and D-045's eligibility not-established status (measurement HOLD until an authoritative frozen source is located and pinned) are unchanged: no new abstention mechanism/threshold, no result-based tuning, never default `eligible=True`, no synthesis/heuristics, gate never relaxed.
+
+### Tests (pure/static/mock only; safety 29 → 34; runner unchanged 67)
+
+- Updated stale `test_http_network_error_fallback_get_success` → `test_http_network_single_response_exhaustion_fail_closed` (False).
+- New (5): GET-501-ordinary (repros 1+2), redirect-cause isolation (repro 4 pair), GET method boundaries (405-immediate/no-rescue, timeout/net retry, exhausted fails), TLS + mixed terminal-cause boundaries.
+- All pre-existing HTTP cases re-verified unchanged.
+
+### Verification (pure/static/mock only, before commit)
+
+- 198 PASS across the same 9 files (67+39+6+34+9+8+17+8+10); `git diff --check` PASS; plan/prereg SHAs unchanged; `ml-service` diff 0; `dev/`+`holdout/` absent; canonical dev result/audit absent (no `run_start` consumed); mirror identity PASS (safety pair byte-identical; all other pairs untouched).
+- Forbidden 0: protected dev/holdout plaintext/recovery 0 (`git show`/`cat-file`/`checkout`/`restore`/`sparse`/`worktree`/traversal for protected data 0), FIRST dev retrieval 0, DB connection/query 0, model/embedding load 0, real network/HTTP 0, latency benchmark 0, result inspection/tuning 0, plan/prereg/gate/config semantic change 0, `ml-service` change 0, Candidate B instantiate 0, amend/rebase/reset/force/history rewrite 0, tag move/delete/force 0, force push 0.
+
+### VERDICT: FIRST protected-dev launch REMAINS BLOCKED unless ALL standing pre-gate blockers are actually resolved (not authorized; do not launch)
+
+UNCHANGED: dev safety PASS structurally impossible (D-044) and ineligible/expired measurement HOLD with not-established status (D-045).
+
+Standing decisions D-013/D-015/D-016/D-017/D-018…D-045 remain as history/corrected where applicable. Next gate is **STOP for Web read-only independent review** (not FIRST dev retrieval, not candidate tuning).

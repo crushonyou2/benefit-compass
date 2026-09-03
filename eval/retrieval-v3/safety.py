@@ -123,27 +123,30 @@ def check_single_url_with_mock(
 
     - Timeout: connect 5s / read 10s per attempt (constants only; mocks carry no timing).
     - Retry: 1 retry (max 2 attempts) PER request URL and method, no backoff — but ONLY for
-      5xx, network error, timeout, TLS error (prereg retry list). Ordinary 4xx (other than
-      405/501) fails immediately: no retry, no fallback.
-    - 405/501: chooses GET fallback at once; no second HEAD path may rescue it (specific
-      HEAD-unsupported fallback semantics). Ordinary 4xx fails at once: no retry, no fallback.
+      5xx, network error, timeout, TLS error (prereg retry list). Ordinary 4xx fails at once.
+    - 405/501 is HEAD-specific: in a HEAD run it chooses GET fallback at once (no second HEAD
+      path may rescue it). Inside GET there is no further fallback method, so GET 501 is
+      ordinary 5xx (one GET retry) and GET 405 is ordinary 4xx (immediate fail).
     - Redirects: follow up to 3 hops preserving method (HEAD stays HEAD, GET stays GET);
-      each redirect hop has its own 2-attempt retry budget under the same rules.
+      each redirect hop has its own 2-attempt retry budget under the same rules, and prior-hop
+      fallback state never leaks into a later hop (a redirect supersedes the earlier failure).
     - 2xx => success.
     - HEAD network/TLS error: same-method retry first; GET fallback only if the attempts
       exhaust with network/TLS cause (last attempt decides). 5xx consumes its retry but never
       falls back; timeout alone is retry-only per prereg wording (fallback triggers list
       405/501/network/TLS, not timeout).
     - Mock sequences are consumed in order, one entry per request (retries and redirect hops
-      alike). Exhaustion => failure for that method.
+      alike). A missing entry where a request or REQUIRED retry belongs fails closed and never
+      authorizes fallback (exhaustion is missing evidence, not an exhausted retry).
 
     Returns True if successful, False otherwise.
     """
-    def run_method(sequence: List[MockHttpResponse]) -> Tuple[bool, bool]:
-        # Returns (success, fallback_cause). Terminal-outcome rule per prereg: 405/501 chooses
-        # GET fallback at once; ordinary 4xx fails at once with no fallback (killing earlier causes);
-        # 5xx/timeout/network/TLS consume the same-method retry, and exhaustion falls back only
-        # if the LAST attempt was network/TLS error (timeout/5xx alone never fall back).
+    def run_method(sequence: List[MockHttpResponse], *, is_head: bool) -> Tuple[bool, bool]:
+        # Returns (success, fallback_cause). Terminal-outcome rule per prereg: in HEAD, 405/501
+        # chooses GET fallback at once; ordinary 4xx fails at once with no fallback (killing earlier
+        # causes); 5xx/timeout/network/TLS consume the same-method retry, and exhaustion falls back
+        # only if the LAST attempt was network/TLS error (timeout/5xx alone never fall back).
+        # In GET (no further fallback method), 405/501 lose their special meaning entirely.
         idx = 0
         total = len(sequence or [])
         redirects = 0
@@ -152,7 +155,8 @@ def check_single_url_with_mock(
             # One URL/hop: up to MAX_ATTEMPTS attempts, same method.
             for _ in range(MAX_ATTEMPTS):
                 if idx >= total:
-                    return False, saw_fallback_cause
+                    # Required request/retry has no mock entry: fail closed, never authorize fallback.
+                    return False, False
                 resp = sequence[idx]
                 idx += 1
                 if _is_success(resp.status):
@@ -160,8 +164,15 @@ def check_single_url_with_mock(
                 if _is_redirect(resp.status):
                     break
                 if _is_405_or_501(resp.status):
-                    # Specific fallback semantics: GET fallback at once, no second HEAD path.
-                    return False, True
+                    if is_head:
+                        # Specific HEAD fallback semantics: GET fallback at once, no second HEAD path.
+                        return False, True
+                    if resp.status == 501:
+                        # GET 501 is ordinary 5xx: one GET retry, never a fallback cause.
+                        saw_fallback_cause = False
+                        continue
+                    # GET 405 is ordinary 4xx: immediate fail.
+                    return False, False
                 if resp.status is not None and 400 <= resp.status <= 499:
                     # Ordinary 4xx: immediate failure — not retry-eligible, never fallback.
                     return False, False
@@ -181,16 +192,20 @@ def check_single_url_with_mock(
             redirects += 1
             if redirects > MAX_REDIRECTS:
                 return False, saw_fallback_cause
-            # Next hop starts with a fresh retry budget; method preserved.
+            # Next hop starts with a fresh retry budget AND fresh fallback state; the redirect
+            # supersedes the earlier failure, which must not leak into the later hop.
+            saw_fallback_cause = False
+
     # Attempt HEAD first.
-    head_ok, head_fallback_cause = run_method(mock_head_sequence)
+    head_ok, head_fallback_cause = run_method(mock_head_sequence, is_head=True)
     if head_ok:
         return True
     if head_fallback_cause:
-        # Fallback to GET under the same fixed timeout/retry/redirect protocol.
-        get_ok, _ = run_method(mock_get_sequence)
+        # Fallback to GET under the same fixed timeout/retry/redirect protocol (no recursive fallback).
+        get_ok, _ = run_method(mock_get_sequence, is_head=False)
         return get_ok
-    # HEAD failed without fallback cause (ordinary 4xx, 5xx/timeout exhaustion, redirect overflow).
+    # HEAD failed without fallback cause (ordinary 4xx, 5xx/timeout exhaustion, redirect overflow,
+    # mock exhaustion) => final fail.
     return False
 
 def evaluate_http_resolution(

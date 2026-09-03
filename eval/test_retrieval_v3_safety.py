@@ -69,13 +69,15 @@ def test_http_head_405_fallback_get_success():
     )
     assert ok is True
 
-def test_http_network_error_fallback_get_success():
+def test_http_network_single_response_exhaustion_fail_closed():
+    # Correction-8: a lone network-error entry leaves the REQUIRED same-method retry without
+    # mock evidence; exhaustion fails closed and must NOT authorize GET fallback (stale True removed).
     ok = check_single_url_with_mock(
         "https://example.com/d",
         [MockHttpResponse(is_network_error=True)],
         [MockHttpResponse(status=200)]
     )
-    assert ok is True
+    assert ok is False
 
 def test_http_head_404_no_fallback_fail():
     ok = check_single_url_with_mock(
@@ -382,3 +384,58 @@ def test_http_ordinary_404_no_retry_no_fallback():
         []
     )
     assert ok is False
+
+def test_http_get_501_is_ordinary_5xx_with_retry():
+    # Web repro 1: HEAD 405 chooses GET; GET 501 is ordinary 5xx (no special meaning) => retry => 200.
+    ok = check_single_url_with_mock(
+        "https://example.com/m1",
+        [MockHttpResponse(status=405)],
+        [MockHttpResponse(status=501), MockHttpResponse(status=200)]
+    )
+    assert ok is True
+
+def test_http_get_501_after_head_501_fallback():
+    # Web repro 2: HEAD 501 fallback governs; GET 501 retries as ordinary 5xx => 200.
+    ok = check_single_url_with_mock(
+        "https://example.com/m2",
+        [MockHttpResponse(status=501)],
+        [MockHttpResponse(status=501), MockHttpResponse(status=200)]
+    )
+    assert ok is True
+
+def test_http_redirect_clears_prior_fallback_cause():
+    # Web repro 4: HEAD network then 301 supersedes the failure; the new hop needs its own
+    # HEAD response. Missing hop entry fails closed even with GET supplied; with hop 200, HEAD wins.
+    bad = check_single_url_with_mock(
+        "https://example.com/m4a",
+        [MockHttpResponse(is_network_error=True), MockHttpResponse(status=301, redirect_location="https://example.com/m4b")],
+        [MockHttpResponse(status=200)]
+    )
+    assert bad is False
+    good = check_single_url_with_mock(
+        "https://example.com/m4b",
+        [MockHttpResponse(is_network_error=True), MockHttpResponse(status=301, redirect_location="https://example.com/m4c"), MockHttpResponse(status=200)],
+        []
+    )
+    assert good is True
+
+def test_http_get_method_boundaries():
+    # GET has no further fallback: 405 immediate (second GET entry never rescues), timeout/net
+    # retry once, exhaustion of any kind fails with no recursive fallback.
+    assert check_single_url_with_mock("https://example.com/g1", [MockHttpResponse(status=405)], [MockHttpResponse(status=405)]) is False
+    assert check_single_url_with_mock("https://example.com/g2", [MockHttpResponse(status=405)], [MockHttpResponse(status=405), MockHttpResponse(status=200)]) is False
+    assert check_single_url_with_mock("https://example.com/g3", [MockHttpResponse(status=405)], [MockHttpResponse(is_timeout=True), MockHttpResponse(status=200)]) is True
+    assert check_single_url_with_mock("https://example.com/g4", [MockHttpResponse(status=405)], [MockHttpResponse(is_network_error=True), MockHttpResponse(status=200)]) is True
+    assert check_single_url_with_mock("https://example.com/g5", [MockHttpResponse(status=405)], [MockHttpResponse(status=500), MockHttpResponse(status=500)]) is False
+    assert check_single_url_with_mock("https://example.com/g6", [MockHttpResponse(status=405)], [MockHttpResponse(is_network_error=True), MockHttpResponse(is_network_error=True)]) is False
+    assert check_single_url_with_mock("https://example.com/g7", [MockHttpResponse(status=405)], [MockHttpResponse(is_timeout=True), MockHttpResponse(is_timeout=True)]) is False
+
+def test_http_tls_and_mixed_terminal_boundaries():
+    # TLS mirrors network exactly (retry first, fallback only on terminal TLS cause).
+    assert check_single_url_with_mock("https://example.com/t1", [MockHttpResponse(is_tls_error=True), MockHttpResponse(status=200)], []) is True
+    assert check_single_url_with_mock("https://example.com/t2", [MockHttpResponse(is_tls_error=True), MockHttpResponse(is_tls_error=True)], [MockHttpResponse(status=200)]) is True
+    # Mixed exhaustion: last attempt decides (terminal 5xx => no fallback; terminal net/TLS => fallback).
+    assert check_single_url_with_mock("https://example.com/t3", [MockHttpResponse(is_network_error=True), MockHttpResponse(status=500)], [MockHttpResponse(status=200)]) is False
+    assert check_single_url_with_mock("https://example.com/t4", [MockHttpResponse(status=500), MockHttpResponse(is_network_error=True)], [MockHttpResponse(status=200)]) is True
+    assert check_single_url_with_mock("https://example.com/t5", [MockHttpResponse(is_tls_error=True), MockHttpResponse(status=500)], [MockHttpResponse(status=200)]) is False
+    assert check_single_url_with_mock("https://example.com/t6", [MockHttpResponse(status=500), MockHttpResponse(is_tls_error=True)], [MockHttpResponse(status=200)]) is True
