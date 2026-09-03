@@ -158,6 +158,11 @@ def validate_complete_result(result: dict):
             raise ValueError("set_role invalid")
         if set_prov.get("set_sha"):
             _validate_hex64(set_prov["set_sha"], "set_sha")
+            # D-039: canonical result n=180/headline_n=130 when set_sha present (fail-closed).
+            if set_prov.get("n") is not None and set_prov.get("n") != 180:
+                raise ValueError(f"canonical set_provenance.n must be 180, got {set_prov.get('n')!r}")
+            if set_prov.get("headline_n") is not None and set_prov.get("headline_n") != 130:
+                raise ValueError(f"canonical set_provenance.headline_n must be 130, got {set_prov.get('headline_n')!r}")
     # corpus provenance pin
     corpus = result.get("corpus_provenance")
     if corpus:
@@ -211,15 +216,18 @@ def atomic_write_result(result: dict, output_path: str | pathlib.Path) -> pathli
     # Validate again after mkdir that parent is inside allowed (re-check symlink)
     # Use realpath check — allow temp directory for pure tests
     import os as _os, tempfile
+    from .paths import _is_subpath as _rs_is_subpath
     repo_real = pathlib.Path(_os.path.realpath(str(REPO_ROOT)))
     out_real_parent = pathlib.Path(_os.path.realpath(str(abs_out.parent)))
     temp_root = pathlib.Path(tempfile.gettempdir()).resolve()
-    is_temp_out = str(out_real_parent).startswith(str(pathlib.Path(_os.path.realpath(str(temp_root))))) or str(abs_out).startswith(str(temp_root))
-    if not is_temp_out and not str(out_real_parent).startswith(str(repo_real)):
+    temp_real = pathlib.Path(_os.path.realpath(str(temp_root)))
+    # D-039: component-aware containment (string startswith allows benefit-compass-escape sibling).
+    is_temp_out = _rs_is_subpath(out_real_parent, temp_real) or _rs_is_subpath(abs_out, temp_root)
+    if not is_temp_out and not _rs_is_subpath(out_real_parent, repo_real):
         raise ValueError(f"output parent outside repo: {out_real_parent}")
     # Also ensure target file's realpath would be inside repo (if symlink)
     # Since file doesn't exist yet, check logical path string — OS-agnostic via PurePath.as_posix()
-    if not is_temp_out and not str(abs_out).startswith(str(repo_real)) and not str(abs_out).startswith(str(canonical_abs.parent)):
+    if not is_temp_out and not _rs_is_subpath(abs_out, repo_real) and not _rs_is_subpath(abs_out, canonical_abs.parent):
         # allow any under repo — Windows hardening: use as_posix() for prefix check (covers "\" vs "/" )
         if "eval/retrieval" not in pathlib.PurePath(out).as_posix():
             raise ValueError(f"output path not under allowed eval: {out}")

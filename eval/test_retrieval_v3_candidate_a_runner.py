@@ -243,7 +243,7 @@ def test_metrics_mrr_rank_gt10():
 
 def test_selection_ordering_and_zero():
     # Explicit fixtures required after fail-closed fix E: missing safety/latency => HOLD
-    safety_ok = {cid: {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"} for cid in ["candidate-a-01","candidate-a-02","candidate-a-03"]}
+    safety_ok = {cid: {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"} for cid in ["candidate-a-01","candidate-a-02","candidate-a-03"]}
     per=[
         {"config_id":"candidate-a-02","success_at_5":0.9,"ndcg_at_5":0.8,"mrr_at_10":0.7},
         {"config_id":"candidate-a-01","success_at_5":0.9,"ndcg_at_5":0.8,"mrr_at_10":0.7},
@@ -254,7 +254,7 @@ def test_selection_ordering_and_zero():
     sel2=select_candidate(per, safety_per_config=safety_ok, latency_p95_per_config={"candidate-a-01":600,"candidate-a-02":500,"candidate-a-03":500})
     assert sel2["chosen"]=="candidate-a-02"
     per_low=[{"config_id":"candidate-a-01","success_at_5":0.8,"ndcg_at_5":0.9,"mrr_at_10":0.9}]
-    safety_low = {"candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"}}
+    safety_low = {"candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"}}
     sel3=select_candidate(per_low, safety_per_config=safety_low, latency_p95_per_config={"candidate-a-01":500})
     assert sel3["chosen"] is None
 
@@ -300,7 +300,7 @@ def test_audit_lifecycle():
             assert False
         except Exception:
             pass
-        e3=append_event(str(log), action="protected_access_end", set_role="dev", set_sha="a"*64, session_id="s1")
+        e3=append_event(str(log), action="protected_access_end", set_role="dev", set_sha="a"*64, session_id="s1", outcome="success")
         try:
             verify_holdout_access_allowed(str(log), set_role="dev", set_sha="a"*64, session_id="s1")
             assert False
@@ -672,20 +672,20 @@ def test_selection_fail_closed_missing_gates():
     ]
     # Missing cost gate
     safety_missing = {
-        "candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"},
-        "candidate-a-02": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS"},  # missing cost
+        "candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"},
+        "candidate-a-02": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS"},  # missing cost
     }
     sel = select_candidate(per, safety_per_config=safety_missing, latency_p95_per_config={"candidate-a-01":500,"candidate-a-02":500})
     assert sel["chosen"] == "candidate-a-01", "missing cost gate should make a-02 ineligible"
     assert "candidate-a-02" not in sel["eligible"]
     # Missing safety dict entirely for a config => HOLD
-    safety_partial = {"candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"}}
+    safety_partial = {"candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"}}
     sel2 = select_candidate(per, safety_per_config=safety_partial, latency_p95_per_config={"candidate-a-01":500,"candidate-a-02":500})
     assert sel2["chosen"] == "candidate-a-01" and "candidate-a-02" not in sel2["eligible"]
     # HOLD gate also ineligible
     safety_hold = {
-        "candidate-a-01": {"unsupported":"HOLD","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"},
-        "candidate-a-02": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"},
+        "candidate-a-01": {"unsupported":"HOLD","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"},
+        "candidate-a-02": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"},
     }
     sel3 = select_candidate(per, safety_per_config=safety_hold, latency_p95_per_config={"candidate-a-01":500,"candidate-a-02":500})
     assert sel3["chosen"] == "candidate-a-02"
@@ -696,8 +696,8 @@ def test_selection_fail_closed_missing_latency():
         {"config_id":"candidate-a-02","success_at_5":0.9,"ndcg_at_5":0.8,"mrr_at_10":0.7},
     ]
     safety_ok = {
-        "candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"},
-        "candidate-a-02": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"},
+        "candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"},
+        "candidate-a-02": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"},
     }
     # latency dict missing entry for a-02 => HOLD
     sel = select_candidate(per, safety_per_config=safety_ok, latency_p95_per_config={"candidate-a-01":500})
@@ -717,7 +717,7 @@ def test_selection_fail_closed_missing_latency():
         {"config_id":"candidate-a-01","success_at_5":0.9,"ndcg_at_5":0.8,"mrr_at_10":0.7},
         {"config_id":"candidate-a-03","success_at_5":0.9,"ndcg_at_5":0.9,"mrr_at_10":0.5},
     ]
-    sel3 = select_candidate(per_order, safety_per_config={"candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"},"candidate-a-02": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"},"candidate-a-03": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","cost":"PASS"}}, latency_p95_per_config={"candidate-a-01":600,"candidate-a-02":500,"candidate-a-03":500})
+    sel3 = select_candidate(per_order, safety_per_config={"candidate-a-01": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"},"candidate-a-02": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"},"candidate-a-03": {"unsupported":"PASS","ambiguous":"PASS","ineligible_expired":"PASS","official_link":"PASS","http_resolution":"PASS","cost":"PASS"}}, latency_p95_per_config={"candidate-a-01":600,"candidate-a-02":500,"candidate-a-03":500})
     # Among 0.9 S5, higher NDCG5 (a-03) should win? Check: a-03 has NDCG 0.9 >0.8 so should be first
     assert sel3["eligible"][0] == "candidate-a-03"
     # Between a-01 and a-02 same S5/NDCG/MRR, lower p95 wins => a-02
@@ -810,7 +810,7 @@ def test_execution_lifecycle_path_and_result_os_agnostic():
     sel = {"eligible": ["candidate-a-01"], "eligible_details": per[:1], "chosen": "candidate-a-01", "ordering": "Success@5 desc -> NDCG@5 desc -> MRR@10 desc -> paired p95 asc -> lexicographic config_id asc", "reason": "selected"}
     bg = {"admitted": False, "headroom_pp": 0, "union_recall": 0.9, "reason": "test", "instantiated": False}
     prov = {"candidate_plan_sha256": "a"*64, "prereg_sha256": "b"*64, "git_head": "c"*40, "git_dirty": False, "created_at": "2026-09-02T00:00:00Z"}
-    result = build_result_skeleton(per_config_metrics=per, selection=sel, candidate_b_gate=bg, provenance=prov, git_head="c"*40, git_dirty=False, corpus_provenance={"total_policies":5}, set_provenance={"set_role":"dev","set_sha":"a"*64,"n":5,"headline_n":5}, audit_head="d"*64)
+    result = build_result_skeleton(per_config_metrics=per, selection=sel, candidate_b_gate=bg, provenance=prov, git_head="c"*40, git_dirty=False, corpus_provenance={"total_policies":5}, set_provenance={"set_role":"dev","set_sha":None,"n":5,"headline_n":5}, audit_head="d"*64)
     with tempfile.TemporaryDirectory() as td:
         out = pathlib.Path(td) / "nested" / "out.json"
         written = atomic_write_result(result, out)
@@ -922,8 +922,321 @@ def test_latency_no_fabricated_default_static():
     assert "headline_results = task_results" not in src
     assert "headline_oracle_tasks = oracle_tasks" not in src
 
+def _make_canonical_180():
+    from retrieval_v3.runner import DEV_STRATA_EXACT
+    strata_order = ["exact_navigation", "natural_needs", "exploratory_multi_valid", "multi_constraint", "short_keywords", "colloquial_typo_spacing_abbrev", "ambiguous", "unsupported_no_answer"]
+    tasks = []
+    loc_need = 54
+    loc_made = 0
+    idx = 0
+    for s in strata_order:
+        for j in range(DEV_STRATA_EXACT[s]):
+            loc = loc_made < loc_need and s in ("exact_navigation", "natural_needs", "multi_constraint")
+            if loc:
+                loc_made += 1
+            if s == "unsupported_no_answer":
+                golds = []
+            elif s == "ambiguous":
+                golds = [{"source": "youth", "source_id": f"p{idx}", "grade": 1}]
+            else:
+                golds = [{"source": "youth", "source_id": f"p{idx}", "grade": 2}]
+            tasks.append({"task_id": f"c{idx:03d}", "query": f"query {idx} content", "golds": golds, "stratum": s, "location_bearing": loc if not (s in ("exact_navigation", "natural_needs", "multi_constraint") and not loc and loc_made < loc_need) else loc})
+            idx += 1
+    # Top up location cross-cutting to exactly 54 across headline strata
+    for t in tasks:
+        if loc_made >= 54:
+            break
+        if t["stratum"] in ("exploratory_multi_valid", "short_keywords", "colloquial_typo_spacing_abbrev") and not t["location_bearing"]:
+            t["location_bearing"] = True
+            loc_made += 1
+    return tasks
+
+def test_selection_http_resolution_required():
+    per = [{"config_id": "candidate-a-01", "success_at_5": 0.9, "ndcg_at_5": 0.8, "mrr_at_10": 0.7}]
+    no_http = {"candidate-a-01": {"unsupported": "PASS", "ambiguous": "PASS", "ineligible_expired": "PASS", "official_link": "PASS", "cost": "PASS"}}
+    sel = select_candidate(per, safety_per_config=no_http, latency_p95_per_config={"candidate-a-01": 500})
+    assert sel["chosen"] is None, "missing http_resolution must be ineligible (D-039)"
+    hold_http = {"candidate-a-01": {"unsupported": "PASS", "ambiguous": "PASS", "ineligible_expired": "PASS", "official_link": "PASS", "http_resolution": "HOLD", "cost": "PASS"}}
+    sel2 = select_candidate(per, safety_per_config=hold_http, latency_p95_per_config={"candidate-a-01": 500})
+    assert sel2["chosen"] is None
+    full = {"candidate-a-01": {"unsupported": "PASS", "ambiguous": "PASS", "ineligible_expired": "PASS", "official_link": "PASS", "http_resolution": "PASS", "cost": "PASS"}}
+    sel3 = select_candidate(per, safety_per_config=full, latency_p95_per_config={"candidate-a-01": 500})
+    assert sel3["chosen"] == "candidate-a-01"
+
+def test_headline_missing_stratum_not_headline():
+    plan = load_candidate_plan_or_fail()
+    def fake_vec(seed):
+        rnd = random.Random(seed)
+        v = [rnd.uniform(-1, 1) for _ in range(768)]
+        norm = (sum(x * x for x in v) ** 0.5) or 1
+        return [round(x / norm, 6) for x in v]
+    policies = [{"id": 1, "source": "youth", "source_id": "p0", "title": "policy 0", "support_content": "", "summary": "", "keywords": "", "add_qualify": "", "income_etc": "", "apply_method": "", "org": "org", "chunks": [{"embedding": fake_vec(0), "chunk_index": 0, "id": 0}]}]
+    def fake_emb(q):
+        h = hashlib.sha256(q.encode()).digest()
+        return fake_vec(int.from_bytes(h[:4], "little"))
+    tasks = [
+        {"task_id": "m0", "query": "query m0", "golds": [{"source": "youth", "source_id": "p0", "grade": 2}], "location_bearing": False},
+        {"task_id": "m1", "query": "query m1", "golds": [{"source": "youth", "source_id": "p0", "grade": 2}], "stratum": "fictional_stratum", "location_bearing": False},
+    ]
+    with tempfile.TemporaryDirectory() as td:
+        audit_log = pathlib.Path(td) / "audit.jsonl"
+        out = pathlib.Path(td) / "out.json"
+        runner = Runner(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r, s: tasks, audit_log_path=audit_log)
+        res = runner.run_dev_evaluation(tasks=tasks, policies=policies, session_id="missing-stratum", set_role="dev", set_sha=None, audit_log=audit_log, output_path=out, skip_audit=True)
+        for m in res["per_config_metrics"]:
+            assert m["n"] == 0, "missing/unknown stratum must never be headline"
+        assert res["selection"]["chosen"] is None
+
+def test_headline_empty_golds_fail_closed():
+    plan = load_candidate_plan_or_fail()
+    def fake_vec(seed):
+        rnd = random.Random(seed)
+        v = [rnd.uniform(-1, 1) for _ in range(768)]
+        norm = (sum(x * x for x in v) ** 0.5) or 1
+        return [round(x / norm, 6) for x in v]
+    policies = [{"id": 1, "source": "youth", "source_id": "p0", "title": "policy 0", "support_content": "", "summary": "", "keywords": "", "add_qualify": "", "income_etc": "", "apply_method": "", "org": "org", "chunks": [{"embedding": fake_vec(0), "chunk_index": 0, "id": 0}]}]
+    def fake_emb(q):
+        h = hashlib.sha256(q.encode()).digest()
+        return fake_vec(int.from_bytes(h[:4], "little"))
+    tasks = [{"task_id": "h0", "query": "query h0", "golds": [], "stratum": "natural_needs", "location_bearing": False}]
+    with tempfile.TemporaryDirectory() as td:
+        audit_log = pathlib.Path(td) / "audit.jsonl"
+        out = pathlib.Path(td) / "out.json"
+        runner = Runner(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r, s: tasks, audit_log_path=audit_log)
+        try:
+            runner.run_dev_evaluation(tasks=tasks, policies=policies, session_id="headline-empty-gold", set_role="dev", set_sha=None, audit_log=audit_log, output_path=out, skip_audit=True)
+            assert False, "headline empty golds must fail-closed"
+        except ValueError as e:
+            assert "golds" in str(e).lower()
+
+def test_retrieve_blank_fail_closed_lowest():
+    from retrieval_v3.runner import Runner as _R
+    plan = load_candidate_plan_or_fail()
+    r = _R(candidate_plan=plan)
+    cfg = plan["configs"][0]
+    for bad in ["", "   ", "  \t "]:
+        try:
+            r._retrieve_for_query(bad, [], cfg)
+            assert False, "blank query must fail at lowest level"
+        except ValueError as e:
+            assert "empty query" in str(e).lower()
+
+def test_canonical_dev_mode_grant_before_loader_and_counts():
+    from retrieval_v3.runner import validate_canonical_dev_tasks
+    tasks180 = _make_canonical_180()
+    rep = validate_canonical_dev_tasks(tasks180)
+    assert rep == {"n": 180, "headline_n": 130, "location_n": 54, "strata": {k: v for k, v in rep["strata"].items()}}
+    assert rep["n"] == 180 and rep["headline_n"] == 130 and rep["location_n"] == 54
+    plan = load_candidate_plan_or_fail()
+    sha = "a" * 64
+    called = {"n": 0}
+    def loader(role, sh):
+        called["n"] += 1
+        return tasks180
+    with tempfile.TemporaryDirectory() as td:
+        audit_log = pathlib.Path(td) / "audit.jsonl"
+        runner = Runner(candidate_plan=plan, protected_set_loader=loader, audit_log_path=audit_log)
+        try:
+            runner.run_dev_evaluation(tasks=[], policies=[], session_id="no-grant", set_role="dev", set_sha=sha, audit_log=audit_log, output_path=None, skip_audit=False)
+            assert False, "canonical without grant must fail before loader"
+        except RuntimeError as e:
+            assert "grant" in str(e).lower()
+        assert called["n"] == 0, "loader must never run without grant"
+        runner2 = Runner(candidate_plan=plan, protected_set_loader=loader, audit_log_path=audit_log)
+        try:
+            runner2.run_dev_evaluation(tasks=[{"task_id": "x"}], policies=[], session_id="direct", set_role="dev", set_sha=sha, audit_log=audit_log, output_path=None, skip_audit=False)
+            assert False, "canonical direct tasks must be rejected (no fake adapters)"
+        except ValueError as e:
+            assert "fake adapters" in str(e).lower() or "directly injected" in str(e).lower()
+
+def test_canonical_counts_mismatch_fail_closed():
+    from retrieval_v3.runner import validate_canonical_dev_tasks
+    try:
+        validate_canonical_dev_tasks([{"task_id": "only"}])
+        assert False, "wrong n must fail"
+    except ValueError as e:
+        assert "180" in str(e)
+    tasks180 = _make_canonical_180()
+    tasks180[0] = dict(tasks180[0], stratum="unsupported_no_answer", golds=[])
+    try:
+        validate_canonical_dev_tasks(tasks180)
+        assert False, "strata drift must fail"
+    except ValueError:
+        pass
+
+def test_safety_real_interfaces():
+    from retrieval_v3.safety import evaluate_full_dev_safety, MockHttpResponse
+    got = evaluate_full_dev_safety(None, None, None, None, None, None, None, None, None)
+    assert all(v["gate"] == "HOLD" for v in got.values()), "missing evidence must HOLD all six"
+    assert set(got) == {"unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost"}
+    top5 = {f"t{i:03d}": [("youth", f"p{i}_{k}") for k in range(5)] for i in range(180)}
+    emap = {}
+    for docs in top5.values():
+        for src, sid in docs:
+            emap[(src, sid)] = {"eligible": True, "expired": False}
+    pin = "b" * 64
+    snap = {"sha256": pin, "snapshot_id": "dev-snap", "eligible_map": emap}
+    urls = ["https://youth.example/policy", "https://gov24.example/service"]
+    exp = {u: ("youth.example" if "youth" in u else "gov24.example") for u in urls}
+    mocks = {u: ([MockHttpResponse(status=200)], []) for u in urls}
+    full = evaluate_full_dev_safety([True] * 27, [True] * 23, top5, snap, pin, urls, exp, mocks, {"index_ratio": 1.5, "rows_ratio": 2.0, "extra_model_calls": 0})
+    assert all(v["gate"] == "PASS" for v in full.values()), f"complete evidence must PASS all six: {full}"
+
+def test_d003_baseline_forbids_candidate_a01():
+    import pathlib as _pl
+    src = (_pl.Path(__file__).resolve().parent / "retrieval_v3" / "runner.py").read_text(encoding="utf-8")
+    assert "d003_baseline_fn" in src
+    assert "baseline_cfg = self.plan_data" not in src, "candidate-a-01 must not be baseline"
+    assert "D003_BASELINE" in src
+    plan = load_candidate_plan_or_fail()
+    def fake_vec(seed):
+        rnd = random.Random(seed)
+        v = [rnd.uniform(-1, 1) for _ in range(768)]
+        norm = (sum(x * x for x in v) ** 0.5) or 1
+        return [round(x / norm, 6) for x in v]
+    policies = [{"id": 1, "source": "youth", "source_id": "p0", "title": "policy 0", "support_content": "", "summary": "", "keywords": "", "add_qualify": "", "income_etc": "", "apply_method": "", "org": "org", "chunks": [{"embedding": fake_vec(0), "chunk_index": 0, "id": 0}]}]
+    def fake_emb(q):
+        h = hashlib.sha256(q.encode()).digest()
+        return fake_vec(int.from_bytes(h[:4], "little"))
+    tasks = [{"task_id": f"t{i}", "query": f"query {i}", "golds": [{"source": "youth", "source_id": "p0", "grade": 2}], "stratum": "natural_needs", "location_bearing": False} for i in range(5)]
+    with tempfile.TemporaryDirectory() as td:
+        cnt = [0]
+        def clock():
+            cnt[0] += 1000000
+            return cnt[0]
+        audit_log = pathlib.Path(td) / "audit.jsonl"
+        out = pathlib.Path(td) / "out.json"
+        runner = Runner(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r, s: tasks, audit_log_path=audit_log, clock_fn=clock)
+        res = runner.run_dev_evaluation(tasks=tasks, policies=policies, session_id="no-d003", set_role="dev", set_sha=None, audit_log=audit_log, output_path=out, skip_audit=True)
+        assert res["selection"]["chosen"] is None, "missing D-003 baseline must HOLD"
+        calls = {"n": 0}
+        def d003(tid):
+            calls["n"] += 1
+        audit_log2 = pathlib.Path(td) / "audit2.jsonl"
+        out2 = pathlib.Path(td) / "out2.json"
+        runner2 = Runner(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r, s: tasks, audit_log_path=audit_log2, clock_fn=clock, d003_baseline_fn=d003)
+        runner2.run_dev_evaluation(tasks=tasks, policies=policies, session_id="with-d003", set_role="dev", set_sha=None, audit_log=audit_log2, output_path=out2, skip_audit=True)
+        assert calls["n"] > 0, "D-003 baseline fn must be invoked for paired latency"
+
+def test_audit_preflight_no_duplicate_run_start():
+    from retrieval_v3 import audit as _audit
+    from retrieval_v3.runner import Runner as _R
+    plan = load_candidate_plan_or_fail()
+    def fake_vec(seed):
+        rnd = random.Random(seed)
+        v = [rnd.uniform(-1, 1) for _ in range(768)]
+        norm = (sum(x * x for x in v) ** 0.5) or 1
+        return [round(x / norm, 6) for x in v]
+    policies = [{"id": 1, "source": "youth", "source_id": "p0", "title": "policy 0", "support_content": "", "summary": "", "keywords": "", "add_qualify": "", "income_etc": "", "apply_method": "", "org": "org", "chunks": [{"embedding": fake_vec(0), "chunk_index": 0, "id": 0}]}]
+    def fake_emb(q):
+        h = hashlib.sha256(q.encode()).digest()
+        return fake_vec(int.from_bytes(h[:4], "little"))
+    tasks = [{"task_id": "t0", "query": "query t0 content", "golds": [{"source": "youth", "source_id": "p0", "grade": 2}], "stratum": "natural_needs", "location_bearing": False}]
+    with tempfile.TemporaryDirectory() as td:
+        audit_log = pathlib.Path(td) / "audit.jsonl"
+        runner = _R(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r, s: tasks, audit_log_path=audit_log)
+        runner.run_dev_evaluation(tasks=tasks, policies=policies, session_id="preflight", set_role="none", set_sha=None, audit_log=audit_log, output_path=None, skip_audit=False)
+        chain1 = _audit.read_and_verify_chain(str(audit_log))
+        assert [e["action"] for e in chain1] == ["run_start", "run_end"], "first run actions must be exactly [run_start, run_end]"
+        try:
+            runner.run_dev_evaluation(tasks=tasks, policies=policies, session_id="preflight", set_role="none", set_sha=None, audit_log=audit_log, output_path=None, skip_audit=False)
+            assert False, "second run_start must be blocked by preflight"
+        except RuntimeError as e:
+            assert "rerun" in str(e).lower() or "preflight" in str(e).lower()
+        chain2 = _audit.read_and_verify_chain(str(audit_log))
+        assert [e["action"] for e in chain2] == ["run_start", "run_end"], "rerun actions must remain exactly [run_start, run_end]"
+
+def test_audit_windows_lock_serialized():
+    from retrieval_v3 import audit as _audit
+    import threading
+    with tempfile.TemporaryDirectory() as td:
+        log = pathlib.Path(td) / "audit.jsonl"
+        errs = []
+        def w(i):
+            try:
+                _audit.append_event(str(log), action="run_start", set_role="none", session_id=f"lock-{i}")
+            except Exception as e:
+                errs.append(e)
+        ths = [threading.Thread(target=w, args=(i,)) for i in range(4)]
+        for t in ths:
+            t.start()
+        for t in ths:
+            t.join()
+        assert not errs, f"serialized appends must all succeed: {errs[:1]}"
+        chain = _audit.read_and_verify_chain(str(log))
+        assert len(chain) == 4
+        assert not pathlib.Path(str(log) + ".lock").exists(), "lockfile must be released"
+
+def test_path_sibling_rejected():
+    from retrieval_v3.paths import validate_output_path, REPO_ROOT
+    sibling = REPO_ROOT.parent / (REPO_ROOT.name + "-escape") / "eval" / "retrieval-v3" / "results" / "o.json"
+    try:
+        validate_output_path(sibling, strict_canonical=False)
+        assert False, "benefit-compass-escape sibling must be rejected (component-aware)"
+    except ValueError:
+        pass
+    ok = REPO_ROOT / "eval" / "retrieval-v3" / "results" / "o.json"
+    validate_output_path(ok, strict_canonical=False)
+
+def test_candidate_b_no_finalist_not_evaluated():
+    import pathlib as _pl
+    src = (_pl.Path(__file__).resolve().parent / "retrieval_v3" / "runner.py").read_text(encoding="utf-8")
+    assert "not_evaluated" in src
+    assert "max_union" not in src and "max_success" not in src, "max-of-all B fallback forbidden"
+    plan = load_candidate_plan_or_fail()
+    def fake_vec(seed):
+        rnd = random.Random(seed)
+        v = [rnd.uniform(-1, 1) for _ in range(768)]
+        norm = (sum(x * x for x in v) ** 0.5) or 1
+        return [round(x / norm, 6) for x in v]
+    policies = [{"id": 1, "source": "youth", "source_id": "p0", "title": "policy 0", "support_content": "", "summary": "", "keywords": "", "add_qualify": "", "income_etc": "", "apply_method": "", "org": "org", "chunks": [{"embedding": fake_vec(0), "chunk_index": 0, "id": 0}]}]
+    def fake_emb(q):
+        h = hashlib.sha256(q.encode()).digest()
+        return fake_vec(int.from_bytes(h[:4], "little"))
+    tasks = [{"task_id": "t0", "query": "query t0 content", "golds": [{"source": "youth", "source_id": "p0", "grade": 2}], "stratum": "natural_needs", "location_bearing": False}]
+    with tempfile.TemporaryDirectory() as td:
+        audit_log = pathlib.Path(td) / "audit.jsonl"
+        out = pathlib.Path(td) / "out.json"
+        runner = Runner(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r, s: tasks, audit_log_path=audit_log)
+        res = runner.run_dev_evaluation(tasks=tasks, policies=policies, session_id="b-none", set_role="dev", set_sha=None, audit_log=audit_log, output_path=out, skip_audit=True)
+        assert res["selection"]["chosen"] is None
+        bg = res["candidate_b_gate"]
+        assert bg["admitted"] is False and bg["instantiated"] is False and bg.get("status") == "not_evaluated"
+
+def test_canonical_result_n_headline():
+    from retrieval_v3.result_schema import validate_complete_result
+    from retrieval_v3.candidate_registry import EXPECTED_SHA, EXPECTED_PREREG_SHA
+    per = [{"config_id": f"candidate-a-{i:02d}", "success_at_5": 0.9, "ndcg_at_5": 0.8, "mrr_at_10": 0.7} for i in range(1, 19)]
+    base = {"schema_version": 1, "git_head": "0" * 40, "git_dirty": False, "candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA, "provenance": {"candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA}, "per_config_metrics": per, "selection": {"chosen": None}, "candidate_b_gate": {"admitted": False, "instantiated": False, "status": "not_evaluated"}}
+    bad = dict(base, set_provenance={"set_role": "dev", "set_sha": "1" * 64, "n": 5, "headline_n": 5})
+    try:
+        validate_complete_result(bad)
+        assert False, "canonical n/headline mismatch must fail"
+    except ValueError as e:
+        assert "180" in str(e) or "130" in str(e)
+    ok = dict(base, set_provenance={"set_role": "dev", "set_sha": "1" * 64, "n": 180, "headline_n": 130})
+    validate_complete_result(ok)
+
+def test_protected_access_end_exact_outcome():
+    from retrieval_v3 import audit as _audit
+    with tempfile.TemporaryDirectory() as td:
+        log = pathlib.Path(td) / "audit.jsonl"
+        sha = "c" * 64
+        _audit.append_event(str(log), action="protected_access_start", set_role="dev", set_sha=sha, session_id="s1", outcome="success")
+        try:
+            _audit.append_event(str(log), action="protected_access_end", set_role="dev", set_sha=sha, session_id="s1")
+            assert False, "end without outcome must fail"
+        except Exception:
+            pass
+        _audit.append_event(str(log), action="protected_access_end", set_role="dev", set_sha=sha, session_id="s1", outcome="failure")
+        try:
+            _audit.verify_holdout_access_allowed(str(log), set_role="dev", set_sha=sha, session_id="s1")
+            assert False, "closed grant must be denied"
+        except Exception:
+            pass
+
 if __name__=="__main__":
-    tests=[test_18_configs_and_drift, test_non_unit_cosine, test_representative_tie_and_near_tie, test_strict_gt_dedup_boundary, test_mmr_actual_cosine_and_full_top30, test_exact_normalization_and_boundaries, test_cosine_min_placement, test_union_vs_hybrid, test_exact_not_injected, test_deterministic_ordering, test_metrics_mrr_rank_gt10, test_selection_ordering_and_zero, test_b_gate_no_impl, test_latency_harness, test_audit_lifecycle, test_atomic_rerun_concurrent, test_path_confinement, test_runner_safety_hold_when_checkers_absent, test_runner_safety_hold_even_with_checkers_pre_dev, test_runner_latency_wiring, test_cli_orchestrator_e2e, test_fusion_youth_bias_only_youth_source_gov24_zero, test_sparse_only_representative_query_nearest_no_chunk0_fallback, test_oracle_union_set_and_headline130, test_metrics_graded_strict_and_ndcg, test_metrics_equivalence_group_no_double_count, test_slice_diagnostics_unavailable, test_selection_fail_closed_missing_gates, test_selection_fail_closed_missing_latency, test_execution_lifecycle_audit_closure_on_failure, test_execution_lifecycle_path_and_result_os_agnostic, test_headline_no_silent_fallback_safety_only, test_gold_missing_grade_fail_closed, test_empty_query_fail_closed, test_latency_no_fabricated_default_static, test_mirror_hyphen_underscore_identity]
+    tests=[test_18_configs_and_drift, test_non_unit_cosine, test_representative_tie_and_near_tie, test_strict_gt_dedup_boundary, test_mmr_actual_cosine_and_full_top30, test_exact_normalization_and_boundaries, test_cosine_min_placement, test_union_vs_hybrid, test_exact_not_injected, test_deterministic_ordering, test_metrics_mrr_rank_gt10, test_selection_ordering_and_zero, test_b_gate_no_impl, test_latency_harness, test_audit_lifecycle, test_atomic_rerun_concurrent, test_path_confinement, test_runner_safety_hold_when_checkers_absent, test_runner_safety_hold_even_with_checkers_pre_dev, test_runner_latency_wiring, test_cli_orchestrator_e2e, test_fusion_youth_bias_only_youth_source_gov24_zero, test_sparse_only_representative_query_nearest_no_chunk0_fallback, test_oracle_union_set_and_headline130, test_metrics_graded_strict_and_ndcg, test_metrics_equivalence_group_no_double_count, test_slice_diagnostics_unavailable, test_selection_fail_closed_missing_gates, test_selection_fail_closed_missing_latency, test_execution_lifecycle_audit_closure_on_failure, test_execution_lifecycle_path_and_result_os_agnostic, test_headline_no_silent_fallback_safety_only, test_gold_missing_grade_fail_closed, test_empty_query_fail_closed, test_latency_no_fabricated_default_static, test_mirror_hyphen_underscore_identity, test_selection_http_resolution_required, test_headline_missing_stratum_not_headline, test_headline_empty_golds_fail_closed, test_retrieve_blank_fail_closed_lowest, test_canonical_dev_mode_grant_before_loader_and_counts, test_canonical_counts_mismatch_fail_closed, test_safety_real_interfaces, test_d003_baseline_forbids_candidate_a01, test_audit_preflight_no_duplicate_run_start, test_audit_windows_lock_serialized, test_path_sibling_rejected, test_candidate_b_no_finalist_not_evaluated, test_canonical_result_n_headline, test_protected_access_end_exact_outcome]
     for t in tests:
         try:
             t()
@@ -932,4 +1245,4 @@ if __name__=="__main__":
             print(f"FAIL {t.__name__}: {e}")
             import traceback; traceback.print_exc()
             sys.exit(1)
-    print("ALL 36 focused tests PASS")
+    print("ALL 50 focused tests PASS")

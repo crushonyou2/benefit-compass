@@ -1095,3 +1095,13 @@ One short section per working session: what was worked on, what was decided (wit
 ## 2026-09-03 — Retrieval v3 D-038 SHA provenance correction (docs-only, canonical LF)
 
 - Corrects D-037 runner SHA pin `0dd8f978` (stale working-tree CRLF) to canonical `git show` LF `60db7b9b...` (both mirrors identical); test canonical `7f713ff7...` at `da6b34f`. No code/test semantics change. Runner 36 PASS re-verified post-push. Next: **STOP for Web review**.
+
+## 2026-09-03 — Retrieval v3 SAME-STAGE Web HOLD correction-2 — residual A-G fail-closed repair — D-039
+
+- **Reconciled start:** `codex/retrieval-v3-user-search-quality` HEAD `5166446` clean (`local==origin`), `git diff --check` PASS, `ml-service` diff 0, plan `2815361a` / prereg `78420186` unchanged, `dev/`+`holdout/` absent, OMP `18.1.5` / ROOT-plan `muse-spark-1.3:xhigh` per D-036 (verified `omp config get modelRoles` in-stage). No protected plaintext, no FIRST dev retrieval, no real DB/model/network/HTTP/latency.
+- **D-037 overclaim corrected (D-037/D-038 stay history):** selection 5-gate w/o http, headline `not-in-safety` incl. missing/unknown, headline empty golds scored 0, blank only at callers; plus A canonical mode/order/counts, B no measurement interface, C `configs[0]` baseline, D post-append rerun check + unlocked append + end-outcome None, E startswith sibling, F max-fallback B, G unenforced canonical n/headline.
+- **Repair (mirrors byte-identical):** canonical `validate_canonical_dev_tasks` + grant-before-loader + no-fake-adapters; `evaluate_full_dev_safety` + `safety_evidence_fn` (pre-dev HOLD preserved); `D003_BASELINE` + `d003_baseline_fn` (`configs[0]` deleted); audit preflight + lockfile serialization + exact end outcome; component-aware `_is_subpath` everywhere; B `not_evaluated` + max deleted; schema canonical 180/130.
+- **Tests:** fixtures to six gates; audit end `success`; synthetic non-canonical `set_sha None`; 14 new A-G tests; footer 36→50.
+- **Verification:** runner 50 PASS, runner+plan+sha 95 PASS, `git diff --check` PASS, plan/prereg unchanged, `ml-service` 0, isolation + mirror identity PASS. Forbidden 0 (see D-039).
+- **Owns whole correction-2 in one session:** reconcile → A-G fail-closed fixes → mirror sync → fixture/test updates → 50/95 PASS + SHA/isolation proofs → D-039 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
+- **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` ROOT/plan (D-036 gate still); delegates exempt.

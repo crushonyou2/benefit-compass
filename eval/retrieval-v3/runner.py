@@ -29,6 +29,52 @@ DEFAULT_AUDIT_LOG_ALT = REPO_ROOT / "eval" / "retrieval_v3" / "audit" / "events.
 
 CANDIDATE_PLAN_PATH = REPO_ROOT / "eval" / "retrieval-v3" / "candidate-plan" / "candidate-plan-v1.json"
 PREREG_PATH = REPO_ROOT / "docs" / "RETRIEVAL_V3_PREREG.md"
+# D-039: explicit headline strata allowlist (D-015 §3 first six only). Missing/unknown stratum is never headline.
+HEADLINE_STRATA = frozenset({"exact_navigation", "natural_needs", "exploratory_multi_valid", "multi_constraint", "short_keywords", "colloquial_typo_spacing_abbrev"})
+# D-039 canonical protected-dev invariants (D-015 §3 exact; D-003 production baseline descriptor).
+DEV_CANONICAL_N = 180
+DEV_HEADLINE_N = 130
+DEV_LOCATION_N = 54
+DEV_STRATA_EXACT = {"exact_navigation": 21, "natural_needs": 25, "exploratory_multi_valid": 21, "multi_constraint": 25, "short_keywords": 18, "colloquial_typo_spacing_abbrev": 20, "ambiguous": 23, "unsupported_no_answer": 27}
+D003_BASELINE = {"RERANK": 0, "CANDIDATES": 30, "COSINE_MIN": 0.78, "LEXICAL_BIAS": 0.01, "strip_region": True, "youth_bias_suppressed_for_gov24_orgs": True, "embedding": "intfloat/multilingual-e5-base"}
+def validate_canonical_dev_tasks(tasks: list[dict]) -> dict:
+    """Fail-closed exact DEV 180/130/54/strata/source-truth validation (pure, no retrieval/DB/model)."""
+    if len(tasks) != DEV_CANONICAL_N:
+        raise ValueError(f"canonical dev n must be 180, got {len(tasks)}")
+    from collections import Counter as _Counter
+    strata = _Counter(t.get("stratum") for t in tasks)
+    for s, need in DEV_STRATA_EXACT.items():
+        if strata.get(s, 0) != need:
+            raise ValueError(f"canonical dev stratum {s} must be {need}, got {strata.get(s, 0)}")
+    unknown = [s for s in strata if s not in DEV_STRATA_EXACT]
+    if unknown:
+        raise ValueError(f"canonical dev unknown strata {unknown} (fail-closed)")
+    headline = [t for t in tasks if t.get("stratum") in HEADLINE_STRATA and not t.get("is_ambiguous") and not t.get("is_unsupported")]
+    if len(headline) != DEV_HEADLINE_N:
+        raise ValueError(f"canonical dev headline_n must be 130, got {len(headline)}")
+    loc = sum(1 for t in tasks if t.get("location_bearing") is True)
+    if loc != DEV_LOCATION_N:
+        raise ValueError(f"canonical dev location must be 54, got {loc}")
+    for t in headline:
+        golds = t.get("golds") or t.get("gold") or []
+        if not golds:
+            raise ValueError(f"canonical headline task missing golds: {t.get('task_id') or t.get('id')}")
+        ok = False
+        for g in golds:
+            if not isinstance(g, dict) or "grade" not in g:
+                raise ValueError(f"canonical headline gold missing explicit grade: {t.get('task_id') or t.get('id')}")
+            if not isinstance(g.get("source"), str) or not isinstance(g.get("source_id"), str):
+                raise ValueError(f"canonical headline gold missing source/source_id: {t.get('task_id') or t.get('id')}")
+            if isinstance(g.get("grade"), (int, float)) and g["grade"] >= 2:
+                ok = True
+        if not ok:
+            raise ValueError(f"canonical headline task without grade>=2 source-truth gold: {t.get('task_id') or t.get('id')}")
+    for t in tasks:
+        if t.get("stratum") == "unsupported_no_answer":
+            for g in (t.get("golds") or t.get("gold") or []):
+                if isinstance(g, dict) and isinstance(g.get("grade"), (int, float)) and g["grade"] >= 2:
+                    raise ValueError(f"canonical unsupported task with grade>=2 gold: {t.get('task_id') or t.get('id')}")
+    return {"n": 180, "headline_n": 130, "location_n": loc, "strata": dict(strata)}
 
 def _get_git_head() -> str:
     try:
@@ -97,12 +143,13 @@ class Runner:
         corpus_provenance_fn: Callable[[], dict] | None = None,
         http_checker: Callable | None = None,
         clock_fn: Callable[[], int] | None = None,
+        safety_evidence_fn: Callable[[dict], dict] | None = None,
+        d003_baseline_fn: Callable[[str], Any] | None = None,
     ):
         self.candidate_plan = candidate_plan
         self.plan_data = candidate_plan
         from .candidate_registry import validate_data
         validate_data(candidate_plan)
-
         self.embedding_fn = embedding_fn
         self.db_policy_loader = db_policy_loader
         self.protected_set_loader = protected_set_loader
@@ -114,6 +161,9 @@ class Runner:
         self.corpus_provenance_fn = corpus_provenance_fn
         self.http_checker = http_checker
         self.clock_fn = clock_fn
+        # D-039: real safety measurement + D-003 baseline hooks. None => pre-dev HOLD (fail-closed).
+        self.safety_evidence_fn = safety_evidence_fn
+        self.d003_baseline_fn = d003_baseline_fn
 
     def _retrieve_for_query(
         self,
@@ -123,7 +173,12 @@ class Runner:
         qvec: list[float] | None = None,
     ) -> dict:
         """Execute retrieval for single query under config — returns pools and final top30."""
+        # D-039: fail-closed blank at lowest level (D-037 only checked callers). Blank never silently retrieves.
+        if not isinstance(query, str) or not query.strip():
+            raise ValueError("empty query (fail-closed)")
         q_stripped = strip_region(query)
+        if not q_stripped.strip():
+            raise ValueError("empty query after strip_region (fail-closed)")
         if qvec is None:
             if self.embedding_fn is None:
                 raise RuntimeError("embedding_fn not injected (fail-closed, no real model load)")
@@ -226,26 +281,47 @@ class Runner:
         skip_audit: bool = False,
     ) -> dict:
         """Run full dev evaluation over tasks — pure logic with injected fakes, audit lifecycle."""
+        # D-039: explicit canonical protected-dev mode (grant-before-loader, exact 180/130/54, no fake adapters).
+        is_canonical = (set_role == "dev" and set_sha is not None)
+        if is_canonical and skip_audit:
+            raise ValueError("canonical protected-dev mode requires audit (skip_audit=False, fail-closed)")
+        if is_canonical and tasks:
+            raise ValueError("canonical protected-dev mode forbids directly injected tasks (no fake adapters; load via protected_set_loader after grant, fail-closed)")
+        if is_canonical and self.protected_set_loader is None:
+            raise ValueError("canonical protected-dev mode requires protected_set_loader (fail-closed)")
         if output_path:
             validate_output_path(output_path, strict_canonical=False)
-
         audit_log = pathlib.Path(audit_log) if audit_log else self.audit_log_path
-        if not skip_audit and set_sha:
+        if is_canonical:
+            # Grant BEFORE loader (fail-closed; loader never runs without grant).
             try:
                 validate_protected_access(audit_log, set_role, set_sha, session_id, expected_event_hash)
             except Exception as e:
                 raise RuntimeError(f"protected access grant verification failed (fail-closed): {e}") from e
-
+            try:
+                tasks = self.protected_set_loader(set_role, set_sha)
+            except Exception as e:
+                raise RuntimeError(f"canonical protected loader failed (fail-closed): {e}") from e
+            validate_canonical_dev_tasks(tasks)
+        elif not skip_audit and set_sha:
+            try:
+                validate_protected_access(audit_log, set_role, set_sha, session_id, expected_event_hash)
+            except Exception as e:
+                raise RuntimeError(f"protected access grant verification failed (fail-closed): {e}") from e
         if output_path:
             out_abs = (REPO_ROOT / output_path).resolve() if not pathlib.Path(output_path).is_absolute() else pathlib.Path(output_path).resolve()
             if out_abs.exists():
                 raise FileExistsError(f"output already exists: {out_abs} — rerun guard")
-
         run_start_event = None
         run_end_event = None
         need_audit_close = False
         if not skip_audit:
             try:
+                # D-039: preflight BEFORE second run_start — never append a duplicate (actions stay [run_start,run_end]).
+                pre_chain = audit.read_and_verify_chain(str(audit_log))
+                pre_starts = [e for e in pre_chain if e.get("action") == "run_start" and e.get("set_sha") == (set_sha.lower() if isinstance(set_sha, str) else set_sha) and e.get("set_role") == set_role]
+                if len(pre_starts) >= 1:
+                    raise RuntimeError(f"rerun detected (preflight): run_start count for {set_role}/{set_sha} is {len(pre_starts)} (expected 0, fail-closed)")
                 run_start_event = audit.append_event(
                     str(audit_log),
                     action="run_start",
@@ -256,21 +332,22 @@ class Runner:
                 )
                 need_audit_close = True
                 chain = audit.read_and_verify_chain(str(audit_log))
-                run_starts = [e for e in chain if e.get("action") == "run_start" and e.get("set_sha") == set_sha and e.get("set_role") == set_role]
+                run_starts = [e for e in chain if e.get("action") == "run_start" and e.get("set_sha") == (set_sha.lower() if isinstance(set_sha, str) else set_sha) and e.get("set_role") == set_role]
                 if len(run_starts) != 1:
                     raise RuntimeError(f"rerun detected: run_start count for {set_role}/{set_sha} is {len(run_starts)} (expected 1, fail-closed)")
             except Exception as e:
                 raise RuntimeError(f"audit run_start failed (fail-closed, no result): {e}") from e
-
         try:
-            if not tasks and self.protected_set_loader:
+            if not is_canonical and not tasks and self.protected_set_loader:
                 tasks = self.protected_set_loader(set_role, set_sha)
             if not tasks:
                 raise ValueError("tasks empty (fail-closed)")
+            if is_canonical:
+                validate_canonical_dev_tasks(tasks)
 
-            headline_tasks = [t for t in tasks if t.get("stratum") not in ("ambiguous", "unsupported_no_answer") and not t.get("is_ambiguous") and not t.get("is_unsupported")]
+            headline_tasks = [t for t in tasks if t.get("stratum") in HEADLINE_STRATA and not t.get("is_ambiguous") and not t.get("is_unsupported")]
+            # D-039: explicit allowlist only (D-037 `not in safety` silently included missing/unknown stratum as headline).
             # SAME-STAGE fail-closed: no silent fallback to grade-based or full-task headline.
-            # Empty headline stays empty (metrics n=0 -> selection HOLD), never silently includes safety tasks.
 
             per_config_metrics = []
             latency_per_config = {}
@@ -290,6 +367,11 @@ class Runner:
                             normalized_golds.append(g)
                         else:
                             raise ValueError(f"gold tuple form without explicit grade forbidden (fail-closed): task {task.get('task_id') or task.get('id')}")
+                    # D-039: headline tasks must carry ≥1 gold (empty headline gold silently scores 0, masking data error).
+                    # Safety tasks (unsupported/ambiguous) may legitimately have empty golds.
+                    _is_headline_task = task.get("stratum") in HEADLINE_STRATA and not task.get("is_ambiguous") and not task.get("is_unsupported")
+                    if _is_headline_task and not normalized_golds:
+                        raise ValueError(f"headline task missing golds (fail-closed): task {task.get('task_id') or task.get('id')}")
                     q = task.get("query") or task.get("query_text") or ""
                     if not isinstance(q, str) or not q.strip():
                         raise ValueError(f"empty query (fail-closed): task {task.get('task_id') or task.get('id')}")
@@ -367,25 +449,45 @@ class Runner:
             for cfg in self.plan_data["configs"]:
                 cid = cfg["config_id"]
                 try:
-                    # SAME-STAGE fail-closed: pre-dev runner has no real safety measurement from retrieval results.
-                    # Previous vacuous [True...] + checker-presence PASS fabricated safety; now always HOLD.
-                    # Real wiring belongs to FIRST dev retrieval stage; forbidden pre-dev. Injection points preserved.
-                    gate_u = "HOLD"
-                    gate_ineligible = "HOLD"
-                    gate_official = "HOLD"
-                    gate_http = "HOLD"
-                    cost_gate = "HOLD"
-                    overall = "HOLD"
-                    safety_per_config[cid] = {
-                        "unsupported": gate_u,
-                        "ambiguous": gate_u,
-                        "ineligible_expired": gate_ineligible,
-                        "official_link": gate_official,
-                        "http_resolution": gate_http,
-                        "cost": cost_gate,
-                        "gate": overall,
-                        "detail": "pre_dev_no_real_measurement",
-                    }
+                    # D-039: real safety measurement interfaces exist via safety_evidence_fn (FIRST dev only).
+                    # SAME-STAGE pre-dev (no evidence fn): HOLD with pre_dev_no_real_measurement (no fabrication).
+                    if self.safety_evidence_fn is not None:
+                        ev = self.safety_evidence_fn({"config_id": cid, "config": cfg, "results": all_config_results.get(cid)})
+                        need = ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost")
+                        for k in need:
+                            if k not in ev:
+                                raise ValueError(f"safety evidence missing gate {k} (fail-closed)")
+                            gv = ev[k] if isinstance(ev[k], str) else ev[k].get("gate")
+                            if gv not in ("PASS", "NO-GO", "HOLD"):
+                                raise ValueError(f"safety evidence gate {k} invalid {gv!r} (fail-closed)")
+                        overall = "PASS" if all((ev[k] if isinstance(ev[k], str) else ev[k].get("gate")) == "PASS" for k in need) else ("NO-GO" if any((ev[k] if isinstance(ev[k], str) else ev[k].get("gate")) == "NO-GO" for k in need) else "HOLD")
+                        safety_per_config[cid] = {
+                            "unsupported": ev["unsupported"] if isinstance(ev["unsupported"], str) else ev["unsupported"].get("gate"),
+                            "ambiguous": ev["ambiguous"] if isinstance(ev["ambiguous"], str) else ev["ambiguous"].get("gate"),
+                            "ineligible_expired": ev["ineligible_expired"] if isinstance(ev["ineligible_expired"], str) else ev["ineligible_expired"].get("gate"),
+                            "official_link": ev["official_link"] if isinstance(ev["official_link"], str) else ev["official_link"].get("gate"),
+                            "http_resolution": ev["http_resolution"] if isinstance(ev["http_resolution"], str) else ev["http_resolution"].get("gate"),
+                            "cost": ev["cost"] if isinstance(ev["cost"], str) else ev["cost"].get("gate"),
+                            "gate": overall,
+                            "detail": "measured_via_safety_evidence_fn",
+                        }
+                    else:
+                        gate_u = "HOLD"
+                        gate_ineligible = "HOLD"
+                        gate_official = "HOLD"
+                        gate_http = "HOLD"
+                        cost_gate = "HOLD"
+                        overall = "HOLD"
+                        safety_per_config[cid] = {
+                            "unsupported": gate_u,
+                            "ambiguous": gate_u,
+                            "ineligible_expired": gate_ineligible,
+                            "official_link": gate_official,
+                            "http_resolution": gate_http,
+                            "cost": cost_gate,
+                            "gate": overall,
+                            "detail": "pre_dev_no_real_measurement",
+                        }
                 except Exception as e:
                     safety_per_config[cid] = {
                         "unsupported": "HOLD",
@@ -401,18 +503,21 @@ class Runner:
             latency_p95_per_config = None
             if self.clock_fn is not None:
                 try:
+                    # D-039: D-003 production baseline paired latency. candidate-a-01 is FORBIDDEN as baseline
+                    # (it manufactured latency PASS); baseline must come from d003_baseline_fn (D003_BASELINE descriptor).
+                    if self.d003_baseline_fn is None:
+                        raise RuntimeError("d003 baseline fn missing (fail-closed HOLD: no D-003 paired measurement)")
                     task_ids_sorted = sorted([t.get("task_id") or t.get("id") or f"task-{i:03d}" for i, t in enumerate(tasks)])
-                    baseline_cfg = self.plan_data["configs"][0]
                     latencies = {}
                     for cfg in self.plan_data["configs"]:
-                        def _baseline_fn(tid, _cfg=baseline_cfg):
+                        def _baseline_fn(tid):
                             task = next((tt for tt in tasks if (tt.get("task_id") or tt.get("id")) == tid), None)
                             if task is None:
                                 raise ValueError(f"latency task id not found (fail-closed): {tid}")
                             q = task.get("query") or task.get("query_text") or ""
                             if not isinstance(q, str) or not q.strip():
                                 raise ValueError(f"latency empty query (fail-closed): {tid}")
-                            self._retrieve_for_query(q, policies, _cfg)
+                            self.d003_baseline_fn(tid)
                         def _candidate_fn(tid, _cfg=cfg):
                             task = next((tt for tt in tasks if (tt.get("task_id") or tt.get("id")) == tid), None)
                             if task is None:
@@ -429,19 +534,14 @@ class Runner:
                 except Exception:
                     latency_p95_per_config = None
             selection = select_candidate(per_config_metrics, safety_per_config, latency_p95_per_config)
-
             if selection["chosen"]:
                 chosen_metrics = next(m for m in per_config_metrics if m["config_id"] == selection["chosen"])
                 union_r100 = chosen_metrics.get("union_oracle_R100", 0.0)
                 cand_success = chosen_metrics.get("success_at_5", 0.0)
+                b_gate = candidate_b_gate(union_r100, cand_success)
             else:
-                max_success = max((m["success_at_5"] for m in per_config_metrics), default=0.0)
-                max_union = max((m.get("union_oracle_R100",0) for m in per_config_metrics), default=0.0)
-                union_r100 = max_union
-                cand_success = max_success
-
-            b_gate = candidate_b_gate(union_r100, cand_success)
-
+                # D-039: no finalist => B not_evaluated (same-finalist evidence only; max-of-all manufactured evaluation).
+                b_gate = {"admitted": False, "instantiated": False, "status": "not_evaluated", "reason": "no finalist (fail-closed: B evaluated on chosen finalist only)", "union_oracle_recall_100": None, "candidate_a_success_5": None, "headroom_pp": None}
             git_head = _get_git_head()
             git_dirty = _get_git_dirty()
             plan_sha = _sha256_file(CANDIDATE_PLAN_PATH if CANDIDATE_PLAN_PATH.exists() else REPO_ROOT / "eval" / "retrieval_v3" / "candidate-plan" / "candidate-plan-v1.json")

@@ -467,3 +467,73 @@ def check_unsupported_ambiguous(
 
     details["gate"] = "PASS"
     return "PASS", details
+
+def evaluate_full_dev_safety(
+    dev_unsupported_results: List[bool] | None,
+    dev_ambiguous_results: List[bool] | None,
+    top5_by_task: Dict[str, List[Tuple[str, str]]] | None,
+    snapshot: Optional[dict],
+    snapshot_pin: Optional[str],
+    official_unique_urls: List[str] | None,
+    expected_source_for_url: Dict[str, str] | None,
+    http_mock_results: Dict[str, Tuple[List[MockHttpResponse], List[MockHttpResponse]]] | None,
+    cost_evidence: Optional[dict] = None,
+) -> Dict[str, dict]:
+    """D-039 real safety measurement interface (pure, no network/DB/retrieval).
+    Combines all six prereg §9 gates for dev 180 with exact denominators. Missing evidence => HOLD (fail-closed).
+    Pre-dev runner does NOT call this (keeps HOLD); FIRST dev stage supplies real evidence via safety_evidence_fn.
+    Returns per-gate {gate, ...details} for unsupported/ambiguous/ineligible_expired/official_link/http_resolution/cost.
+    """
+    out: Dict[str, dict] = {}
+    # unsupported/ambiguous share check_unsupported_ambiguous dev slice (holdout None => HOLD unless dev-only? use dev-only diagnostic).
+    # For dev-only measurement, holdout lists are unknown => report HOLD for both unless caller supplies holdout evidence.
+    # Here dev stage measures dev slices only; holdout gates stay HOLD until holdout evidence exists.
+    if dev_unsupported_results is None or dev_ambiguous_results is None:
+        out["unsupported"] = {"gate": "HOLD", "error": "missing dev unsupported/ambiguous measurement"}
+        out["ambiguous"] = {"gate": "HOLD", "error": "missing dev unsupported/ambiguous measurement"}
+    else:
+        if len(dev_unsupported_results) != 27:
+            out["unsupported"] = {"gate": "HOLD", "error": f"dev unsupported count {len(dev_unsupported_results)} !=27"}
+        else:
+            ok = sum(1 for x in dev_unsupported_results if x)
+            out["unsupported"] = {"gate": "PASS" if ok >= 26 else "NO-GO", "success": ok, "required": 26, "denominator": 27}
+        if len(dev_ambiguous_results) != 23:
+            out["ambiguous"] = {"gate": "HOLD", "error": f"dev ambiguous count {len(dev_ambiguous_results)} !=23"}
+        else:
+            ok = sum(1 for x in dev_ambiguous_results if x)
+            out["ambiguous"] = {"gate": "PASS" if ok >= 21 else "NO-GO", "success": ok, "required": 21, "denominator": 23}
+    # ineligible/expired exact dev 180/900
+    if top5_by_task is None:
+        out["ineligible_expired"] = {"gate": "HOLD", "error": "missing top-5 evidence"}
+    else:
+        gate, det = check_ineligible_expired(top5_by_task, snapshot, snapshot_pin, 180, 900)
+        out["ineligible_expired"] = {"gate": gate, **det}
+    # official-link semantic 100%
+    if official_unique_urls is None or expected_source_for_url is None:
+        out["official_link"] = {"gate": "HOLD", "error": "missing official-link evidence"}
+    else:
+        gate, det = evaluate_official_link_semantic_match(official_unique_urls, expected_source_for_url, snapshot, snapshot_pin)
+        out["official_link"] = {"gate": gate, **det}
+    # http resolution >=99%
+    if official_unique_urls is None or http_mock_results is None:
+        out["http_resolution"] = {"gate": "HOLD", "error": "missing http evidence"}
+    else:
+        gate, det = evaluate_http_resolution(official_unique_urls, http_mock_results, snapshot, snapshot_pin)
+        out["http_resolution"] = {"gate": gate, **det}
+    # cost: index <=2x, rows <=3x, 0 extra model calls
+    if cost_evidence is None:
+        out["cost"] = {"gate": "HOLD", "error": "missing cost evidence"}
+    else:
+        try:
+            idx_ratio = cost_evidence.get("index_ratio")
+            rows_ratio = cost_evidence.get("rows_ratio")
+            extra_calls = cost_evidence.get("extra_model_calls")
+            if idx_ratio is None or rows_ratio is None or extra_calls is None:
+                out["cost"] = {"gate": "HOLD", "error": "incomplete cost evidence"}
+            elif idx_ratio <= 2.0 and rows_ratio <= 3.0 and extra_calls == 0:
+                out["cost"] = {"gate": "PASS", "index_ratio": idx_ratio, "rows_ratio": rows_ratio, "extra_model_calls": extra_calls}
+            else:
+                out["cost"] = {"gate": "NO-GO", "index_ratio": idx_ratio, "rows_ratio": rows_ratio, "extra_model_calls": extra_calls}
+        except Exception as e:
+            out["cost"] = {"gate": "HOLD", "error": f"cost evidence invalid: {e}"}
+    return out

@@ -48,6 +48,46 @@ _UUID_V4_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{
 _HEX40_RE = re.compile(r"^[0-9a-f]{40}$")
 _HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 _TIMESTAMP_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$")
+# D-039: Windows interprocess serialized append (portable lockfile, no fcntl/msvcrt exclusivity assumptions).
+_LOCK_TIMEOUT_S = 30.0
+_LOCK_POLL_S = 0.05
+def _lock_path_for(log_path: str | os.PathLike) -> pathlib.Path:
+    return pathlib.Path(str(log_path) + ".lock")
+def _acquire_interprocess_lock(log_path: str | os.PathLike, timeout: float = _LOCK_TIMEOUT_S) -> pathlib.Path:
+    """Create lockfile exclusively (O_CREAT|O_EXCL); stale locks (>timeout) are reclaimed. Returns lock path."""
+    lp = _lock_path_for(log_path)
+    try:
+        lp.parent.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+    import time as _time
+    deadline = _time.monotonic() + timeout
+    while True:
+        try:
+            fd = os.open(str(lp), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            try:
+                os.write(fd, str(os.getpid()).encode("utf-8"))
+            finally:
+                os.close(fd)
+            return lp
+        except FileExistsError:
+            try:
+                age = _time.time() - lp.stat().st_mtime
+                if age > timeout:
+                    try:
+                        lp.unlink()
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+            if _time.monotonic() >= deadline:
+                raise AuditError(f"audit lock timeout for {log_path!r} (interprocess serialization fail-closed)")
+            _time.sleep(_LOCK_POLL_S)
+def _release_interprocess_lock(lp: pathlib.Path) -> None:
+    try:
+        lp.unlink()
+    except Exception:
+        pass
 
 
 class AuditError(RuntimeError):
@@ -194,6 +234,10 @@ def _validate_payload(payload: dict[str, Any]) -> None:
         if set_role not in ("dev", "holdout"):
             raise AuditSchemaError(f"action {action!r} requires set_role dev/holdout, got {set_role!r}")
         # set_sha already validated as 64-hex above
+    # D-039: protected_access_end carries exact outcome success/failure (fail-closed; None/allowed forbidden).
+    if action == "protected_access_end":
+        if payload.get("outcome") not in ("success", "failure"):
+            raise AuditSchemaError(f"protected_access_end outcome must be success/failure, got {payload.get('outcome')!r}")
     # candidate_id if not None must be non-empty str
     cid = payload["candidate_id"]
     if cid is not None and (not isinstance(cid, str) or not cid.strip()):
@@ -283,80 +327,80 @@ def append_event(
     p = pathlib.Path(log_path)
     # Ensure parent dir exists
     p.parent.mkdir(parents=True, exist_ok=True)
-
-    # Verify existing chain before append (fail-closed if tampered)
-    existing = read_and_verify_chain(log_path)
-    prev_hash = existing[-1]["event_hash"].lower() if existing else GENESIS_HASH
-
-    # Build payload without event_hash
-    if git_head is None:
-        git_head = _get_git_head()
-    else:
-        # Validate supplied git_head early to give clear error (also validated in _validate_payload)
-        if not isinstance(git_head, str) or not _HEX40_RE.match(git_head.lower()):
-            raise AuditSchemaError(f"invalid git_head {git_head!r} (must be 40-hex)")
-        git_head = git_head.lower()
-    if git_dirty is None:
-        git_dirty = _get_git_dirty()
-    else:
-        if not isinstance(git_dirty, bool):
-            raise AuditSchemaError(f"git_dirty must be bool, got {type(git_dirty).__name__}: {git_dirty!r}")
-    if session_id is None:
-        session_id = os.getenv("CYCLE3_SESSION_ID") or f"pid-{os.getpid()}"
-    if not isinstance(session_id, str) or not session_id.strip():
-        raise AuditSchemaError(f"session_id must be non-empty str, got {session_id!r}")
-    if utc_timestamp is None:
-        utc_timestamp = _utc_now_iso()
-    else:
-        _validate_timestamp(utc_timestamp)
-    if event_id is None:
-        event_id = str(uuid.uuid4())
-    else:
-        _validate_uuid_v4(event_id)
-    if process_id is None:
-        process_id = os.getpid()
-    if not isinstance(process_id, int) or isinstance(process_id, bool) or process_id <= 0:
-        raise AuditSchemaError(f"process_id must be positive int, got {process_id!r}")
-
-    payload_without_hash: dict[str, Any] = {
-        "schema_version": SCHEMA_VERSION,
-        "event_id": event_id.lower() if isinstance(event_id, str) else event_id,
-        "utc_timestamp": utc_timestamp,
-        "git_head": git_head.lower(),
-        "git_dirty": bool(git_dirty),
-        "process_id": process_id,
-        "session_id": session_id,
-        "action": action,
-        "candidate_id": candidate_id,
-        "set_role": set_role,
-        "set_sha": set_sha.lower() if isinstance(set_sha, str) else set_sha,
-        "command": command,
-        "runner_id": runner_id,
-        "outcome": outcome,
-        "previous_event_hash": prev_hash.lower(),
-    }
-    _validate_payload(payload_without_hash)
-    event_hash = _compute_event_hash(payload_without_hash)
-    event = {**payload_without_hash, "event_hash": event_hash}
-
-    # Append atomically: open in append, write single line + LF, flush+fsync
-    line = json.dumps(event, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
-    # Use binary append to avoid text-mode newline translation issues
-    with open(p, "a", encoding="utf-8", newline="\n") as f:
-        f.write(line + "\n")
-        f.flush()
-        try:
-            os.fsync(f.fileno())
-        except Exception as e:
-            # Durability failure is fail-closed: do not return success token
-            raise AuditError(f"fsync failed for {p}: {e}") from e
-
-    # Post-append verify (detect concurrent truncate/overwrite race)
-    # Re-read and ensure last event is ours and chain still valid
-    re_verified = read_and_verify_chain(log_path)
-    if not re_verified or re_verified[-1]["event_hash"] != event_hash:
-        raise AuditChainError("post-append chain verification failed; log may have been truncated concurrently")
-    return event
+    # D-039: interprocess serialization — the whole read/append/verify critical section holds the lock.
+    _lp = _acquire_interprocess_lock(log_path)
+    try:
+        # Verify existing chain before append (fail-closed if tampered)
+        existing = read_and_verify_chain(log_path)
+        prev_hash = existing[-1]["event_hash"].lower() if existing else GENESIS_HASH
+        # Build payload without event_hash
+        if git_head is None:
+            git_head = _get_git_head()
+        else:
+            # Validate supplied git_head early to give clear error (also validated in _validate_payload)
+            if not isinstance(git_head, str) or not _HEX40_RE.match(git_head.lower()):
+                raise AuditSchemaError(f"invalid git_head {git_head!r} (must be 40-hex)")
+            git_head = git_head.lower()
+        if git_dirty is None:
+            git_dirty = _get_git_dirty()
+        else:
+            if not isinstance(git_dirty, bool):
+                raise AuditSchemaError(f"git_dirty must be bool, got {type(git_dirty).__name__}: {git_dirty!r}")
+        if session_id is None:
+            session_id = os.getenv("CYCLE3_SESSION_ID") or f"pid-{os.getpid()}"
+        if not isinstance(session_id, str) or not session_id.strip():
+            raise AuditSchemaError(f"session_id must be non-empty str, got {session_id!r}")
+        if utc_timestamp is None:
+            utc_timestamp = _utc_now_iso()
+        else:
+            _validate_timestamp(utc_timestamp)
+        if event_id is None:
+            event_id = str(uuid.uuid4())
+        else:
+            _validate_uuid_v4(event_id)
+        if process_id is None:
+            process_id = os.getpid()
+        if not isinstance(process_id, int) or isinstance(process_id, bool) or process_id <= 0:
+            raise AuditSchemaError(f"process_id must be positive int, got {process_id!r}")
+        payload_without_hash: dict[str, Any] = {
+            "schema_version": SCHEMA_VERSION,
+            "event_id": event_id.lower() if isinstance(event_id, str) else event_id,
+            "utc_timestamp": utc_timestamp,
+            "git_head": git_head.lower(),
+            "git_dirty": bool(git_dirty),
+            "process_id": process_id,
+            "session_id": session_id,
+            "action": action,
+            "candidate_id": candidate_id,
+            "set_role": set_role,
+            "set_sha": set_sha.lower() if isinstance(set_sha, str) else set_sha,
+            "command": command,
+            "runner_id": runner_id,
+            "outcome": outcome,
+            "previous_event_hash": prev_hash.lower(),
+        }
+        _validate_payload(payload_without_hash)
+        event_hash = _compute_event_hash(payload_without_hash)
+        event = {**payload_without_hash, "event_hash": event_hash}
+        # Append atomically: open in append, write single line + LF, flush+fsync
+        line = json.dumps(event, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+        # Use binary append to avoid text-mode newline translation issues
+        with open(p, "a", encoding="utf-8", newline="\n") as f:
+            f.write(line + "\n")
+            f.flush()
+            try:
+                os.fsync(f.fileno())
+            except Exception as e:
+                # Durability failure is fail-closed: do not return success token
+                raise AuditError(f"fsync failed for {p}: {e}") from e
+        # Post-append verify (detect concurrent truncate/overwrite race)
+        # Re-read and ensure last event is ours and chain still valid
+        re_verified = read_and_verify_chain(log_path)
+        if not re_verified or re_verified[-1]["event_hash"] != event_hash:
+            raise AuditChainError("post-append chain verification failed; log may have been truncated concurrently")
+        return event
+    finally:
+        _release_interprocess_lock(_lp)
 
 
 def verify_holdout_access_allowed(

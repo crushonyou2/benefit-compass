@@ -36,7 +36,7 @@ def _is_temp_path(p: pathlib.Path) -> bool:
                     real_p = pathlib.Path(os.path.realpath(str(cur))) / rel
                 except ValueError:
                     real_p = pathlib.Path(os.path.realpath(str(cur)))
-        return str(real_p).startswith(str(temp_root))
+        return _is_subpath(real_p, temp_root)
     except Exception:
         return False
 
@@ -62,10 +62,10 @@ def validate_output_path(path: str | pathlib.Path, strict_canonical: bool = Fals
             real = pathlib.Path(os.path.realpath(str(abs_path)))
             if not real.exists():
                 parent_real = pathlib.Path(os.path.realpath(str(abs_path.parent)))
-                if not str(parent_real).startswith(str(temp_root)):
+                if not _is_subpath(parent_real, temp_root):
                     raise ValueError(f"temp path outside temp root: {path!r}")
             else:
-                if not str(real).startswith(str(temp_root)):
+                if not _is_subpath(real, temp_root):
                     raise ValueError(f"temp path escape: {path!r}")
         except ValueError:
             raise
@@ -91,7 +91,8 @@ def validate_output_path(path: str | pathlib.Path, strict_canonical: bool = Fals
             repo_real = pathlib.Path(os.path.realpath(str(REPO_ROOT)))
             intended_str = str(abs_path)
             repo_str = str(repo_real)
-            if not intended_str.startswith(repo_str):
+            # D-039: component-aware containment (string startswith allows benefit-compass-escape sibling).
+            if not _is_subpath(pathlib.Path(intended_str), repo_real):
                 raise ValueError(f"path traversal escape: {path!r} resolves to {intended_str!r} outside repo {repo_str!r}")
             if strict_canonical:
                 expected = (REPO_ROOT / CANONICAL_DEV_OUTPUT_REL).resolve()
@@ -102,23 +103,20 @@ def validate_output_path(path: str | pathlib.Path, strict_canonical: bool = Fals
                 # For non-strict, allow any under allowed prefixes or under eval/retrieval
                 allowed = False
                 for pref in ALLOWED_PREFIXES:
-                    pref_str = str(pref.resolve()) if pref.exists() else str((REPO_ROOT / pref.relative_to(REPO_ROOT)).resolve())
-                    if str(abs_path).startswith(pref_str):
-                        allowed = True
-                        break
-                    if str(abs_path).startswith(str(pref)):
+                    pref_resolved = pref.resolve() if pref.exists() else (REPO_ROOT / pref.relative_to(REPO_ROOT)).resolve()
+                    if _is_subpath(abs_path, pref_resolved) or _is_subpath(abs_path, pathlib.Path(str(pref))):
                         allowed = True
                         break
                 if not allowed:
                     repo_real = pathlib.Path(os.path.realpath(str(REPO_ROOT)))
-                    if not str(abs_path).startswith(str(repo_real)):
+                    if not _is_subpath(abs_path, repo_real):
                         raise ValueError(f"path outside repo: {path!r}")
                     if "eval/retrieval" not in pathlib.PurePath(p).as_posix():
                         raise ValueError(f"path not under allowed prefix: {path!r}")
             return abs_path
         else:
             repo_real = pathlib.Path(os.path.realpath(str(REPO_ROOT)))
-            if not str(real).startswith(str(repo_real)):
+            if not _is_subpath(real, repo_real):
                 raise ValueError(f"symlink escape: {path!r} resolves to {real!r} outside repo {repo_real!r}")
             if strict_canonical:
                 expected = (REPO_ROOT / CANONICAL_DEV_OUTPUT_REL).resolve()

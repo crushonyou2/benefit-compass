@@ -5,7 +5,7 @@ from typing import Any
 import math
 
 # Expected gates per prereg §9 and candidate-plan selection_rule — must all be present and PASS
-EXPECTED_SAFETY_GATES = {"unsupported", "ambiguous", "ineligible_expired", "official_link", "cost"}
+EXPECTED_SAFETY_GATES = {"unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost"}
 
 def _safety_passes(safety_report: dict) -> bool:
     """
