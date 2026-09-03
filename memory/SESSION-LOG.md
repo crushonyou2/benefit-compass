@@ -1195,3 +1195,14 @@ One short section per working session: what was worked on, what was decided (wit
 - **Owns whole correction-9 in one session:** reconcile → overflow fix → 3 tests → 201 PASS + proofs → D-047 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
 - **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` ROOT/plan (D-036 gate still); delegates exempt.
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
+
+## 2026-09-03 — Retrieval v3 pre-result gate — safe-action NO-GO + eligibility HOLD — D-048
+
+- **Reconciled start:** `codex/retrieval-v3-user-search-quality` HEAD `1939829` clean (`local==origin==actual remote` via direct `ls-remote`), `git diff --check` PASS, `ml-service` diff 0, plan `2815361a` / prereg `78420186` unchanged, `dev/`+`holdout/`+result/audit absent, OMP `18.1.5` / ROOT-plan `muse-spark-1.3:xhigh` per D-036, D-047 latest. User-approved NEW stage; no FIRST dev.
+- **Safe-action:** D-013..D-047 + plan-v1 18 tuples + runner/sparse/fusion/dedup/safety read-only re-verified; always-nonempty proven from committed bytes (sparse per-policy → 100 → union ≥100 → top30 ≥1); sole non-invented predicate D-044 `abstention_credit` → 0/27 vs 26, 0/23 vs 21 deterministic. Dense-0.78/sparse-zero/exact-absence/query-CLARIFY/always-ANSWER/ABSTAIN each rejected (threshold/heuristic/protected-evidence). User-visible ANSWER/ABSTAIN/CLARIFY semantics frozen as definitions; no `candidate-plan-v2` forced (v1 bytes/SHA preserved).
+- **Eligibility:** live read-only aggregate metadata — policy columns 31 (no eligible/expired), `13589/2285/11304` NULL 83% (`gov24 10958/611`, `youth 2631/1674`); youth `_date`/gov24 `_dates` NULL semantics unproven; production NULL-pass is runtime convenience, not authority. No complete map; no snapshot; HOLD with exact limitation. No per-policy plaintext, no retrieval/search/ranking/model/embedding/benchmark.
+- **Verification:** 201 PASS rerun, `git diff --check` PASS, plan/prereg unchanged, `ml-service` 0, isolation + mirrors untouched (zero code bytes). Forbidden 0 (see D-048). Protected dev 180 reusable, not refrozen. Gates NOT weakened.
+- **VERDICT: FIRST protected-dev REMAINS BLOCKED. Do NOT launch.**
+- **Owns whole gate in one session:** reconcile → safety/eligibility investigation → 201 PASS + proofs → D-048 + SESSION-LOG → atomic docs-only commit/push → STOP. Next: **Web read-only independent review**.
+- **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` ROOT/plan (D-036 gate still); delegates exempt.
+- **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
