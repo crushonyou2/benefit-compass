@@ -217,12 +217,16 @@ def parse_pgvector(raw: object) -> list[float]:
 
 
 class RealEvaluationSession:
-    """ONE governing read-only DB resource for an evaluation run (D-056).
+    """ONE governing read-only DB resource for an evaluation run (D-056, D-057).
 
     Owns the exact connection context for SHOW TimeZone + SELECT CURRENT_DATE
     capture, corpus source-data load/provenance, and D-003 baseline queries.
     Lazy: construction and import perform no IO; the connection opens on
-    first use. Read-only: real connections use readonly + autocommit sessions;
+    first use. Read-only consistent snapshot: the single governing connection
+    is configured BEFORE the first statement as one read-only REPEATABLE READ
+    transaction with autocommit FALSE, so capture, corpus source-data load /
+    fingerprint, and every D-003 baseline SQL share the same database snapshot
+    until deterministic close (no commit; close/rollback-on-close only);
     this class never issues writes, DDL, temp mutation, or SET TIME ZONE.
     Close is exact-once (second close raises); is_closed guards ownership
     transfer to the runner wrapper.
@@ -263,18 +267,26 @@ class RealEvaluationSession:
         dsn = read_database_url(self._env)
         if self._connect_fn is not None:
             try:
-                self._conn = self._connect_fn(dsn)
+                conn = self._connect_fn(dsn)
             except Exception as e:
                 raise RuntimeError(
                     "evaluation DB connect failed "
                     f"({type(e).__name__}, fail-closed)"
                 ) from None
+            try:
+                conn.set_session(readonly=True, autocommit=False, isolation_level="REPEATABLE READ")
+            except Exception as e:
+                raise RuntimeError(
+                    "evaluation DB session config failed "
+                    f"({type(e).__name__}, fail-closed)"
+                ) from None
+            self._conn = conn
             return self._conn
         try:
             import psycopg2  # lazy: no driver import at module import
 
             conn = psycopg2.connect(dsn)
-            conn.set_session(readonly=True, autocommit=True)
+            conn.set_session(readonly=True, autocommit=False, isolation_level="REPEATABLE READ")
         except Exception as e:
             raise RuntimeError(
                 "evaluation DB connect failed "
@@ -459,7 +471,7 @@ class RealEvaluationSession:
         return policies
 
     def corpus_provenance(self) -> dict:
-        """Truthful recomputable provenance (requires loaded corpus)."""
+        """Truthful recomputable provenance (requires loaded corpus; D-057: shared REPEATABLE READ transaction guarantees the paired D-003 baseline sees the same database snapshot as this corpus load)."""
         if self._closed:
             raise RuntimeError("corpus provenance on closed session (fail-closed)")
         if self._policies is None or self._pinned is None or self._fingerprint is None:
@@ -762,8 +774,12 @@ def check_url_with_transport(url: str, transport: Callable[[str, str, tuple], Tr
     request URL/method with no backoff, <=3 redirects preserving method,
     GET fallback only on HEAD 405/501 or exhausted network/TLS cause,
     timeout/5xx retry-only, ordinary 4xx immediate fail, 2xx success.
-    Pure logic over the transport callable; no network here.
+    Pure logic over the transport callable; no network here. Each transport
+    call is ONE single HTTP attempt: this state machine exclusively owns
+    retry count, redirect count, method preservation, fallback, and hop
+    sequencing (D-057).
     """
+    import urllib.parse as _urlparse
     timeout = (CONNECT_TIMEOUT_S, READ_TIMEOUT_S)
 
     def run_method(method: str, start_url: str) -> tuple[bool, bool]:
@@ -807,8 +823,15 @@ def check_url_with_transport(url: str, transport: Callable[[str, str, tuple], Tr
                 return False, False
             if not isinstance(location, str) or not location.strip():
                 return False, False
+            try:
+                nxt = _urlparse.urljoin(current, location.strip())
+                nparts = _urlparse.urlparse(nxt)
+            except Exception:
+                return False, False
+            if nparts.scheme not in ("http", "https") or not nparts.hostname:
+                return False, False
             saw_fallback_cause = False
-            current = location.strip()
+            current = nxt
     if not isinstance(url, str) or not url.strip():
         return False
     head_ok, head_fallback = run_method("HEAD", url.strip())
@@ -821,12 +844,21 @@ def check_url_with_transport(url: str, transport: Callable[[str, str, tuple], Tr
 
 
 def http_client_transport(url: str, method: str = "HEAD", timeout: tuple = (CONNECT_TIMEOUT_S, READ_TIMEOUT_S)) -> TransportOutcome:
-    """Real HTTP transport for FIRST-dev (implemented, NOT executed in D-056).
+    """Real HTTP transport for FIRST-dev — SINGLE ATTEMPT primitive (D-057).
 
-    Manual redirect handling (<=3 hops, method preserved) over http.client so
-    the frozen per-hop attempt budget stays exact. The stdlib exposes a single
-    timeout knob: the read bound (10s) is used per attempt and documented as
-    such; the connect bound is not separately enforceable here.
+    One invocation performs exactly one request to exactly the supplied
+    absolute URL and returns that attempt's status + raw Location header or
+    error. It never retries and never follows redirects internally: the outer
+    `check_url_with_transport` state machine exclusively owns retry count,
+    redirect count, method preservation, fallback, and hop sequencing.
+    Frozen timeout pair enforced mechanically: the connection is constructed
+    with connect timeout 5s, explicitly connected (TCP + TLS handshake under
+    that bound), then the connected socket timeout is set to read timeout 10s
+    before exactly one request/response header read. Status + Location is
+    sufficient; the response body is never read for redirect discovery.
+    Connection closes on every path. Timeouts classify as timeout, TLS
+    handshake/cert failures as tls, other connection/DNS/reset failures as
+    network; messages never carry URL credentials/secrets.
     """
     import http.client
     import socket
@@ -834,61 +866,57 @@ def http_client_transport(url: str, method: str = "HEAD", timeout: tuple = (CONN
     import urllib.parse
 
     try:
+        connect_timeout, read_timeout = timeout
+    except Exception:
+        return TransportOutcome(error="network")
+    try:
         parts = urllib.parse.urlparse(url)
     except Exception:
         return TransportOutcome(error="network")
     if parts.scheme not in ("http", "https") or not parts.hostname:
         return TransportOutcome(error="network")
+    if method not in ("HEAD", "GET"):
+        return TransportOutcome(error="network")
     path = parts.path or "/"
     if parts.query:
         path += "?" + parts.query
-    if method not in ("HEAD", "GET"):
-        return TransportOutcome(error="network")
-    current_host, current_port, current_path = parts.hostname, parts.port, path
+    host, port = parts.hostname, parts.port
     use_tls = parts.scheme == "https"
-    hops = 0
-    while True:
+    try:
+        if use_tls:
+            conn = http.client.HTTPSConnection(
+                host, port, timeout=connect_timeout,
+                context=ssl.create_default_context(),
+            )
+        else:
+            conn = http.client.HTTPConnection(host, port, timeout=connect_timeout)
+    except Exception:
+        return TransportOutcome(error="network")
+    try:
+        conn.connect()
         try:
-            if use_tls:
-                conn = http.client.HTTPSConnection(
-                    current_host, current_port, timeout=timeout[1],
-                    context=ssl.create_default_context(),
-                )
-            else:
-                conn = http.client.HTTPConnection(current_host, current_port, timeout=timeout[1])
-            try:
-                conn.request(method, current_path, headers={"User-Agent": "benefit-compass-retrieval-v3-eval"})
-                resp = conn.getresponse()
-                status = resp.status
-                location = resp.getheader("Location")
-                try:
-                    resp.read()
-                except Exception:
-                    pass
-            finally:
-                conn.close()
-        except (socket.timeout, TimeoutError):
-            return TransportOutcome(error="timeout")
-        except (ssl.SSLError, ssl.CertificateError):
-            return TransportOutcome(error="tls")
+            conn.sock.settimeout(read_timeout)
         except Exception:
             return TransportOutcome(error="network")
-        if status is not None and 300 <= status <= 399:
-            hops += 1
-            if hops > MAX_REDIRECTS or not location:
-                return TransportOutcome(status=status)
-            nxt = urllib.parse.urljoin(f"{parts.scheme}://{current_host}{current_path}", location)
-            try:
-                nparts = urllib.parse.urlparse(nxt)
-            except Exception:
-                return TransportOutcome(status=status)
-            if nparts.scheme not in ("http", "https") or not nparts.hostname:
-                return TransportOutcome(status=status)
-            use_tls = nparts.scheme == "https"
-            current_host, current_port = nparts.hostname, nparts.port
-            current_path = (nparts.path or "/") + (("?" + nparts.query) if nparts.query else "")
-            continue
-        return TransportOutcome(status=status, location=location)
+        conn.request(method, path, headers={"User-Agent": "benefit-compass-retrieval-v3-eval"})
+        resp = conn.getresponse()
+        status = resp.status
+        try:
+            location = resp.getheader("Location")
+        except Exception:
+            location = None
+    except (socket.timeout, TimeoutError):
+        return TransportOutcome(error="timeout")
+    except (ssl.SSLError, ssl.CertificateError):
+        return TransportOutcome(error="tls")
+    except Exception:
+        return TransportOutcome(error="network")
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+    return TransportOutcome(status=status, location=location)
 
 
 class RealSafetyAdapter:

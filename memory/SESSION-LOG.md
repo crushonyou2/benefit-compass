@@ -1293,3 +1293,15 @@ One short section per working session: what was worked on, what was decided (wit
 - **Owns whole stage in one session:** reconcile → implement → 325 PASS + proofs → D-056 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
 - **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` plan; delegates exempt (serial shared-mutation boundary; scouts unavailable, all work direct).
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
+
+## 2026-09-04 — Retrieval v3 SAME-STAGE Web HOLD narrow repair — single-attempt HTTP + consistent-snapshot corpus — D-057
+
+- **Reconciled start:** `codex/retrieval-v3-user-search-quality` HEAD `7d4e392a8bb899a0fb892dfb01da120818e6462c` clean (`local==upstream==actual remote` via direct `ls-remote`), `git diff --check` PASS, `ml-service` diff 0 vs `5327661`; frozen SHAs verified (prereg `78420186`, plan-v4 `a25d9c48`, safe-action `c512fb56`, policy-v2 `6fee9ec2`); `dev/`+`holdout/`+canonical result/audit absent; one-shot unconsumed; D-051 repo-relative path rule observed throughout. D-057 id free; D-056 history untouched. Actual state matched expected on all points.
+- **Web blockers fixed (only two contracts):** (A) transport used `timeout[1]`=10 for connect + followed 3xx internally hiding hops from outer budget; (B) `readonly+autocommit` session let later D-003 see post-corpus commits (same connection != same snapshot).
+- **Repair (frozen bytes untouched):** `http_client_transport` is now ONE attempt (construct 5, explicit connect, sock `settimeout(10)`, one request, no `read()`, close exact-once, timeout/tls/network classification); outer owns retry/redirect/method/fallback with `urljoin` relative resolution + http/https validation; session is one read-only REPEATABLE READ `autocommit=False` transaction before the first statement on both real and injected paths, covering capture->corpus->D-003 with no commit/SET/second CURRENT_DATE.
+- **Verification:** NEW D-057 19 PASS + D-056 40 (with `set_session` recorder + `(True, False, REPEATABLE READ)` correction) = retrieval-v3 filter **344 PASS** (16 files); `py_compile`/import-purity/`git diff --check` PASS; mirrors byte-identical; frozen SHAs unchanged; `ml-service` 0; forbidden counts all 0.
+- **Remaining blockers (FIRST-dev preflight still HOLD, by design):** no authorized materialized dev evalset path; no authoritative official_link/source-match mapping; no baseline cost counters until paired measurement.
+- **VERDICT: FIRST protected-dev REMAINS BLOCKED. Do NOT launch.**
+- **Owns whole stage in one session:** reconcile → repair+mirror → 344 PASS + proofs → D-057 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
+- **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` plan; delegates exempt (serial shared-mutation boundary; scouts unavailable, all work direct).
+- **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.

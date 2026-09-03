@@ -118,13 +118,16 @@ class FakeConn:
         self.statements = []
         self.params = []
         self.closed = False
+        self.set_session_calls = []
+
+    def set_session(self, readonly=None, autocommit=None, isolation_level=None):
+        self.set_session_calls.append({"readonly": readonly, "autocommit": autocommit, "isolation_level": isolation_level})
 
     def cursor(self):
         return FakeCursor(self)
 
     def close(self):
         self.closed = True
-
 
 def _session(conn, dsn="postgres://mock"):
     seen = {}
@@ -642,8 +645,8 @@ def test_d056_readonly_session_setup():
     calls = {}
 
     class FakeDriverConn:
-        def set_session(self, readonly=None, autocommit=None):
-            calls["session"] = (readonly, autocommit)
+        def set_session(self, readonly=None, autocommit=None, isolation_level=None):
+            calls["session"] = (readonly, autocommit, isolation_level)
 
         def cursor(self):
             raise AssertionError("no query in this test")
@@ -660,7 +663,7 @@ def test_d056_readonly_session_setup():
         session._ensure_conn()
     finally:
         del _sys.modules["psycopg2"]
-    assert calls["session"] == (True, True), f"read-only session required, got {calls.get('session')}"
+    assert calls["session"] == (True, False, "REPEATABLE READ"), f"read-only consistent-snapshot session required, got {calls.get('session')}"
     session.close()
     assert calls.get("closed") is True
 
