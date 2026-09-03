@@ -831,7 +831,7 @@ def test_mirror_hyphen_underscore_identity():
     # Keep hyphen/underscore touched mirrors byte-identical
     import pathlib, hashlib
     repo = pathlib.Path(__file__).resolve().parents[1]
-    touched = ["fusion.py","dedup.py","metrics.py","selection.py","runner.py","dense.py","sparse.py","exact.py","normalization.py","latency.py","candidate_registry.py","result_schema.py","paths.py","audit.py"]
+    touched = ["fusion.py","dedup.py","metrics.py","selection.py","runner.py","dense.py","sparse.py","exact.py","normalization.py","latency.py","candidate_registry.py","result_schema.py","paths.py","audit.py","real_adapters.py"]
     for name in touched:
         p1 = repo / "eval" / "retrieval-v3" / name
         p2 = repo / "eval" / "retrieval_v3" / name
@@ -1417,24 +1417,34 @@ def test_canonical_no_close_on_failed_verification():
 
 def test_canonical_cli_forbids_fakes_and_uses_real_adapters():
     # D-040(2): canonical-dev forbids --tasks/--policies/--skip-audit/fakes; lazy real adapters; mock split.
+    # D-056: the eight D-054 stub factories are replaced by ONE session-bound bundle (shared lifecycle).
     import pathlib as _pl
-    from retrieval_v3.runner import parse_args, main_mock, main_canonical_dev, _real_embedding_fn, _real_policy_loader_fn, _real_protected_loader_fn, _is_canonical_cli
+    from retrieval_v3.runner import parse_args, main_mock, main_canonical_dev, _is_canonical_cli, RealEvaluationSession, build_real_adapters
     src = (_pl.Path(__file__).resolve().parent / "retrieval_v3" / "runner.py").read_text(encoding="utf-8")
     assert "def main_mock" in src and "def main_canonical_dev" in src, "mock/canonical split required"
-    assert "_real_embedding_fn" in src and "_real_policy_loader_fn" in src and "_real_protected_loader_fn" in src
+    assert "RealEvaluationSession" in src and "build_real_adapters" in src, "session-bound bundle required"
+    for stale in ("_real_embedding_fn", "_real_policy_loader_fn", "_real_protected_loader_fn", "_real_safety_evidence_fn", "_real_d003_baseline_fn", "_real_clock_fn", "_real_corpus_provenance_fn", "_real_evaluation_context_fn"):
+        assert f"def {stale}" not in src, f"independent stub factory {stale} must be gone (shared session owns lifecycle)"
     assert 'adapter_kind="real"' in src and 'adapter_kind="mock"' in src, "canonical real vs mock kind required"
-    assert "import importlib" in src, "lazy future-ready import required inside adapter body"
     # No top-level real DB/model import (lazy only): module import must not pull DB drivers.
-    top = src.split("def _real_embedding_fn")[0]
+    top = src.split("def main_mock")[0]
     assert "import psycopg" not in top and "import sqlalchemy" not in top and "from sentence_transformers" not in top
-    # Unpatched real adapters raise without IO (fail-closed).
-    for fn in (_real_embedding_fn(), _real_policy_loader_fn(), _real_protected_loader_fn()):
-        assert getattr(fn, "__real_adapter__", False) is True
+    # Unconfigured bundle performs no IO at construction; every surface is marked real and fails closed.
+    def _no_weights():
+        raise RuntimeError("weights absent (synthetic)")
+    session = RealEvaluationSession(env={})
+    adapters = build_real_adapters(session, model_loader=_no_weights)
+    assert set(adapters) == {"embedding_fn", "policy_loader", "protected_loader", "safety_evidence_fn", "d003_baseline_fn", "evaluation_context_fn", "clock_fn", "corpus_provenance_fn"}
+    for key, fn in adapters.items():
+        assert getattr(fn, "__real_adapter__", False) is True, f"{key} must carry the real-adapter marker"
+    for mk in (lambda: adapters["embedding_fn"]("query: x"), lambda: adapters["policy_loader"](), lambda: adapters["protected_loader"]("dev", "c" * 64), lambda: adapters["evaluation_context_fn"]("SHOW TimeZone")):
         try:
-            fn("x", "y") if fn.__code__.co_argcount == 2 else (fn() if fn.__code__.co_argcount == 0 else fn("x"))
-            assert False, "unpatched real adapter must fail-closed"
-        except RuntimeError as e:
-            assert "SAME-STAGE" in str(e) or "not wired" in str(e)
+            mk()
+            assert False, "unconfigured real adapter must fail-closed without IO"
+        except (RuntimeError, ValueError) as e:
+            assert "fail-closed" in str(e) or "failclosed" in str(e).replace("-", "") or "FIRST-dev" in str(e) or "blocker" in str(e)
+    assert session.is_closed is False
+    session.close()
     # Canonical forbids fakes at CLI boundary (no IO performed before raise).
     sha = "c" * 64
     for extra in (["--tasks", "t.jsonl"], ["--policies", "p.json"], ["--skip-audit"]):
@@ -1540,31 +1550,33 @@ def test_canonical_requires_adapters_pre_grant():
 def test_canonical_cli_wires_real_adapters():
     # D-041: canonical CLI wires all lazy REAL adapters before grant; unpatched factories fail-closed without IO.
     # D-054: + evaluation-context capture adapter (same rule).
+    # D-056: ONE governing session owns all eight surfaces; the runner loads the corpus AFTER capture.
     import pathlib as _pl
-    from retrieval_v3.runner import parse_args, main_canonical_dev, _real_safety_evidence_fn, _real_d003_baseline_fn, _real_clock_fn, _real_corpus_provenance_fn, _real_evaluation_context_fn
+    from retrieval_v3.runner import parse_args, main_canonical_dev
     src = (_pl.Path(__file__).resolve().parent / "retrieval_v3" / "runner.py").read_text(encoding="utf-8")
-    for name in ("_real_safety_evidence_fn", "_real_d003_baseline_fn", "_real_clock_fn", "_real_corpus_provenance_fn", "_real_evaluation_context_fn"):
-        assert f"def {name}" in src, f"lazy factory {name} required"
-    assert "safety_evidence_fn=real_safety" in src and "d003_baseline_fn=real_d003" in src
-    assert "clock_fn=real_clock" in src and "corpus_provenance_fn=real_corpus" in src
-    assert "evaluation_context_exec_fn=real_context_exec" in src
-    calls = [lambda: _real_safety_evidence_fn()({"config_id": "candidate-a-01"}), lambda: _real_d003_baseline_fn()("t001", "query text", {}), lambda: _real_clock_fn()(), lambda: _real_corpus_provenance_fn()(), lambda: _real_evaluation_context_fn()("SHOW TimeZone")]
-    for mk in calls:
-        try:
-            mk()
-            assert False, "unpatched real adapter must fail-closed"
-        except RuntimeError as e:
-            assert "SAME-STAGE" in str(e) or "not wired" in str(e)
-    for fn in (_real_safety_evidence_fn(), _real_d003_baseline_fn(), _real_clock_fn(), _real_corpus_provenance_fn(), _real_evaluation_context_fn()):
-        assert getattr(fn, "__real_adapter__", False) is True
-    # Canonical CLI fails fail-closed at real policy load (before grant verification, no audit IO, no real IO).
+    assert "RealEvaluationSession(" in src and "build_real_adapters" in src, "session-bound bundle required"
+    assert "evaluation_session=session" in src, "runner must own the governing session close"
+    assert "policies=[]" in src, "CLI must not preload policies"
+    assert "real_policies_loader()" not in src, "no pre-capture policy DB load in canonical CLI"
+    assert "evaluation_context_exec_fn=adapters" in src, "capture must run on the governing session"
+    assert "db_policy_loader=adapters" in src, "corpus must load on the governing session"
+    assert "safety_evidence_fn=adapters" in src and "d003_baseline_fn=adapters" in src
+    assert "clock_fn=adapters" in src and "corpus_provenance_fn=adapters" in src
+    assert "protected_set_loader=adapters" in src
+    # Canonical CLI fails fail-closed without DATABASE_URL (before grant verification, no real IO).
+    import os as _os
     from retrieval_v3.paths import CANONICAL_DEV_OUTPUT_REL
-    args = parse_args(["--session-id", "cli-wire", "--set-role", "dev", "--set-sha", "c" * 64, "--output", str(CANONICAL_DEV_OUTPUT_REL)])
+    saved = _os.environ.pop("DATABASE_URL", None)
     try:
-        main_canonical_dev(args)
-        assert False, "SAME-STAGE canonical CLI must fail-closed on unwired real policy loader"
-    except RuntimeError as e:
-        assert "not wired" in str(e) or "SAME-STAGE" in str(e)
+        args = parse_args(["--session-id", "cli-wire", "--set-role", "dev", "--set-sha", "c" * 64, "--output", str(CANONICAL_DEV_OUTPUT_REL)])
+        try:
+            main_canonical_dev(args)
+            assert False, "canonical CLI without DATABASE_URL must fail-closed"
+        except RuntimeError as e:
+            assert "fail-closed" in str(e)
+    finally:
+        if saved is not None:
+            _os.environ["DATABASE_URL"] = saved
 
 def test_latency_gate_eligibility_650_570_700():
     # D-041: eligibility REQUIRES measure_paired_latency gate PASS (relative +80 and absolute 700).

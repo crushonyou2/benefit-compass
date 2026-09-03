@@ -40,79 +40,14 @@ DEV_HEADLINE_N = 130
 DEV_LOCATION_N = 54
 DEV_STRATA_EXACT = {"exact_navigation": 21, "natural_needs": 25, "exploratory_multi_valid": 21, "multi_constraint": 25, "short_keywords": 18, "colloquial_typo_spacing_abbrev": 20, "ambiguous": 23, "unsupported_no_answer": 27}
 D003_BASELINE = {"RERANK": 0, "CANDIDATES": 30, "COSINE_MIN": 0.78, "LEXICAL_BIAS": 0.01, "strip_region": True, "youth_bias_suppressed_for_gov24_orgs": True, "embedding": "intfloat/multilingual-e5-base"}
-# D-040 correction-3: lazy future-ready real adapters (no top-level DB/model import, no real IO at import).
-# SAME-STAGE fail-closed: unpatched real adapters raise without IO (FIRST dev forbidden in this stage).
-# Tests patch these factories (patched only, no real IO); mock CLI keeps fakes separately.
-def _real_embedding_fn():
-    """Lazy future-ready real embedding adapter (768-dim, query-prefixed)."""
-    def _real_embedding(query: str) -> list[float]:
-        import importlib  # lazy, future wiring only (stdlib, no IO); real model import goes here
-        _ = importlib
-        # SAME-STAGE: fail-closed, no model load / no network / no disk IO.
-        raise RuntimeError("real embedding not wired in SAME-STAGE (fail-closed, no real model load)")
-    _real_embedding.__real_adapter__ = True  # type: ignore[attr-defined]
-    return _real_embedding
-def _real_policy_loader_fn():
-    def _real_policies() -> list[dict]:
-        import importlib  # lazy, future wiring only (stdlib, no IO); real DB client import goes here
-        _ = importlib
-        # SAME-STAGE: fail-closed, no DB query.
-        raise RuntimeError("real policy loader not wired in SAME-STAGE (fail-closed, no real DB)")
-    _real_policies.__real_adapter__ = True  # type: ignore[attr-defined]
-    return _real_policies
-def _real_protected_loader_fn():
-    def _real_protected(set_role: str, set_sha: str) -> list[dict]:
-        import importlib  # lazy, future wiring only (stdlib, no IO); confined protected read goes here
-        _ = importlib
-        # SAME-STAGE: fail-closed, no protected plaintext open.
-        raise RuntimeError("real protected loader not wired in SAME-STAGE (fail-closed, no protected open)")
-    _real_protected.__real_adapter__ = True  # type: ignore[attr-defined]
-    return _real_protected
-def _real_safety_evidence_fn():
-    """Lazy future-ready real safety-evidence adapter (FIRST-dev six-gate measurement)."""
-    def _real_safety(payload: dict) -> dict:
-        import importlib  # lazy, future wiring only (stdlib, no IO); real safety measurement import goes here
-        _ = importlib
-        # SAME-STAGE: fail-closed, no real measurement (tests patch this factory, no real IO).
-        raise RuntimeError("real safety evidence not wired in SAME-STAGE (fail-closed, no real measurement)")
-    _real_safety.__real_adapter__ = True  # type: ignore[attr-defined]
-    return _real_safety
-def _real_d003_baseline_fn():
-    """Lazy future-ready real D-003 production-baseline adapter (task_id/query + descriptor + pinned context)."""
-    def _real_d003(task_id: str, query: str, baseline: dict, evaluation_context: dict | None = None) -> Any:
-        import importlib  # lazy, future wiring only (stdlib, no IO); real baseline retrieval import goes here
-        _ = importlib
-        # SAME-STAGE: fail-closed, no real retrieval (tests patch this factory, no real IO).
-        raise RuntimeError("real D-003 baseline not wired in SAME-STAGE (fail-closed, no real retrieval)")
-    _real_d003.__real_adapter__ = True  # type: ignore[attr-defined]
-    return _real_d003
-def _real_evaluation_context_fn():
-    """Lazy future-ready real evaluation-context capture adapter (DB executor)."""
-    def _real_context_exec(sql: str) -> Any:
-        import importlib  # lazy, future wiring only (stdlib, no IO); real DB connection import goes here
-        _ = importlib
-        # SAME-STAGE: fail-closed, no real DB connection/query (tests patch with synthetics, no real IO).
-        raise RuntimeError("real evaluation-context capture not wired in SAME-STAGE (fail-closed, no real DB)")
-    _real_context_exec.__real_adapter__ = True  # type: ignore[attr-defined]
-    return _real_context_exec
-def _real_clock_fn():
-    """Lazy future-ready real clock adapter (ns)."""
-    def _real_clock() -> int:
-        import importlib  # lazy, future wiring only (stdlib, no IO); real clock source goes here
-        _ = importlib
-        # SAME-STAGE: fail-closed, no timing outside patched tests (tests patch this factory, no real IO).
-        raise RuntimeError("real clock not wired in SAME-STAGE (fail-closed, patched tests only)")
-    _real_clock.__real_adapter__ = True  # type: ignore[attr-defined]
-    return _real_clock
-def _real_corpus_provenance_fn():
-    """Lazy future-ready real corpus-provenance adapter."""
-    def _real_corpus() -> dict:
-        import importlib  # lazy, future wiring only (stdlib, no IO); real corpus pin import goes here
-        _ = importlib
-        # SAME-STAGE: fail-closed, no real DB/corpus IO (tests patch this factory, no real IO).
-        raise RuntimeError("real corpus provenance not wired in SAME-STAGE (fail-closed, no real IO)")
-    _real_corpus.__real_adapter__ = True  # type: ignore[attr-defined]
-    return _real_corpus
+# D-056: production-faithful real adapters live in .real_adapters, bound to
+# ONE governing RealEvaluationSession (shared capture/corpus/D-003 context).
+# Import and construction perform no real IO (lazy drivers/model, no connect,
+# no file/network); missing prerequisites fail closed with explicit FIRST-dev
+# preflight blockers. The eight D-054 independent stub factories are replaced
+# by the session-bound bundle (independent factories would break the shared
+# session/date lifecycle). Every bound callable carries __real_adapter__.
+from .real_adapters import RealEvaluationSession, build_real_adapters
 def _is_real_adapter(fn: object) -> bool:
     return bool(getattr(fn, "__real_adapter__", False))
 def _is_canonical_output_path(output_path: str | pathlib.Path | None) -> bool:
@@ -235,6 +170,7 @@ class Runner:
         d003_baseline_fn: Callable | None = None,
         evaluation_context_exec_fn: Callable[[str], Any] | None = None,
         adapter_kind: str = "mock",
+        evaluation_session: Any | None = None,
     ):
         self.candidate_plan = candidate_plan
         self.plan_data = candidate_plan
@@ -261,6 +197,9 @@ class Runner:
         if adapter_kind not in ("mock", "real"):
             raise ValueError(f"adapter_kind must be mock/real, got {adapter_kind!r}")
         self.adapter_kind = adapter_kind
+        # D-056: governing real evaluation resource (close owned exactly once
+        # by run_dev_evaluation when bound; None for pure/mock runs).
+        self.evaluation_session = evaluation_session
 
     def _retrieve_for_query(
         self,
@@ -377,6 +316,34 @@ class Runner:
         output_path: str | pathlib.Path | None = None,
         skip_audit: bool = False,
     ) -> dict:
+        """Run full dev evaluation over tasks — pure logic with injected fakes, audit lifecycle.
+
+        D-056 ownership: when evaluation_session is bound, it is closed exactly
+        once here on every exit (success or any failure: capture, corpus,
+        grant, loader, retrieval, safety, latency, result write, audit close).
+        """
+        session = self.evaluation_session
+        try:
+            return self._run_dev_evaluation_inner(
+                tasks, policies, session_id, set_role, set_sha,
+                audit_log, expected_event_hash, output_path, skip_audit,
+            )
+        finally:
+            if session is not None and not session.is_closed:
+                session.close()
+
+    def _run_dev_evaluation_inner(
+        self,
+        tasks: list[dict],
+        policies: list[dict],
+        session_id: str,
+        set_role: str = "dev",
+        set_sha: str | None = None,
+        audit_log: pathlib.Path | None = None,
+        expected_event_hash: str | None = None,
+        output_path: str | pathlib.Path | None = None,
+        skip_audit: bool = False,
+    ) -> dict:
         """Run full dev evaluation over tasks — pure logic with injected fakes, audit lifecycle."""
         # D-039: explicit canonical protected-dev mode (grant-before-loader, exact 180/130/54, no fake adapters).
         # D-040 correction-3: exact-one protected_access_end success/failure after verified grant.
@@ -423,6 +390,17 @@ class Runner:
                 raise RuntimeError(f"evaluation-context capture failed (fail-closed, no fallback date): {e}") from e
         elif is_canonical:
             raise ValueError("canonical protected-dev mode requires evaluation_context_exec_fn (fail-closed)")
+        # D-056: real canonical path loads the corpus AFTER capture on the
+        # governing session (pre-capture load is forbidden: expiry inclusion
+        # depends on the pinned date). Pre-grant failure needs no grant close.
+        # Mock kind and loader-less runs keep the injected policies argument.
+        if is_canonical and getattr(self, "adapter_kind", "mock") == "real" and self.db_policy_loader is not None:
+            try:
+                policies = self.db_policy_loader()
+            except Exception as e:
+                raise RuntimeError(f"real corpus load failed pre-grant (fail-closed): {e}") from e
+            if not policies:
+                raise ValueError("real corpus empty (fail-closed)")
         # D-040 grant lifecycle flags: verified once, closed exactly once, never closed on failed verification.
         grant_verified = False
         grant_closed = False
@@ -1013,6 +991,7 @@ def parse_args(argv=None):
     p.add_argument("--set-sha", type=str, help="64-hex set SHA")
     p.add_argument("--expected-event-hash", type=str, help="grant token")
     p.add_argument("--skip-audit", action="store_true", help="skip audit for pure tests")
+    p.add_argument("--materialized-evalset", type=str, default=None, help="explicit already-authorized materialized dev evalset path (FIRST-dev only; unset in D-056, loader stays fail-closed)")
     return p.parse_args(argv)
 
 def _is_canonical_cli(args) -> bool:
@@ -1110,43 +1089,44 @@ def main_canonical_dev(args):
     if not _is_canonical_output_path(args.output):
         raise ValueError(f"canonical-dev must write exact canonical output (fail-closed): got {args.output!r}")
     plan = load_candidate_plan_or_fail()
-    # Lazy future-ready real adapters: factories called here (not at import); unpatched they raise without IO.
-    # D-041: mandatory safety/D003/clock/corpus adapters wired before grant (presence checked pre-verification).
-    # D-054: mandatory evaluation-context capture adapter wired before grant (same rule).
-    real_embedding = _real_embedding_fn()
-    real_policies_loader = _real_policy_loader_fn()
-    real_protected_loader = _real_protected_loader_fn()
-    real_safety = _real_safety_evidence_fn()
-    real_d003 = _real_d003_baseline_fn()
-    real_clock = _real_clock_fn()
-    real_corpus = _real_corpus_provenance_fn()
-    real_context_exec = _real_evaluation_context_fn()
-    runner = Runner(
-        candidate_plan=plan,
-        embedding_fn=real_embedding,
-        db_policy_loader=real_policies_loader,
-        protected_set_loader=real_protected_loader,
-        audit_log_path=args.audit_log,
-        adapter_kind="real",
-        safety_evidence_fn=real_safety,
-        d003_baseline_fn=real_d003,
-        clock_fn=real_clock,
-        corpus_provenance_fn=real_corpus,
-        evaluation_context_exec_fn=real_context_exec,
-    )
-    # Policies via real adapter only (SAME-STAGE fail-closed raises here, before grant verification, no grant close).
-    policies = real_policies_loader()
-    result = runner.run_dev_evaluation(
-        tasks=[],
-        policies=policies,
-        session_id=args.session_id,
-        set_role=args.set_role,
-        set_sha=args.set_sha,
-        audit_log=args.audit_log,
-        expected_event_hash=args.expected_event_hash,
-        output_path=args.output,
-        skip_audit=False,
-    )
+    # D-056: ONE governing real evaluation session (no IO at construction).
+    # All eight real surfaces bind to it; the corpus is loaded by the runner
+    # AFTER capture on this same session (no pre-capture policy DB load).
+    # D-041/D-054 presence rules are enforced by run_dev_evaluation pre-grant.
+    session = RealEvaluationSession()
+    try:
+        adapters = build_real_adapters(
+            session,
+            materialized_path=getattr(args, "materialized_evalset", None),
+        )
+        runner = Runner(
+            candidate_plan=plan,
+            embedding_fn=adapters["embedding_fn"],
+            db_policy_loader=adapters["policy_loader"],
+            protected_set_loader=adapters["protected_loader"],
+            audit_log_path=args.audit_log,
+            adapter_kind="real",
+            safety_evidence_fn=adapters["safety_evidence_fn"],
+            d003_baseline_fn=adapters["d003_baseline_fn"],
+            clock_fn=adapters["clock_fn"],
+            corpus_provenance_fn=adapters["corpus_provenance_fn"],
+            evaluation_context_exec_fn=adapters["evaluation_context_fn"],
+            evaluation_session=session,
+        )
+        result = runner.run_dev_evaluation(
+            tasks=[],
+            policies=[],
+            session_id=args.session_id,
+            set_role=args.set_role,
+            set_sha=args.set_sha,
+            audit_log=args.audit_log,
+            expected_event_hash=args.expected_event_hash,
+            output_path=args.output,
+            skip_audit=False,
+        )
+    finally:
+        if not session.is_closed:
+            session.close()
     print(json.dumps({"chosen": result["selection"]["chosen"], "eligible": result["selection"]["eligible"]}, ensure_ascii=False))
     return 0
 
