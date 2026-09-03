@@ -1232,7 +1232,7 @@ def test_canonical_result_n_headline():
     _ids = [f"candidate-a-{i:02d}" for i in range(1, 19)]
     _saf = {c: {g: {"gate": "HOLD"} for g in ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost")} for c in _ids}
     _lat = {c: {"n": 180, "warmup_n": 30, "baseline": {"p50": 500, "p95": 500, "p99": 500}, "candidate": {"p50": 500, "p95": 500, "p99": 500}, "gate": "PASS"} for c in _ids}
-    base = {"schema_version": 1, "git_head": "0" * 40, "git_dirty": False, "candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA, "provenance": {"candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA}, "per_config_metrics": per, "selection": {"chosen": None, "eligible": []}, "candidate_b_gate": {"admitted": False, "instantiated": False, "status": "not_evaluated"}, "safety_per_config": _saf, "latency_per_config": _lat}
+    base = {"schema_version": 1, "git_head": "0" * 40, "git_dirty": False, "candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA, "provenance": {"candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA}, "per_config_metrics": per, "selection": {"chosen": None, "eligible": []}, "candidate_b_gate": {"admitted": False, "instantiated": False, "status": "not_evaluated"}, "safety_per_config": _saf, "latency_per_config": _lat, "corpus_provenance": {"total_policies": 1, "snapshot": "test"}}
     bad = dict(base, set_provenance={"set_role": "dev", "set_sha": "1" * 64, "n": 5, "headline_n": 5})
     try:
         validate_complete_result(bad)
@@ -1468,7 +1468,7 @@ def test_canonical_output_exact_and_missing_field():
     _ids = [f"candidate-a-{i:02d}" for i in range(1, 19)]
     _saf = {c: {g: {"gate": "HOLD"} for g in ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost")} for c in _ids}
     _lat = {c: {"n": 180, "warmup_n": 30, "baseline": {"p50": 500, "p95": 500, "p99": 500}, "candidate": {"p50": 500, "p95": 500, "p99": 500}, "gate": "PASS"} for c in _ids}
-    base = {"schema_version": 1, "git_head": "0" * 40, "git_dirty": False, "candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA, "provenance": {"candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA}, "per_config_metrics": per, "selection": {"chosen": None, "eligible": []}, "candidate_b_gate": {"admitted": False, "instantiated": False, "status": "not_evaluated"}, "safety_per_config": _saf, "latency_per_config": _lat}
+    base = {"schema_version": 1, "git_head": "0" * 40, "git_dirty": False, "candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA, "provenance": {"candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA}, "per_config_metrics": per, "selection": {"chosen": None, "eligible": []}, "candidate_b_gate": {"admitted": False, "instantiated": False, "status": "not_evaluated"}, "safety_per_config": _saf, "latency_per_config": _lat, "corpus_provenance": {"total_policies": 1, "snapshot": "test"}}
     for bad_prov in ({"set_role": "dev", "set_sha": "1" * 64}, {"set_role": "dev", "set_sha": "1" * 64, "n": 180}, {"set_role": "dev", "set_sha": "1" * 64, "headline_n": 130}, {"set_role": "dev", "set_sha": "1" * 64, "n": 5, "headline_n": 5}):
         bad = dict(base, set_provenance=bad_prov)
         try:
@@ -1635,7 +1635,7 @@ def _canonical_evidence_base():
     ids = [f"candidate-a-{i:02d}" for i in range(1, 19)]
     saf = {c: {g: {"gate": "HOLD", "detail": "test"} for g in ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost")} for c in ids}
     lat = {c: {"n": 180, "warmup_n": 30, "baseline": {"p50": 500, "p95": 500, "p99": 500}, "candidate": {"p50": 570, "p95": 570, "p99": 570}, "gate": "PASS"} for c in ids}
-    return {"schema_version": 1, "git_head": "0" * 40, "git_dirty": False, "candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA, "provenance": {"candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA}, "per_config_metrics": per, "selection": {"chosen": None, "eligible": []}, "candidate_b_gate": {"admitted": False, "instantiated": False, "status": "not_evaluated"}, "safety_per_config": saf, "latency_per_config": lat, "set_provenance": {"set_role": "dev", "set_sha": "1" * 64, "n": 180, "headline_n": 130}}
+    return {"schema_version": 1, "git_head": "0" * 40, "git_dirty": False, "candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA, "provenance": {"candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA}, "per_config_metrics": per, "selection": {"chosen": None, "eligible": []}, "candidate_b_gate": {"admitted": False, "instantiated": False, "status": "not_evaluated"}, "safety_per_config": saf, "latency_per_config": lat, "corpus_provenance": {"total_policies": 1, "snapshot": "test"}, "set_provenance": {"set_role": "dev", "set_sha": "1" * 64, "n": 180, "headline_n": 130}}
 
 def test_canonical_latency_evidence_strict_tampers():
     # D-042(1): n/warmup exact, finite numerics, PASS-or-NO-GO only, gate consistent with numbers.
@@ -1752,8 +1752,52 @@ def test_canonical_safety_full_evidence_preserved():
         except ValueError:
             pass
 
+def test_canonical_corpus_provenance_required():
+    # D-043(1): canonical corpus_provenance must be nonempty dict with snapshot identity; None/empty/missing-snapshot reject.
+    import copy
+    from retrieval_v3.result_schema import validate_complete_result
+    validate_complete_result(_canonical_evidence_base())
+    for name, corp in (("none", None), ("empty", {}), ("missing-snapshot", {"total_policies": 1}), ("empty-snapshot", {"total_policies": 1, "snapshot": ""}), ("blank-snapshot", {"total_policies": 1, "snapshot": "   "}), ("bool-policies", {"total_policies": True, "snapshot": "test"}), ("zero-policies", {"total_policies": 0, "snapshot": "test"})):
+        bad = copy.deepcopy(_canonical_evidence_base())
+        bad["corpus_provenance"] = corp
+        try:
+            validate_complete_result(bad)
+            assert False, f"corpus tamper must fail: {name}"
+        except ValueError:
+            pass
+    ok = copy.deepcopy(_canonical_evidence_base())
+    ok["corpus_provenance"] = {"total_policies": 13589, "snapshot": {"pin": "a" * 64}}
+    validate_complete_result(ok)
+
+def test_canonical_safety_latency_math_bounds():
+    # D-043(2,3): impossible safety counts/denominators and non-monotone latency reject; thresholds unchanged.
+    import copy
+    from retrieval_v3.result_schema import validate_complete_result
+    c0 = "candidate-a-01"
+    cases = []
+    def _mk(mut):
+        doc = copy.deepcopy(_canonical_evidence_base())
+        mut(doc)
+        return doc
+    cases.append(("unsupported-999", _mk(lambda d: d["safety_per_config"][c0].update({"unsupported": {"gate": "PASS", "success": 999, "required": 26, "denominator": 27}}))))
+    cases.append(("unsupported-neg", _mk(lambda d: d["safety_per_config"][c0].update({"unsupported": {"gate": "NO-GO", "success": -1, "required": 26, "denominator": 27}}))))
+    cases.append(("ambiguous-999", _mk(lambda d: d["safety_per_config"][c0].update({"ambiguous": {"gate": "PASS", "success": 999, "required": 21, "denominator": 23}}))))
+    cases.append(("intrusion-overflow", _mk(lambda d: d["safety_per_config"][c0].update({"ineligible_expired": {"gate": "NO-GO", "expected_tasks": 180, "expected_slots": 900, "intrusions_task": 181, "intrusions_slot": 901}}))))
+    cases.append(("task-gt-slot", _mk(lambda d: d["safety_per_config"][c0].update({"ineligible_expired": {"gate": "NO-GO", "expected_tasks": 180, "expected_slots": 900, "intrusions_task": 5, "intrusions_slot": 2}}))))
+    cases.append(("official-over", _mk(lambda d: d["safety_per_config"][c0].update({"official_link": {"gate": "NO-GO", "unique": 1, "mismatches": [("u1", "x"), ("u2", "y")]}}))))
+    cases.append(("http-over", _mk(lambda d: d["safety_per_config"][c0].update({"http_resolution": {"gate": "NO-GO", "unique": 100, "successes": 101, "required": 99}}))))
+    cases.append(("cost-negative", _mk(lambda d: d["safety_per_config"][c0].update({"cost": {"gate": "NO-GO", "index_ratio": -1.5, "rows_ratio": 2.0, "extra_model_calls": 0}}))))
+    cases.append(("cost-neg-calls", _mk(lambda d: d["safety_per_config"][c0].update({"cost": {"gate": "NO-GO", "index_ratio": 1.5, "rows_ratio": 2.0, "extra_model_calls": -1}}))))
+    cases.append(("nonmonotone", _mk(lambda d: d["latency_per_config"][c0]["candidate"].update({"p50": 600, "p95": 570, "p99": 580}))))
+    for name, doc in cases:
+        try:
+            validate_complete_result(doc)
+            assert False, f"impossible evidence must fail: {name}"
+        except ValueError:
+            pass
+
 if __name__=="__main__":
-    tests=[test_18_configs_and_drift, test_non_unit_cosine, test_representative_tie_and_near_tie, test_strict_gt_dedup_boundary, test_mmr_actual_cosine_and_full_top30, test_exact_normalization_and_boundaries, test_cosine_min_placement, test_union_vs_hybrid, test_exact_not_injected, test_deterministic_ordering, test_metrics_mrr_rank_gt10, test_selection_ordering_and_zero, test_b_gate_no_impl, test_latency_harness, test_audit_lifecycle, test_atomic_rerun_concurrent, test_path_confinement, test_runner_safety_hold_when_checkers_absent, test_runner_safety_hold_even_with_checkers_pre_dev, test_runner_latency_wiring, test_cli_orchestrator_e2e, test_fusion_youth_bias_only_youth_source_gov24_zero, test_sparse_only_representative_query_nearest_no_chunk0_fallback, test_oracle_union_set_and_headline130, test_metrics_graded_strict_and_ndcg, test_metrics_equivalence_group_no_double_count, test_slice_diagnostics_unavailable, test_selection_fail_closed_missing_gates, test_selection_fail_closed_missing_latency, test_execution_lifecycle_audit_closure_on_failure, test_execution_lifecycle_path_and_result_os_agnostic, test_headline_no_silent_fallback_safety_only, test_gold_missing_grade_fail_closed, test_empty_query_fail_closed, test_latency_no_fabricated_default_static, test_mirror_hyphen_underscore_identity, test_selection_http_resolution_required, test_headline_missing_stratum_not_headline, test_headline_empty_golds_fail_closed, test_retrieve_blank_fail_closed_lowest, test_canonical_dev_mode_grant_before_loader_and_counts, test_canonical_counts_mismatch_fail_closed, test_safety_real_interfaces, test_d003_baseline_forbids_candidate_a01, test_audit_preflight_no_duplicate_run_start, test_audit_windows_lock_serialized, test_path_sibling_rejected, test_candidate_b_no_finalist_not_evaluated, test_canonical_result_n_headline, test_protected_access_end_exact_outcome, test_canonical_grant_lifecycle_success_exact_one, test_canonical_grant_loader_failure_closes_failure, test_canonical_grant_pre_run_failure_closes_failure, test_canonical_grant_execution_failure_closes_failure, test_canonical_no_close_on_failed_verification, test_canonical_cli_forbids_fakes_and_uses_real_adapters, test_canonical_output_exact_and_missing_field, test_canonical_requires_adapters_pre_grant, test_canonical_cli_wires_real_adapters, test_latency_gate_eligibility_650_570_700, test_canonical_result_evidence_and_consistency, test_canonical_latency_evidence_strict_tampers, test_canonical_corpus_mandatory_failure_close, test_canonical_safety_full_evidence_preserved]
+    tests=[test_18_configs_and_drift, test_non_unit_cosine, test_representative_tie_and_near_tie, test_strict_gt_dedup_boundary, test_mmr_actual_cosine_and_full_top30, test_exact_normalization_and_boundaries, test_cosine_min_placement, test_union_vs_hybrid, test_exact_not_injected, test_deterministic_ordering, test_metrics_mrr_rank_gt10, test_selection_ordering_and_zero, test_b_gate_no_impl, test_latency_harness, test_audit_lifecycle, test_atomic_rerun_concurrent, test_path_confinement, test_runner_safety_hold_when_checkers_absent, test_runner_safety_hold_even_with_checkers_pre_dev, test_runner_latency_wiring, test_cli_orchestrator_e2e, test_fusion_youth_bias_only_youth_source_gov24_zero, test_sparse_only_representative_query_nearest_no_chunk0_fallback, test_oracle_union_set_and_headline130, test_metrics_graded_strict_and_ndcg, test_metrics_equivalence_group_no_double_count, test_slice_diagnostics_unavailable, test_selection_fail_closed_missing_gates, test_selection_fail_closed_missing_latency, test_execution_lifecycle_audit_closure_on_failure, test_execution_lifecycle_path_and_result_os_agnostic, test_headline_no_silent_fallback_safety_only, test_gold_missing_grade_fail_closed, test_empty_query_fail_closed, test_latency_no_fabricated_default_static, test_mirror_hyphen_underscore_identity, test_selection_http_resolution_required, test_headline_missing_stratum_not_headline, test_headline_empty_golds_fail_closed, test_retrieve_blank_fail_closed_lowest, test_canonical_dev_mode_grant_before_loader_and_counts, test_canonical_counts_mismatch_fail_closed, test_safety_real_interfaces, test_d003_baseline_forbids_candidate_a01, test_audit_preflight_no_duplicate_run_start, test_audit_windows_lock_serialized, test_path_sibling_rejected, test_candidate_b_no_finalist_not_evaluated, test_canonical_result_n_headline, test_protected_access_end_exact_outcome, test_canonical_grant_lifecycle_success_exact_one, test_canonical_grant_loader_failure_closes_failure, test_canonical_grant_pre_run_failure_closes_failure, test_canonical_grant_execution_failure_closes_failure, test_canonical_no_close_on_failed_verification, test_canonical_cli_forbids_fakes_and_uses_real_adapters, test_canonical_output_exact_and_missing_field, test_canonical_requires_adapters_pre_grant, test_canonical_cli_wires_real_adapters, test_latency_gate_eligibility_650_570_700, test_canonical_result_evidence_and_consistency, test_canonical_latency_evidence_strict_tampers, test_canonical_corpus_mandatory_failure_close, test_canonical_safety_full_evidence_preserved, test_canonical_corpus_provenance_required, test_canonical_safety_latency_math_bounds]
     for t in tests:
         try:
             t()
@@ -1762,4 +1806,4 @@ if __name__=="__main__":
             print(f"FAIL {t.__name__}: {e}")
             import traceback; traceback.print_exc()
             sys.exit(1)
-    print("ALL 64 focused tests PASS")
+    print("ALL 66 focused tests PASS")

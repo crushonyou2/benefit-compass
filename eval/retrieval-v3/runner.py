@@ -459,11 +459,17 @@ class Runner:
                 if not isinstance(corpus_prov, dict) or not corpus_prov:
                     raise ValueError("canonical corpus_provenance must be nonempty dict (fail-closed)")
                 _tp = corpus_prov.get("total_policies")
-                if "total_policies" in corpus_prov and (not isinstance(_tp, int) or isinstance(_tp, bool)):
-                    raise ValueError("canonical corpus_provenance.total_policies must be int (fail-closed)")
+                if "total_policies" in corpus_prov and (not isinstance(_tp, int) or isinstance(_tp, bool) or _tp <= 0):
+                    raise ValueError("canonical corpus_provenance.total_policies must be positive int (fail-closed)")
                 _snap = corpus_prov.get("snapshot")
-                if "snapshot" in corpus_prov and not isinstance(_snap, (str, dict)):
-                    raise ValueError("canonical corpus_provenance.snapshot must be str/dict (fail-closed)")
+                if isinstance(_snap, str):
+                    if not _snap.strip():
+                        raise ValueError("canonical corpus_provenance.snapshot must be nonempty (fail-closed)")
+                elif isinstance(_snap, dict):
+                    if not _snap:
+                        raise ValueError("canonical corpus_provenance.snapshot must be nonempty (fail-closed)")
+                else:
+                    raise ValueError("canonical corpus_provenance.snapshot identity required (fail-closed)")
         except Exception as e:
             if is_canonical and grant_verified and not grant_closed:
                 try:

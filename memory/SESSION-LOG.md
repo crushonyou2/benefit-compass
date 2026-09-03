@@ -1138,3 +1138,14 @@ One short section per working session: what was worked on, what was decided (wit
 - **Owns whole correction-5 in one session:** reconcile → latency/corpus/safety fail-closed fixes → mirror sync → test updates → 64/109 PASS + SHA/isolation proofs → D-042 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
 - **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` ROOT/plan (D-036 gate still); delegates exempt.
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
+
+## 2026-09-03 — Retrieval v3 SAME-STAGE Web-HOLD correction-6 — corpus identity + math invariants — D-043
+
+- **Reconciled start:** `codex/retrieval-v3-user-search-quality` HEAD `d01ffb7` clean (`local==origin`), `git diff --check` PASS, `ml-service` diff 0, plan `2815361a` / prereg `78420186` unchanged, `dev/`+`holdout/` absent, OMP `18.1.5` / ROOT-plan `muse-spark-1.3:xhigh` per D-036. Web reran prior 64/109 PASS, then reproduced validator holes on committed bytes. No protected plaintext, no FIRST dev retrieval, no real IO.
+- **D-042 overclaim corrected (D-042 stays history):** canonical accepted corpus None/{}/snapshot-less and impossible counts (999/-1/181/901/over-unique/negative/non-monotone).
+- **Repair (mirrors byte-identical):** corpus nonempty-dict + snapshot identity + positive policies (Runner pre-check aligned); safety strict ranges with task<=slot/mismatch/success bounds and nonnegativity (thresholds unchanged); latency p50<=p95<=p99 per side (n/warmup/finite/gate unchanged; samples untouched).
+- **Tests:** 3 bases carry valid corpus; 2 new tamper suites (corpus required, math bounds); footer 64→66.
+- **Verification:** runner 66 PASS, runner+plan+sha 111 PASS, `git diff --check` PASS, plan/prereg unchanged, `ml-service` 0, isolation + mirror identity PASS (runner/result_schema). Forbidden 0 (see D-043).
+- **Owns whole correction-6 in one session:** reconcile → corpus/bounds/monotonicity fail-closed fixes → mirror sync → test updates → 66/111 PASS + SHA/isolation proofs → D-043 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
+- **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` ROOT/plan (D-036 gate still); delegates exempt.
+- **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.

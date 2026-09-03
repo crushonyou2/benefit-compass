@@ -1544,3 +1544,29 @@ Reconciled base (read-only before mutation): branch `codex/retrieval-v3-user-sea
 - Forbidden 0 in this stage: FIRST protected dev 0, protected plaintext via `git show`/`cat-file`/`checkout`/`restore`/`sparse`/`worktree`/traversal 0, real retrieval/DB/model/embedding/network/HTTP/latency 0 (mock injection + synthetic tasks/adapters only), holdout 0, tuning 0, plan/prereg/config/gate/`ml-service` change 0, B instantiate 0, history rewrite/amend/rebase/reset/force 0, tag move/delete/force 0.
 
 Standing decisions D-013/D-015/D-016/D-017/D-018…D-041 remain as history/corrected where applicable. Next gate after this record and its atomic commit/push is **STOP for Web read-only independent review** (not FIRST dev retrieval, not candidate tuning).
+
+## D-043 · Retrieval v3 SAME-STAGE Web-HOLD correction-6 — corpus identity + math/percentile invariants — 2026-09-03 (user-authorized, one session owns repair+tests+commit+push)
+
+This is a **narrow SAME-STAGE correction-6** on base `d01ffb7fb46c7f2424f190d4f50ed9c498689223` that does NOT rewrite D-037/D-038/D-039/D-040/D-041/D-042 history. D-042 remains standing for strict latency shape, mandatory corpus, and full safety evidence; this D-043 corrects D-042's overclaim of validator completeness: Web read-only review reran 64/64 and 109/109 PASS on committed bytes, then reproduced that canonical `validate_complete_result` still ACCEPTED `corpus_provenance=None`/`{}`/`{'total_policies':1}` without snapshot, plus impossible values (`unsupported success=999 PASS`, `success=-1`, `ambiguous 999`, `intrusions 181/901`, `official unique=1` with 2 mismatches, `HTTP 100/101`, negative cost ratios, non-monotone `p50>p95>p99`). These add no new gates — only mathematical/denominator/percentile invariants of existing evidence. No plan/prereg/config/gate change, no production change, no FIRST dev retrieval, no protected plaintext, no real DB/model/network/HTTP/latency benchmark.
+
+Reconciled base (read-only before mutation): branch `codex/retrieval-v3-user-search-quality` HEAD `d01ffb7fb46c7f2424f190d4f50ed9c498689223` clean (`local==origin`, `git diff --check` PASS), `ml-service` diff 0 vs `5327661445c37191a3fd61db195f3af4d2cf893a`, plan `2815361a469fee9bf69f6ffdf2124d19928220535cdb08b2005ae6674ae7d17c` / prereg `7842018613d66aa4570f4db2f8ae5a698ceb46757995a6b7e26873177b36160e` unchanged, `eval/retrieval-v3/dev/` + `holdout/` absent on main. Runtime OMP `18.1.5` / ROOT-plan `opencode-go/muse-spark-1.3-contributor:xhigh` per D-036 (D-036 gate still in force).
+
+### Repair (fail-closed, deterministic, no new signal; both mirrors byte-identical)
+
+- **Corpus (1):** canonical requires `corpus_provenance` nonempty dict with snapshot identity (nonempty str/dict; missing/empty rejected) using only existing fields; `total_policies` when present must be positive strict int (bool/zero rejected). `Runner` pre-run check aligned (snapshot required/nonempty, positive policies). Noncanonical mock stays lightweight.
+- **Safety bounds (2):** thresholds unchanged; added strict ranges — unsupported `success 0..27`, ambiguous `0..23`, intrusions `task 0..180` / `slot 0..900` with `task<=slot`, `len(mismatches)<=unique`, `successes 0..unique`, cost ratios `>=0`, `extra_model_calls >=0`. Existing gate consistency (26/27, 21/23, 180/900, 99%, 2x/3x/0) preserved.
+- **Latency monotonicity (3):** `p50<=p95<=p99` enforced per side; exact n180/warmup30, finite-real, +80/700 gate logic unchanged; sample arrays untouched.
+
+### Tests (pure/static/mock only; 64 → 66; patched only, no real IO)
+
+- Fixed `_canonical_evidence_base` to carry valid corpus provenance so all artifact tests exercise the corpus requirement; headline/output minimal bases likewise.
+- New (2): `test_canonical_corpus_provenance_required` (None/empty/missing/blank snapshot/bool/zero policies reject; dict-snapshot accepts), `test_canonical_safety_latency_math_bounds` (every Web-listed impossible value rejects).
+- Patched: none beyond bases (D-042 corpus failure-close and safety-preservation tests already cover Runner paths with the valid synthetic corpus).
+- Footer list + count updated to 66.
+
+### Verification (pure/static/mock only, before commit)
+
+- `pytest eval/test_retrieval_v3_candidate_a_runner.py` **66 PASS**; `pytest runner+plan+sha_consistency` **111 PASS** (66+39+6); `git diff --check` PASS; plan/prereg SHAs unchanged; `ml-service` diff 0; `dev/`+`holdout/` absent; mirror identity PASS (2 repaired pairs byte-identical: runner/result_schema; selection/audit/paths/safety untouched).
+- Forbidden 0 in this stage: FIRST dev 0, protected plaintext via `git show`/`cat-file`/`checkout`/`restore`/`sparse`/`worktree`/traversal 0, real retrieval/DB/model/embedding/network/HTTP/latency 0 (mock injection + synthetic tasks/adapters only), holdout/tuning 0, plan/prereg/config/gate/`ml-service` change 0, B instantiate 0, history rewrite/amend/rebase/reset/force 0, tag move/delete/force 0.
+
+Standing decisions D-013/D-015/D-016/D-017/D-018…D-042 remain as history/corrected where applicable. Next gate after this record and its atomic commit/push is **STOP for Web read-only independent review** (not FIRST dev retrieval, not candidate tuning).
