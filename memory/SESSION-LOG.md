@@ -1360,3 +1360,12 @@ One short section per working session: what was worked on, what was decided (wit
 - **Owns whole stage in one session:** reconcile → repair+mirror → 406 PASS + proofs → D-062 + SESSION-LOG → atomic commit+push → STOP. Next: **Web read-only independent review**.
 - **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` plan; delegates exempt (serial shared-mutation boundary; no subagents).
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
+
+## 2026-09-04 — Revoke native-path avoidance; prevent disruptive Desktop control — D-063
+
+- User explicitly requested complete removal of the current native-path avoidance rule after observing repeated cwd/path errors, and asked whether a Desktop-direct-control instruction should be added.
+- Confirmed before mutation: the rule was not in the current ChatGPT project custom instructions; it existed operationally in `AGENTS.md` and `CLAUDE.md` and historically as D-051 / prior SESSION-LOG entries.
+- **D-051 is superseded in full as a standing rule.** Historical D-051 text is retained append-only for provenance but is no longer operative. Native absolute paths no longer require avoidance; choose the most reliable addressing form normally.
+- Removed the complete `Chat On Steroids path/privacy` section from both `AGENTS.md` and `CLAUDE.md`.
+- Added a narrow desktop-interaction policy to both files: routine Paseo creation/prompt/progress/background management must use Core/CLI/daemon/process/log/repo mechanisms; read-only `Desktop.observe` is allowed when useful; focus-changing `Desktop.computer` input requires explicit user request or user-approved necessity when no non-disruptive path exists.
+- No Retrieval v3 contract, protected set, one-shot state, production code, or evaluation result was touched. The next Retrieval v3 repair decision id advances past D-063.
