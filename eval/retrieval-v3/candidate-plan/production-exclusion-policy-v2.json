@@ -1,0 +1,136 @@
+{
+  "policy_id": "retrieval-v3-production-exclusion-policy-v2",
+  "version": "2.0.0",
+  "status": "frozen pre-result design (D-053); implementation is a later separately reviewed stage",
+  "decision": "D-053",
+  "gate": {
+    "id": "production_exclusion",
+    "name": "production_exclusion"
+  },
+  "safety_claim_boundary": "Prove only that Candidate A does not re-introduce policies that the frozen D-003 production expiry predicate would exclude. Never label this universal expired, universal eligible, or user-specific eligibility correctness.",
+  "d003_runtime_reference": {
+    "predicate_sql": "(biz_end IS NULL OR biz_end >= CURRENT_DATE)",
+    "source": "ml-service/app.py",
+    "standing_decision": "D-003",
+    "note": "Runtime CURRENT_DATE form. Evaluation reproduces the D-003 decision with the explicitly pinned evaluation_as_of_date captured from the governing connection (see evaluation_as_of_date). The pinned predicate matches D-003 exactly when the pinned date equals that connection's CURRENT_DATE, which capture guarantees by construction: same connection, no override, one shared date for the run."
+  },
+  "classification_inputs": {
+    "corpus_row_fields": [
+      "source",
+      "source_id",
+      "biz_end"
+    ],
+    "corpus_note": "Pinned evaluation corpus rows only. No raw text, no 신청기한 parsing, no age/income/region/add_qualify inference, no LLM/model, no score, no protected labels/results, no source-specific guesswork.",
+    "session_parameter": "evaluation_as_of_date"
+  },
+  "evaluation_as_of_date": {
+    "format": "YYYY-MM-DD",
+    "capture_connection": "The exact DB connection context governing the pinned evaluation corpus and the paired D-003 baseline/candidate.",
+    "capture_statements": [
+      "SHOW TimeZone",
+      "SELECT CURRENT_DATE"
+    ],
+    "capture_timing": "Executed exactly once for capture BEFORE protected plaintext access and BEFORE run_start.",
+    "capture_override_prohibition": "Do NOT apply SET TIME ZONE or any timezone/session override for capture.",
+    "pin": "Pin the returned values as db_session_timezone (as returned by the DB) and evaluation_as_of_date (SELECT CURRENT_DATE, canonical ISO YYYY-MM-DD) in corpus/evaluation provenance and audit.",
+    "storage": "Stored in corpus/evaluation provenance/audit.",
+    "mutability": "Immutable for the entire run and shared by Candidate A and the paired D-003 baseline. The later implementation must use the same pinned date for BOTH sides rather than allowing midnight drift, e.g. (biz_end IS NULL OR biz_end >= :evaluation_as_of_date) with audit production_excluded = biz_end IS NOT NULL AND biz_end < evaluation_as_of_date.",
+    "fail_closed": "Missing/malformed/error => HOLD; never fall back to OS/user/local/UTC date.",
+    "freeze_stage_note": "This D-053 freeze stage sets no value and performs no DB query to obtain one."
+  },
+  "db_session_timezone": {
+    "role": "Provenance only, never a permanent expected value.",
+    "recording": "Recorded as returned by the DB at capture. Do NOT hardcode any timezone value.",
+    "note": "Observed values in evidence (see supersession doc) are evidence only. If DB config changes later, capture what actually governs CURRENT_DATE."
+  },
+  "predicate": {
+    "production_excluded": "biz_end is not null AND biz_end < evaluation_as_of_date",
+    "equivalence": "Pinned-date reproduction of the D-003 runtime predicate; exact parity holds when the pinned date is the governing connection's CURRENT_DATE at capture.",
+    "decision_values": [
+      "production_excluded",
+      "not_production_excluded_by_D003_predicate",
+      "UNMEASURABLE_HOLD"
+    ]
+  },
+  "null_rule": {
+    "classification": "not_production_excluded_by_D003_predicate",
+    "explicit_non_claims": [
+      "not expired",
+      "eligible"
+    ]
+  },
+  "fail_closed": {
+    "conditions": [
+      "malformed/non-date non-null biz_end",
+      "missing (source, source_id) lookup",
+      "missing corpus pin",
+      "missing/invalid as-of date or timezone capture (SHOW TimeZone / SELECT CURRENT_DATE)",
+      "checker not executed"
+    ],
+    "result": "HOLD/fail-closed, never PASS"
+  },
+  "audit_scope": {
+    "layer": "Candidate-A internal final top-5",
+    "coverage": "EVERY benchmark task, even when safe-action later yields ABSTAIN/CLARIFY. Safe-action must not waive or hide this ranking-layer parity gate.",
+    "denominators": {
+      "dev_tasks": 180,
+      "dev_slots": 900,
+      "holdout_tasks": 250,
+      "holdout_slots": 1250
+    }
+  },
+  "gate_truth_table": {
+    "PASS": "Intrusion task count = 0 AND intrusion slot count = 0.",
+    "NO-GO": "Any one production-excluded policy in any internal final top-5.",
+    "HOLD": "Missing measurement."
+  },
+  "removed_from_gate_semantics": [
+    "eligible"
+  ],
+  "removal_no_default_replacement": true,
+  "removal_note": "The global per-policy eligible boolean is removed from mandatory release-gate semantics with no default replacement. User-specific applicability is not asserted by this gate.",
+  "youth_diagnostic_note": "Youth first-party structured application-period/closed markers from D-049 may be retained only as clearly NON-GATING diagnostic evidence when authoritative/recomputable. No new hard gate, no synthetic full-corpus map, no dataset regeneration.",
+  "implementation_boundary": {
+    "later_bounded_implementation": "Apply the same D-003 exclusion before/within Candidate-A retrieval so production-excluded rows cannot be ranked, and the safety checker independently audits the exact top-5.",
+    "capture_query_mechanics": "Capture/query mechanics are later bounded implementation; D-053 freezes contract only.",
+    "not_implemented_in_D052": true,
+    "not_implemented_in_D053": true
+  },
+  "supersedes": {
+    "policy": "retrieval-v3-production-exclusion-policy-v1 (eval/retrieval-v3/candidate-plan/production-exclusion-policy-v1.json)",
+    "policy_sha256": "3bcfc5b8360af28ccd7ea9018f3e3ffda73fba7744ba33bbfb83446235284608",
+    "scope": "Timezone/as-of capture semantics ONLY. Gate purpose, allowed fields, predicate, null semantics, fail-closed behavior, audit scope, denominators, truth table, claim boundary, and youth diagnostic note are unchanged.",
+    "v1_historical_claim": "Policy-v1 evaluation_as_of_date.timezone Asia/Seoul and its explicit-date equivalence claim are historical/superseded and must not be read as normative. No hardcoded future DB timezone expectation is set by this policy.",
+    "history_preserved": "production-exclusion-policy-v1.json bytes immutable; supersession V1 doc bytes immutable; prereg, candidate-plan-v1/v2/v3, safe-action policy, and all older history immutable.",
+    "reason": "Web independent-review read-only DB evidence showed SHOW TimeZone = GMT with SELECT CURRENT_DATE = 2026-09-03 while the Asia/Seoul local date was already 2026-09-04, so a hardcoded Asia/Seoul as-of date can disagree with actual D-003 at the date boundary. Real production-parity defect; the as-of date must be captured from the governing connection."
+  },
+  "parents": {
+    "prereg": "docs/RETRIEVAL_V3_PREREG.md",
+    "prereg_sha256": "7842018613d66aa4570f4db2f8ae5a698ceb46757995a6b7e26873177b36160e",
+    "candidate_plan_v1": "eval/retrieval-v3/candidate-plan/candidate-plan-v1.json",
+    "candidate_plan_v1_sha256": "2815361a469fee9bf69f6ffdf2124d19928220535cdb08b2005ae6674ae7d17c",
+    "candidate_plan_v2": "eval/retrieval-v3/candidate-plan/candidate-plan-v2.json",
+    "candidate_plan_v2_sha256": "d233f5c4d912e4d0856d89213d6392fbf44494f5538d018e7412f61781ae6cc6",
+    "candidate_plan_v3": "eval/retrieval-v3/candidate-plan/candidate-plan-v3.json",
+    "candidate_plan_v3_sha256": "665771f991a3891869f7d27658eedacbed28ba522afdcadcf8edd4d62b412681",
+    "safe_action_policy": "eval/retrieval-v3/candidate-plan/safe-action-policy-v1.json",
+    "safe_action_policy_sha256": "c512fb5627179697a987b05a2431b8f7e30d1153af2ff6dca37995f6b232a35d",
+    "production_exclusion_policy_v1": "eval/retrieval-v3/candidate-plan/production-exclusion-policy-v1.json",
+    "production_exclusion_policy_v1_sha256": "3bcfc5b8360af28ccd7ea9018f3e3ffda73fba7744ba33bbfb83446235284608",
+    "supersession_doc_v1": "docs/RETRIEVAL_V3_PRODUCTION_EXCLUSION_SUPERSESSION_V1.md",
+    "supersession_doc_v1_sha256": "63cdc4325b10c75cdb468ce775043c351ec22326642b70f0763189b846936fdc"
+  },
+  "provenance": {
+    "created_by": "Muse Spark 1.3 Contributor:xhigh (plan) -- D-053 freeze lineage",
+    "model_roles_external_verification": {
+      "default": "opencode-go/muse-spark-1.3-contributor:xhigh",
+      "plan": "opencode-go/muse-spark-1.3-contributor:xhigh",
+      "note": "Verified live in-repo via omp config get modelRoles (OMP 18.1.5, project .omp absent); global defaultThinkingLevel=high is fallback only"
+    },
+    "investigation_basis": "D-053 performed no live DB probe, no network/HTTP, no model/embedding load, no retrieval/search/ranking execution, no protected plaintext access. Timezone mismatch taken from durable Web independent-review read-only evidence (SHOW TimeZone = GMT, SELECT CURRENT_DATE = 2026-09-03 while Asia/Seoul local date was already 2026-09-04). D-003 predicate re-verified read-only from ml-service/app.py working-tree source. All non-capture semantics carried over unchanged from policy-v1.",
+    "frozen_at": "2026-09-04T01:27:33+09:00",
+    "frozen_at_timezone": "Asia/Seoul",
+    "frozen_at_basis": "D-053 stage-local artifact authoring instant (Asia/Seoul wall clock); exact pre-commit instant not separately durable",
+    "reconciled_start": "branch codex/retrieval-v3-user-search-quality HEAD d1f955efe580ad86d679504e26b51d04bedeae96 clean, local==upstream==actual remote verified, git diff --check PASS, ml-service diff 0 vs 5327661445c37191a3fd61db195f3af4d2cf893a, dev/holdout/result/audit absent, one-shot unconsumed"
+  }
+}

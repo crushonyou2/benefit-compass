@@ -1864,3 +1864,45 @@ Protected dev/holdout plaintext access or recovery 0 (`git show`/`cat-file`/`che
 ### VERDICT: FIRST protected-dev launch REMAINS BLOCKED (not authorized; do not launch)
 
 The freeze only replaces an unmeasurable gate with a measurable production-parity gate before any protected result; bounded implementation is unreviewed and no protected measurement exists. Next gate after this record and its atomic commit/push is **STOP for Web read-only independent review** (not bounded implementation, not FIRST dev retrieval, not candidate tuning). Do NOT authorize bounded implementation or FIRST dev from this workspace.
+
+## D-053 · Retrieval v3 SAME-STAGE Web-HOLD narrow repair — production-exclusion timezone/CURRENT_DATE parity correction — 2026-09-04 (user-authorized, one session owns repair+tests+commit+push, then STOP for Web review)
+
+User approved proceeding; this workspace owns the approved repair end-to-end, then STOP for Web independent review. Append-only: policy-v1, supersession V1 doc, candidate-plan-v3, D-052 text, D-052 focused test, and all older bytes/history preserved, never rewritten. No runner/safety implementation; no FIRST protected dev; no protected plaintext touched. No live DB probe performed in D-053 (durable Web evidence used instead, so no secret handled and no session state touched).
+
+Reconciled base (read-only before mutation, actual state wins): branch `codex/retrieval-v3-user-search-quality` HEAD `d1f955efe580ad86d679504e26b51d04bedeae96` clean, local==upstream==actual remote (direct `ls-remote`), `git diff --check` PASS, `git diff 5327661445c37191a3fd61db195f3af4d2cf893a..HEAD -- ml-service/` **0**, SHA256 verified prereg `78420186...` / plan-v1 `2815361a...` / plan-v2 `d233f5c4...` / safe-action policy `c512fb56...` / safe-action doc `472b6183...` / eligibility doc `eea3c5ce...` / policy-v1 `3bcfc5b8...` / supersession V1 `63cdc432...` / plan-v3 `665771f9...` unchanged, `eval/retrieval-v3/dev/` + `holdout/` + canonical dev result + `audit/events.jsonl` absent (`results/` empty), one-shot unconsumed, OMP `18.1.5`, project `.omp` absent, `modelRoles` default+plan `opencode-go/muse-spark-1.3-contributor:xhigh` (global `defaultThinkingLevel=high` fallback only), D-051 repo-relative path rule observed throughout. All expected reference points matched actual state.
+
+### 1) Web-HOLD blocker (durable evidence, not contract)
+
+- D-052 policy-v1 froze `evaluation_as_of_date` as Asia/Seoul and called the pinned date the explicit-date equivalent of D-003 `(biz_end IS NULL OR biz_end >= CURRENT_DATE)`.
+- Web independent review read-only DB evidence on the governing connection: `SHOW TimeZone` returned `GMT`, `SELECT CURRENT_DATE` returned `2026-09-03`, while the Asia/Seoul local date was already `2026-09-04`. A hardcoded Asia/Seoul as-of date can therefore disagree with the actual D-003 decision at the date boundary — a real production-parity defect.
+- `GMT` / `2026-09-03` / `2026-09-04` are evidence only, never normative expected values. `db_session_timezone` is provenance, not a permanent expectation; if DB config changes later, capture governs.
+
+### 2) Corrected normative as-of contract (frozen in policy-v2)
+
+- Gate purpose, allowed fields `(source, source_id, biz_end)`, predicate shape, null semantics, fail-closed behavior, internal-final-top-5 audit, exact denominators dev 180/900 + holdout 250/1250, truth table (zero => PASS / any intrusion => NO-GO / missing => HOLD), claim boundary (D-003 parity only), and youth-diagnostic non-gating note are unchanged from policy-v1.
+- No normative assumption that the evaluation date is Asia/Seoul or any hardcoded timezone. At each protected evaluation session, BEFORE protected plaintext access and BEFORE `run_start`, on the exact DB connection context governing the pinned evaluation corpus and the paired D-003 baseline/candidate, execute exactly once for capture: `SHOW TimeZone` and `SELECT CURRENT_DATE`. No `SET TIME ZONE` or session override for capture; this two-statement inventory is exact.
+- Pin returned values as `db_session_timezone` (as returned) and `evaluation_as_of_date` (`SELECT CURRENT_DATE`, canonical ISO `YYYY-MM-DD`) in corpus/evaluation provenance and audit. Missing/malformed/error => HOLD; never fall back to OS/user/local/UTC date.
+- Captured date immutable for the entire run, shared by Candidate A + paired D-003 baseline. Later bounded implementation must use the explicit pinned date for BOTH sides (e.g. `(biz_end IS NULL OR biz_end >= :evaluation_as_of_date)`, audit `production_excluded = biz_end IS NOT NULL AND biz_end < evaluation_as_of_date`). Parity with D-003 holds exactly when the pinned date equals the governing connection's `CURRENT_DATE`, which capture guarantees by construction.
+- Capture/query mechanics are later bounded implementation; D-053 freezes the contract only. This freeze stage sets no value and performs no DB query.
+
+### 3) Frozen artifacts (old immutable, new append-only)
+
+- NEW `docs/RETRIEVAL_V3_PRODUCTION_EXCLUSION_SUPERSESSION_V2.md` SHA256 `9767b6c79e08a992a687db033e3eb63b7fdd3c7eb9b7c5013e1afc6eefd4ca7b` — repair record + human-readable contract (§3); normative detail in the policy-v2 JSON.
+- NEW `eval/retrieval-v3/candidate-plan/production-exclusion-policy-v2.json` SHA256 `6fee9ec22d5d3ac153ff19a6b1b5d27ab6a6a43bda11e35821d689f938968fe5` — machine-readable normative contract. Supersedes policy-v1 timezone/as-of capture semantics ONLY; marks the v1 Asia/Seoul/equivalence claim historical/superseded; sets no hardcoded future DB timezone expectation.
+- NEW `eval/retrieval-v3/candidate-plan/candidate-plan-v4.json` SHA256 `a25d9c482094696ff7a438593979813ac568c91a977a2543a50618ca4f5177d6` — programmatic deep copy of v3 (all non-authorized top-level keys value-equal, 18/18 configs identical) with ONLY authorized updates: plan_id/version 4.0.0, eight parent SHAs (prereg, v1, v2 `d233f5c4`, v3 `665771f9`, safe-action, policy-v2 `6fee9ec2`, doc-v2 `9767b6c7`), `production_exclusion_policy` block ref v1 → v2, safety-gate text policy ref v1 → v2 (thresholds 0/180 + 0/900 unchanged), D-053 stage-local supersession/provenance/assertions/`frozen_at` `2026-09-04T01:27:33+09:00`. No Asia/Seoul date-source claim; GMT only as quoted Web evidence in provenance.
+- NEW `eval/test_retrieval_v3_production_exclusion_timezone_contract.py` — 18 pure tests (old-byte immutability incl. all three D-052 SHAs, new pins, eight parents, v3→v4 identity + authorized-only diffs, exact two-statement capture contract, no normative timezone, no local-date fallback, CURRENT_DATE confinement, predicate/fail-closed/denominator/truth-table fixtures, doc evidence truth, stage-local truth, import purity).
+- The change is a pre-result contract repair before any protected result, not result-driven relaxation: no protected result exists; nothing tuned or relaxed against outcomes.
+
+### Verification (pure/static only, before commit)
+
+- Focused timezone file **18 PASS**; D-052 focused **17 PASS**; existing Retrieval-v3 10-file gate suite still **216 PASS**; combined Retrieval-v3 filter **251 PASS** with no double-counting (216 + 17 + 18). No protected/DB/network/model/retrieval execution in any test.
+- `git diff --check` PASS; all nine old SHAs unchanged; `ml-service` diff 0; `dev/`+`holdout/`+canonical result/audit absent; one-shot unconsumed.
+- Working tree holds only intended files: supersession V2 doc, policy-v2 JSON, plan-v4 JSON, timezone test, D-053, SESSION-LOG. No `runner.py`/`safety.py`/`result_schema.py`/`selection.py`/`candidate_registry.py`/production change.
+
+### 4) Protected/one-shot hard boundary — forbidden 0 in this stage
+
+Protected dev/holdout plaintext access or recovery 0 (`git show`/`cat-file`/`checkout`/`restore`/`sparse`/`worktree`/traversal for protected data 0; D-003 predicate taken from working-tree production source only, no evalset bytes), `protected_access_start`/`run_start` 0, canonical result 0, FIRST dev 0, result inspection/scoring 0, retrieval/search/ranking benchmark 0, embedding/model load 0, live DB probe 0 (durable Web evidence used; the optional exact two-statement reconfirmation was not exercised), other SQL/write/`SET` 0, secret printed/logged 0, network/HTTP 0, Candidate-B instantiate/tune 0, score threshold 0, safe-action change 0, dev/holdout regeneration/reannotation/refreeze 0, `ml-service` change 0, amend/rebase/reset/force/history rewrite/tag move/delete/force push 0, user-home native paths in tool args/docs/messages 0.
+
+### VERDICT: FIRST protected-dev launch REMAINS BLOCKED (not authorized; do not launch)
+
+This repair only corrects the as-of capture semantics to true D-003 parity before any protected result; bounded implementation is unreviewed and no protected measurement exists. Next gate after this record and its atomic commit/push is **STOP for Web read-only independent review** (not bounded implementation, not FIRST dev retrieval, not candidate tuning). Do NOT authorize bounded implementation or FIRST dev from this workspace.

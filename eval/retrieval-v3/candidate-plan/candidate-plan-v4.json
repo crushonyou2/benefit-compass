@@ -1,0 +1,535 @@
+{
+  "allowed_axes": [
+    "sparse/dense fusion/weights — sparse_weight, dense_weight, fusion_method (union/hybrid_weighted_sum)",
+    "exact title/org/entity signal weights — exact_title_boost, exact_org_boost (exact_entity_boost reserved 0.0)",
+    "field weights — field_weight_title, field_weight_support_content, field_weight_eligibility",
+    "duplicate/diversification threshold/semantics — dedup_cosine_threshold, diversification_lambda"
+  ],
+  "assertions": {
+    "deterministic": "All config tuples fixed exactly; no range, placeholder, as feasible, adaptive generation, or result-dependent branch",
+    "no_candidate_a_implementation": "Candidate A not implemented/modified in ml-service; production behavior unchanged",
+    "no_candidate_b_implementation": "Candidate B not instantiated, implemented, or planned beyond conditional gate above",
+    "no_dev_dataset": "No dev dataset generated/frozen/accessed in this stage; no dev plaintext read; FIRST dev retrieval not executed",
+    "no_history_rewrite": "No amend/rebase/reset/force-push/tag deletion",
+    "no_holdout_plaintext_access": "No protected holdout plaintext accessed via git show/cat-file/checkout/restore/sparse-checkout/worktree/path traversal in this stage; verification only via plaintext-free refs (branch/tag SHAs)",
+    "no_new_gate": "No new gate/process/dataset regeneration requirement added beyond the single authorized ineligible/expired -> production_exclusion gate semantic replacement",
+    "no_retrieval_execution": "No retrieval/search/ranking performance execution, no model/embedding load, no benchmark/latency/HTTP checker execution, and no DB query of any kind in this D-053 stage",
+    "no_as_of_date_set": "No evaluation_as_of_date value set or obtained in this freeze stage; the value is captured per evaluation session under the frozen capture contract",
+    "production_diff": "git diff 5327661445c37191a3fd61db195f3af4d2cf893a..HEAD -- ml-service/ = 0"
+  },
+  "base_commit": "5327661445c37191a3fd61db195f3af4d2cf893a",
+  "base_commit_tag": "retrieval-v2-cycle3-closure-v1",
+  "baseline_identity": {
+    "CANDIDATES": 30,
+    "COSINE_MIN": 0.78,
+    "LEXICAL_OVERLAP_BIAS": 0.01,
+    "RERANK": 0,
+    "dense_sql": "ml-service/app.py:SQL nearest CTE (vector search) LEFT JOIN lexical CTE, ORDER BY t.dist - youth_bias - lexical_bias*coalesce(l.lexical_overlap,0)",
+    "embedding_model": "intfloat/multilingual-e5-base (768-dim, query: 'query: {q}' normalize_embeddings=True)",
+    "lexical_overlap_terms": "source_ranking.py:lexical_overlap_terms — regex [0-9A-Za-z가-힣]+, len>=2, deduped, stopwords excluded, count distinct term via ILIKE in concat_ws(title,summary,support_content,add_qualify,keywords)",
+    "policy_schema": "db/schema.sql — policy(id,source,source_id,title,summary,support_content,keywords,org,apply_method, etc., region_codes TEXT[], add_qualify, raw JSONB) + policy_chunk(policy_id, chunk_index, content, embedding VECTOR(768)), ivfflat vector_cosine_ops",
+    "strip_region": "ml-service/app.py:strip_region — region code removal, region filter unavailable (400)",
+    "youth_source_bias": "0.015 when youth intent terms present AND no Gov24 org terms; otherwise 0.0 (source_ranking.py:youth_source_bias, suppressed for Gov24)"
+  },
+  "branch": "codex/retrieval-v3-user-search-quality",
+  "candidate_b_gate": {
+    "admission_condition_exact": "Candidate B permitted ONLY IF on dev headline 130 union oracle Recall@100 >=97% AND (union oracle Recall@100 - Candidate-A Success@5) >=5.0 percentage points on same dev headline set. Otherwise B forbidden. Evidence must be dev diagnostic report on headline 130, not intuition. D-015 supersedes D-014. Union oracle = whether any grade>=2 gold appears in union of sparse+dense+exact top-100 before ranking.",
+    "headroom_calculation": "headroom_pp = union_oracle_Recall@100 - candidate_A_Success@5 (both on dev headline 130, pp units)",
+    "instantiated": false,
+    "note": "Candidate B not instantiated, implemented, or tuned in this stage. B is optional lightweight ranker only; never cross-encoder."
+  },
+  "candidate_family": "Candidate A only",
+  "configs": [
+    {
+      "config_id": "candidate-a-01",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.0,
+      "exact_title_boost": 0.0,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 1.0,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.01
+    },
+    {
+      "config_id": "candidate-a-02",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.05,
+      "exact_title_boost": 0.07,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 1.0,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.01
+    },
+    {
+      "config_id": "candidate-a-03",
+      "dedup_cosine_threshold": 0.97,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.0,
+      "exact_title_boost": 0.15,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 1.5,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.01
+    },
+    {
+      "config_id": "candidate-a-04",
+      "dedup_cosine_threshold": 0.95,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.3,
+      "exact_org_boost": 0.05,
+      "exact_title_boost": 0.07,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.2,
+      "field_weight_title": 1.5,
+      "fusion_method": "union",
+      "sparse_weight": 0.01
+    },
+    {
+      "config_id": "candidate-a-05",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.0,
+      "exact_title_boost": 0.0,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 1.0,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.02
+    },
+    {
+      "config_id": "candidate-a-06",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 0.9,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.1,
+      "exact_title_boost": 0.15,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 1.5,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.02
+    },
+    {
+      "config_id": "candidate-a-07",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 1.1,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.0,
+      "exact_title_boost": 0.07,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 2.0,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.005
+    },
+    {
+      "config_id": "candidate-a-08",
+      "dedup_cosine_threshold": 0.97,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.3,
+      "exact_org_boost": 0.05,
+      "exact_title_boost": 0.0,
+      "field_weight_eligibility": 1.2,
+      "field_weight_support_content": 1.2,
+      "field_weight_title": 1.0,
+      "fusion_method": "union",
+      "sparse_weight": 0.01
+    },
+    {
+      "config_id": "candidate-a-09",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.0,
+      "exact_title_boost": 0.07,
+      "field_weight_eligibility": 1.2,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 1.5,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.01
+    },
+    {
+      "config_id": "candidate-a-10",
+      "dedup_cosine_threshold": 0.95,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.1,
+      "exact_title_boost": 0.0,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 1.0,
+      "fusion_method": "union",
+      "sparse_weight": 0.02
+    },
+    {
+      "config_id": "candidate-a-11",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 0.9,
+      "diversification_lambda": 0.3,
+      "exact_org_boost": 0.0,
+      "exact_title_boost": 0.15,
+      "field_weight_eligibility": 1.2,
+      "field_weight_support_content": 1.2,
+      "field_weight_title": 2.0,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.01
+    },
+    {
+      "config_id": "candidate-a-12",
+      "dedup_cosine_threshold": 0.97,
+      "dense_weight": 1.1,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.05,
+      "exact_title_boost": 0.07,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.2,
+      "field_weight_title": 1.0,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.005
+    },
+    {
+      "config_id": "candidate-a-13",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.05,
+      "exact_title_boost": 0.15,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 1.0,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.02
+    },
+    {
+      "config_id": "candidate-a-14",
+      "dedup_cosine_threshold": 0.95,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.3,
+      "exact_org_boost": 0.0,
+      "exact_title_boost": 0.0,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 2.0,
+      "fusion_method": "union",
+      "sparse_weight": 0.005
+    },
+    {
+      "config_id": "candidate-a-15",
+      "dedup_cosine_threshold": 0.97,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.1,
+      "exact_title_boost": 0.07,
+      "field_weight_eligibility": 1.2,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 1.5,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.01
+    },
+    {
+      "config_id": "candidate-a-16",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 0.9,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.05,
+      "exact_title_boost": 0.0,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.2,
+      "field_weight_title": 1.0,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.02
+    },
+    {
+      "config_id": "candidate-a-17",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 1.1,
+      "diversification_lambda": 0.3,
+      "exact_org_boost": 0.0,
+      "exact_title_boost": 0.15,
+      "field_weight_eligibility": 1.0,
+      "field_weight_support_content": 1.0,
+      "field_weight_title": 1.0,
+      "fusion_method": "union",
+      "sparse_weight": 0.01
+    },
+    {
+      "config_id": "candidate-a-18",
+      "dedup_cosine_threshold": 0.98,
+      "dense_weight": 1.0,
+      "diversification_lambda": 0.0,
+      "exact_org_boost": 0.0,
+      "exact_title_boost": 0.0,
+      "field_weight_eligibility": 1.2,
+      "field_weight_support_content": 1.2,
+      "field_weight_title": 1.5,
+      "fusion_method": "hybrid_weighted_sum",
+      "sparse_weight": 0.01
+    }
+  ],
+  "cosine_min_placement": {
+    "fails_when": "dense_cosine < 0.78 (strict <)",
+    "no_accidental_sparse_removal": "Sparse/exact family not globally removed by COSINE_MIN",
+    "operator": ">=",
+    "passes_when": "dense_cosine >= 0.78",
+    "placement": "Applied to dense candidates AFTER dense top-100 retrieval and BEFORE union with sparse (post-LIMIT analogy to production where ml-service filters after SQL LIMIT). Sparse top-100 and exact boosts are NOT filtered by COSINE_MIN. Union pool = (dense top-100 filtered by dense_cosine >=0.78) ∪ (sparse top-100 unfiltered), deduped by (source,source_id). Final_score ranking after union is not globally re-filtered by COSINE_MIN. This preserves sparse/exact family and matches standing D-003/CANDIDATES=30/COSINE_MIN=0.78 semantics where lexical overlap is independent.",
+    "production_analogy": "ml-service/app.py: cands = [cand for cand in cands if cand['score'] >= COSINE_MIN] where score=1-dist after nearest LIMIT; lexical via LEFT JOIN not filtered by same threshold globally",
+    "value": 0.78
+  },
+  "deterministic_ordering_contract": {
+    "dedup_greedy": "Greedy retain/drop: iterate base final order, retain first, suppress later if max actual cosine similarity cos(a,b)=dot(a,b)/(norm(a)*norm(b)) to any retained > threshold (strict >). Representative vector per policy_comparison_vector (existing stored embedding, 6-decimal rounded, not guaranteed unit norm; actual cosine, not raw dot, pgvector semantics).",
+    "dense_top100": "dense_cosine desc, source asc, source_id asc, policy.id asc",
+    "final_score_rank_before_dedup": "final_score desc, source asc, source_id asc, policy.id asc",
+    "mmr_lambda_0": "diversification_lambda==0.0 => dedup-ordered base final order unchanged; final top-30 is first 30 of that order (or exhaustion).",
+    "mmr_lambda_gt0": "diversification_lambda==0.3 => MMR greedy: diversification_score = lambda*final_score - (1-lambda)*max_similarity_to_already_selected where max_similarity is actual cosine cos(a,b)=dot/(norm(a)*norm(b)) on stored rounded embeddings (pgvector semantics); select argmax iteratively to 30 or exhaustion; tie break by base final rank key (smaller base rank wins). MMR continues greedily to 30, not stopping at top5. Positions 1-30 are exactly this MMR order.",
+    "positions_1_30_full": "Final output positions 1-30 are fully deterministic via above dedup+MMR; if pool <30 after dedup, output exhausts with fewer than 30 (no filler). No randomness, no result-dependent branching.",
+    "sparse_top100": "weighted_lexical_overlap (sparse_score monotonic) desc, source asc, source_id asc, policy.id asc",
+    "threshold_operator": "Similarity > threshold suppresses (strict greater, not >=); similarity is actual cosine cos(a,b)=dot/(norm(a)*norm(b)), not raw dot.",
+    "union_dedup_identity": "canonical (source,source_id) UNIQUE; dedup keeps single entry per identity; policy.id is final stable tie-break for ordering where canonical already unique"
+  },
+  "exact_oracle_semantics": {
+    "candidate_b_gate_unchanged": "Candidate B admission gate values/thresholds/text unchanged: union oracle Recall@100 >=97% AND (Recall@100 - Candidate-A Success@5) >=5.0pp on dev headline 130. Substantive meaning not changed; only union oracle@100 definition made recomputable via above deterministic construction.",
+    "diagnostic_vs_final_pool": "Exact diagnostic/oracle pools are DIAGNOSTIC ONLY. Final Candidate A ranked pool remains dense+sparse union only (filtered dense ∪ sparse deduped, ranked by final_score, dedup/diversified to top-30). Exact candidates are NOT injected into final Candidate A pool. This preserves standing D-027 final-pool semantics (dense+sparse family) and avoids unwarranted expansion. Standing evidence does not require exact injection into final pool.",
+    "entity_field_absence": "Schema has no separate entity field or entity extractor/LLM signal; executable entity signal does not exist beyond title/org. db/schema.sql verified: policy columns are title, org, etc., with no entity column; policy_chunk.embedding is only vector. Therefore exact standalone signal is title/org predicates only, with the single exact normalization above.",
+    "exact_candidate_set": "All policies where is_exact_title==1 OR is_exact_org==1. Deterministically ordered for diagnostics by exact_score derived priority: is_exact_title desc, is_exact_org desc, then source asc, source_id asc, policy.id asc (policy.id final stable). For config-specific exact boosts, exact_score = exact_title_boost*is_exact_title + exact_org_boost*is_exact_org may be used, but diagnostic canonical ordering uses boolean priority + canonical identity to remain config-agnostic and reproducible.",
+    "exact_recall": "exact Recall@K (K=30/50/100): whether any grade>=2 gold appears in first K of exact-ordered candidate set (ordered as above). Deterministic tie-break ensures recomputability.",
+    "no_new_signal": "No entity extractor, LLM, new signal, no new predicate family, normalization variant, or embedding beyond existing exact title/org predicates with the single exact normalization defined in step_4",
+    "predicates": "is_exact_title and is_exact_org per step_4 with one exact normalization everywhere: NFC -> strip -> collapse internal whitespace -> casefold. is_exact_title: (normalized q == normalized title) OR (normalized q substring of normalized title AND len(normalized q) >=4 AND mechanical boundary on match span in title: both sides string boundary or adjacent char NOT in [0-9A-Za-z가-힣], NOT Python regex word-boundary; title substring in q not allowed except equality). is_exact_org: normalized org operand length >=2, then normalized org substring in normalized q OR normalized q substring in normalized org. No new extractor, no LLM, no additional predicates, no entity extractor/LLM/new predicate family.",
+    "union_oracle": "Union oracle = union of dense top-K + sparse top-K + exact top-K (each channel's own top-K per its ordering), deduplicated by canonical identity (source,source_id). Union oracle Recall@K (K=30/50/100) is whether any grade>=2 gold appears in that union set. For K=100, this is the recomputable union oracle Recall@100 used for Candidate B gate: (dense top-100 ∪ sparse top-100 filtered ∪ exact top-100 ordered) — existence check, not ranked pool injection. Reported as dense+sparse+exact union oracle. Per-signal Recall@30/50/100 and union oracle Recall@30/50/100 are diagnostic only."
+  },
+  "forbidden_axes": [
+    "new signal/model/embedding — embedding model replacement (intfloat/multilingual-e5-base fixed), new dense encoder, LLM rewrite, LLM-as-judge",
+    "cross-encoder reranking re-enable (RERANK remains 0 for Candidate A; Candidate B is only lightweight reranker if gated)",
+    "v2 K/threshold/source-bias sweep — CANDIDATES, COSINE_MIN, youth_source_bias threshold, LEXICAL_OVERLAP_BIAS beyond allowed sparse_weight range, source-aware youth bias sweep",
+    "global abstention / public region search / region filter tuning (region 400 unavailable)",
+    "range/placeholder/as feasible/adaptive generation — all configs are exact tuples, no result-dependent branching",
+    "Candidate B instantiation/tuning before gate — B forbidden unless dev headline 130 union oracle Recall@100 >=97% AND (Recall@100 - Candidate-A Success@5) >=5.0pp"
+  ],
+  "frozen_at": "2026-09-04T01:27:33+09:00",
+  "fusion_semantics": {
+    "executable": "Both are executable with existing per-policy chunk lookup and per-field ILIKE counts; no averaging or new embedding",
+    "hybrid_weighted_sum": "Same union pool identity (filtered dense top-100 ∪ sparse top-100 deduped), but for every policy in union BOTH dense_cosine and weighted lexical overlap are computed irrespective of origin channel; final_score = dense_weight*dense_cosine + sparse_weight*weighted_lexical_overlap + exact+youth. That is complete weighted sum over union.",
+    "no_new_signal": "Both use only existing dense and sparse signals defined in steps 2-3; no new axis, signal, normalization, or embedding/model introduced. Difference is channel-membership-conditioned zeroing vs complete computation.",
+    "standing_18_tuples_unchanged": "fusion_method enum values unchanged; semantics clarification only, no tuple addition/deletion/value change",
+    "union": "final_score contribution from a channel is 0 if policy not present in that channel's top-100 source pool. Dense_score only if policy in filtered dense top-100; sparse_score only if in sparse top-100. Both computed only on membership. Exact+youth always added."
+  },
+  "gating_contract_ref": {
+    "dev": "180 total (headline 130 = 21/25/21/25/18/20, safety 50 = 23/27, location 54), holdout 250 total (headline 180 = 28/33/31/36/24/28, safety 70 = 32/38, location 75), Wilson/Clopper headline Success@5 PASS point>=85% AND Wilson lower>=80% on n=180, safety integers 26/27 and 21/23 dev / 37/38 and 29/32 holdout, production_exclusion 0/250 & 0/1250 holdout 0/180 & 0/900 dev, official-link 100% + HTTP ceil(0.99*unique), MAX24, latency candidate p95 <= baseline+80ms AND <=700ms, audit/provenance/isolation/one-shot/rerun prevention",
+    "holdout_note": "Holdout v1 protected freeze 250 (headline 180 safety 70 location 75) already frozen on branch codex/retrieval-v3-holdout-freeze commit 978eeebbe423496cf2e95af410144efaf6fce406 tag retrieval-v3-holdout-v1 object 3028f72122a10feaeb54987d69c3045714babe8a peeled 978eeeb..."
+  },
+  "max_configs": 24,
+  "parameter_semantics": {
+    "fixed_not_tunable": {
+      "CANDIDATES": "fixed 30 per baseline; not swept (forbidden v2 axis)",
+      "COSINE_MIN": "fixed 0.78 not swept",
+      "RERANK_cross_encoder": "not used (RERANK=0 baseline, Candidate B only if gated)",
+      "embedding_model": "fixed intfloat/multilingual-e5-base not changed",
+      "global_abstention_threshold": "not introduced",
+      "lexical_stopwords": "fixed source_ranking.py LEXICAL_STOPWORDS",
+      "public_region_search": "not introduced",
+      "region_filter": "not used (region 400 unavailable)",
+      "strip_region": "fixed, region filter unavailable",
+      "youth_source_bias": "fixed 0.015 rule per baseline, not swept"
+    },
+    "overview": "All Candidate A configs use fielded sparse+dense union/hybrid + exact title/org/entity + explicit field weighting + duplicate/diversification. No new signal/model/embedding. Scoring is deterministic, no adaptive generation.",
+    "parameters": {
+      "dedup_cosine_threshold": {
+        "allowed": [
+          0.95,
+          0.97,
+          0.98
+        ],
+        "semantics": "cosine similarity above which duplicate is suppressed",
+        "type": "float"
+      },
+      "dense_weight": {
+        "allowed": [
+          0.9,
+          1.0,
+          1.1
+        ],
+        "semantics": "multiplier for dense_cosine before addition",
+        "type": "float"
+      },
+      "diversification_lambda": {
+        "allowed": [
+          0.0,
+          0.3
+        ],
+        "semantics": "MMR lambda; 0.0=no diversification, 0.3=light diversification",
+        "type": "float"
+      },
+      "exact_org_boost": {
+        "allowed": [
+          0.0,
+          0.05,
+          0.1
+        ],
+        "semantics": "additive boost when query matches org",
+        "type": "float"
+      },
+      "exact_title_boost": {
+        "allowed": [
+          0.0,
+          0.07,
+          0.15
+        ],
+        "semantics": "additive boost when query exactly matches title substring",
+        "type": "float"
+      },
+      "field_weight_eligibility": {
+        "allowed": [
+          1.0,
+          1.2
+        ],
+        "semantics": "multiplier for count_eligibility (add_qualify etc.)",
+        "type": "float"
+      },
+      "field_weight_support_content": {
+        "allowed": [
+          1.0,
+          1.2
+        ],
+        "semantics": "multiplier for count_support",
+        "type": "float"
+      },
+      "field_weight_title": {
+        "allowed": [
+          1.0,
+          1.5,
+          2.0
+        ],
+        "semantics": "multiplier for count_title in weighted lexical overlap",
+        "type": "float"
+      },
+      "fusion_method": {
+        "allowed": [
+          "union",
+          "hybrid_weighted_sum"
+        ],
+        "semantics": "Executable distinction using only existing dense/sparse signals with no new axis/normalization: union = weighted sum BUT each channel contributes only if the policy was actually retrieved in that channel's top-100 (otherwise that channel's contribution = 0). That is: if policy P in dense top-100 (after COSINE_MIN filtering) but NOT in sparse top-100, dense_score = dense_weight*dense_cosine (computed), sparse_score = 0. If P in sparse top-100 but not dense, sparse_score = sparse_weight*weighted_lexical_overlap, dense_score = 0. If in both, both computed. hybrid_weighted_sum = SAME union pool (filtered dense top-100 ∪ sparse top-100 deduped) BUT for every policy in union, BOTH dense_cosine and weighted lexical counts are computed regardless of which channel brought the policy (complete weighted sum). So union respects channel membership sparsity, hybrid is complete sum over union. Double-counting is by inclusion: both use final_score = dense_score + sparse_score + exact_score + youth_score with same weights, no new normalization/signal; only membership-conditioned zeroing differs. This matches standing 'union only vs weighted sum' wording and actual repo where only dense and sparse channels exist. Both variants share exact/youth contributions identically. No new embedding/model/normalization introduced.",
+        "type": "enum"
+      },
+      "sparse_weight": {
+        "allowed": [
+          0.005,
+          0.01,
+          0.02
+        ],
+        "semantics": "multiplier for weighted lexical overlap (lexical_bias analog)",
+        "type": "float"
+      }
+    },
+    "scoring_order_and_normalization": {
+      "determinism": "All steps deterministic: same qvec, same per-field counts, same scoring formula, same tie-breaks, same dedup threshold comparison (strict >), same MMR greedy order to 30, no randomness, no result-dependent branching. Positions 1-30 fully deterministic via greedy selection; if pool exhausts before 30, remaining positions empty (no filler).",
+      "representative_vector_tie_break": "Policy representative vector for dedup/MMR is the single existing policy_chunk.embedding that minimizes cosine distance to qvec for that policy; tie deterministic by smallest chunk_index asc, then smallest policy_chunk.id asc. Stored policy_chunk.embedding is normalize_embeddings=True output rounded to 6 decimals per component, so not guaranteed unit norm; actual cosine for dedup/MMR is dot/(norm(a)*norm(b)), not raw dot, equivalent to pgvector cosine semantics. Source is db/schema.sql policy_chunk.embedding VECTOR(768) only; no separate policy embedding/entity field exists (verified: UNIQUE(source,source_id) is identity). No averaging/pooling/new embedding generation, no persisted renormalization, no model change.",
+      "step_1_query_normalization": "q = strip_region(raw_query) (ml-service/app.py:strip_region); lexical terms = lexical_overlap_terms(q) (source_ranking.py: regex [0-9A-Za-z가-힣]+ len>=2, deduped, stopwords excluded); embedding = SentenceTransformer(intfloat/multilingual-e5-base).encode(['query: '+q], normalize_embeddings=True)[0] (768-dim, query prefix 'query: '). Exact predicates use one exact normalization everywhere: NFC -> strip -> collapse internal whitespace -> casefold. This exact normalization is applied to both q and title/org operands before exact checks. Embedding path does not use this exact normalization.",
+      "step_2_dense": "dense_cosine = 1 - (c.embedding <=> qvec) via pgvector cosine distance on stored embeddings. Stored policy_chunk.embedding is normalize_embeddings=True output rounded to 6 decimals per component, so not guaranteed unit norm; pgvector <=> computes actual cosine distance (1 - dot/(norm(a)*norm(b))). For each policy P, its dense_cosine is the MAX dense_cosine among its chunks (i.e., MIN distance). Per-policy dense identity: SELECT DISTINCT ON (p.id) with ORDER BY p.id, c.embedding <=> qvec matches production nearest semantics. Deterministic tie for chunk selection within policy: minimal distance chunk chosen; tie-break chunk_index asc, then policy_chunk.id asc. No averaging, no new policy embedding. dense_score = dense_weight * dense_cosine; dense_weight in {0.9,1.0,1.1}. Dense top-100 per query is ordered by dense_cosine desc, then source asc, source_id asc, policy.id asc (policy.id is final stable tie-break; canonical identity (source,source_id) UNIQUE).",
+      "step_3_sparse_field_weighted": "Per-field distinct lexical overlap counts: count_title = DISTINCT term ILIKE title, count_support = DISTINCT term ILIKE support_content||' '||summary||' '||keywords, count_eligibility = DISTINCT term ILIKE add_qualify||' '||income_etc||' '||apply_method. Weighted lexical overlap = field_weight_title*count_title + field_weight_support_content*count_support + field_weight_eligibility*count_eligibility. field_weights multipliers baseline 1.0. sparse_score base = sparse_weight * weighted_lexical_overlap with sparse_weight in {0.005,0.01,0.02}. Sparse top-100 per query is ordered by weighted_lexical_overlap (or sparse_score, monotonic) desc, then source asc, source_id asc, policy.id asc. No score normalization beyond weights.",
+      "step_4_exact_signals": "Exact signals are additive boosts (unitless, added to score before ordering). One exact normalization everywhere: NFC -> strip -> collapse internal whitespace -> casefold; applied to normalized q, normalized title, and normalized org operands before any exact check. is_exact_title = 1 iff (normalized q == normalized title) OR (normalized q is a substring of normalized title AND len(normalized q) >=4 AND mechanical boundary condition holds on the match span in normalized title: both sides of the span are either string boundary or adjacent char is NOT in [0-9A-Za-z가-힣]); else 0. Do NOT allow normalized title substring in q except via exact equality. This mechanical boundary is NOT Python regex word-boundary. is_exact_org = 1 iff normalized org operand length >=2 AND (normalized org substring in normalized q OR normalized q substring in normalized org); else 0. The >=2 threshold is on the normalized org operand length, not on match length alone. exact_title_boost in {0.0,0.07,0.15}; exact_org_boost in {0.0,0.05,0.10}; Exact diagnostic uses only title/org predicates; there is NO separate entity field or entity extractor/LLM in schema (db/schema.sql has policy.title, policy.org, no entity column) and exact_entity_boost fixed 0.0 — no executable entity signal beyond title/org exists. Boosts added: exact_score = exact_title_boost*is_exact_title + exact_org_boost*is_exact_org. No entity extractor/LLM/new predicate family.",
+      "step_5_youth_bias_preserved": "youth_source_bias remains fixed per baseline (0.015 when youth terms without Gov24 orgs); not tunable; included in final_score as youth_score = youth_bias (0 or 0.015) added to score (since baseline subtracts from distance, equivalent to adding to score).",
+      "step_6_final_score_and_fusion_membership": "final_score = dense_score + sparse_score + exact_score + youth_score. No additional normalization beyond weights. Fusion membership rule (blocker 3): for fusion_method=union, dense_score is 0 if policy not in dense top-100 (after COSINE_MIN filtering), sparse_score is 0 if not in sparse top-100; for fusion_method=hybrid_weighted_sum, both dense_cosine and weighted lexical counts are computed for every policy in union pool regardless of origin channel (complete sum). Exact and youth contributions always computed. Ordering of final ranking candidate pool before dedup/diversification is by final_score desc, then source asc, source_id asc, policy.id asc (canonical identity (source,source_id) with policy.id final stable). Threshold comparison for dedup/diversification uses strict > (similarity > threshold suppresses).",
+      "step_7_retrieval_pool_cosine_min": "Dense retrieval: compute per-policy dense_cosine via nearest chunk, order per step_2, take top-100. COSINE_MIN=0.78 placement: apply post-LIMIT filter ANALOGOUS to production (production filters after SQL LIMIT): for Candidate A, filter dense candidates with dense_cosine < 0.78 (strict <) BEFORE union, i.e., remove dense entries where dense_cosine < 0.78 (operator >= passes). Sparse top-100 and exact signals are NOT filtered by COSINE_MIN — this preserves sparse/exact family from accidental global removal and matches standing family where COSINE_MIN is a vector threshold. Comparison operator is >= 0.78 passes, < 0.78 removed (inclusive). Sparse top-100 is independently top-100 by weighted lexical score (unfiltered by COSINE_MIN). Union pool = (filtered dense top-100) ∪ (sparse top-100) deduplicated by canonical policy identity (source,source_id) — if duplicate, keep single entry; policy.id remains final tie-break for ordering but dedup key is (source,source_id). Max pool size 200 (100+100) less filtering/dedup. Exact signal is scoring boost, not separate retrieval pool for final Candidate A ranking — final Candidate A pool remains dense+sparse union only; exact candidates are diagnostic/oracle only (see exact_oracle_semantics) and are NOT injected into final Candidate A ranked pool. Final ranking pool after union is sorted by final_score descending per step_6 before dedup/diversification.",
+      "step_8_dedup_diversification_full_top30": "Deterministic dedup/diversification operates on final_score-ordered union pool to produce final ranked list positions 1-30: (a) Greedy dedup: iterate base final order (final_score desc, source asc, source_id asc, policy.id asc); retain first, suppress any later policy Q where actual cosine similarity cos(a,b)=dot(a,b)/(norm(a)*norm(b)) between representative vectors of kept P and Q > dedup_cosine_threshold (threshold in {0.95,0.97,0.98}, strict >). Representative vectors are existing stored policy_chunk.embedding (rounded 6 decimals, not guaranteed unit norm) selected per policy_comparison_vector; similarity is actual cosine, not raw dot, equivalent to pgvector cosine semantics. No averaging/new embedding/persisted renormalization. (b) Diversification (MMR): if diversification_lambda == 0.0, retain dedup-ordered base final order unchanged (no diversification, final top-30 is first 30 of that order or exhaustion). If diversification_lambda == 0.3, MMR greedy: diversification_score = lambda*final_score - (1-lambda)*max_similarity_to_already_selected where max_similarity is actual cosine as defined above; select argmax iteratively to 30 or exhaustion; tie break by base final rank key (smaller base rank wins). MMR continues greedily to 30, not stopping at top5. Positions 1-30 are exactly this MMR order. No randomness."
+    }
+  },
+  "parents": {
+    "prereg": "docs/RETRIEVAL_V3_PREREG.md",
+    "prereg_sha256": "7842018613d66aa4570f4db2f8ae5a698ceb46757995a6b7e26873177b36160e",
+    "candidate_plan_v1": "eval/retrieval-v3/candidate-plan/candidate-plan-v1.json",
+    "candidate_plan_v1_sha256": "2815361a469fee9bf69f6ffdf2124d19928220535cdb08b2005ae6674ae7d17c",
+    "candidate_plan_v2": "eval/retrieval-v3/candidate-plan/candidate-plan-v2.json",
+    "candidate_plan_v2_sha256": "d233f5c4d912e4d0856d89213d6392fbf44494f5538d018e7412f61781ae6cc6",
+    "candidate_plan_v3": "eval/retrieval-v3/candidate-plan/candidate-plan-v3.json",
+    "candidate_plan_v3_sha256": "665771f991a3891869f7d27658eedacbed28ba522afdcadcf8edd4d62b412681",
+    "safe_action_policy": "eval/retrieval-v3/candidate-plan/safe-action-policy-v1.json",
+    "safe_action_policy_sha256": "c512fb5627179697a987b05a2431b8f7e30d1153af2ff6dca37995f6b232a35d",
+    "production_exclusion_policy": "eval/retrieval-v3/candidate-plan/production-exclusion-policy-v2.json",
+    "production_exclusion_policy_sha256": "6fee9ec22d5d3ac153ff19a6b1b5d27ab6a6a43bda11e35821d689f938968fe5",
+    "supersession_doc": "docs/RETRIEVAL_V3_PRODUCTION_EXCLUSION_SUPERSESSION_V2.md",
+    "supersession_doc_sha256": "9767b6c79e08a992a687db033e3eb63b7fdd3c7eb9b7c5013e1afc6eefd4ca7b"
+  },
+  "plan_id": "retrieval-v3-candidate-plan-v4",
+  "policy_comparison_vector": {
+    "definition": "For each query qvec, representative vector for policy P is the embedding of the single existing policy_chunk row belonging to P that minimizes cosine distance to qvec (max dense_cosine, where dense_cosine = 1 - (c.embedding <=> qvec) via pgvector cosine distance). Deterministic selection among policy's chunks: minimal distance first, tie smallest chunk_index asc, then smallest policy_chunk.id asc. Stored policy_chunk.embedding originates from SentenceTransformer intfloat/multilingual-e5-base with normalize_embeddings=True then each component rounded to 6 decimals, so stored vectors are not guaranteed unit norm. No averaging, no pooling, no new policy embedding/entity embedding, no model change, no persisted renormalization.",
+    "forbidden": "No averaging, no pooling, no new embedding generation, no LLM/entity extractor, no persisted renormalization",
+    "production_analogy": "Matches production nearest semantics: SELECT DISTINCT ON (p.id) ORDER BY p.id, c.embedding <=> qvec picks per-policy nearest chunk by distance",
+    "schema_source": "db/schema.sql: policy_chunk(policy_id, chunk_index, content, embedding VECTOR(768)), policy UNIQUE(source,source_id), no separate policy/entity embedding column",
+    "usage": "Used for dedup pairwise cosine similarity and for diversification max_similarity_to_already_selected. Both compute actual cosine cos(a,b)=dot(a,b)/(norm(a)*norm(b)), equivalent to pgvector cosine semantics on stored vectors. Stored vectors are not guaranteed unit norm due to 6-decimal rounding, so raw dot != cosine in general; dedup/MMR MUST use the normalized cosine formula. No persisted renormalization, no model/signal change."
+  },
+  "provenance": {
+    "created_by": "Muse Spark 1.3 Contributor:xhigh (plan) -- D-053 freeze lineage",
+    "derived_from": "candidate-plan-v3.json SHA256 665771f991a3891869f7d27658eedacbed28ba522afdcadcf8edd4d62b412681; production-exclusion-policy-v2.json SHA256 6fee9ec22d5d3ac153ff19a6b1b5d27ab6a6a43bda11e35821d689f938968fe5; supersession doc SHA256 9767b6c79e08a992a687db033e3eb63b7fdd3c7eb9b7c5013e1afc6eefd4ca7b; D-049/D-050/D-052 history preserved, never rewritten",
+    "frozen_at_basis": "D-053 stage-local artifact authoring instant 2026-09-04T01:27:33+09:00 (Asia/Seoul wall clock); exact pre-commit instant not separately durable",
+    "investigation_basis": "D-053 performed no live DB probe, no network/HTTP, no model/embedding load, no retrieval/search/ranking execution, no protected plaintext access. Timezone mismatch taken from durable Web independent-review read-only evidence (SHOW TimeZone = GMT, SELECT CURRENT_DATE = 2026-09-03 while Asia/Seoul local date was already 2026-09-04). D-003 predicate re-verified read-only from ml-service/app.py working-tree source; evaluation_as_of_date value NOT set and no DB query performed to obtain one.",
+    "model_roles_external_verification": {
+      "default": "opencode-go/muse-spark-1.3-contributor:xhigh",
+      "plan": "opencode-go/muse-spark-1.3-contributor:xhigh",
+      "note": "Verified live in-repo via omp config get modelRoles (OMP 18.1.5, project .omp absent); global defaultThinkingLevel=high is fallback only and does not override the xhigh role suffix; Paseo UI for this workspace shows Muse Spark 1.3 Contributor / 매우 높음"
+    },
+    "reconciled_start": "branch codex/retrieval-v3-user-search-quality HEAD d1f955efe580ad86d679504e26b51d04bedeae96 clean, local==upstream==actual remote verified, git diff --check PASS, ml-service diff 0, dev/holdout/audit paths absent in working tree, protected branch/tag refs unchanged"
+  },
+  "safe_action_policy": {
+    "common_to_all_configs": true,
+    "does_not_expand_max24": true,
+    "not_a_tuning_axis": true,
+    "policy_artifact": "eval/retrieval-v3/candidate-plan/safe-action-policy-v1.json",
+    "policy_id": "retrieval-v3-safe-action-policy-v1",
+    "policy_sha256": "c512fb5627179697a987b05a2431b8f7e30d1153af2ff6dca37995f6b232a35d",
+    "scope": "Exactly ONE deterministic pre-result action policy (ANSWER/ABSTAIN/CLARIFY), fixed before protected dev without protected labels/results/result-driven tuning. All 18 candidate-a-01..18 configs share it; no per-config action variant exists, so no action-policy sweep on dev is possible by construction.",
+    "supersession_artifact": "docs/RETRIEVAL_V3_SAFE_ACTION_SUPERSESSION_V1.md"
+  },
+  "secondary_diagnostics_D026": {
+    "contract": "category / freshness / common-vs-rare and secondary slice reporting (source/category/freshness/common-vs-rare per-slice Success@5) are non-gating diagnostic only per D-026 bounded correction (2026-09-02). Not a release gate, not freeze/seal hard invariant, not HOLD/NO-GO.",
+    "prohibition": "Do not infer/synthesize/auto-label missing category/freshness/common-vs-rare, do not create new mapping/threshold from source_truth, do not read holdout plaintext to fill gaps.",
+    "reporting_rule": "Report per-slice diagnostics only when slice metadata exists on sealed holdout and is authoritative/recomputable; if absent or not authoritatively determinable, report as unavailable / insufficiently characterized (reporting limitation, not data-regeneration requirement). Missing/insufficient secondary diagnostic metadata alone does not invalidate holdout freeze and is not a hard gate."
+  },
+  "selection_rule": {
+    "candidate_b_not_in_selection": "Candidate B not instantiated in this plan; selection applies only to Candidate A configs above",
+    "eligibility": "dev safety gates (§9) must PASS AND Success@5 >=85% on dev headline 130 (exact 130 by construction, Wilson not gating dev but point threshold is)",
+    "no_qualifier_action": "If 0 configs pass eligibility, no holdout evaluation (NO-GO for this cycle)",
+    "ordering": "Success@5 desc -> NDCG@5 desc -> MRR@10 desc -> paired p95 asc -> lexicographic config_id asc",
+    "paired_p95_method": "paired baseline-vs-candidate on ALL dev 180 tasks, same env/DB/corpus, warm, interleaved, cold/model-load excluded, exactly one timed sample per task per variant after deterministic warm-up over first 30 task_ids sorted, alternate variant order, nearest-rank p50/p95/p99, gate candidate p95 <= baseline p95+80ms AND <=700ms",
+    "safety_gates_dev": {
+      "ambiguous_correct_ge90": "ceil(0.90*23)=21 => PASS >=21/23, else NO-GO",
+      "cost": "index <=2x baseline, per-query DB rows <=3x baseline, 0 extra model calls unless Candidate B admitted, missing => HOLD",
+      "production_exclusion_intrusion": "0/180 tasks AND 0/900 slots in Candidate-A internal final top-5 per production-exclusion-policy-v2 (biz_end < pinned evaluation_as_of_date), any intrusion => NO-GO, missing => HOLD",
+      "official_link": "semantic 100% + HTTP >= ceil(0.99*unique), missing => HOLD",
+      "unsupported_correct_ge95": "ceil(0.95*27)=26 => PASS >=26/27, else NO-GO"
+    }
+  },
+  "standing_contract_refs": [
+    "D-013",
+    "D-015",
+    "D-016",
+    "D-017",
+    "D-025",
+    "D-026"
+  ],
+  "supersession": {
+    "decision": "D-053",
+    "kind": "PRE-RESULT semantic SUPERSESSION of the production-exclusion timezone/as-of capture reference only",
+    "preserves": "All 18 ranking tuples, ranking semantics, final-pool semantics (dense+sparse union only; exact diagnostic-only), deterministic selection ordering, MAX24 cap, D-003 baseline, embedding, Candidate-B gate, headline/location/safety integer gates, latency/cost, audit/one-shot/rerun-prevention contracts, D-026 diagnostics, safe-action policy reference, gate predicate/denominators/truth table — verified identical to v3 by test_retrieval_v3_production_exclusion_timezone_contract.py.",
+    "supersedes": "The Asia/Seoul as-of capture semantics in policy-v1 and plan-v3's policy-v1 reference (selection_rule.safety_gates_dev production_exclusion_intrusion policy ref and production_exclusion_policy block). Policy-v1, supersession V1 doc, and plan-v3 bytes immutable; D-015/D-016/D-017 and D-052 history stays visible.",
+    "not_result_driven": "No protected result exists; nothing tuned or relaxed against outcomes. Pre-result contract repair before any protected result, not result-driven relaxation."
+  },
+  "version": "4.0.0",
+  "production_exclusion_policy": {
+    "policy_id": "retrieval-v3-production-exclusion-policy-v2",
+    "policy_sha256": "6fee9ec22d5d3ac153ff19a6b1b5d27ab6a6a43bda11e35821d689f938968fe5",
+    "policy_artifact": "eval/retrieval-v3/candidate-plan/production-exclusion-policy-v2.json",
+    "supersession_artifact": "docs/RETRIEVAL_V3_PRODUCTION_EXCLUSION_SUPERSESSION_V2.md",
+    "scope": "Exactly ONE deterministic pre-result production-exclusion gate (production_exclusion), fixed before protected dev without protected labels/results/result-driven tuning. All 18 candidate-a-01..18 configs share it; no per-config exclusion variant exists, so no exclusion sweep on dev is possible by construction.",
+    "common_to_all_configs": true,
+    "not_a_tuning_axis": true,
+    "does_not_expand_max24": true
+  }
+}
