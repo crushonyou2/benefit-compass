@@ -1218,3 +1218,14 @@ One short section per working session: what was worked on, what was decided (wit
 - **Owns whole stage in one session:** reconcile → correction → policy/plan-v2 freeze → eligibility recon → 213 PASS + proofs → D-049 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
 - **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` ROOT/plan (D-036 gate still); delegates exempt.
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
+
+## 2026-09-03 — Retrieval v3 SAME-STAGE Web-HOLD provenance/assertion correction — D-050
+
+- **Reconciled start:** `codex/retrieval-v3-user-search-quality` HEAD `5e7af65` clean (`local==origin==actual remote` via direct `ls-remote`), `git diff --check` PASS, `ml-service` diff 0 vs `5327661`, prereg `78420186` / plan-v1 `2815361a` / policy `c512fb56` / supersession `472b6183` / eligibility `eea3c5ce` unchanged, `dev/`+`holdout/`+result/audit absent, one-shot unconsumed, OMP `18.1.5` / plan `muse-spark-1.3:xhigh` live-verified (`.omp` absent, `defaultThinkingLevel=high` fallback only). User-authorized narrow scope; actual state matched handoff on all points.
+- **HOLD blocker fixed:** v2 `fa370e65` had false D-027/1.2 provenance + `no DB query` assertions contradicting D-049 read-only eligibility aggregates + `PRESERVED_KEYS` forcing stage-local `assertions` equal to v1.
+- **Correction:** plan-v2 → `d233f5c4` (`frozen_at`=D-049 commit ts, 1.3 lineage, live-verified roles, truthful DB-aggregate investigation basis, corrected `no_retrieval_execution`); stripped semantic equality vs `fa370e65` proven (0 substantive diffs); test contract repaired (`assertions` excluded, 20 substantive keys kept, +3 provenance/assertion pins). No ranking/policy/prod change; no DB/network/model/retrieval in this stage.
+- **Verification:** gate 10 files 216 PASS (201+15), `git diff --check` PASS, immutable SHAs unchanged, `ml-service` 0, isolation intact. Broader `eval/` 4 failures proven pre-existing on HEAD (env CRLF/hash-DAG, D-050 files unreferenced). Forbidden 0 (see D-050).
+- **VERDICT: FIRST protected-dev REMAINS BLOCKED. Do NOT launch.**
+- **Owns whole correction in one session:** reconcile → v2/test fix → 216 PASS + proofs → D-050 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
+- **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` plan (live-verified); delegates exempt.
+- **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.

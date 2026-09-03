@@ -1794,3 +1794,31 @@ Protected dev/holdout plaintext access or recovery 0 (`git show`/`cat-file`/`che
 The freeze stage only builds the legitimate pre-result channel; implementation is unreviewed and eligibility evidence is HOLD. Running FIRST dev now would still spend protected one-shot surface before the frozen policy is implemented/reviewed and before the eligibility gate is measurable.
 
 Standing decisions D-013/D-015/D-016/D-017/D-018…D-048 remain as history/corrected where applicable. Next gate after this record and its atomic commit/push is **STOP for Web read-only independent review** (not implementation, not FIRST dev retrieval, not candidate tuning).
+
+## D-050 · Retrieval v3 SAME-STAGE Web-HOLD provenance/assertion correction (candidate-plan-v2 stage-local fields only) — 2026-09-03 (user-authorized, then STOP for Web review)
+
+User explicitly approved proceeding; this Paseo/OMP workspace owns this narrow correction end-to-end, then STOP for Web read-only independent review. Append-only: D-049 text/history preserved; D-049 committed candidate-plan-v2 SHA256 `fa370e65d39b415800c7462ae44b4d65460e47b7e7cac36506d96e5f062f3928` retained as historical artifact identity, never rewritten. No FIRST protected dev; no protected plaintext touched; no DB query, no network, no model/embedding load in this correction (used already-durable D-049 facts).
+
+Reconciled base (read-only first, actual state wins): branch `codex/retrieval-v3-user-search-quality` HEAD `5e7af65beaa61c44883ae6d038d6bec37334a217` clean, local==upstream==actual remote (direct `ls-remote`), D-049 commit timestamp `2026-09-03T23:18:01+09:00`; prereg `78420186...` / plan-v1 `2815361a...` / policy `c512fb56...` / supersession-doc `472b6183...` / eligibility-doc `eea3c5ce...` SHAs verified unchanged; OMP `18.1.5`, project `.omp` absent, `modelRoles` live-verified default/plan `opencode-go/muse-spark-1.3-contributor:xhigh`, task `openai-codex/gpt-5.6-luna:xhigh`, review `openai-codex/gpt-5.6-luna:max`, global `defaultThinkingLevel=high` fallback only; `dev/`+`holdout/`+canonical result/audit absent; one-shot unconsumed; `ml-service` diff 0.
+
+### Web HOLD blocker (factual provenance mismatch in D-049 v2 `fa370e65`)
+
+- `frozen_at` `2026-09-03T23:12:40+09:00` with `created_by`/`model_roles_external_verification` copied from historical Muse Spark 1.2 and `frozen_at_basis` pointing to D-027 `2026-09-02` — false for the D-049 freeze.
+- `assertions.no_retrieval_execution` (`no DB connection/query ... in this stage`) and `provenance.investigation_basis` (no DB execution) contradicted D-049's read-only aggregate/schema/source-metadata DB queries for eligibility reconciliation plus first-party official Youth schema/code-document lookup.
+- `eval/test_retrieval_v3_safe_action.py` `PRESERVED_KEYS` included the whole `assertions` object, forcing stage-local v1 assertions/provenance-like factual claims into v2.
+
+### Correction (authorized files only; ranking semantics untouched)
+
+- `eval/retrieval-v3/candidate-plan/candidate-plan-v2.json` → SHA256 `d233f5c4d912e4d0856d89213d6392fbf44494f5538d018e7412f61781ae6cc6`: `frozen_at` = D-049 commit timestamp `2026-09-03T23:18:01+09:00` (durable boundary per D-028 precedent); `created_by` → Muse Spark 1.3 Contributor:xhigh plan lineage; `model_roles_external_verification` → live-verified roles + `.omp` absent + `defaultThinkingLevel` fallback note + Paseo UI 1.3/매우 높음; `investigation_basis` → read-only eligibility aggregates + official lookup with explicit no-protected/no-benchmark list; `no_retrieval_execution` → no retrieval/benchmark BUT read-only eligibility DB aggregates DID occur. Stripped semantic equality vs `fa370e65` blob proven: 0 diffs outside `frozen_at`/`provenance`/`assertions`; inside `assertions` only `no_retrieval_execution` changed.
+- `eval/test_retrieval_v3_safe_action.py`: `assertions` removed from `PRESERVED_KEYS` (all 20 substantive keys still enforced); +3 tests (exclusion pin, assertions truth, provenance truth). Suite 12→15 PASS.
+- Unchanged bytes: prereg, plan-v1, policy, supersession-doc, eligibility-doc; all 18 configs, allowed/forbidden axes, ranking/fusion/exact/final-pool semantics, selection rule, MAX24, D-003 baseline, embedding, Candidate-B gate, integer gates, latency/cost, audit/one-shot/rerun prevention, D-026 diagnostics, policy reference/id/SHA/common-to-all/not-tuning-axis semantics; `runner.py`/`safety.py`/prod code; historical D-027/D-028 provenance in v1.
+
+### Verification (pure/static only, before commit)
+
+- Retrieval-v3 gate 10 files **216 PASS** (201 existing across 9 files + 15 safe-action); `git diff --check` PASS; prereg/plan-v1/policy/supersession/eligibility SHAs unchanged; `ml-service` diff 0; `dev/`+`holdout/`+canonical result/audit absent; one-shot unconsumed.
+- Broader `eval/` shows 4 failures in v2-cycle2/3 devset/canonical tests proven pre-existing on clean HEAD via `git stash` (CRLF-checkout/hash-DAG environment issues; zero references to D-050 files) — D-050 scope unaffected.
+- Working tree holds only intended files: corrected plan-v2, repaired test, D-050, SESSION-LOG.
+
+### VERDICT: FIRST protected-dev launch REMAINS BLOCKED (not authorized; do not launch)
+
+Correction only narrows provenance/assertion falsehoods; implementation remains unreviewed and eligibility stays HOLD. Next gate after this record and its atomic commit/push is **STOP for Web read-only independent review** (not implementation, not FIRST dev retrieval, not candidate tuning).

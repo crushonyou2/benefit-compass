@@ -13,7 +13,7 @@
     "no_history_rewrite": "No amend/rebase/reset/force-push/tag deletion",
     "no_holdout_plaintext_access": "No protected holdout plaintext accessed via git show/cat-file/checkout/restore/sparse-checkout/worktree/path traversal in this stage; verification only via plaintext-free refs (branch/tag SHAs)",
     "no_new_gate": "No new gate/process/dataset regeneration requirement added beyond standing prereg",
-    "no_retrieval_execution": "No retrieval/search/ranking execution, no DB connection/query, no model/embedding load, no benchmark/latency/HTTP checker execution in this stage",
+    "no_retrieval_execution": "No retrieval/search/ranking performance execution, no model/embedding load, no benchmark/latency/HTTP checker execution in this stage; READ-ONLY eligibility DB aggregate/schema/source-metadata queries DID occur in D-049 (never claim no DB query)",
     "production_diff": "git diff 5327661445c37191a3fd61db195f3af4d2cf893a..HEAD -- ml-service/ = 0"
   },
   "base_commit": "5327661445c37191a3fd61db195f3af4d2cf893a",
@@ -312,7 +312,7 @@
     "range/placeholder/as feasible/adaptive generation — all configs are exact tuples, no result-dependent branching",
     "Candidate B instantiation/tuning before gate — B forbidden unless dev headline 130 union oracle Recall@100 >=97% AND (Recall@100 - Candidate-A Success@5) >=5.0pp"
   ],
-  "frozen_at": "2026-09-03T23:12:40+09:00",
+  "frozen_at": "2026-09-03T23:18:01+09:00",
   "fusion_semantics": {
     "executable": "Both are executable with existing per-policy chunk lookup and per-field ILIKE counts; no averaging or new embedding",
     "hybrid_weighted_sum": "Same union pool identity (filtered dense top-100 ∪ sparse top-100 deduped), but for every policy in union BOTH dense_cosine and weighted lexical overlap are computed irrespective of origin channel; final_score = dense_weight*dense_cosine + sparse_weight*weighted_lexical_overlap + exact+youth. That is complete weighted sum over union.",
@@ -455,21 +455,21 @@
     "usage": "Used for dedup pairwise cosine similarity and for diversification max_similarity_to_already_selected. Both compute actual cosine cos(a,b)=dot(a,b)/(norm(a)*norm(b)), equivalent to pgvector cosine semantics on stored vectors. Stored vectors are not guaranteed unit norm due to 6-decimal rounding, so raw dot != cosine in general; dedup/MMR MUST use the normalized cosine formula. No persisted renormalization, no model/signal change."
   },
   "provenance": {
-    "created_by": "Muse Spark 1.2 Contributor:xhigh (plan) via external stage-coordinator pre-launch omp verification; Paseo shell omp binary unavailable; delegated agents root gate exempt per contract",
-    "derived_from": "candidate-plan-v1.json SHA256 2815361a469fee9bf69f6ffdf2124d19928220535cdb08b2005ae6674ae7d17c; only plan_id/version/frozen_at changed and parents/safe_action_policy/supersession blocks added; every other key byte-identical in value",
-    "frozen_at_basis": "D-027 commit timestamp 2026-09-02T14:30:56+09:00; exact pre-commit artifact creation instant not separately durable",
-    "investigation_basis": "Read-only inspection of ml-service/app.py (SQL, CANDIDATES, COSINE_MIN, strip_region, youth bias), ml-service/source_ranking.py (LEXICAL_OVERLAP_BIAS, lexical terms), db/schema.sql (policy, policy_chunk, vector 768), docs/RETRIEVAL_V3_PREREG.md §7-§9, memory/DECISIONS.md D-013/D-015/D-026 — no DB/model/embedding execution",
+    "created_by": "Muse Spark 1.3 Contributor:xhigh (plan) -- D-049 freeze/correction lineage, stage-local fields corrected in D-050; Paseo workspace UI Muse Spark 1.3 Contributor / 매우 높음",
+    "derived_from": "candidate-plan-v1.json SHA256 2815361a469fee9bf69f6ffdf2124d19928220535cdb08b2005ae6674ae7d17c; safe-action-policy-v1.json SHA256 c512fb5627179697a987b05a2431b8f7e30d1153af2ff6dca37995f6b232a35d; D-049 candidate-plan-v2 SHA256 fa370e65d39b415800c7462ae44b4d65460e47b7e7cac36506d96e5f062f3928 preserved as history; D-050 corrects ONLY stage-local frozen_at/provenance/assertions, all substantive semantic keys value-identical",
+    "frozen_at_basis": "D-049 commit timestamp 2026-09-03T23:18:01+09:00 as durable D-049 semantic freeze boundary per D-028 precedent; exact pre-commit artifact creation instant not separately durable",
+    "investigation_basis": "D-049 performed read-only aggregate/schema/source-metadata DB queries solely for eligibility evidence (policy column inventory, corpus counts 13589=gov24 10958+youth 2631, Youth raw code distributions, Gov24 key inventory; no row plaintext, no evalset bytes) plus first-party official Youth schema/code-document lookup (API코드정보.xlsx via youthcenter.go.kr); no protected data, no retrieval/search/ranking benchmark, no model/embedding load, no prereg official-link checker, no latency benchmark",
     "model_roles_external_verification": {
-      "default": "opencode-go/muse-spark-1.2-contributor:xhigh",
-      "note": "Web coordinator (external stage-coordinator pre-launch verification) ran Windows repo `omp config get modelRoles` before Paseo launch; Paseo shell itself lacked omp binary",
-      "paseo_shell_omp_binary": "unavailable (Paseo shell has no omp binary; external stage-coordinator pre-launch verification + UI-visible confirmation)",
-      "paseo_ui_visible": "Muse Spark 1.2 Contributor / 매우 높음(xhigh) for this workspace",
-      "plan": "opencode-go/muse-spark-1.2-contributor:xhigh",
+      "default": "opencode-go/muse-spark-1.3-contributor:xhigh",
+      "note": "Verified live in-repo via omp config get modelRoles (OMP 18.1.5, project .omp absent); global defaultThinkingLevel=high is fallback only and does not override the xhigh role suffix; Paseo UI for this workspace shows Muse Spark 1.3 Contributor / 매우 높음",
+      "paseo_shell_omp_binary": "available in this workspace shell (verified live); project .omp absent",
+      "paseo_ui_visible": "Muse Spark 1.3 Contributor / 매우 높음(xhigh) for this workspace",
+      "plan": "opencode-go/muse-spark-1.3-contributor:xhigh",
       "review": "openai-codex/gpt-5.6-luna:max",
       "task": "openai-codex/gpt-5.6-luna:xhigh"
     },
-    "reconciled_start": "branch codex/retrieval-v3-user-search-quality HEAD f5f8377a9710256db4aa4f46e7992b1274c5bf2d clean, local==upstream==actual remote verified, git diff --check PASS, ml-service diff 0, main holdout absent, protected branch/tag refs unchanged",
-    "timestamp_basis": "D-027 commit timestamp; exact pre-commit artifact creation instant not separately durable"
+    "reconciled_start": "branch codex/retrieval-v3-user-search-quality HEAD 5e7af65beaa61c44883ae6d038d6bec37334a217 clean, local==upstream==actual remote verified, git diff --check PASS, ml-service diff 0, dev/holdout/audit paths absent in working tree, protected branch/tag refs unchanged",
+    "timestamp_basis": "D-049 commit timestamp 2026-09-03T23:18:01+09:00 as durable D-049 semantic freeze boundary per D-028 precedent; exact pre-commit artifact creation instant not separately durable"
   },
   "safe_action_policy": {
     "common_to_all_configs": true,

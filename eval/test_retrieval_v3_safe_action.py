@@ -28,11 +28,16 @@ POLICY = REPO / "eval" / "retrieval-v3" / "candidate-plan" / "safe-action-policy
 EXPECTED_POLICY_SHA = "c512fb5627179697a987b05a2431b8f7e30d1153af2ff6dca37995f6b232a35d"
 EXPECTED_V1_SHA = "2815361a469fee9bf69f6ffdf2124d19928220535cdb08b2005ae6674ae7d17c"
 EXPECTED_PREREG_SHA = "7842018613d66aa4570f4db2f8ae5a698ceb46757995a6b7e26873177b36160e"
+EXPECTED_D049_COMMIT_TS = "2026-09-03T23:18:01+09:00"
+EXPECTED_V2_HISTORICAL_SHA = "fa370e65d39b415800c7462ae44b4d65460e47b7e7cac36506d96e5f062f3928"
 
-# Keys that must be value-identical between v1 and v2 (everything except the
-# version-identity metadata and the newly added freeze blocks).
+# Substantive semantic keys that must be value-identical between v1 and v2.
+# Stage-local `assertions` are deliberately EXCLUDED (D-050): v1 assertions
+# describe the D-027 freeze, v2 assertions describe the D-049 freeze (which
+# performed read-only eligibility DB aggregates), so blind equality would force
+# false provenance. v2 assertions are pinned truthful by dedicated tests below.
 PRESERVED_KEYS = [
-    "allowed_axes", "assertions", "base_commit", "base_commit_tag", "baseline_identity",
+    "allowed_axes", "base_commit", "base_commit_tag", "baseline_identity",
     "branch", "candidate_b_gate", "candidate_family", "configs", "cosine_min_placement",
     "deterministic_ordering_contract", "exact_oracle_semantics", "forbidden_axes",
     "fusion_semantics", "gating_contract_ref", "max_configs", "parameter_semantics",
@@ -104,6 +109,42 @@ def test_v1_to_v2_contracts_preserved():
     for key in PRESERVED_KEYS:
         assert v2[key] == v1[key], f"contract key changed in v2: {key}"
     assert v2["max_configs"] == 24, "MAX24 must not expand"
+
+def test_assertions_excluded_from_preserved_keys():
+    assert "assertions" not in PRESERVED_KEYS, "stage-local assertions must not be forced equal to v1 (D-050)"
+
+
+def test_v2_stage_local_assertions_truthful():
+    v1 = _load(PLAN_V1)
+    v2 = _load(PLAN_V2)
+    # Only no_retrieval_execution truthfully diverges; every other stage-local
+    # assertion is unchanged from v1.
+    for key in v1["assertions"]:
+        if key == "no_retrieval_execution":
+            continue
+        assert v2["assertions"][key] == v1["assertions"][key], f"assertion changed without basis: {key}"
+    stmt = v2["assertions"]["no_retrieval_execution"]
+    assert "READ-ONLY" in stmt and "DID occur" in stmt
+    assert "no DB connection/query" not in stmt, "must never claim no DB query (D-049 aggregates occurred)"
+
+
+def test_v2_provenance_truthful():
+    v2 = _load(PLAN_V2)
+    prov = v2["provenance"]
+    assert v2["frozen_at"] == EXPECTED_D049_COMMIT_TS
+    assert EXPECTED_D049_COMMIT_TS in prov["frozen_at_basis"]
+    assert "1.3" in prov["created_by"] and "1.2" not in prov["created_by"]
+    roles = prov["model_roles_external_verification"]
+    assert roles["default"] == "opencode-go/muse-spark-1.3-contributor:xhigh"
+    assert roles["plan"] == "opencode-go/muse-spark-1.3-contributor:xhigh"
+    assert roles["task"] == "openai-codex/gpt-5.6-luna:xhigh"
+    assert roles["review"] == "openai-codex/gpt-5.6-luna:max"
+    assert "defaultThinkingLevel" in roles["note"] and "fallback" in roles["note"]
+    basis = prov["investigation_basis"]
+    assert "read-only" in basis and "eligibility" in basis
+    assert "no protected data" in basis and "no model/embedding load" in basis
+    assert EXPECTED_V2_HISTORICAL_SHA in prov["derived_from"]
+    assert EXPECTED_V1_SHA in prov["derived_from"] and EXPECTED_POLICY_SHA in prov["derived_from"]
 
 
 def test_single_common_action_policy_not_tuning_axis():
