@@ -1369,3 +1369,9 @@ One short section per working session: what was worked on, what was decided (wit
 - Removed the complete `Chat On Steroids path/privacy` section from both `AGENTS.md` and `CLAUDE.md`.
 - Added a narrow desktop-interaction policy to both files: routine Paseo creation/prompt/progress/background management must use Core/CLI/daemon/process/log/repo mechanisms; read-only `Desktop.observe` is allowed when useful; focus-changing `Desktop.computer` input requires explicit user request or user-approved necessity when no non-disruptive path exists.
 - No Retrieval v3 contract, protected set, one-shot state, production code, or evaluation result was touched. The next Retrieval v3 repair decision id advances past D-063.
+
+### D-063 clarification — Desktop approval escalation
+
+- User clarified that direct Desktop control may still be necessary for some tasks and asked whether the current rule would cause an agent to give up rather than ask.
+- Strengthened `AGENTS.md` and `CLAUDE.md`: when `Desktop.computer` is genuinely necessary and not already approved, the agent must ask the user first, briefly explain why it is needed and what interaction will occur, then proceed only after approval. Missing approval is not grounds for silent abandonment; declined/no approval means stop without Desktop input.
+- This is an append-only clarification of D-063, not a new decision id. Retrieval v3 next free decision id remains D-064.
