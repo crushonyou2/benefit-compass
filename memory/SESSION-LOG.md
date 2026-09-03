@@ -1072,3 +1072,12 @@ One short section per working session: what was worked on, what was decided (wit
 - **Model:** `opencode-go/muse-spark-1.2-contributor:xhigh` (plan) externally verified `default/plan xhigh, task xhigh, review max` + Paseo UI `Muse Spark 1.2 Contributor / 매우 높음(xhigh)` for ROOT/HEAD (delegates exempt; protected repair delegates exempt from root gate). This one Paseo session owns the whole repair.
 
 - **Commit details (to be filled after push):** main correction commit SHA/message, push/reconcile, protected SHAs, κ, preserved proofs, forbidden counts, final clean verification.
+
+## 2026-09-03 — Retrieval v3 OMP ROOT/plan provenance transition — Muse Spark 1.2 historical → Muse Spark 1.3 / OMP 18.1.5
+
+- User authorized proceeding after the SAME-STAGE Web independent review HOLD, with an explicit gate that no new Paseo/OMP ROOT/plan execution occur until current effective config is reconciled into durable SSOT.
+- Actual start: `codex/retrieval-v3-user-search-quality` HEAD `b6134842f88260bdf7abe07d8230ca0cae7dde4a`, origin `2249d208151b701bda688f49a094c2774e52d963`, ahead 6/behind 0, clean, `git diff --check` PASS, `ml-service` diff 0.
+- Runtime: OMP `18.1.5`, Paseo `0.7.2`, effective ROOT/plan `opencode-go/muse-spark-1.3-contributor:xhigh`; historical 1.2 provenance remains unchanged.
+- Compatibility evidence: direct OMP `OMP13_OK` exit 0; Paseo agent `9227ffa8-0f06-409a-80b3-c98730019c60` → `PASEO13_OK`; underlying OMP session `01a0668b-493d-7463-8876-cd78311c613a` = `api openai-responses`, provider `opencode-go`, model `muse-spark-1.3-contributor`, `totalTokens 21545`, `stopReason stop`, responseId `resp_6a993a3e38acbf0fb24d49ee`.
+- D-036 is prospective model-provenance correction only; no candidate-plan/prereg/gate/protected-set/production change. FIRST dev retrieval, canonical audit run, real DB/model/embedding/network/HTTP/latency benchmark, protected plaintext access and holdout evaluation remain forbidden.
+- Next: Paseo UI-visible Muse 1.3/xhigh SAME-STAGE runner repair limited to concrete Web HOLD blockers, pure/static/mock verification, then STOP for Web independent review.
