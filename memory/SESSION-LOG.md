@@ -1237,3 +1237,14 @@ One short section per working session: what was worked on, what was decided (wit
 - Applied project-wide rule in `AGENTS.md` and `CLAUDE.md`: prefer current cwd + repo-relative paths; worker instructions refer to the current benefit-compass repository without native home paths.
 - Durable decision: D-051. Genuine sensitive-information confirmations remain intact; no safety bypass is attempted.
 - Retrieval v3 state/contract unchanged; this is tool-addressing/project-guidance only.
+
+## 2026-09-04 — Retrieval v3 NEW LOGICAL STAGE — pre-result production-exclusion contract supersession freeze — D-052
+
+- **Reconciled start:** `codex/retrieval-v3-user-search-quality` HEAD `3b77770` clean (`local==origin==actual remote` via direct `ls-remote`), `git diff --check` PASS, `ml-service` diff 0 vs `5327661`; six immutable SHA256 verified (prereg `78420186`, plan-v1 `2815361a`, plan-v2 `d233f5c4`, policy `c512fb56`, safe-action doc `472b6183`, eligibility doc `eea3c5ce`); `dev/`+`holdout/`+canonical result/audit absent (`results/` empty); one-shot unconsumed; OMP `18.1.5`, `.omp` absent, roles default+plan `muse-spark-1.3-contributor:xhigh` live-verified; D-051 repo-relative path rule observed throughout.
+- **Disposition applied:** unexecutable global `eligible=false OR expired=true` gate → measurable D-003 production-parity `production_exclusion` contract (predicate `biz_end < evaluation_as_of_date`, null ≠ not-expired/eligible, fail-closed HOLD, dev 180/900 + holdout 250/1250, Asia/Seoul as-of pin, no value set, no DB query). No fabrication, no defaults, no text parsing.
+- **Freeze (append-only, old bytes untouched):** supersession doc `63cdc432`, policy JSON `3bcfc5b8`, plan-v3 `665771f9` (programmatic v2 deep copy; 19 keys + 18/18 configs proven identical; only gate rename + six parents + stage-local metadata differ), contract test 17 pure tests. D-015/16/17 history visible; supersession recorded in D-052 only per D-049/D-050 precedent.
+- **Verification:** focused 17 PASS + existing 10-file gate 216 PASS = **233 PASS**; `git diff --check` PASS; old SHAs unchanged; `ml-service` 0; isolation intact. Incidents repaired mid-stage: eval-kernel CRLF on v3 (normalized to LF, hash re-verified), test self-check literal collisions, truth-table key/value assertion — all fixed, suite green.
+- **VERDICT: FIRST protected-dev REMAINS BLOCKED. Do NOT launch.**
+- **Owns whole freeze in one session:** reconcile → doc/policy/v3/test freeze → 233 PASS + proofs → D-052 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
+- **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` plan (live-verified); delegates exempt.
+- **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.

@@ -1,0 +1,114 @@
+{
+  "policy_id": "retrieval-v3-production-exclusion-policy-v1",
+  "version": "1.0.0",
+  "status": "frozen pre-result design (D-052); implementation is a later separately reviewed stage",
+  "decision": "D-052",
+  "gate": {
+    "id": "production_exclusion",
+    "name": "production_exclusion"
+  },
+  "safety_claim_boundary": "Prove only that Candidate A does not re-introduce policies that the frozen D-003 production expiry predicate would exclude. Never label this universal expired, universal eligible, or user-specific eligibility correctness.",
+  "d003_runtime_reference": {
+    "predicate_sql": "(biz_end IS NULL OR biz_end >= CURRENT_DATE)",
+    "source": "ml-service/app.py",
+    "standing_decision": "D-003",
+    "note": "Runtime CURRENT_DATE form. Evaluation uses the explicit-date equivalent under one pinned evaluation_as_of_date."
+  },
+  "classification_inputs": {
+    "corpus_row_fields": [
+      "source",
+      "source_id",
+      "biz_end"
+    ],
+    "corpus_note": "Pinned evaluation corpus rows only. No raw text, no 신청기한 parsing, no age/income/region/add_qualify inference, no LLM/model, no score, no protected labels/results, no source-specific guesswork.",
+    "session_parameter": "evaluation_as_of_date"
+  },
+  "evaluation_as_of_date": {
+    "format": "YYYY-MM-DD",
+    "timezone": "Asia/Seoul",
+    "capture": "Captured exactly once for the evaluation session BEFORE protected plaintext access/run_start.",
+    "storage": "Stored in corpus/evaluation provenance/audit.",
+    "mutability": "Immutable for the candidate and the paired D-003 baseline for that run. The later implementation must use the same pinned date rather than allowing midnight drift.",
+    "freeze_stage_note": "This D-052 freeze stage sets no value and performs no DB query to obtain one."
+  },
+  "predicate": {
+    "production_excluded": "biz_end is not null AND biz_end < evaluation_as_of_date",
+    "equivalence": "Explicit-date equivalent of the D-003 runtime predicate under the pinned as-of date.",
+    "decision_values": [
+      "production_excluded",
+      "not_production_excluded_by_D003_predicate",
+      "UNMEASURABLE_HOLD"
+    ]
+  },
+  "null_rule": {
+    "classification": "not_production_excluded_by_D003_predicate",
+    "explicit_non_claims": [
+      "not expired",
+      "eligible"
+    ]
+  },
+  "fail_closed": {
+    "conditions": [
+      "malformed/non-date non-null biz_end",
+      "missing (source, source_id) lookup",
+      "missing corpus pin",
+      "missing/invalid as-of date",
+      "checker not executed"
+    ],
+    "result": "HOLD/fail-closed, never PASS"
+  },
+  "audit_scope": {
+    "layer": "Candidate-A internal final top-5",
+    "coverage": "EVERY benchmark task, even when safe-action later yields ABSTAIN/CLARIFY. Safe-action must not waive or hide this ranking-layer parity gate.",
+    "denominators": {
+      "dev_tasks": 180,
+      "dev_slots": 900,
+      "holdout_tasks": 250,
+      "holdout_slots": 1250
+    }
+  },
+  "gate_truth_table": {
+    "PASS": "Intrusion task count = 0 AND intrusion slot count = 0.",
+    "NO-GO": "Any one production-excluded policy in any internal final top-5.",
+    "HOLD": "Missing measurement."
+  },
+  "removed_from_gate_semantics": [
+    "eligible"
+  ],
+  "removal_no_default_replacement": true,
+  "removal_note": "The global per-policy eligible boolean is removed from mandatory release-gate semantics with no default replacement. User-specific applicability is not asserted by this gate.",
+  "youth_diagnostic_note": "Youth first-party structured application-period/closed markers from D-049 may be retained only as clearly NON-GATING diagnostic evidence when authoritative/recomputable. No new hard gate, no synthetic full-corpus map, no dataset regeneration.",
+  "implementation_boundary": {
+    "later_bounded_implementation": "Apply the same D-003 exclusion before/within Candidate-A retrieval so production-excluded rows cannot be ranked, and the safety checker independently audits the exact top-5.",
+    "not_implemented_in_D052": true
+  },
+  "supersedes": {
+    "gate": "Standing v3 per-policy global eligible=false OR expired=true full-corpus gate (prereg section 9 deterministic safety gates; D-015/D-016/D-017 historical text preserved).",
+    "history_preserved": "docs/RETRIEVAL_V3_PREREG.md, candidate-plan-v1.json, candidate-plan-v2.json, safe-action-policy-v1.json, D-049 eligibility evidence, D-050 and all history bytes immutable.",
+    "reason": "The old gate is not executable (normalized policy table has no eligible/expired flags; Gov24 10958 has no total structured active/expired equivalent; Youth official structured codes are only partial and approval != user eligibility) and its global eligible boolean is conceptually invalid for user-specific applicability. Keeping it makes v3 permanently HOLD independent of retrieval results. No fabrication of eligible=true, NULL=>authoritatively-not-expired, free-text parsing, or inferred status.",
+    "safety_purpose_retained": "The safety purpose remains valid and is retained as measurable D-003 production-parity exclusion. This is a semantic correction to measurable production exclusion, NOT a claim that all real-world expired/ineligible policies are known."
+  },
+  "parents": {
+    "prereg": "docs/RETRIEVAL_V3_PREREG.md",
+    "prereg_sha256": "7842018613d66aa4570f4db2f8ae5a698ceb46757995a6b7e26873177b36160e",
+    "candidate_plan_v1": "eval/retrieval-v3/candidate-plan/candidate-plan-v1.json",
+    "candidate_plan_v1_sha256": "2815361a469fee9bf69f6ffdf2124d19928220535cdb08b2005ae6674ae7d17c",
+    "candidate_plan_v2": "eval/retrieval-v3/candidate-plan/candidate-plan-v2.json",
+    "candidate_plan_v2_sha256": "d233f5c4d912e4d0856d89213d6392fbf44494f5538d018e7412f61781ae6cc6",
+    "safe_action_policy": "eval/retrieval-v3/candidate-plan/safe-action-policy-v1.json",
+    "safe_action_policy_sha256": "c512fb5627179697a987b05a2431b8f7e30d1153af2ff6dca37995f6b232a35d"
+  },
+  "provenance": {
+    "created_by": "Muse Spark 1.3 Contributor:xhigh (plan) -- D-052 freeze lineage",
+    "model_roles_external_verification": {
+      "default": "opencode-go/muse-spark-1.3-contributor:xhigh",
+      "plan": "opencode-go/muse-spark-1.3-contributor:xhigh",
+      "note": "Verified live in-repo via omp config get modelRoles (OMP 18.1.5, project .omp absent); global defaultThinkingLevel=high is fallback only"
+    },
+    "investigation_basis": "D-052 performed no DB query, no network/HTTP, no model/embedding load, no retrieval/ranking execution, no protected plaintext access. D-003 predicate verified read-only from ml-service/app.py working-tree source. All eligibility semantics taken from durable D-049 evidence.",
+    "frozen_at": "2026-09-04T00:51:16+09:00",
+    "frozen_at_timezone": "Asia/Seoul",
+    "frozen_at_basis": "D-052 stage-local artifact authoring instant (Asia/Seoul wall clock); exact pre-commit instant not separately durable",
+    "reconciled_start": "branch codex/retrieval-v3-user-search-quality HEAD 3b77770397c48c08f1ad1f51c82f6974597d08dd clean, local==upstream==actual remote verified, git diff --check PASS, ml-service diff 0 vs 5327661445c37191a3fd61db195f3af4d2cf893a, dev/holdout/result/audit absent, one-shot unconsumed"
+  }
+}
