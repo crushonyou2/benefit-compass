@@ -159,9 +159,10 @@ def validate_complete_result(result: dict):
         if set_prov.get("set_sha"):
             _validate_hex64(set_prov["set_sha"], "set_sha")
             # D-039: canonical result n=180/headline_n=130 when set_sha present (fail-closed).
-            if set_prov.get("n") is not None and set_prov.get("n") != 180:
+            # D-040 correction-3: missing field also fails (exact canonical output requires both pins).
+            if set_prov.get("n") != 180:
                 raise ValueError(f"canonical set_provenance.n must be 180, got {set_prov.get('n')!r}")
-            if set_prov.get("headline_n") is not None and set_prov.get("headline_n") != 130:
+            if set_prov.get("headline_n") != 130:
                 raise ValueError(f"canonical set_provenance.headline_n must be 130, got {set_prov.get('headline_n')!r}")
     # corpus provenance pin
     corpus = result.get("corpus_provenance")
@@ -179,20 +180,35 @@ def atomic_write_result(result: dict, output_path: str | pathlib.Path) -> pathli
     # Validate complete before any FS
     validate_complete_result(result)
     out = pathlib.Path(output_path)
-    # Path confinement — strict canonical if output is dev canonical
-    # Determine if this is canonical dev path
-    is_canonical = False
-    try:
-        # try strict
+    # D-040 correction-3: canonical dev result with set_sha must write exact canonical output (fail-closed).
+    set_prov = (result.get("set_provenance") or {}) if isinstance(result, dict) else {}
+    needs_canonical = bool(set_prov.get("set_sha"))
+    if needs_canonical:
+        # Strict canonical required; temp/non-canonical rejected even if confined.
         validate_output_path(out, strict_canonical=True)
+        out_posix = pathlib.PurePath(out).as_posix()
+        canon_posix = pathlib.PurePath(CANONICAL_DEV_OUTPUT_REL).as_posix()
+        canon_alt_posix = pathlib.PurePath(CANONICAL_DEV_OUTPUT_ALT).as_posix()
+        if out_posix not in (canon_posix, canon_alt_posix):
+            # Also accept absolute that resolves to canonical (OS-agnostic).
+            canonical_abs = (REPO_ROOT / CANONICAL_DEV_OUTPUT_REL).resolve()
+            canonical_alt_abs = (REPO_ROOT / CANONICAL_DEV_OUTPUT_ALT).resolve()
+            abs_probe = (REPO_ROOT / out).resolve() if not out.is_absolute() else out.resolve()
+            if abs_probe not in (canonical_abs, canonical_alt_abs):
+                raise ValueError(f"canonical dev result must write exact canonical output (fail-closed): got {output_path!r}")
         is_canonical = True
-    except ValueError:
-        # not canonical strict, try non-strict confinement (must still be inside allowed)
-        validate_output_path(out, strict_canonical=False)
-        # but for canonical dev result, we require strict; so if caller gave non-canonical, we still allow but we will check later
-        # To enforce canonical for official batch, we check that output_path equals canonical rel
-        # We'll enforce: if output_path is not canonical, still allow but we already validated confinement
-        pass
+    else:
+        # Path confinement — strict canonical if output is dev canonical
+        # Determine if this is canonical dev path
+        is_canonical = False
+        try:
+            # try strict
+            validate_output_path(out, strict_canonical=True)
+            is_canonical = True
+        except ValueError:
+            # not canonical strict, try non-strict confinement (must still be inside allowed)
+            validate_output_path(out, strict_canonical=False)
+            pass
 
     # Determine intended canonical absolute for existence guard comparison
     canonical_abs = (REPO_ROOT / CANONICAL_DEV_OUTPUT_REL).resolve()

@@ -37,6 +37,46 @@ DEV_HEADLINE_N = 130
 DEV_LOCATION_N = 54
 DEV_STRATA_EXACT = {"exact_navigation": 21, "natural_needs": 25, "exploratory_multi_valid": 21, "multi_constraint": 25, "short_keywords": 18, "colloquial_typo_spacing_abbrev": 20, "ambiguous": 23, "unsupported_no_answer": 27}
 D003_BASELINE = {"RERANK": 0, "CANDIDATES": 30, "COSINE_MIN": 0.78, "LEXICAL_BIAS": 0.01, "strip_region": True, "youth_bias_suppressed_for_gov24_orgs": True, "embedding": "intfloat/multilingual-e5-base"}
+# D-040 correction-3: lazy future-ready real adapters (no top-level DB/model import, no real IO at import).
+# SAME-STAGE fail-closed: unpatched real adapters raise without IO (FIRST dev forbidden in this stage).
+# Tests patch these factories (patched only, no real IO); mock CLI keeps fakes separately.
+def _real_embedding_fn():
+    """Lazy future-ready real embedding adapter (768-dim, query-prefixed)."""
+    def _real_embedding(query: str) -> list[float]:
+        import importlib  # lazy, future wiring only (stdlib, no IO); real model import goes here
+        _ = importlib
+        # SAME-STAGE: fail-closed, no model load / no network / no disk IO.
+        raise RuntimeError("real embedding not wired in SAME-STAGE (fail-closed, no real model load)")
+    _real_embedding.__real_adapter__ = True  # type: ignore[attr-defined]
+    return _real_embedding
+def _real_policy_loader_fn():
+    def _real_policies() -> list[dict]:
+        import importlib  # lazy, future wiring only (stdlib, no IO); real DB client import goes here
+        _ = importlib
+        # SAME-STAGE: fail-closed, no DB query.
+        raise RuntimeError("real policy loader not wired in SAME-STAGE (fail-closed, no real DB)")
+    _real_policies.__real_adapter__ = True  # type: ignore[attr-defined]
+    return _real_policies
+def _real_protected_loader_fn():
+    def _real_protected(set_role: str, set_sha: str) -> list[dict]:
+        import importlib  # lazy, future wiring only (stdlib, no IO); confined protected read goes here
+        _ = importlib
+        # SAME-STAGE: fail-closed, no protected plaintext open.
+        raise RuntimeError("real protected loader not wired in SAME-STAGE (fail-closed, no protected open)")
+    _real_protected.__real_adapter__ = True  # type: ignore[attr-defined]
+    return _real_protected
+def _is_real_adapter(fn: object) -> bool:
+    return bool(getattr(fn, "__real_adapter__", False))
+def _is_canonical_output_path(output_path: str | pathlib.Path | None) -> bool:
+    """Exact canonical dev output check (OS-agnostic, no IO)."""
+    if not output_path:
+        return False
+    try:
+        from .paths import CANONICAL_DEV_OUTPUT_REL as _REL, CANONICAL_DEV_OUTPUT_ALT as _ALT
+        out_posix = pathlib.PurePath(str(output_path)).as_posix()
+        return out_posix in (pathlib.PurePath(str(_REL)).as_posix(), pathlib.PurePath(str(_ALT)).as_posix())
+    except Exception:
+        return False
 def validate_canonical_dev_tasks(tasks: list[dict]) -> dict:
     """Fail-closed exact DEV 180/130/54/strata/source-truth validation (pure, no retrieval/DB/model)."""
     if len(tasks) != DEV_CANONICAL_N:
@@ -145,6 +185,7 @@ class Runner:
         clock_fn: Callable[[], int] | None = None,
         safety_evidence_fn: Callable[[dict], dict] | None = None,
         d003_baseline_fn: Callable[[str], Any] | None = None,
+        adapter_kind: str = "mock",
     ):
         self.candidate_plan = candidate_plan
         self.plan_data = candidate_plan
@@ -164,6 +205,10 @@ class Runner:
         # D-039: real safety measurement + D-003 baseline hooks. None => pre-dev HOLD (fail-closed).
         self.safety_evidence_fn = safety_evidence_fn
         self.d003_baseline_fn = d003_baseline_fn
+        # D-040: canonical-dev requires real adapters (mock CLI keeps fakes separately).
+        if adapter_kind not in ("mock", "real"):
+            raise ValueError(f"adapter_kind must be mock/real, got {adapter_kind!r}")
+        self.adapter_kind = adapter_kind
 
     def _retrieve_for_query(
         self,
@@ -282,6 +327,7 @@ class Runner:
     ) -> dict:
         """Run full dev evaluation over tasks — pure logic with injected fakes, audit lifecycle."""
         # D-039: explicit canonical protected-dev mode (grant-before-loader, exact 180/130/54, no fake adapters).
+        # D-040 correction-3: exact-one protected_access_end success/failure after verified grant.
         is_canonical = (set_role == "dev" and set_sha is not None)
         if is_canonical and skip_audit:
             raise ValueError("canonical protected-dev mode requires audit (skip_audit=False, fail-closed)")
@@ -289,20 +335,60 @@ class Runner:
             raise ValueError("canonical protected-dev mode forbids directly injected tasks (no fake adapters; load via protected_set_loader after grant, fail-closed)")
         if is_canonical and self.protected_set_loader is None:
             raise ValueError("canonical protected-dev mode requires protected_set_loader (fail-closed)")
+        if is_canonical and getattr(self, "adapter_kind", "mock") != "real":
+            raise ValueError("canonical protected-dev mode forbids mock adapters (adapter_kind=real with lazy real adapters, patched only in tests, fail-closed)")
         if output_path:
-            validate_output_path(output_path, strict_canonical=False)
+            # D-040: canonical with set_sha must target exact canonical output (strict); mock keeps confined non-strict.
+            validate_output_path(output_path, strict_canonical=bool(is_canonical))
+            if is_canonical and not _is_canonical_output_path(output_path):
+                raise ValueError(f"canonical dev result must write exact canonical output (fail-closed): got {output_path!r}")
         audit_log = pathlib.Path(audit_log) if audit_log else self.audit_log_path
+        # D-040 grant lifecycle flags: verified once, closed exactly once, never closed on failed verification.
+        grant_verified = False
+        grant_closed = False
+        grant_close_tried = False
+        def _close_grant(outcome: str) -> None:
+            nonlocal grant_closed, grant_close_tried
+            if grant_closed:
+                raise RuntimeError("grant already closed (exact-one violation, fail-closed)")
+            if grant_close_tried:
+                raise RuntimeError("grant close already attempted (exact-one violation, fail-closed)")
+            grant_close_tried = True
+            if outcome not in ("success", "failure"):
+                raise ValueError(f"grant close outcome must be success/failure, got {outcome!r}")
+            audit.append_event(
+                str(audit_log),
+                action="protected_access_end",
+                set_role=set_role,
+                set_sha=set_sha,
+                candidate_id="v3-candidate-dev-v1",
+                session_id=session_id,
+                outcome=outcome,
+            )
+            grant_closed = True
         if is_canonical:
-            # Grant BEFORE loader (fail-closed; loader never runs without grant).
+            # Grant BEFORE loader (fail-closed; loader never runs without grant; no close on failed verification).
             try:
                 validate_protected_access(audit_log, set_role, set_sha, session_id, expected_event_hash)
             except Exception as e:
                 raise RuntimeError(f"protected access grant verification failed (fail-closed): {e}") from e
+            grant_verified = True
             try:
                 tasks = self.protected_set_loader(set_role, set_sha)
             except Exception as e:
+                try:
+                    _close_grant("failure")
+                except Exception as ce:
+                    raise RuntimeError(f"grant close on loader failure failed (fail-closed): {ce}") from e
                 raise RuntimeError(f"canonical protected loader failed (fail-closed): {e}") from e
-            validate_canonical_dev_tasks(tasks)
+            try:
+                validate_canonical_dev_tasks(tasks)
+            except Exception as e:
+                try:
+                    _close_grant("failure")
+                except Exception as ce:
+                    raise RuntimeError(f"grant close on canonical validation failure failed (fail-closed): {ce}") from e
+                raise
         elif not skip_audit and set_sha:
             try:
                 validate_protected_access(audit_log, set_role, set_sha, session_id, expected_event_hash)
@@ -311,10 +397,17 @@ class Runner:
         if output_path:
             out_abs = (REPO_ROOT / output_path).resolve() if not pathlib.Path(output_path).is_absolute() else pathlib.Path(output_path).resolve()
             if out_abs.exists():
+                # D-040: pre-run rerun guard failure after verified grant must still close grant exactly once.
+                if is_canonical and grant_verified and not grant_closed:
+                    try:
+                        _close_grant("failure")
+                    except Exception as ce:
+                        raise RuntimeError(f"grant close on pre-run output-exists failure failed (fail-closed): {ce}") from ce
                 raise FileExistsError(f"output already exists: {out_abs} — rerun guard")
         run_start_event = None
         run_end_event = None
         need_audit_close = False
+        run_end_appended = False
         if not skip_audit:
             try:
                 # D-039: preflight BEFORE second run_start — never append a duplicate (actions stay [run_start,run_end]).
@@ -336,6 +429,12 @@ class Runner:
                 if len(run_starts) != 1:
                     raise RuntimeError(f"rerun detected: run_start count for {set_role}/{set_sha} is {len(run_starts)} (expected 1, fail-closed)")
             except Exception as e:
+                # D-040: pre-run failure after verified grant must close grant exactly once (no run_end; run_start never succeeded).
+                if is_canonical and grant_verified and not grant_closed:
+                    try:
+                        _close_grant("failure")
+                    except Exception as ce:
+                        raise RuntimeError(f"grant close on pre-run failure failed (fail-closed): {ce}") from e
                 raise RuntimeError(f"audit run_start failed (fail-closed, no result): {e}") from e
         try:
             if not is_canonical and not tasks and self.protected_set_loader:
@@ -590,6 +689,7 @@ class Runner:
                         candidate_id="v3-candidate-dev-v1",
                         session_id=session_id,
                     )
+                    run_end_appended = True
                 except Exception as e:
                     if output_path:
                         try:
@@ -598,12 +698,33 @@ class Runner:
                                 out_abs.unlink()
                         except Exception:
                             pass
+                    # D-040: run_end failure after verified grant must still close grant exactly once.
+                    if is_canonical and grant_verified and not grant_closed:
+                        try:
+                            _close_grant("failure")
+                        except Exception as ce:
+                            raise RuntimeError(f"grant close on run_end failure failed (fail-closed): {ce}") from e
                     raise RuntimeError(f"audit run_end failed (fail-closed, result removed): {e}") from e
+
+            # D-040: success path closes verified grant exactly once (no close ever on failed verification).
+            if is_canonical and grant_verified and not grant_closed and not grant_close_tried:
+                try:
+                    _close_grant("success")
+                except Exception as e:
+                    if output_path:
+                        try:
+                            out_abs = (REPO_ROOT / output_path).resolve() if not pathlib.Path(output_path).is_absolute() else pathlib.Path(output_path).resolve()
+                            if out_abs.exists():
+                                out_abs.unlink()
+                        except Exception:
+                            pass
+                    raise RuntimeError(f"grant close on success failed (fail-closed, result removed): {e}") from e
 
             return result
         except Exception as e:
-            # Execution-lifecycle: ensure audit closure even on failure — append run_end with failure outcome before cleanup (fail-closed, preserves chain)
-            if need_audit_close:
+            # Execution-lifecycle: ensure audit closure even on failure — append run_end before cleanup (fail-closed, preserves chain).
+            # D-040: plus exact-one grant failure close when verified (loader/pre-run/execution paths); never double-close.
+            if need_audit_close and not run_end_appended:
                 try:
                     # Attempt to close audit chain with run_end; if this fails, still clean up output and surface original error
                     audit.append_event(
@@ -614,6 +735,7 @@ class Runner:
                         candidate_id="v3-candidate-dev-v1",
                         session_id=session_id,
                     )
+                    run_end_appended = True
                 except Exception as audit_e:
                     # If audit close itself fails, ensure output removed and raise with audit context
                     if output_path:
@@ -623,8 +745,26 @@ class Runner:
                                 out_abs.unlink()
                         except Exception:
                             pass
+                    # Still attempt grant failure close once (exact-one) before surfacing.
+                    if is_canonical and grant_verified and not grant_closed and not grant_close_tried:
+                        try:
+                            _close_grant("failure")
+                        except Exception:
+                            pass
                     raise RuntimeError(f"audit run_end on failure failed (fail-closed): {audit_e}") from e
-                # Audit close succeeded — now clean up output if present
+                # Audit close succeeded — now grant failure close once, then clean up output if present
+                if is_canonical and grant_verified and not grant_closed and not grant_close_tried:
+                    try:
+                        _close_grant("failure")
+                    except Exception as ce:
+                        if output_path:
+                            try:
+                                out_abs = (REPO_ROOT / output_path).resolve() if not pathlib.Path(output_path).is_absolute() else pathlib.Path(output_path).resolve()
+                                if out_abs.exists():
+                                    out_abs.unlink()
+                            except Exception:
+                                pass
+                        raise RuntimeError(f"grant close on execution failure failed (fail-closed): {ce}") from e
                 if output_path:
                     try:
                         out_abs = (REPO_ROOT / output_path).resolve() if not pathlib.Path(output_path).is_absolute() else pathlib.Path(output_path).resolve()
@@ -632,6 +772,12 @@ class Runner:
                             out_abs.unlink()
                     except Exception:
                         pass
+            elif is_canonical and grant_verified and not grant_closed and not grant_close_tried:
+                # Failure before run_start (execution never started; no run_end) still closes grant once.
+                try:
+                    _close_grant("failure")
+                except Exception as ce:
+                    raise RuntimeError(f"grant close on execution failure failed (fail-closed): {ce}") from e
             raise
 def parse_args(argv=None):
     p = argparse.ArgumentParser(description="Retrieval v3 Candidate A runner (pure/mock, no real DB/model)")
@@ -646,9 +792,14 @@ def parse_args(argv=None):
     p.add_argument("--skip-audit", action="store_true", help="skip audit for pure tests")
     return p.parse_args(argv)
 
-def main(argv=None):
-    args = parse_args(argv)
-    validate_output_path(args.output, strict_canonical=False)
+def _is_canonical_cli(args) -> bool:
+    """Canonical-dev CLI iff dev role with set_sha (exact grant lifecycle + canonical output)."""
+    return getattr(args, "set_role", "none") == "dev" and getattr(args, "set_sha", None) is not None
+
+def main_mock(args):
+    """Mock CLI (non-canonical only): fakes + --tasks/--policies/--skip-audit allowed. No real IO."""
+    if _is_canonical_cli(args):
+        raise ValueError("mock CLI forbids canonical dev (set_sha present; use canonical-dev path, fail-closed)")
     plan = load_candidate_plan_or_fail()
     def fake_embedding(q):
         import hashlib, random
@@ -679,6 +830,7 @@ def main(argv=None):
         db_policy_loader=fake_policies,
         protected_set_loader=fake_tasks,
         audit_log_path=args.audit_log,
+        adapter_kind="mock",
     )
     tasks = []
     if args.tasks:
@@ -719,6 +871,57 @@ def main(argv=None):
     )
     print(json.dumps({"chosen": result["selection"]["chosen"], "eligible": result["selection"]["eligible"]}, ensure_ascii=False))
     return 0
+
+def main_canonical_dev(args):
+    """Canonical-dev CLI: forbids --tasks/--policies/--skip-audit/fakes; lazy real adapters; exact canonical output."""
+    if args.tasks:
+        raise ValueError("canonical-dev forbids --tasks (protected loader after grant only, fail-closed)")
+    if args.policies:
+        raise ValueError("canonical-dev forbids --policies (real policy adapter only, fail-closed)")
+    if args.skip_audit:
+        raise ValueError("canonical-dev forbids --skip-audit (audit required, fail-closed)")
+    if not _is_canonical_cli(args):
+        raise ValueError("canonical-dev requires --set-role dev with --set-sha (fail-closed)")
+    # Strict canonical output before any IO/grant (fail-closed, no close needed pre-verification).
+    validate_output_path(args.output, strict_canonical=True)
+    if not _is_canonical_output_path(args.output):
+        raise ValueError(f"canonical-dev must write exact canonical output (fail-closed): got {args.output!r}")
+    plan = load_candidate_plan_or_fail()
+    # Lazy future-ready real adapters: factories called here (not at import); unpatched they raise without IO.
+    real_embedding = _real_embedding_fn()
+    real_policies_loader = _real_policy_loader_fn()
+    real_protected_loader = _real_protected_loader_fn()
+    runner = Runner(
+        candidate_plan=plan,
+        embedding_fn=real_embedding,
+        db_policy_loader=real_policies_loader,
+        protected_set_loader=real_protected_loader,
+        audit_log_path=args.audit_log,
+        adapter_kind="real",
+    )
+    # Policies via real adapter only (SAME-STAGE fail-closed raises here, before grant verification, no grant close).
+    policies = real_policies_loader()
+    result = runner.run_dev_evaluation(
+        tasks=[],
+        policies=policies,
+        session_id=args.session_id,
+        set_role=args.set_role,
+        set_sha=args.set_sha,
+        audit_log=args.audit_log,
+        expected_event_hash=args.expected_event_hash,
+        output_path=args.output,
+        skip_audit=False,
+    )
+    print(json.dumps({"chosen": result["selection"]["chosen"], "eligible": result["selection"]["eligible"]}, ensure_ascii=False))
+    return 0
+
+def main(argv=None):
+    args = parse_args(argv)
+    # D-040: split mock CLI from canonical-dev (canonical forbids fakes; lazy real adapters).
+    if _is_canonical_cli(args):
+        return main_canonical_dev(args)
+    validate_output_path(args.output, strict_canonical=False)
+    return main_mock(args)
 
 if __name__ == "__main__":
     sys.exit(main())

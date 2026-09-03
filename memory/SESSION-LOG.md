@@ -1105,3 +1105,14 @@ One short section per working session: what was worked on, what was decided (wit
 - **Verification:** runner 50 PASS, runner+plan+sha 95 PASS, `git diff --check` PASS, plan/prereg unchanged, `ml-service` 0, isolation + mirror identity PASS. Forbidden 0 (see D-039).
 - **Owns whole correction-2 in one session:** reconcile → A-G fail-closed fixes → mirror sync → fixture/test updates → 50/95 PASS + SHA/isolation proofs → D-039 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
 - **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` ROOT/plan (D-036 gate still); delegates exempt.
+
+## 2026-09-03 — Retrieval v3 SAME-STAGE Web-HOLD correction-3 — grant exact-one close, mock/canonical split, canonical output — D-040
+
+- **Reconciled start:** `codex/retrieval-v3-user-search-quality` HEAD `299dc294` clean (`local==origin`), `git diff --check` PASS, `ml-service` diff 0, plan `2815361a` / prereg `78420186` unchanged, `dev/`+`holdout/` absent, OMP `18.1.5` / ROOT-plan `muse-spark-1.3:xhigh` per D-036. No protected plaintext, no FIRST dev retrieval, no real DB/model/network/HTTP/latency.
+- **Residuals corrected (D-039 stays history):** (1) canonical verified-grant never closed (`protected_access_end` absent on all paths); (2) `main()` conflated mock fakes with canonical (`--tasks`/`--policies`/`--skip-audit` honored with `set_sha`, no real-adapter path); (3) canonical output non-strict + missing `n`/`headline_n` accepted + temp writes allowed with `set_sha`.
+- **Repair (mirrors byte-identical):** exact-one `_close_grant(success|failure)` after verified grant only (`grant_closed`+`grant_close_tried`, no close on failed verification; loader/pre-run/`run_end`/execution failure paths; `run_end_appended` prevents double); `main_mock` vs `main_canonical_dev` split (`_is_canonical_cli`, forbids, strict canonical pre-grant, lazy `_real_*_fn` with inner `import importlib` + `__real_adapter__`, `adapter_kind` mock/real, canonical requires real); strict exact canonical output + required 180/130 including missing in runner + `validate_complete_result` + `atomic_write_result`.
+- **Tests:** patched canonical grant test to `adapter_kind=real` (no real IO); 7 new grant/CLI/output tests; footer 50→57.
+- **Verification:** runner 57 PASS, runner+plan+sha 102 PASS, `git diff --check` PASS, plan/prereg unchanged, `ml-service` 0, isolation + mirror identity PASS. Forbidden 0 (see D-040).
+- **Owns whole correction-3 in one session:** reconcile → grant/CLI/output fail-closed fixes → mirror sync → test updates → 57/102 PASS + SHA/isolation proofs → D-040 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
+- **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` ROOT/plan (D-036 gate still); delegates exempt.
+- **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.

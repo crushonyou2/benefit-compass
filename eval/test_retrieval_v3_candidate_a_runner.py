@@ -1035,14 +1035,14 @@ def test_canonical_dev_mode_grant_before_loader_and_counts():
         return tasks180
     with tempfile.TemporaryDirectory() as td:
         audit_log = pathlib.Path(td) / "audit.jsonl"
-        runner = Runner(candidate_plan=plan, protected_set_loader=loader, audit_log_path=audit_log)
+        runner = Runner(candidate_plan=plan, protected_set_loader=loader, audit_log_path=audit_log, adapter_kind="real")
         try:
             runner.run_dev_evaluation(tasks=[], policies=[], session_id="no-grant", set_role="dev", set_sha=sha, audit_log=audit_log, output_path=None, skip_audit=False)
             assert False, "canonical without grant must fail before loader"
         except RuntimeError as e:
             assert "grant" in str(e).lower()
         assert called["n"] == 0, "loader must never run without grant"
-        runner2 = Runner(candidate_plan=plan, protected_set_loader=loader, audit_log_path=audit_log)
+        runner2 = Runner(candidate_plan=plan, protected_set_loader=loader, audit_log_path=audit_log, adapter_kind="real")
         try:
             runner2.run_dev_evaluation(tasks=[{"task_id": "x"}], policies=[], session_id="direct", set_role="dev", set_sha=sha, audit_log=audit_log, output_path=None, skip_audit=False)
             assert False, "canonical direct tasks must be rejected (no fake adapters)"
@@ -1235,8 +1235,252 @@ def test_protected_access_end_exact_outcome():
         except Exception:
             pass
 
+def test_canonical_grant_lifecycle_success_exact_one():
+    # D-040(1): verified grant -> exact-one protected_access_end success (output None, mock 180, no real IO).
+    from retrieval_v3 import audit as _audit
+    plan = load_candidate_plan_or_fail()
+    sha = "d" * 64
+    sid = "grant-success-1"
+    tasks180 = _make_canonical_180()
+    def fake_vec(seed):
+        rnd = random.Random(seed)
+        v = [rnd.uniform(-1, 1) for _ in range(768)]
+        norm = (sum(x * x for x in v) ** 0.5) or 1
+        return [round(x / norm, 6) for x in v]
+    policies = [{"id": 1, "source": "youth", "source_id": "p0", "title": "policy 0", "support_content": "", "summary": "", "keywords": "", "add_qualify": "", "income_etc": "", "apply_method": "", "org": "org", "chunks": [{"embedding": fake_vec(0), "chunk_index": 0, "id": 0}]}]
+    def fake_emb(q):
+        h = hashlib.sha256(q.encode()).digest()
+        return fake_vec(int.from_bytes(h[:4], "little"))
+    def loader(role, sh):
+        assert role == "dev" and sh == sha
+        return tasks180
+    with tempfile.TemporaryDirectory() as td:
+        log = pathlib.Path(td) / "audit.jsonl"
+        _audit.append_event(str(log), action="protected_access_start", set_role="dev", set_sha=sha, session_id=sid, candidate_id="v3-candidate-dev-v1", outcome="success")
+        runner = Runner(candidate_plan=plan, embedding_fn=fake_emb, db_policy_loader=lambda: policies, protected_set_loader=loader, audit_log_path=log, adapter_kind="real")
+        res = runner.run_dev_evaluation(tasks=[], policies=policies, session_id=sid, set_role="dev", set_sha=sha, audit_log=log, output_path=None, skip_audit=False)
+        assert res["set_provenance"]["n"] == 180 and res["set_provenance"]["headline_n"] == 130
+        chain = _audit.read_and_verify_chain(str(log))
+        starts = [e for e in chain if e.get("action") == "protected_access_start"]
+        ends = [e for e in chain if e.get("action") == "protected_access_end"]
+        assert len(starts) == 1 and len(ends) == 1, f"exact-one grant close required: {[(e['action'], e.get('outcome')) for e in chain]}"
+        assert ends[0].get("outcome") == "success"
+        assert ends[0].get("session_id") == sid and ends[0].get("set_sha") == sha
+        run_starts = [e for e in chain if e.get("action") == "run_start"]
+        run_ends = [e for e in chain if e.get("action") == "run_end"]
+        assert len(run_starts) == 1 and len(run_ends) == 1
+        try:
+            _audit.verify_holdout_access_allowed(str(log), set_role="dev", set_sha=sha, session_id=sid)
+            assert False, "closed grant must be denied after success close"
+        except Exception:
+            pass
+
+def test_canonical_grant_loader_failure_closes_failure():
+    # D-040(1): loader failure after verified grant -> exact-one end failure, no run_start/run_end.
+    from retrieval_v3 import audit as _audit
+    plan = load_candidate_plan_or_fail()
+    sha = "e" * 64
+    sid = "grant-loader-fail"
+    def bad_loader(role, sh):
+        raise RuntimeError("injected loader boom")
+    with tempfile.TemporaryDirectory() as td:
+        log = pathlib.Path(td) / "audit.jsonl"
+        _audit.append_event(str(log), action="protected_access_start", set_role="dev", set_sha=sha, session_id=sid, candidate_id="v3-candidate-dev-v1", outcome="success")
+        runner = Runner(candidate_plan=plan, protected_set_loader=bad_loader, audit_log_path=log, adapter_kind="real")
+        try:
+            runner.run_dev_evaluation(tasks=[], policies=[], session_id=sid, set_role="dev", set_sha=sha, audit_log=log, output_path=None, skip_audit=False)
+            assert False, "loader failure must raise"
+        except RuntimeError as e:
+            assert "loader" in str(e).lower() or "grant close" in str(e).lower()
+        chain = _audit.read_and_verify_chain(str(log))
+        ends = [e for e in chain if e.get("action") == "protected_access_end"]
+        assert len(ends) == 1 and ends[0].get("outcome") == "failure", f"exact-one failure required: {chain}"
+        assert len([e for e in chain if e.get("action") == "run_start"]) == 0
+        assert len([e for e in chain if e.get("action") == "run_end"]) == 0
+
+def test_canonical_grant_pre_run_failure_closes_failure():
+    # D-040(1): pre-run rerun-guard failure after verified grant -> exact-one end failure, no duplicate run_start.
+    from retrieval_v3 import audit as _audit
+    plan = load_candidate_plan_or_fail()
+    sha = "f" * 64
+    sid = "grant-prerun-fail"
+    tasks180 = _make_canonical_180()
+    with tempfile.TemporaryDirectory() as td:
+        log = pathlib.Path(td) / "audit.jsonl"
+        _audit.append_event(str(log), action="protected_access_start", set_role="dev", set_sha=sha, session_id=sid, candidate_id="v3-candidate-dev-v1", outcome="success")
+        _audit.append_event(str(log), action="run_start", set_role="dev", set_sha=sha, session_id="other-session", candidate_id="v3-candidate-dev-v1")
+        runner = Runner(candidate_plan=plan, protected_set_loader=lambda r, s: tasks180, audit_log_path=log, adapter_kind="real")
+        try:
+            runner.run_dev_evaluation(tasks=[], policies=[], session_id=sid, set_role="dev", set_sha=sha, audit_log=log, output_path=None, skip_audit=False)
+            assert False, "pre-run duplicate must raise"
+        except RuntimeError as e:
+            assert "rerun" in str(e).lower() or "run_start" in str(e).lower()
+        chain = _audit.read_and_verify_chain(str(log))
+        assert len([e for e in chain if e.get("action") == "run_start"]) == 1, "no duplicate run_start"
+        ends = [e for e in chain if e.get("action") == "protected_access_end"]
+        assert len(ends) == 1 and ends[0].get("outcome") == "failure"
+
+def test_canonical_grant_execution_failure_closes_failure():
+    # D-040(1): execution failure after run_start -> run_start/run_end + exact-one end failure, output cleaned.
+    from retrieval_v3 import audit as _audit
+    plan = load_candidate_plan_or_fail()
+    sha = "a" * 64
+    sid = "grant-exec-fail"
+    tasks180 = _make_canonical_180()
+    def fake_vec(seed):
+        rnd = random.Random(seed)
+        v = [rnd.uniform(-1, 1) for _ in range(768)]
+        norm = (sum(x * x for x in v) ** 0.5) or 1
+        return [round(x / norm, 6) for x in v]
+    policies = [{"id": 1, "source": "youth", "source_id": "p0", "title": "policy 0", "support_content": "", "summary": "", "keywords": "", "add_qualify": "", "income_etc": "", "apply_method": "", "org": "org", "chunks": [{"embedding": fake_vec(0), "chunk_index": 0, "id": 0}]}]
+    def bad_emb(q):
+        raise RuntimeError("injected embedding boom")
+    with tempfile.TemporaryDirectory() as td:
+        log = pathlib.Path(td) / "audit.jsonl"
+        _audit.append_event(str(log), action="protected_access_start", set_role="dev", set_sha=sha, session_id=sid, candidate_id="v3-candidate-dev-v1", outcome="success")
+        runner = Runner(candidate_plan=plan, embedding_fn=bad_emb, db_policy_loader=lambda: policies, protected_set_loader=lambda r, s: tasks180, audit_log_path=log, adapter_kind="real")
+        try:
+            runner.run_dev_evaluation(tasks=[], policies=policies, session_id=sid, set_role="dev", set_sha=sha, audit_log=log, output_path=None, skip_audit=False)
+            assert False, "execution failure must raise"
+        except Exception:
+            pass
+        chain = _audit.read_and_verify_chain(str(log))
+        assert len([e for e in chain if e.get("action") == "run_start"]) == 1
+        assert len([e for e in chain if e.get("action") == "run_end"]) == 1
+        ends = [e for e in chain if e.get("action") == "protected_access_end"]
+        assert len(ends) == 1 and ends[0].get("outcome") == "failure"
+
+def test_canonical_no_close_on_failed_verification():
+    # D-040(1): failed verification appends no protected_access_end (exact-one only after verified grant).
+    from retrieval_v3 import audit as _audit
+    plan = load_candidate_plan_or_fail()
+    sha = "b" * 64
+    with tempfile.TemporaryDirectory() as td:
+        log = pathlib.Path(td) / "audit.jsonl"
+        called = {"n": 0}
+        def loader(role, sh):
+            called["n"] += 1
+            return []
+        runner = Runner(candidate_plan=plan, protected_set_loader=loader, audit_log_path=log, adapter_kind="real")
+        try:
+            runner.run_dev_evaluation(tasks=[], policies=[], session_id="no-grant-here", set_role="dev", set_sha=sha, audit_log=log, output_path=None, skip_audit=False)
+            assert False, "missing grant must fail"
+        except RuntimeError as e:
+            assert "grant" in str(e).lower()
+        assert called["n"] == 0
+        # Empty log: no end without verification (log file may not exist yet).
+        if log.exists():
+            chain = _audit.read_and_verify_chain(str(log))
+            assert len([e for e in chain if e.get("action") == "protected_access_end"]) == 0
+        # Closed grant: verification fails, no second end.
+        log2 = pathlib.Path(td) / "audit2.jsonl"
+        _audit.append_event(str(log2), action="protected_access_start", set_role="dev", set_sha=sha, session_id="s-closed", candidate_id="v3-candidate-dev-v1", outcome="success")
+        _audit.append_event(str(log2), action="protected_access_end", set_role="dev", set_sha=sha, session_id="s-closed", candidate_id="v3-candidate-dev-v1", outcome="success")
+        runner2 = Runner(candidate_plan=plan, protected_set_loader=loader, audit_log_path=log2, adapter_kind="real")
+        try:
+            runner2.run_dev_evaluation(tasks=[], policies=[], session_id="s-closed", set_role="dev", set_sha=sha, audit_log=log2, output_path=None, skip_audit=False)
+            assert False, "closed grant must fail verification"
+        except RuntimeError as e:
+            assert "grant" in str(e).lower() or "closed" in str(e).lower() or "denied" in str(e).lower()
+        chain2 = _audit.read_and_verify_chain(str(log2))
+        assert len([e for e in chain2 if e.get("action") == "protected_access_end"]) == 1, "no second close on failed verification"
+
+def test_canonical_cli_forbids_fakes_and_uses_real_adapters():
+    # D-040(2): canonical-dev forbids --tasks/--policies/--skip-audit/fakes; lazy real adapters; mock split.
+    import pathlib as _pl
+    from retrieval_v3.runner import parse_args, main_mock, main_canonical_dev, _real_embedding_fn, _real_policy_loader_fn, _real_protected_loader_fn, _is_canonical_cli
+    src = (_pl.Path(__file__).resolve().parent / "retrieval_v3" / "runner.py").read_text(encoding="utf-8")
+    assert "def main_mock" in src and "def main_canonical_dev" in src, "mock/canonical split required"
+    assert "_real_embedding_fn" in src and "_real_policy_loader_fn" in src and "_real_protected_loader_fn" in src
+    assert 'adapter_kind="real"' in src and 'adapter_kind="mock"' in src, "canonical real vs mock kind required"
+    assert "import importlib" in src, "lazy future-ready import required inside adapter body"
+    # No top-level real DB/model import (lazy only): module import must not pull DB drivers.
+    top = src.split("def _real_embedding_fn")[0]
+    assert "import psycopg" not in top and "import sqlalchemy" not in top and "from sentence_transformers" not in top
+    # Unpatched real adapters raise without IO (fail-closed).
+    for fn in (_real_embedding_fn(), _real_policy_loader_fn(), _real_protected_loader_fn()):
+        assert getattr(fn, "__real_adapter__", False) is True
+        try:
+            fn("x", "y") if fn.__code__.co_argcount == 2 else (fn() if fn.__code__.co_argcount == 0 else fn("x"))
+            assert False, "unpatched real adapter must fail-closed"
+        except RuntimeError as e:
+            assert "SAME-STAGE" in str(e) or "not wired" in str(e)
+    # Canonical forbids fakes at CLI boundary (no IO performed before raise).
+    sha = "c" * 64
+    for extra in (["--tasks", "t.jsonl"], ["--policies", "p.json"], ["--skip-audit"]):
+        args = parse_args(["--session-id", "s", "--set-role", "dev", "--set-sha", sha] + extra)
+        assert _is_canonical_cli(args) is True
+        try:
+            main_canonical_dev(args)
+            assert False, f"canonical must forbid {extra}"
+        except (ValueError, RuntimeError) as e:
+            assert "forbid" in str(e).lower() or "canonical" in str(e).lower()
+    # Mock CLI forbids canonical payload.
+    margs = parse_args(["--session-id", "s", "--set-role", "dev", "--set-sha", sha, "--audit-log", "x.jsonl"])
+    try:
+        main_mock(margs)
+        assert False, "mock CLI must forbid canonical dev"
+    except ValueError as e:
+        assert "mock" in str(e).lower() or "canonical" in str(e).lower()
+    # Canonical requires real kind at Runner boundary (mock kind rejected before grant).
+    plan = load_candidate_plan_or_fail()
+    with tempfile.TemporaryDirectory() as td:
+        log = pathlib.Path(td) / "audit.jsonl"
+        runner = Runner(candidate_plan=plan, protected_set_loader=lambda r, s: [], audit_log_path=log, adapter_kind="mock")
+        try:
+            runner.run_dev_evaluation(tasks=[], policies=[], session_id="s", set_role="dev", set_sha=sha, audit_log=log, output_path=None, skip_audit=False)
+            assert False, "canonical mock adapters must be rejected"
+        except ValueError as e:
+            assert "mock" in str(e).lower() or "real" in str(e).lower()
+
+def test_canonical_output_exact_and_missing_field():
+    # D-040(3): set_sha result must target exact canonical output; n/headline required including missing.
+    import pathlib as _pl
+    from retrieval_v3.result_schema import validate_complete_result, atomic_write_result
+    from retrieval_v3.candidate_registry import EXPECTED_SHA, EXPECTED_PREREG_SHA
+    from retrieval_v3.paths import CANONICAL_DEV_OUTPUT_REL
+    per = [{"config_id": f"candidate-a-{i:02d}", "success_at_5": 0.9, "ndcg_at_5": 0.8, "mrr_at_10": 0.7} for i in range(1, 19)]
+    base = {"schema_version": 1, "git_head": "0" * 40, "git_dirty": False, "candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA, "provenance": {"candidate_plan_sha256": EXPECTED_SHA, "prereg_sha256": EXPECTED_PREREG_SHA}, "per_config_metrics": per, "selection": {"chosen": None}, "candidate_b_gate": {"admitted": False, "instantiated": False, "status": "not_evaluated"}}
+    for bad_prov in ({"set_role": "dev", "set_sha": "1" * 64}, {"set_role": "dev", "set_sha": "1" * 64, "n": 180}, {"set_role": "dev", "set_sha": "1" * 64, "headline_n": 130}, {"set_role": "dev", "set_sha": "1" * 64, "n": 5, "headline_n": 5}):
+        bad = dict(base, set_provenance=bad_prov)
+        try:
+            validate_complete_result(bad)
+            assert False, f"missing/wrong canonical pins must fail: {bad_prov}"
+        except ValueError as e:
+            assert "180" in str(e) or "130" in str(e)
+    ok = dict(base, set_provenance={"set_role": "dev", "set_sha": "1" * 64, "n": 180, "headline_n": 130})
+    validate_complete_result(ok)
+    with tempfile.TemporaryDirectory() as td:
+        out = pathlib.Path(td) / "out.json"
+        try:
+            atomic_write_result(ok, out)
+            assert False, "canonical set_sha to temp must fail (exact canonical required)"
+        except (ValueError, FileExistsError):
+            pass
+    # Runner boundary: canonical with temp output fails before grant (no grant close side-effect).
+    from retrieval_v3 import audit as _audit
+    plan = load_candidate_plan_or_fail()
+    sha = "d" * 64
+    with tempfile.TemporaryDirectory() as td:
+        log = pathlib.Path(td) / "audit.jsonl"
+        out = pathlib.Path(td) / "out.json"
+        runner = Runner(candidate_plan=plan, protected_set_loader=lambda r, s: _make_canonical_180(), audit_log_path=log, adapter_kind="real")
+        try:
+            runner.run_dev_evaluation(tasks=[], policies=[], session_id="out-check", set_role="dev", set_sha=sha, audit_log=log, output_path=out, skip_audit=False)
+            assert False, "canonical temp output must fail"
+        except ValueError as e:
+            assert "canonical" in str(e).lower()
+        if log.exists():
+            chain = _audit.read_and_verify_chain(str(log))
+            assert len([e for e in chain if e.get("action") == "protected_access_end"]) == 0, "output check fails before grant (no close)"
+    # Exact canonical path recognized OS-agnostically (no IO).
+    from retrieval_v3.runner import _is_canonical_output_path
+    assert _is_canonical_output_path(str(CANONICAL_DEV_OUTPUT_REL)) is True
+    assert _is_canonical_output_path("eval/retrieval_v3/results/v3-candidate-dev-result.json") is True
+    assert _is_canonical_output_path(str(out)) is False
+
 if __name__=="__main__":
-    tests=[test_18_configs_and_drift, test_non_unit_cosine, test_representative_tie_and_near_tie, test_strict_gt_dedup_boundary, test_mmr_actual_cosine_and_full_top30, test_exact_normalization_and_boundaries, test_cosine_min_placement, test_union_vs_hybrid, test_exact_not_injected, test_deterministic_ordering, test_metrics_mrr_rank_gt10, test_selection_ordering_and_zero, test_b_gate_no_impl, test_latency_harness, test_audit_lifecycle, test_atomic_rerun_concurrent, test_path_confinement, test_runner_safety_hold_when_checkers_absent, test_runner_safety_hold_even_with_checkers_pre_dev, test_runner_latency_wiring, test_cli_orchestrator_e2e, test_fusion_youth_bias_only_youth_source_gov24_zero, test_sparse_only_representative_query_nearest_no_chunk0_fallback, test_oracle_union_set_and_headline130, test_metrics_graded_strict_and_ndcg, test_metrics_equivalence_group_no_double_count, test_slice_diagnostics_unavailable, test_selection_fail_closed_missing_gates, test_selection_fail_closed_missing_latency, test_execution_lifecycle_audit_closure_on_failure, test_execution_lifecycle_path_and_result_os_agnostic, test_headline_no_silent_fallback_safety_only, test_gold_missing_grade_fail_closed, test_empty_query_fail_closed, test_latency_no_fabricated_default_static, test_mirror_hyphen_underscore_identity, test_selection_http_resolution_required, test_headline_missing_stratum_not_headline, test_headline_empty_golds_fail_closed, test_retrieve_blank_fail_closed_lowest, test_canonical_dev_mode_grant_before_loader_and_counts, test_canonical_counts_mismatch_fail_closed, test_safety_real_interfaces, test_d003_baseline_forbids_candidate_a01, test_audit_preflight_no_duplicate_run_start, test_audit_windows_lock_serialized, test_path_sibling_rejected, test_candidate_b_no_finalist_not_evaluated, test_canonical_result_n_headline, test_protected_access_end_exact_outcome]
+    tests=[test_18_configs_and_drift, test_non_unit_cosine, test_representative_tie_and_near_tie, test_strict_gt_dedup_boundary, test_mmr_actual_cosine_and_full_top30, test_exact_normalization_and_boundaries, test_cosine_min_placement, test_union_vs_hybrid, test_exact_not_injected, test_deterministic_ordering, test_metrics_mrr_rank_gt10, test_selection_ordering_and_zero, test_b_gate_no_impl, test_latency_harness, test_audit_lifecycle, test_atomic_rerun_concurrent, test_path_confinement, test_runner_safety_hold_when_checkers_absent, test_runner_safety_hold_even_with_checkers_pre_dev, test_runner_latency_wiring, test_cli_orchestrator_e2e, test_fusion_youth_bias_only_youth_source_gov24_zero, test_sparse_only_representative_query_nearest_no_chunk0_fallback, test_oracle_union_set_and_headline130, test_metrics_graded_strict_and_ndcg, test_metrics_equivalence_group_no_double_count, test_slice_diagnostics_unavailable, test_selection_fail_closed_missing_gates, test_selection_fail_closed_missing_latency, test_execution_lifecycle_audit_closure_on_failure, test_execution_lifecycle_path_and_result_os_agnostic, test_headline_no_silent_fallback_safety_only, test_gold_missing_grade_fail_closed, test_empty_query_fail_closed, test_latency_no_fabricated_default_static, test_mirror_hyphen_underscore_identity, test_selection_http_resolution_required, test_headline_missing_stratum_not_headline, test_headline_empty_golds_fail_closed, test_retrieve_blank_fail_closed_lowest, test_canonical_dev_mode_grant_before_loader_and_counts, test_canonical_counts_mismatch_fail_closed, test_safety_real_interfaces, test_d003_baseline_forbids_candidate_a01, test_audit_preflight_no_duplicate_run_start, test_audit_windows_lock_serialized, test_path_sibling_rejected, test_candidate_b_no_finalist_not_evaluated, test_canonical_result_n_headline, test_protected_access_end_exact_outcome, test_canonical_grant_lifecycle_success_exact_one, test_canonical_grant_loader_failure_closes_failure, test_canonical_grant_pre_run_failure_closes_failure, test_canonical_grant_execution_failure_closes_failure, test_canonical_no_close_on_failed_verification, test_canonical_cli_forbids_fakes_and_uses_real_adapters, test_canonical_output_exact_and_missing_field]
     for t in tests:
         try:
             t()
@@ -1245,4 +1489,4 @@ if __name__=="__main__":
             print(f"FAIL {t.__name__}: {e}")
             import traceback; traceback.print_exc()
             sys.exit(1)
-    print("ALL 50 focused tests PASS")
+    print("ALL 57 focused tests PASS")
