@@ -578,7 +578,8 @@ class Runner:
             per_config_metrics = []
             latency_per_config = {}
             all_config_results = {}
-
+            _cost_qvec_cache: dict = {}
+            _cost_qstripped_cache: dict = {}
             for cfg in self.plan_data["configs"]:
                 cid = cfg["config_id"]
                 task_results = []
@@ -603,6 +604,13 @@ class Runner:
                         raise ValueError(f"empty query (fail-closed): task {task.get('task_id') or task.get('id')}")
                     res = self._retrieve_for_query(q, retrieval_policies, cfg)
                     final_top30 = res["final_top30"]
+                    _rtid = task.get("task_id") or task.get("id")
+                    if _rtid not in _cost_qvec_cache:
+                        try:
+                            _cost_qvec_cache[_rtid] = list(res.get("qvec") or [])
+                            _cost_qstripped_cache[_rtid] = res.get("q_stripped") or ""
+                        except Exception:
+                            pass
                     internal = [{"source": e["source"], "source_id": e["source_id"]} for e in final_top30]
                     _action = actions_by_tid[task.get("task_id") or task.get("id")]
                     # D-054: ANSWER exposes the normal visible ranking; ABSTAIN/CLARIFY
@@ -673,12 +681,31 @@ class Runner:
                     "union_oracle_R100": union_r100,
                     "slice_diagnostics": slice_diagnostics,
                 })
-                all_config_results[cid] = {
-                    "task_results": task_results,
-                    "oracle_tasks": oracle_tasks,
-                    "metrics_head": metrics_head,
-                }
-            # D-054: runner-owned core evidence. Unsupported/ambiguous bools are mechanically
+                all_config_results[cid] = {"task_results": task_results, "oracle_tasks": oracle_tasks, "metrics_head": metrics_head}
+            # D-061 cost probes: once per task, outside timed samples, same session/snapshot.
+            # Reuses cached qvec (0 extra model calls); pure lexical terms; never feeds ranking.
+            if pinned_context is not None and getattr(self, "evaluation_session", None) is not None:
+                _sess = self.evaluation_session
+                _probe_fn = getattr(_sess, "probe_task_cost", None)
+                if callable(_probe_fn):
+                    try:
+                        _as_of = (pinned_context or {}).get("evaluation_as_of_date")
+                        for _tid, _qv in list(_cost_qvec_cache.items()):
+                            _qs = _cost_qstripped_cache.get(_tid, "")
+                            try:
+                                _terms = lexical_overlap_terms(_qs if isinstance(_qs, str) else "")
+                            except Exception:
+                                continue
+                            try:
+                                _yb = youth_source_bias(_qs if isinstance(_qs, str) else "")
+                            except Exception:
+                                _yb = 0.0
+                            try:
+                                _probe_fn(_tid, _qv, _terms, _as_of, _yb)
+                            except Exception:
+                                continue
+                    except Exception:
+                        pass
             # derived from the frozen safe-action actions (exact 27/23 denominators), never from
             # retrieval emptiness. The injected adapter may supply only the other frozen gates
             # (official_link/http_resolution/cost); its core gates are recomputed/cross-checked

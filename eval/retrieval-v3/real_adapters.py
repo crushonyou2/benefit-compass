@@ -53,6 +53,18 @@ from .normalization import (
     strip_region,
     youth_source_bias,
 )
+from .cost import (
+    ALL_INDEXES_SQL,
+    CANDIDATE_DENSE_SHADOW_SQL,
+    CANDIDATE_SPARSE_SHADOW_SQL,
+    EXPLAIN_PREFIX,
+    INDEX_FOOTPRINT_SQL,
+    aggregate_task_ratios,
+    assert_lexical_terms_safe,
+    compute_index_ratio,
+    count_base_scanned_rows,
+    parse_explain_rows,
+)
 from .safe_action import action_correct_for_role
 from .safety import (
     CONNECT_TIMEOUT_S,
@@ -287,6 +299,8 @@ class RealEvaluationSession:
         self._rows_scanned = 0
         self._d003_queries = 0
         self._raw_cache: dict | None = None
+        self._cost_probe_cache: dict = {}
+        self._index_bytes_cache: dict | None = None
 
     @property
     def is_closed(self) -> bool:
@@ -459,6 +473,93 @@ class RealEvaluationSession:
             ) from None
         self._rows_scanned += len(rows)
         return [tuple(r) for r in rows]
+    def execute_explain_json(self, sql: str, params: dict | None = None) -> object:
+        """Same-session EXPLAIN executor (D-061). No second connection, no SET, secret-free."""
+        if self._closed:
+            raise RuntimeError("query on closed session (fail-closed)")
+        if not isinstance(sql, str) or not sql.strip():
+            raise ValueError("EXPLAIN SQL must be nonempty str (fail-closed)")
+        flat = " ".join(sql.split())
+        head = flat.upper()
+        if not head.startswith(EXPLAIN_PREFIX.upper()):
+            raise ValueError("session executes only frozen EXPLAIN prefix (fail-closed)")
+        remainder = flat[len(EXPLAIN_PREFIX):].strip()
+        rem_head = remainder.upper()
+        if not (rem_head.startswith("SELECT") or rem_head.startswith("WITH")):
+            raise ValueError("EXPLAIN remainder must be SELECT/WITH (fail-closed)")
+        for forbidden in ("INSERT", "UPDATE", "DELETE", "DROP", "CREATE", "ALTER", "TRUNCATE", "GRANT", "COPY", "VACUUM", "SET TIME ZONE", "SET SESSION", "SET LOCAL"):
+            if forbidden in head:
+                raise ValueError(f"session rejects {forbidden} (read-only, fail-closed)")
+        if self._pinned is None:
+            raise RuntimeError("EXPLAIN before capture completion is forbidden (fail-closed)")
+        conn = self._ensure_conn()
+        try:
+            cur = conn.cursor()
+            try:
+                cur.execute(sql, params or {})
+                rows = cur.fetchall()
+            finally:
+                cur.close()
+        except Exception as e:
+            raise RuntimeError(f"evaluation DB EXPLAIN failed ({type(e).__name__}, fail-closed)") from None
+        try:
+            return parse_explain_rows(rows)
+        except Exception as e:
+            raise ValueError(f"EXPLAIN payload invalid ({type(e).__name__}, fail-closed)") from None
+
+    def get_index_bytes(self) -> dict:
+        """Same-session index bytes (D-061). Cached once per run. Raises HOLD on drift/zero."""
+        if self._closed:
+            raise RuntimeError("index bytes on closed session (fail-closed)")
+        if self._pinned is None:
+            raise RuntimeError("index bytes before capture completion is forbidden (fail-closed)")
+        if self._index_bytes_cache is not None:
+            return dict(self._index_bytes_cache)
+        try:
+            base_rows = self.execute_readonly(INDEX_FOOTPRINT_SQL)
+            all_rows = self.execute_readonly(ALL_INDEXES_SQL)
+            info = compute_index_ratio(base_rows, all_rows)
+        except Exception as e:
+            raise ValueError(f"index bytes HOLD ({type(e).__name__}, fail-closed)") from None
+        self._index_bytes_cache = dict(info)
+        return dict(info)
+
+    def probe_task_cost(self, task_id: object, qvec: object, lexical_terms: object, as_of: object, youth_bias: object = 0.0) -> dict:
+        """Per-task baseline+candidate scans on SAME session (D-061). Cached once per task."""
+        if self._closed:
+            raise RuntimeError("cost probe on closed session (fail-closed)")
+        if self._pinned is None:
+            raise RuntimeError("cost probe before capture completion is forbidden (fail-closed)")
+        if not isinstance(task_id, str) or not task_id.strip():
+            raise ValueError("cost probe requires task_id str (fail-closed)")
+        if task_id in self._cost_probe_cache:
+            return dict(self._cost_probe_cache[task_id])
+        if not isinstance(qvec, (list, tuple)) or len(qvec) != EMBED_DIM:
+            raise ValueError("cost probe qvec dim mismatch (fail-closed HOLD)")
+        for v in qvec:
+            if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(float(v)):
+                raise ValueError("cost probe qvec non-finite (fail-closed HOLD)")
+        terms = assert_lexical_terms_safe(list(lexical_terms) if isinstance(lexical_terms, (list, tuple)) else lexical_terms)
+        if not isinstance(as_of, str) or not is_valid_iso_date(as_of):
+            raise ValueError("cost probe as_of malformed (fail-closed HOLD)")
+        if isinstance(youth_bias, bool) or not isinstance(youth_bias, (int, float)) or not math.isfinite(float(youth_bias)):
+            raise ValueError("cost probe youth_bias malformed (fail-closed HOLD)")
+        try:
+            base_plan = self.execute_explain_json(EXPLAIN_PREFIX + " " + D003_SQL, {"vec": format_qvec(list(qvec)), "age": None, "rp": None, "youth_bias": float(youth_bias), "lexical_terms": terms, "lexical_bias": 0.01, "n": 30, "as_of": as_of})
+            base_scan = count_base_scanned_rows(base_plan)
+            dense_plan = self.execute_explain_json(EXPLAIN_PREFIX + " " + CANDIDATE_DENSE_SHADOW_SQL, {"vec": format_qvec(list(qvec)), "as_of": as_of})
+            dense_scan = count_base_scanned_rows(dense_plan)
+            lex_plan = self.execute_explain_json(EXPLAIN_PREFIX + " " + CANDIDATE_SPARSE_SHADOW_SQL, {"lexical_terms": terms, "as_of": as_of, "fw_title": 1.0, "fw_support": 1.0, "fw_elig": 1.0})
+            lex_scan = count_base_scanned_rows(lex_plan)
+        except Exception as e:
+            raise ValueError(f"cost probe HOLD ({type(e).__name__}, fail-closed)") from None
+        if base_scan <= 0:
+            raise ValueError("cost probe baseline nonpositive (fail-closed HOLD)")
+        if dense_scan < 0 or lex_scan < 0:
+            raise ValueError("cost probe candidate negative (fail-closed HOLD)")
+        out = {"task_id": task_id, "baseline_scan": int(base_scan), "candidate_scan": int(dense_scan + lex_scan), "dense_scan": int(dense_scan), "lex_scan": int(lex_scan)}
+        self._cost_probe_cache[task_id] = dict(out)
+        return dict(out)
 
     @staticmethod
     def _coerce_biz_end(value: object) -> str | None:
@@ -1190,14 +1291,44 @@ class RealSafetyAdapter:
                 http_resolution = {"gate": "PASS", "unique": len(unique_urls), "successes": successes, "required": required, **url_diagnostics}
             else:
                 http_resolution = {"gate": "NO-GO", "unique": len(unique_urls), "successes": successes, "required": required, "detail": f"http successes {successes} < required {required} (fail-closed NO-GO)", **url_diagnostics}
-        cost = {
-            "gate": "HOLD",
-            "detail": COST_BASELINE_BLOCKER,
-            "policies": len(self._session._policies or []),
-            "corpus_rows_scanned": self._session.rows_scanned,
-            "d003_queries": self._session.d003_queries,
-            "extra_model_calls": 0,
-        }
+        try:
+            _sess = self._session
+            _get_fp = getattr(_sess, "get_index_bytes", None)
+            _probe_cache = getattr(_sess, "_cost_probe_cache", None)
+            if not callable(_get_fp) or not isinstance(_probe_cache, dict):
+                raise ValueError("cost measurement unavailable (fail-closed HOLD)")
+            _tids: list = []
+            for _tr in task_results:
+                _tid = _tr.get("task_id")
+                if not isinstance(_tid, str) or not _tid.strip():
+                    raise ValueError("cost task_id missing (fail-closed HOLD)")
+                _tids.append(_tid)
+            if not _tids:
+                raise ValueError("cost denominator 0 (fail-closed HOLD)")
+            _per = []
+            for _tid in _tids:
+                _e = _probe_cache.get(_tid)
+                if not isinstance(_e, dict):
+                    raise ValueError("missing task cost probe (fail-closed HOLD)")
+                _b = _e.get("baseline_scan")
+                _c = _e.get("candidate_scan")
+                if isinstance(_b, bool) or not isinstance(_b, (int, float)) or _b <= 0:
+                    raise ValueError("baseline_scan HOLD (fail-closed)")
+                if isinstance(_c, bool) or not isinstance(_c, (int, float)) or _c < 0:
+                    raise ValueError("candidate_scan HOLD (fail-closed)")
+                _per.append({"baseline_scan": int(_b), "candidate_scan": int(_c)})
+            _agg = aggregate_task_ratios(_per, len(_tids))
+            _fp = _get_fp()
+            _index_ratio = float(_fp.get("index_ratio"))
+            _rows_ratio = float(_agg.get("rows_ratio"))
+            if not (math.isfinite(_index_ratio) and math.isfinite(_rows_ratio)):
+                raise ValueError("cost ratios non-finite (fail-closed HOLD)")
+            if _index_ratio < 0 or _rows_ratio < 0:
+                raise ValueError("cost ratios negative (fail-closed HOLD)")
+            _gate = "PASS" if (_index_ratio <= 2.0 and _rows_ratio <= 3.0) else "NO-GO"
+            cost = {"gate": _gate, "index_ratio": _index_ratio, "rows_ratio": _rows_ratio, "extra_model_calls": 0, "task_count": len(_tids), "measured_count": int(_agg.get("measured_count")), "baseline_total": int(_agg.get("baseline_total")), "candidate_total": int(_agg.get("candidate_total")), "baseline_bytes": int(_fp.get("baseline_bytes")), "candidate_bytes": int(_fp.get("candidate_bytes")), "aux_bytes": int(_fp.get("aux_bytes"))}
+        except Exception:
+            cost = {"gate": "HOLD", "detail": COST_BASELINE_BLOCKER, "policies": len(self._session._policies or []) if isinstance(getattr(self._session, "_policies", None), list) else 0, "corpus_rows_scanned": getattr(self._session, "rows_scanned", 0), "d003_queries": getattr(self._session, "d003_queries", 0), "extra_model_calls": 0}
         return {
             "unsupported": owned_unsupported,
             "ambiguous": owned_ambiguous,
