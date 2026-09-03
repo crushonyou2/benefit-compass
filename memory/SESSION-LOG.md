@@ -1271,3 +1271,13 @@ One short section per working session: what was worked on, what was decided (wit
 - **Owns whole stage in one session:** reconcile → implement → 279 PASS + proofs → D-054 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
 - **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` plan; delegates exempt (serial shared-mutation boundary; no subagents).
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
+
+## 2026-09-04 — Retrieval v3 SAME-STAGE Web-HOLD narrow repair — pinned-date persistence strict calendar-date — D-055
+
+- **Reconciled start:** `codex/retrieval-v3-user-search-quality` HEAD `03bfc24` clean (`local==upstream==actual remote` via direct `ls-remote`), `git diff --check` PASS, `ml-service` diff 0 vs `5327661`; frozen SHAs verified (prereg `78420186`, plan-v4 `a25d9c48`, safe-action `c512fb56`, policy-v2 `6fee9ec2`); `dev/`+`holdout/`+canonical result/audit absent; one-shot unconsumed; OMP `18.1.5`, effective `opencode-go/muse-spark-1.3-contributor:xhigh`; D-051 repo-relative path rule observed throughout. D-055 id free; D-054 history untouched. Actual state matched expected on all points.
+- **HOLD blocker fixed:** D-054 persistence validators accepted impossible dates (`2026-99-99` etc.) via shape-only regex at audit append, audit read/chain, and canonical result boundaries, against policy-v2 fail-closed HOLD on invalid as-of. Locally reproduced on committed `03bfc24` (append + payload ACCEPTED pre-fix), then closed.
+- **Repair (frozen bytes untouched):** `audit.py` + `result_schema.py` BOTH mirrors reuse `evaluation_context.is_valid_iso_date` (same import precedent as `production_exclusion.py`) at all three boundaries; omitted pins stay backward-compatible; corpus equality/structure/semantics unchanged; `evaluation_context.py` untouched; weak date-regex literal gone from both modules.
+- **Verification:** NEW D-055 6 PASS + D-054 28 + baseline 201 + safe-action/D-052/D-053 50 = retrieval-v3 filter **285 PASS** (no double-count); `git diff --check` PASS; mirrors 2/2 identical; LF-clean; frozen SHAs unchanged; `ml-service` 0; forbidden counts all 0.
+- **VERDICT: FIRST protected-dev REMAINS BLOCKED. Do NOT launch.**
+- **Owns whole repair in one session:** reconcile → reproduce → repair+mirror → 285 PASS + proofs → D-055 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
+- **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.

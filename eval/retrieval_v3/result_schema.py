@@ -7,6 +7,7 @@ import pathlib
 import re
 import math
 import uuid
+from .evaluation_context import is_valid_iso_date
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 CANONICAL_DEV_OUTPUT_REL = pathlib.Path("eval/retrieval-v3/results/v3-candidate-dev-result.json")
@@ -335,8 +336,7 @@ def validate_complete_result(result: dict):
             if not isinstance(_tz, str) or not _tz.strip():
                 raise ValueError("canonical evaluation_context.db_session_timezone must be nonempty str (fail-closed)")
             _asof = _ctx.get("evaluation_as_of_date")
-            import re as _re3
-            if not isinstance(_asof, str) or not _re3.match(r"^\d{4}-\d{2}-\d{2}$", _asof):
+            if not is_valid_iso_date(_asof):
                 raise ValueError(f"canonical evaluation_context.evaluation_as_of_date must be ISO YYYY-MM-DD, got {_asof!r} (fail-closed)")
             _corp = result.get("corpus_provenance")
             if not isinstance(_corp, dict):

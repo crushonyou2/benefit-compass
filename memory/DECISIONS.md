@@ -1947,3 +1947,34 @@ Lazy fail-closed stubs with no IO (by design in D-054): `_real_embedding_fn`, `_
 ### VERDICT: FIRST protected-dev launch REMAINS BLOCKED (not authorized; do not launch)
 
 Bounded implementation is written but unreviewed and no protected measurement exists. Next gate after this record and its atomic commit/push is **STOP for Web read-only independent review** (not FIRST dev, not candidate tuning). Do NOT authorize FIRST dev from this workspace.
+
+## D-055 · Retrieval v3 SAME-STAGE Web-HOLD narrow repair — pinned-date persistence validator strict calendar-date enforcement — 2026-09-04 (user-authorized, one session owns repair+tests+commit+push, then STOP for Web review)
+
+User explicitly approved proceeding. This workspace owns the SAME-STAGE repair + pure/static/mock tests + ONE normal commit/push, then STOP for Web read-only independent review. No FIRST protected dev. Started with read-only reconcile; actual state won (matched expected on all points: branch `codex/retrieval-v3-user-search-quality`, HEAD `03bfc242a3fb61cd3e9f464d63b38db9605d2808` clean, local==upstream==actual remote, `git diff --check` PASS, `ml-service` diff 0 vs `5327661445c37191a3fd61db195f3af4d2cf893a`, frozen SHAs prereg `78420186...`/plan-v4 `a25d9c48...`/safe-action `c512fb56...`/policy-v2 `6fee9ec2...`, dev/holdout/result/audit absent, one-shot unconsumed, OMP `18.1.5`, effective `opencode-go/muse-spark-1.3-contributor:xhigh`). D-051 path/privacy observed (repo-relative paths only). D-055 id was free; D-054 history untouched.
+
+### 1) Web-HOLD root cause (reproduced locally on committed `03bfc24`, then closed)
+
+- `evaluation_context.is_valid_iso_date` correctly rejects impossible calendar dates (`2026-13-01`, `2026-02-30`, `2026-99-99`).
+- But D-054 persistence validators in `audit.py` (append + read/chain payload) and `result_schema.py` (canonical `evaluation_context.evaluation_as_of_date`) checked only shape regex `^\d{4}-\d{2}-\d{2}$`. Local reproduction confirmed `append_event(... evaluation_as_of_date='2026-99-99')` ACCEPTED and `_validate_payload` with the same date ACCEPTED (result_schema carries the identical regex, same acceptance by construction).
+- Frozen production-exclusion-policy-v2 says missing/malformed/invalid as-of => HOLD/fail-closed, so a persisted impossible date passing validation is a real contract blocker.
+
+### 2) Narrow fix (single strict semantics; frozen bytes untouched)
+
+- `audit.py` BOTH mirrors: top-level `from .evaluation_context import is_valid_iso_date` (same precedent as `production_exclusion.py`) and both `append_event` and `_validate_payload` (read/chain) enforce it. Provided dates must be real canonical calendar dates; omitted pins stay valid/backward-compatible; no timezone semantic change.
+- `result_schema.py` BOTH mirrors: same import; canonical `evaluation_context.evaluation_as_of_date` enforces the same helper; corpus-provenance pin equality and all required/optional structure and safety/result semantics unchanged.
+- `evaluation_context.py` untouched (no capture/timing/timezone change); no predicate/null-rule/denominator/truth-table, safe-action, ranking, selection, latency, lifecycle, plan-v4, or policy change. The weak date-regex literal is gone from both repaired modules (static-guarded by the new test); no divergent validators exist.
+- Changed-file scope: `audit.py` + `result_schema.py` mirrors only, plus the focused test and these records. No `evaluation_context` import/export line change was needed beyond the two consumer imports.
+
+### 3) Verification (pure/static/mock only, before commit)
+
+- NEW `eval/test_retrieval_v3_d055_pinned_date.py` **6 PASS**: shared-semantics static guard; append rejects all three impossible dates; read/chain rejects all three via hash-consistent crafted events; leap-day `2028-02-29` accepted at append/read/canonical; historical omitted-pins events valid at append and read; canonical result rejects all three (with matched corpus pins) and accepts the leap day.
+- D-054 focused **28 PASS**; baseline nine-file group **201 PASS**; safe-action + D-052 + D-053 group **50 PASS**; combined Retrieval-v3 filter **285 PASS** (201+50+28+6, no double-count).
+- `git diff --check` PASS; changed mirrors byte-identical (2/2); LF-clean; all four frozen SHAs unchanged; `ml-service` diff 0; `dev/`+`holdout/`+canonical result+`audit/events.jsonl` absent; one-shot unconsumed.
+
+### 4) Protected/one-shot hard boundary — forbidden 0 in this stage
+
+Protected dev/holdout plaintext access or recovery 0, `protected_access_start`/`run_start` 0, FIRST dev/result inspection/scoring/tuning 0, real DB connection/query 0, network/HTTP 0, model/embedding load 0, retrieval/latency benchmark 0, Candidate-B instantiate 0, real-adapter wiring 0, candidate policy/lexicon/threshold/ranking change 0, `ml-service` change 0, dataset regenerate/reannotate/refreeze 0, prereg/plan/policy/supersession mutation 0, history rewrite/amend/rebase/reset/force/tag move/delete/force-push 0, native user-home absolute paths in docs/messages 0.
+
+### VERDICT: FIRST protected-dev launch REMAINS BLOCKED (not authorized; do not launch)
+
+Narrow persistence-semantics repair only; bounded implementation is still unreviewed and no protected measurement exists. Next gate after this record and its atomic commit/push is **STOP for Web read-only independent review** (not FIRST dev, not candidate tuning). Do NOT authorize real-adapter wiring or FIRST dev from this workspace.

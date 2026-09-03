@@ -38,6 +38,7 @@ import re
 import subprocess
 import uuid
 from typing import Any
+from .evaluation_context import is_valid_iso_date
 
 SCHEMA_VERSION = 1
 GENESIS_HASH = "0" * 64
@@ -252,8 +253,7 @@ def _validate_payload(payload: dict[str, Any]) -> None:
         if not isinstance(payload["db_session_timezone"], str) or not payload["db_session_timezone"].strip():
             raise AuditSchemaError(f"db_session_timezone must be nonempty str, got {payload['db_session_timezone']!r}")
     if "evaluation_as_of_date" in payload and payload["evaluation_as_of_date"] is not None:
-        import re as _re2
-        if not isinstance(payload["evaluation_as_of_date"], str) or not _re2.match(r"^\d{4}-\d{2}-\d{2}$", payload["evaluation_as_of_date"]):
+        if not is_valid_iso_date(payload["evaluation_as_of_date"]):
             raise AuditSchemaError(f"evaluation_as_of_date must be ISO YYYY-MM-DD, got {payload['evaluation_as_of_date']!r}")
 
 
@@ -398,8 +398,7 @@ def append_event(
                 raise AuditSchemaError(f"db_session_timezone must be nonempty str, got {db_session_timezone!r}")
             payload_without_hash["db_session_timezone"] = db_session_timezone
         if evaluation_as_of_date is not None:
-            import re as _re
-            if not isinstance(evaluation_as_of_date, str) or not _re.match(r"^\d{4}-\d{2}-\d{2}$", evaluation_as_of_date):
+            if not is_valid_iso_date(evaluation_as_of_date):
                 raise AuditSchemaError(f"evaluation_as_of_date must be ISO YYYY-MM-DD, got {evaluation_as_of_date!r}")
             payload_without_hash["evaluation_as_of_date"] = evaluation_as_of_date
         _validate_payload(payload_without_hash)
