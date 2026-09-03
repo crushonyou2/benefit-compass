@@ -1091,3 +1091,7 @@ One short section per working session: what was worked on, what was decided (wit
 - **Owns whole SAME-STAGE:** reconcile → 5 fail-closed fixes → mirror sync → test-contract correction + 4 regressions → 36/81 PASS + SHA/isolation proofs → D-037 + SESSION-LOG → atomic commit/push → STOP. Next: **Web read-only independent review**.
 - **Model:** `opencode-go/muse-spark-1.3-contributor:xhigh` ROOT/plan (D-036 gate); delegates exempt.
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
+
+## 2026-09-03 — Retrieval v3 D-038 SHA provenance correction (docs-only, canonical LF)
+
+- Corrects D-037 runner SHA pin `0dd8f978` (stale working-tree CRLF) to canonical `git show` LF `60db7b9b...` (both mirrors identical); test canonical `7f713ff7...` at `da6b34f`. No code/test semantics change. Runner 36 PASS re-verified post-push. Next: **STOP for Web review**.

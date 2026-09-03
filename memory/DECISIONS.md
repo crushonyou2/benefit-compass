@@ -1399,3 +1399,12 @@ Reconciled base (read-only before mutation): branch `codex/retrieval-v3-user-sea
 - Forbidden 0 in this stage: FIRST dev retrieval 0, protected dev/holdout plaintext via `git show`/`cat-file`/`checkout`/`restore`/`sparse`/`worktree`/traversal 0, retrieval/search/ranking/DB/model/embedding/benchmark/latency/HTTP 0 (mock injection only), Candidate B instantiate 0, config add/delete/value change 0, result-driven tuning 0, gate relaxation 0, history rewrite/amend/rebase/reset/force 0, tag move/delete/force 0.
 
 Standing decisions D-013/D-015/D-016/D-017/D-018…D-036 remain as history/corrected where applicable. Next gate after this record and its atomic commit/push is **STOP for Web read-only independent review** (not FIRST dev retrieval, not candidate tuning).
+
+## D-038 · Retrieval v3 D-037 SHA provenance correction — canonical LF blob SHAs for SAME-STAGE runner repair — 2026-09-03 (docs-only, no code change)
+
+Corrects D-037 §2 artifact SHA pin only. D-037 remains standing for all five fail-open repairs and test contract; this D-038 changes no runner/test semantics, no plan/prereg/config/gate, no production, no protected-set access.
+
+- **Defect:** D-037 pinned working-tree CRLF SHA `0dd8f978bd9e` (pre-comment-fix, `w/crlf` on Windows `core.autocrlf=true`). Canonical evidence is committed LF blob via `git show HEAD:<path> | sha256sum` (`i/lf`).
+- **Canonical SHAs at `da6b34f0f4f0eaf6804b278ff61f4822291f6914`:** both runner mirrors `60db7b9b664469e2ed70838f3f3aa6cc4319925283b33d8fc35b0e18fc65528f` (byte-identical, mirror identity holds canonically); test `7f713ff71c73e16eda1ee8e2d7f8b4672a4a0beb81ab950d87b9d004ba9ef47f`. Working-tree CRLF (`8d260de8a123...`) is expected on Windows checkout and is not evidence; `git show` LF is.
+- **Verification:** `git show HEAD:eval/retrieval_v3/runner.py` and `eval/retrieval-v3/runner.py` SHAs equal (`60db7b9b...`); plan `2815361a` / prereg `78420186` unchanged; runner 36 PASS post-push; `ml-service` diff 0; isolation (`dev/`+`holdout/` absent) unchanged.
+- **No new tag/branch;** next gate remains **STOP for Web read-only independent review**.
