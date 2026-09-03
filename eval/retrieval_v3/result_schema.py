@@ -5,6 +5,7 @@ import json
 import os
 import pathlib
 import re
+import math
 import uuid
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -22,6 +23,18 @@ def _validate_hex40(s: str, name: str):
 def _validate_hex64(s: str, name: str):
     if not isinstance(s, str) or not HEX64_RE.match(s.lower()):
         raise ValueError(f"{name} must be 64-hex, got {s!r}")
+def _is_strict_int(v) -> bool:
+    """int excluding bool (True/False are ints in Python; fail-closed rejects them as counts)."""
+    return isinstance(v, int) and not isinstance(v, bool)
+
+def _is_finite_real(v) -> bool:
+    """Finite real numeric excluding bool, NaN, +/-inf (fail-closed for measurements)."""
+    if isinstance(v, bool) or not isinstance(v, (int, float)):
+        return False
+    try:
+        return math.isfinite(float(v))
+    except Exception:
+        return False
 
 def build_result_skeleton(
     per_config_metrics: list[dict],
@@ -173,10 +186,70 @@ def validate_complete_result(result: dict):
             for cid in expected_ids:
                 rep = safety_map.get(cid)
                 if not isinstance(rep, dict):
-                    raise ValueError(f"canonical safety {cid} must be dict")
-                for gate in ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost"):
-                    if rep.get(gate) not in ("PASS", "NO-GO", "HOLD"):
-                        raise ValueError(f"canonical safety {cid}.{gate} must be PASS/NO-GO/HOLD")
+                    raise ValueError(f"canonical safety {cid} must be dict of six structured gate objects (gate strings alone rejected)")
+                # D-042: PASS/NO-GO require mechanically sufficient helper outputs; HOLD carries detail and stays ineligible.
+                _ug = rep.get("unsupported")
+                if not isinstance(_ug, dict) or _ug.get("gate") not in ("PASS", "NO-GO", "HOLD"):
+                    raise ValueError(f"canonical safety {cid}.unsupported must be structured PASS/NO-GO/HOLD")
+                if _ug.get("gate") in ("PASS", "NO-GO"):
+                    if not _is_strict_int(_ug.get("success")) or _ug.get("required") != 26 or _ug.get("denominator") != 27:
+                        raise ValueError(f"canonical safety {cid}.unsupported needs success int + required26/denominator27")
+                    if (_ug.get("gate") == "PASS") != (_ug.get("success") >= 26):
+                        raise ValueError(f"canonical safety {cid}.unsupported gate inconsistent with success/26")
+                _ag = rep.get("ambiguous")
+                if not isinstance(_ag, dict) or _ag.get("gate") not in ("PASS", "NO-GO", "HOLD"):
+                    raise ValueError(f"canonical safety {cid}.ambiguous must be structured PASS/NO-GO/HOLD")
+                if _ag.get("gate") in ("PASS", "NO-GO"):
+                    if not _is_strict_int(_ag.get("success")) or _ag.get("required") != 21 or _ag.get("denominator") != 23:
+                        raise ValueError(f"canonical safety {cid}.ambiguous needs success int + required21/denominator23")
+                    if (_ag.get("gate") == "PASS") != (_ag.get("success") >= 21):
+                        raise ValueError(f"canonical safety {cid}.ambiguous gate inconsistent with success/21")
+                _ig = rep.get("ineligible_expired")
+                if not isinstance(_ig, dict) or _ig.get("gate") not in ("PASS", "NO-GO", "HOLD"):
+                    raise ValueError(f"canonical safety {cid}.ineligible_expired must be structured PASS/NO-GO/HOLD")
+                if _ig.get("gate") in ("PASS", "NO-GO"):
+                    if _ig.get("expected_tasks") != 180 or _ig.get("expected_slots") != 900:
+                        raise ValueError(f"canonical safety {cid}.ineligible_expired needs expected_tasks180/expected_slots900")
+                    if not _is_strict_int(_ig.get("intrusions_task")) or not _is_strict_int(_ig.get("intrusions_slot")):
+                        raise ValueError(f"canonical safety {cid}.ineligible_expired needs intrusion counts")
+                    if _ig.get("intrusions_task") < 0 or _ig.get("intrusions_slot") < 0:
+                        raise ValueError(f"canonical safety {cid}.ineligible_expired intrusion counts must be >=0")
+                    _clean = _ig.get("intrusions_task") == 0 and _ig.get("intrusions_slot") == 0
+                    if (_ig.get("gate") == "PASS") != _clean:
+                        raise ValueError(f"canonical safety {cid}.ineligible_expired gate inconsistent with intrusions")
+                _og = rep.get("official_link")
+                if not isinstance(_og, dict) or _og.get("gate") not in ("PASS", "NO-GO", "HOLD"):
+                    raise ValueError(f"canonical safety {cid}.official_link must be structured PASS/NO-GO/HOLD")
+                if _og.get("gate") in ("PASS", "NO-GO"):
+                    if not _is_strict_int(_og.get("unique")) or _og.get("unique") <= 0:
+                        raise ValueError(f"canonical safety {cid}.official_link needs unique>0")
+                    if not isinstance(_og.get("mismatches"), list):
+                        raise ValueError(f"canonical safety {cid}.official_link needs mismatches evidence")
+                    if (_og.get("gate") == "PASS") != (len(_og.get("mismatches")) == 0):
+                        raise ValueError(f"canonical safety {cid}.official_link gate inconsistent with mismatches")
+                _hg = rep.get("http_resolution")
+                if not isinstance(_hg, dict) or _hg.get("gate") not in ("PASS", "NO-GO", "HOLD"):
+                    raise ValueError(f"canonical safety {cid}.http_resolution must be structured PASS/NO-GO/HOLD")
+                if _hg.get("gate") in ("PASS", "NO-GO"):
+                    if not _is_strict_int(_hg.get("unique")) or _hg.get("unique") <= 0:
+                        raise ValueError(f"canonical safety {cid}.http_resolution needs unique>0")
+                    if not _is_strict_int(_hg.get("successes")) or _hg.get("successes") < 0:
+                        raise ValueError(f"canonical safety {cid}.http_resolution needs successes count")
+                    if _hg.get("required") != math.ceil(0.99 * _hg.get("unique")):
+                        raise ValueError(f"canonical safety {cid}.http_resolution required must be ceil(.99*unique)")
+                    if (_hg.get("gate") == "PASS") != (_hg.get("successes") >= _hg.get("required")):
+                        raise ValueError(f"canonical safety {cid}.http_resolution gate inconsistent with successes/required")
+                _cg = rep.get("cost")
+                if not isinstance(_cg, dict) or _cg.get("gate") not in ("PASS", "NO-GO", "HOLD"):
+                    raise ValueError(f"canonical safety {cid}.cost must be structured PASS/NO-GO/HOLD")
+                if _cg.get("gate") in ("PASS", "NO-GO"):
+                    if not _is_finite_real(_cg.get("index_ratio")) or not _is_finite_real(_cg.get("rows_ratio")):
+                        raise ValueError(f"canonical safety {cid}.cost needs finite index/rows ratios")
+                    if not _is_strict_int(_cg.get("extra_model_calls")):
+                        raise ValueError(f"canonical safety {cid}.cost needs extra_model_calls int")
+                    _ok = _cg.get("index_ratio") <= 2.0 and _cg.get("rows_ratio") <= 3.0 and _cg.get("extra_model_calls") == 0
+                    if (_cg.get("gate") == "PASS") != _ok:
+                        raise ValueError(f"canonical safety {cid}.cost gate inconsistent with ratios/calls")
             latency_map = result.get("latency_per_config")
             if not isinstance(latency_map, dict) or sorted(latency_map.keys()) != expected_ids:
                 raise ValueError("canonical latency_per_config must carry complete 18 config keys (fail-closed)")
@@ -184,18 +257,25 @@ def validate_complete_result(result: dict):
                 ev = latency_map.get(cid)
                 if not isinstance(ev, dict):
                     raise ValueError(f"canonical latency {cid} must be dict")
-                if ev.get("gate") not in ("PASS", "NO-GO", "HOLD"):
-                    raise ValueError(f"canonical latency {cid}.gate must be PASS/NO-GO/HOLD")
+                # D-042: exact timed-measurement shape; HOLD is not a complete measurement (publication must fail).
+                if not _is_strict_int(ev.get("n")) or ev.get("n") != 180:
+                    raise ValueError(f"canonical latency {cid}.n must be 180, got {ev.get('n')!r}")
+                if not _is_strict_int(ev.get("warmup_n")) or ev.get("warmup_n") != 30:
+                    raise ValueError(f"canonical latency {cid}.warmup_n must be 30, got {ev.get('warmup_n')!r}")
                 for side in ("baseline", "candidate"):
                     blk = ev.get(side)
                     if not isinstance(blk, dict):
                         raise ValueError(f"canonical latency {cid}.{side} must be dict")
                     for stat in ("p50", "p95", "p99"):
-                        val = blk.get(stat)
-                        if not isinstance(val, (int, float)):
-                            raise ValueError(f"canonical latency {cid}.{side}.{stat} must be numeric")
-                if not isinstance(ev.get("n"), int) or not isinstance(ev.get("warmup_n"), int):
-                    raise ValueError(f"canonical latency {cid} must carry int n/warmup_n")
+                        if not _is_finite_real(blk.get(stat)):
+                            raise ValueError(f"canonical latency {cid}.{side}.{stat} must be finite real numeric (bool/NaN/inf rejected)")
+                if ev.get("gate") not in ("PASS", "NO-GO"):
+                    raise ValueError(f"canonical latency {cid}.gate must be PASS/NO-GO (HOLD is not a complete measurement)")
+                _bp = ev["baseline"]["p95"]
+                _cp = ev["candidate"]["p95"]
+                _expect = "PASS" if (_cp <= _bp + 80 and _cp <= 700) else "NO-GO"
+                if ev.get("gate") != _expect:
+                    raise ValueError(f"canonical latency {cid}.gate forged (numbers imply {_expect})")
             sel = result.get("selection") or {}
             eligible = sel.get("eligible")
             chosen = sel.get("chosen")
@@ -208,7 +288,9 @@ def validate_complete_result(result: dict):
                 if m is None or not isinstance(m.get("success_at_5"), (int, float)) or not m.get("success_at_5") >= 0.85:
                     raise ValueError(f"canonical eligible {cid} must carry success_at_5>=0.85")
                 for gate in ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost"):
-                    if safety_map.get(cid, {}).get(gate) != "PASS":
+                    _gv = safety_map.get(cid, {}).get(gate)
+                    _gs = _gv if isinstance(_gv, str) else (isinstance(_gv, dict) and _gv.get("gate"))
+                    if _gs != "PASS":
                         raise ValueError(f"canonical eligible {cid} must carry six-gate safety PASS")
                 if latency_map.get(cid, {}).get("gate") != "PASS":
                     raise ValueError(f"canonical eligible {cid} must carry latency gate PASS")
@@ -219,7 +301,7 @@ def validate_complete_result(result: dict):
     # corpus provenance pin
     corpus = result.get("corpus_provenance")
     if corpus:
-        if "total_policies" in corpus and not isinstance(corpus["total_policies"], int):
+        if "total_policies" in corpus and (not isinstance(corpus["total_policies"], int) or isinstance(corpus["total_policies"], bool)):
             raise ValueError("corpus_provenance.total_policies invalid")
     # provenance pins
     prov = result.get("provenance", {})

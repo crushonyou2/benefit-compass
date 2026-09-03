@@ -1512,3 +1512,35 @@ Reconciled base (read-only before mutation): branch `codex/retrieval-v3-user-sea
 - Forbidden 0 in this stage: FIRST dev retrieval 0, protected dev/holdout plaintext via `git show`/`cat-file`/`checkout`/`restore`/`sparse`/`worktree`/traversal 0, retrieval/search/ranking/DB/model/embedding/benchmark/latency/HTTP 0 (mock injection + synthetic tasks only; 180-task canonical shape executed only via mocked embedding/policies/adapters, never protected plaintext), Candidate B instantiate 0, config add/delete/value change 0, result-driven tuning 0, gate relaxation 0 (prereg +80/700 budget unchanged, only enforced), history rewrite/amend/rebase/reset/force 0, tag move/delete/force 0.
 
 Standing decisions D-013/D-015/D-016/D-017/D-018…D-040 remain as history/corrected where applicable. Next gate after this record and its atomic commit/push is **STOP for Web read-only independent review** (not FIRST dev retrieval, not candidate tuning).
+
+## D-042 · Retrieval v3 SAME-STAGE Web-HOLD correction-5 — strict latency/corpus/safety evidence fail-closed — 2026-09-03 (user-authorized, one session owns repair+tests+commit+push)
+
+This is a **narrow SAME-STAGE correction-5** on base `f5e5646a94c6443a2030657918e10e21d8768288` that does NOT rewrite D-037/D-038/D-039/D-040/D-041 history. D-041 remains standing for mandatory adapters, gate-enforced eligibility, 18-key evidence/consistency, and D003 descriptor; this D-042 corrects D-041's overclaim of evidence completeness: Web independently reproduced on committed bytes that canonical validation ACCEPTED latency `n=179`/`warmup_n=29`, `p95=inf`, and `corpus_provenance=None`, that the Runner silently swallowed corpus failures to `None`, and that per-gate safety evidence was squashed to gate strings. No plan/prereg/config/gate change, no production change, no FIRST dev retrieval, no protected plaintext, no real DB/model/network/HTTP/latency benchmark.
+
+Reconciled base (read-only before mutation): branch `codex/retrieval-v3-user-search-quality` HEAD `f5e5646a94c6443a2030657918e10e21d8768288` clean (`local==origin`, `git diff --check` PASS), `ml-service` diff 0 vs `5327661445c37191a3fd61db195f3af4d2cf893a`, plan `2815361a469fee9bf69f6ffdf2124d19928220535cdb08b2005ae6674ae7d17c` / prereg `7842018613d66aa4570f4db2f8ae5a698ceb46757995a6b7e26873177b36160e` unchanged, `eval/retrieval-v3/dev/` + `holdout/` absent on main. Runtime OMP `18.1.5` / ROOT-plan `opencode-go/muse-spark-1.3-contributor:xhigh` per D-036 (D-036 gate still in force).
+
+### D-041 overclaim corrected (each residual Web-reproduced on committed bytes)
+
+- **Latency shape loose:** `n`/`warmup_n` accepted any int, stats accepted bool/NaN/inf, gate accepted `HOLD`, and gate value never cross-checked against the numbers (forged `PASS`/`NO-GO` passed).
+- **Corpus optional:** `corpus_provenance_fn` exception silently became `None`; `None`/non-dict published without error and never closed the grant as failure.
+- **Safety squashed:** artifact stored derived gate strings per gate; required counts/denominators/HTTP/cost details lost before publication.
+
+### Repair (fail-closed, deterministic, no new signal; both mirrors byte-identical)
+
+- **Latency (1):** canonical requires per-config `n==180` (strict int), `warmup_n==30`, `p50/p95/p99` finite real numerics (bool/NaN/±inf rejected via `_is_finite_real`), gate exactly `PASS`/`NO-GO` (`HOLD` rejected as incomplete measurement), and gate recomputed from the numbers (`candidate p95 <= baseline p95+80 and <=700`; mismatch rejected as forged). Sample arrays untouched (no new requirement beyond prereg).
+- **Corpus (2):** provenance gathered pre-run; canonical `fn` exception/`None`/non-dict/empty-dict/bad `total_policies`/`snapshot` types fail closed after verified grant with exact-one failure close (no silent `None`). Types only: nonempty dict, `total_policies` strict int when present, `snapshot` str/dict when present — no invented fields/gates. Noncanonical stays lenient (`None` on failure).
+- **Safety (3):** artifact preserves original structured dicts per gate (`safety_evidence_per_config`; selection still derives gate strings). Canonical requires exact 18 keys and per-gate objects: unsupported `success/26/27`, ambiguous `success/21/23`, ineligible `expected_tasks180/expected_slots900` + intrusion counts, official `unique/mismatches`, HTTP `unique/successes/required=ceil(.99*unique)`, cost `index_ratio/rows_ratio/extra_model_calls` — each with gate-value consistency (`PASS` iff threshold met). `HOLD` needs only a valid gate value and keeps the config ineligible. No protected query/gold plaintext added to the result.
+- **Runner self-check:** canonical calls `validate_complete_result` before publish even with `output_path=None`, so failed measurement fails (with failure close) instead of returning an invalid result.
+
+### Tests (pure/static/mock only; 61 → 64; patched only, no real IO)
+
+- Patched: pre-dev safety-shape assertion to nested structured HOLD; headline/output minimal bases to structured HOLD (strings now rejected by design).
+- New (3): `test_canonical_latency_evidence_strict_tampers` (n179/warmup29/NaN/inf/bool/forged-PASS/forged-NO-GO/over700-PASS/HOLD-gate reject; genuine NO-GO accepts), `test_canonical_corpus_mandatory_failure_close` (raise/None/non-dict each fail with exact-one failure close and no `run_start`), `test_canonical_safety_full_evidence_preserved` (180 mock run with full PASS evidence survives `runner→result` with counts intact; gate-strings-only/stripped/altered artifacts reject).
+- Footer list + count updated to 64.
+
+### Verification (pure/static/mock only, before commit)
+
+- `pytest eval/test_retrieval_v3_candidate_a_runner.py` **64 PASS**; `pytest runner+plan+sha_consistency` **109 PASS** (64+39+6); `git diff --check` PASS; plan/prereg SHAs unchanged; `ml-service` diff 0; `dev/`+`holdout/` absent; mirror identity PASS (2 repaired pairs byte-identical: runner/result_schema; selection/audit/paths/safety untouched).
+- Forbidden 0 in this stage: FIRST protected dev 0, protected plaintext via `git show`/`cat-file`/`checkout`/`restore`/`sparse`/`worktree`/traversal 0, real retrieval/DB/model/embedding/network/HTTP/latency 0 (mock injection + synthetic tasks/adapters only), holdout 0, tuning 0, plan/prereg/config/gate/`ml-service` change 0, B instantiate 0, history rewrite/amend/rebase/reset/force 0, tag move/delete/force 0.
+
+Standing decisions D-013/D-015/D-016/D-017/D-018…D-041 remain as history/corrected where applicable. Next gate after this record and its atomic commit/push is **STOP for Web read-only independent review** (not FIRST dev retrieval, not candidate tuning).

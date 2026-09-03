@@ -450,6 +450,29 @@ class Runner:
                     except Exception as ce:
                         raise RuntimeError(f"grant close on pre-run output-exists failure failed (fail-closed): {ce}") from ce
                 raise FileExistsError(f"output already exists: {out_abs} — rerun guard")
+        # D-042: corpus provenance gathered pre-run (static per run); canonical failure closes grant exactly once.
+        corpus_prov = None
+        try:
+            if self.corpus_provenance_fn is not None:
+                corpus_prov = self.corpus_provenance_fn()
+            if is_canonical:
+                if not isinstance(corpus_prov, dict) or not corpus_prov:
+                    raise ValueError("canonical corpus_provenance must be nonempty dict (fail-closed)")
+                _tp = corpus_prov.get("total_policies")
+                if "total_policies" in corpus_prov and (not isinstance(_tp, int) or isinstance(_tp, bool)):
+                    raise ValueError("canonical corpus_provenance.total_policies must be int (fail-closed)")
+                _snap = corpus_prov.get("snapshot")
+                if "snapshot" in corpus_prov and not isinstance(_snap, (str, dict)):
+                    raise ValueError("canonical corpus_provenance.snapshot must be str/dict (fail-closed)")
+        except Exception as e:
+            if is_canonical and grant_verified and not grant_closed:
+                try:
+                    _close_grant("failure")
+                except Exception as ce:
+                    raise RuntimeError(f"grant close on corpus failure failed (fail-closed): {ce}") from e
+            if is_canonical:
+                raise RuntimeError(f"canonical corpus provenance failed (fail-closed): {e}") from e
+            corpus_prov = None
         run_start_event = None
         run_end_event = None
         need_audit_close = False
@@ -591,6 +614,7 @@ class Runner:
                     "metrics_head": metrics_head,
                 }
             safety_per_config = {}
+            safety_evidence_per_config = {}
             for cfg in self.plan_data["configs"]:
                 cid = cfg["config_id"]
                 try:
@@ -606,6 +630,7 @@ class Runner:
                             if gv not in ("PASS", "NO-GO", "HOLD"):
                                 raise ValueError(f"safety evidence gate {k} invalid {gv!r} (fail-closed)")
                         overall = "PASS" if all((ev[k] if isinstance(ev[k], str) else ev[k].get("gate")) == "PASS" for k in need) else ("NO-GO" if any((ev[k] if isinstance(ev[k], str) else ev[k].get("gate")) == "NO-GO" for k in need) else "HOLD")
+                        # Selection map keeps gate strings (derived); artifact map keeps original structured dicts.
                         safety_per_config[cid] = {
                             "unsupported": ev["unsupported"] if isinstance(ev["unsupported"], str) else ev["unsupported"].get("gate"),
                             "ambiguous": ev["ambiguous"] if isinstance(ev["ambiguous"], str) else ev["ambiguous"].get("gate"),
@@ -615,6 +640,9 @@ class Runner:
                             "cost": ev["cost"] if isinstance(ev["cost"], str) else ev["cost"].get("gate"),
                             "gate": overall,
                             "detail": "measured_via_safety_evidence_fn",
+                        }
+                        safety_evidence_per_config[cid] = {
+                            k: (ev[k] if isinstance(ev[k], dict) else {"gate": ev[k]}) for k in need
                         }
                     else:
                         gate_u = "HOLD"
@@ -633,6 +661,9 @@ class Runner:
                             "gate": overall,
                             "detail": "pre_dev_no_real_measurement",
                         }
+                        safety_evidence_per_config[cid] = {
+                            k: {"gate": "HOLD", "detail": "pre_dev_no_real_measurement"} for k in ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost")
+                        }
                 except Exception as e:
                     safety_per_config[cid] = {
                         "unsupported": "HOLD",
@@ -643,6 +674,9 @@ class Runner:
                         "cost": "HOLD",
                         "gate": "HOLD",
                         "error": str(e)[:200],
+                    }
+                    safety_evidence_per_config[cid] = {
+                        k: {"gate": "HOLD", "error": str(e)[:200]} for k in ("unsupported", "ambiguous", "ineligible_expired", "official_link", "http_resolution", "cost")
                     }
 
             latency_p95_per_config = None
@@ -700,12 +734,7 @@ class Runner:
             git_dirty = _get_git_dirty()
             plan_sha = _sha256_file(CANDIDATE_PLAN_PATH if CANDIDATE_PLAN_PATH.exists() else REPO_ROOT / "eval" / "retrieval_v3" / "candidate-plan" / "candidate-plan-v1.json")
             prereg_sha = _sha256_file(PREREG_PATH)
-            corpus_prov = None
-            if self.corpus_provenance_fn:
-                try:
-                    corpus_prov = self.corpus_provenance_fn()
-                except Exception:
-                    corpus_prov = None
+            # D-042: corpus_prov gathered pre-run (fail-closed there); reuse here without re-calling.
             set_prov = None
             if set_sha:
                 set_prov = {"set_role": set_role, "set_sha": set_sha, "n": len(tasks), "headline_n": len(headline_tasks)}
@@ -718,7 +747,6 @@ class Runner:
                 "created_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat().replace("+00:00", "Z"),
             }
             audit_head_val = run_start_event.get("event_hash") if run_start_event else None
-
             result = build_result_skeleton(
                 per_config_metrics=per_config_metrics,
                 selection=selection,
@@ -729,9 +757,12 @@ class Runner:
                 corpus_provenance=corpus_prov,
                 set_provenance=set_prov,
                 audit_head=audit_head_val,
-                safety_per_config=safety_per_config,
+                safety_per_config=safety_evidence_per_config,
                 latency_per_config=latency_evidence_per_config,
             )
+            # D-042: canonical self-validation before publish (fail-closed even with output None; triggers failure close).
+            if is_canonical:
+                validate_complete_result(result)
 
             if output_path:
                 atomic_write_result(result, output_path)
