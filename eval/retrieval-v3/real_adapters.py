@@ -169,6 +169,36 @@ COST_BASELINE_BLOCKER = (
     "measurement on the same env/DB/corpus; adapter-side counts measured, "
     "ratios never assumed (fail-closed HOLD)"
 )
+# D-059 link provenance (docs/RETRIEVAL_V3_LINK_PROVENANCE_SUPERSESSION_V1.md, pre-result freeze).
+# Visible URL MUST equal the ingest-derived apply_url; no invented domain. Pure helpers only (no IO).
+LINK_PROVENANCE_CONTRACT_REF = "docs/RETRIEVAL_V3_LINK_PROVENANCE_SUPERSESSION_V1.md"
+def _is_valid_visible_url(url: object) -> bool:
+    """Trimmed non-empty http(s) URL per frozen ingest prefix rule (case-sensitive, no casefold)."""
+    if not isinstance(url, str):
+        return False
+    t = url.strip()
+    return bool(t) and t.startswith(("https://", "http://"))
+def _derive_gov24_visible_url(raw: object) -> str | None:
+    """Gov24 ingest rule: first valid HTTP(S) online URL else official detail URL (trimmed, else None)."""
+    if not isinstance(raw, dict):
+        return None
+    lst = raw.get("serviceList") if isinstance(raw.get("serviceList"), dict) else {}
+    det = raw.get("serviceDetail") if isinstance(raw.get("serviceDetail"), dict) else {}
+    cands = [det.get("\uc628\ub77c\uc778\uc2e0\uccad\uc0ac\uc774\ud2b8URL"), lst.get("\uc0c1\uc138\uc870\ud68cURL")]
+    for c in cands:
+        t = str(c or "").strip()
+        if t.startswith(("https://", "http://")):
+            return t
+    return None
+def _derive_youth_visible_url(raw: object) -> str | None:
+    """Youth ingest rule: first valid HTTP(S) aplyUrlAddr else refUrlAddr1 (trimmed, else None; ref2 excluded)."""
+    if not isinstance(raw, dict):
+        return None
+    for c in (raw.get("aplyUrlAddr"), raw.get("refUrlAddr1")):
+        t = (c or "").strip() if isinstance(c, str) else str(c or "").strip()
+        if t.startswith(("https://", "http://")):
+            return t
+    return None
 
 
 def read_database_url(env: Any = None) -> str:
@@ -633,18 +663,20 @@ class RealEmbeddingAdapter:
 
 
 class RealProtectedLoader:
-    """Fail-closed confined loader for the MATERIALIZED dev evalset (D-056).
-
-    Opens NO protected plaintext in D-056: without an explicit
-    already-authorized materialized path supplied at FIRST-dev time, every
-    call fails closed (recorded FIRST-dev pre-gate blocker). The runner
-    verifies the protected_access grant BEFORE invoking this loader; the
-    loader additionally requires dev role, exact byte SHA256 equality to the
-    passed set_sha (no normalization of the bytes), and path confinement
-    (no traversal/symlink escape, no Git recovery of any kind).
-    """
+    """Fail-closed confined loader for the MATERIALIZED dev evalset (D-056, D-059)."""
+    # D-059: explicit already-authorized external base via --materialized-evalset-base (runtime-supplied).
+    # Construction performs NO protected plaintext IO (no stat/read/resolve); the file opens only
+    # inside __call__ AFTER runner-verified protected_access_start (grant -> loader -> run_start).
+    # Confinement is component-aware via resolve(): resolved file must equal resolved base
+    # (single-file base) or lie strictly inside resolved base dir; outside/sibling/symlink escapes
+    # rejected. Holdout forbidden. Exact raw-byte SHA256 equality; no normalization. No Git recovery.
 
     def __init__(self, materialized_path: str | pathlib.Path | None = None, allowed_base: str | pathlib.Path | None = None):
+        # D-059: pure argument validation only (no stat/read/resolve => no pre-grant plaintext IO).
+        if materialized_path is not None and not str(materialized_path).strip():
+            raise ValueError("materialized path empty (fail-closed)")
+        if allowed_base is not None and not str(allowed_base).strip():
+            raise ValueError("materialized base empty (fail-closed)")
         self._materialized_path = str(materialized_path) if materialized_path is not None else None
         self._allowed_base = pathlib.Path(allowed_base) if allowed_base is not None else REPO_ROOT
         self.__real_adapter__ = True
@@ -962,9 +994,14 @@ class RealSafetyAdapter:
     authoritative evidence is unavailable (never fabricated PASS).
     """
 
-    def __init__(self, session: RealEvaluationSession, http_transport: Callable | None = None):
+    def __init__(self, session: RealEvaluationSession, http_transport: Callable | None = None, raw_lookup: dict | Callable | None = None):
+        # D-059: raw_lookup is optional same-snapshot raw evidence for link provenance (dict or callable, no IO here).
+        # None preserves D-056 fail-closed HOLD (backward compatible); FIRST dev supplies same-snapshot raws after grant.
+        if raw_lookup is not None and not (isinstance(raw_lookup, dict) or callable(raw_lookup)):
+            raise ValueError("raw_lookup must be dict/callable/None (fail-closed)")
         self._session = session
         self._http_transport = http_transport if http_transport is not None else http_client_transport
+        self._raw_lookup = raw_lookup
         self.__real_adapter__ = True
 
     @staticmethod
@@ -1013,14 +1050,24 @@ class RealSafetyAdapter:
         collected: list[str] = []
         missing_url = 0
         visible_slots = 0
+        url_to_identities: dict[str, list[tuple]] = {}
+        unknown_identity = 0
         for tr in task_results:
             for doc in (tr.get("retrieved") or [])[:5]:
                 if not isinstance(doc, dict):
                     continue
                 visible_slots += 1
-                raw_url = url_lookup.get((doc.get("source"), doc.get("source_id")))
-                if isinstance(raw_url, str) and raw_url.strip():
-                    collected.append(raw_url.strip())
+                key = (doc.get("source"), doc.get("source_id"))
+                if key not in url_lookup:
+                    unknown_identity += 1
+                    missing_url += 1
+                    continue
+                raw_url = url_lookup.get(key)
+                # D-059: only VALID http(s) after trim counts as visible (non-http legacy => missing, accepted limitation).
+                if _is_valid_visible_url(raw_url):
+                    t = raw_url.strip()
+                    collected.append(t)
+                    url_to_identities.setdefault(t, []).append(key)
                 else:
                     missing_url += 1
         unique_urls = dedupe_official_links(collected)
@@ -1030,11 +1077,47 @@ class RealSafetyAdapter:
             "unique_urls": len(unique_urls),
             "missing_url_fields": missing_url,
             "url_field": "apply_url",
+            "link_contract": LINK_PROVENANCE_CONTRACT_REF,
         }
-        official_link = {"gate": "HOLD", "detail": OFFICIAL_LINK_MAPPING_BLOCKER, **url_diagnostics}
+        # D-059 provenance measurement: table-vs-raw derivation equality (no domain allowlist).
+        # None raw_lookup preserves D-056 HOLD (backward compatible); FIRST dev supplies same-snapshot raws.
+        if self._raw_lookup is None:
+            official_link = {"gate": "HOLD", "detail": OFFICIAL_LINK_MAPPING_BLOCKER, **url_diagnostics}
+        elif not unique_urls:
+            official_link = {"gate": "HOLD", "detail": "visible apply_url denominator 0 (missing measurement, fail-closed HOLD)", **url_diagnostics}
+        elif unknown_identity:
+            official_link = {"gate": "HOLD", "detail": f"missing snapshot apply_url for {unknown_identity} visible identities (fail-closed HOLD)", **url_diagnostics}
+        else:
+            mismatches: list = []
+            missing_raw = 0
+            for u in unique_urls:
+                for key in url_to_identities.get(u, []):
+                    src, sid = key
+                    try:
+                        raw = self._raw_lookup.get(key) if isinstance(self._raw_lookup, dict) else self._raw_lookup(src, sid)
+                    except Exception:
+                        raw = None
+                    if not isinstance(raw, dict):
+                        missing_raw += 1
+                        break
+                    expected = _derive_gov24_visible_url(raw) if src == "gov24" else (_derive_youth_visible_url(raw) if src == "youth" else None)
+                    if expected is None and src not in ("gov24", "youth"):
+                        missing_raw += 1
+                        break
+                    if expected != u:
+                        mismatches.append({"url": u, "source": src, "source_id": sid, "expected": expected})
+                        break
+                if missing_raw or mismatches:
+                    break
+            if missing_raw:
+                official_link = {"gate": "HOLD", "detail": "missing raw derivation evidence for a required visible identity (fail-closed HOLD)", "missing_raw": missing_raw, "unique": len(unique_urls), "mismatches": mismatches, **url_diagnostics}
+            elif mismatches:
+                official_link = {"gate": "NO-GO", "unique": len(unique_urls), "mismatches": mismatches, **url_diagnostics}
+            else:
+                official_link = {"gate": "PASS", "unique": len(unique_urls), "mismatches": [], **url_diagnostics}
         http_resolution = {
             "gate": "HOLD",
-            "detail": "official_link denominator has no authoritative source-match map; benchmark HTTP not executed (fail-closed HOLD)",
+            "detail": "visible apply_url denominator frozen per link provenance V1; benchmark HTTP runs only during FIRST dev on that denominator (D-059 holds, fail-closed HOLD)",
             **url_diagnostics,
         }
         cost = {
@@ -1062,19 +1145,15 @@ def build_real_adapters(
     materialized_path: str | pathlib.Path | None = None,
     evalset_base: str | pathlib.Path | None = None,
     http_transport: Callable | None = None,
+    raw_lookup: dict | Callable | None = None,
 ) -> dict:
-    """Bind all eight real adapter surfaces to ONE governing session (D-056).
-
-    Construction performs no IO. Every returned callable carries
-    __real_adapter__ = True. The embedding instance is shared between the
-    Candidate-A path and the D-003 baseline (single model load).
-    """
+    """Bind all eight real adapter surfaces to ONE governing session (D-056, D-059)."""
+    # D-059: construction performs no IO (raw_lookup stored only; same-snapshot raws supplied after grant in FIRST dev).
     if not isinstance(session, RealEvaluationSession):
         raise ValueError("real adapters require the governing RealEvaluationSession (fail-closed)")
-
     embedding = RealEmbeddingAdapter(model_loader=model_loader)
     protected_loader = RealProtectedLoader(materialized_path=materialized_path, allowed_base=evalset_base)
-    safety = RealSafetyAdapter(session, http_transport=http_transport)
+    safety = RealSafetyAdapter(session, http_transport=http_transport, raw_lookup=raw_lookup)
     d003 = RealD003Baseline(session, embedding)
     clock = RealClock()
 

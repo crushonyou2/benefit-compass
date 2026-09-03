@@ -992,6 +992,7 @@ def parse_args(argv=None):
     p.add_argument("--expected-event-hash", type=str, help="grant token")
     p.add_argument("--skip-audit", action="store_true", help="skip audit for pure tests")
     p.add_argument("--materialized-evalset", type=str, default=None, help="explicit already-authorized materialized dev evalset path (FIRST-dev only; unset in D-056, loader stays fail-closed)")
+    p.add_argument("--materialized-evalset-base", type=str, default=None, help="explicit already-authorized external materialized base directory for the dev evalset file (FIRST-dev only; runtime-supplied, no IO at parse; loader confines the file inside this base after grant; unset defaults to repo root fail-closed)")
     return p.parse_args(argv)
 
 def _is_canonical_cli(args) -> bool:
@@ -1002,6 +1003,10 @@ def main_mock(args):
     """Mock CLI (non-canonical only): fakes + --tasks/--policies/--skip-audit allowed. No real IO."""
     if _is_canonical_cli(args):
         raise ValueError("mock CLI forbids canonical dev (set_sha present; use canonical-dev path, fail-closed)")
+    if getattr(args, "materialized_evalset", None):
+        raise ValueError("mock CLI forbids --materialized-evalset (FIRST-dev canonical only, fail-closed)")
+    if getattr(args, "materialized_evalset_base", None):
+        raise ValueError("mock CLI forbids --materialized-evalset-base (FIRST-dev canonical only, fail-closed)")
     plan = load_candidate_plan_or_fail()
     def fake_embedding(q):
         import hashlib, random
@@ -1098,6 +1103,7 @@ def main_canonical_dev(args):
         adapters = build_real_adapters(
             session,
             materialized_path=getattr(args, "materialized_evalset", None),
+            evalset_base=getattr(args, "materialized_evalset_base", None),
         )
         runner = Runner(
             candidate_plan=plan,
