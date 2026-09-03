@@ -275,6 +275,31 @@ def validate_complete_result(result: dict):
                         raise ValueError(f"canonical safety {cid}.cost ratios must be >=0")
                     if not _is_strict_int(_cg.get("extra_model_calls")) or _cg.get("extra_model_calls") < 0:
                         raise ValueError(f"canonical safety {cid}.cost needs extra_model_calls int >=0")
+                    # D-062: persistence completeness (D-061 denominator/aggregate evidence).
+                    # A bare {gate, index_ratio, rows_ratio, extra_model_calls} is a
+                    # forgeable PASS with no measurement behind it — reject. HOLD
+                    # stays incomplete-capable (missing measurement must be HOLD).
+                    if not _is_strict_int(_cg.get("task_count")) or not _is_strict_int(_cg.get("measured_count")):
+                        raise ValueError(f"canonical safety {cid}.cost needs task_count/measured_count strict ints")
+                    if _cg.get("measured_count") != _cg.get("task_count"):
+                        raise ValueError(f"canonical safety {cid}.cost needs complete denominator measured_count==task_count")
+                    if _cg.get("task_count") != 180:
+                        raise ValueError(f"canonical safety {cid}.cost needs canonical dev task_count==180")
+                    if not _is_strict_int(_cg.get("baseline_total")) or _cg.get("baseline_total") < _cg.get("task_count"):
+                        raise ValueError(f"canonical safety {cid}.cost needs baseline_total strict int >=task_count")
+                    if not _is_strict_int(_cg.get("candidate_total")) or _cg.get("candidate_total") < 0:
+                        raise ValueError(f"canonical safety {cid}.cost needs candidate_total strict int >=0")
+                    if not _is_strict_int(_cg.get("baseline_bytes")) or _cg.get("baseline_bytes") <= 0:
+                        raise ValueError(f"canonical safety {cid}.cost needs baseline_bytes strict int >0")
+                    if not _is_strict_int(_cg.get("aux_bytes")) or _cg.get("aux_bytes") < 0:
+                        raise ValueError(f"canonical safety {cid}.cost needs aux_bytes strict int >=0")
+                    if not _is_strict_int(_cg.get("candidate_bytes")) or _cg.get("candidate_bytes") <= 0:
+                        raise ValueError(f"canonical safety {cid}.cost needs candidate_bytes strict int >0")
+                    if _cg.get("candidate_bytes") != _cg.get("baseline_bytes") + _cg.get("aux_bytes"):
+                        raise ValueError(f"canonical safety {cid}.cost needs candidate_bytes==baseline_bytes+aux_bytes")
+                    _expect_ratio = _cg.get("candidate_bytes") / _cg.get("baseline_bytes")
+                    if not math.isclose(_cg.get("index_ratio"), _expect_ratio, rel_tol=1e-9, abs_tol=0.0):
+                        raise ValueError(f"canonical safety {cid}.cost index_ratio inconsistent with candidate_bytes/baseline_bytes")
                     _ok = _cg.get("index_ratio") <= 2.0 and _cg.get("rows_ratio") <= 3.0 and _cg.get("extra_model_calls") == 0
                     if (_cg.get("gate") == "PASS") != _ok:
                         raise ValueError(f"canonical safety {cid}.cost gate inconsistent with ratios/calls")

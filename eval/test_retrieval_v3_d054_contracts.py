@@ -125,7 +125,7 @@ def _echo_owned_adapter(biz_map, as_of, record=None):
             "unsupported": ou, "ambiguous": oa, "production_exclusion": {"gate": g, **d},
             "official_link": {"gate": "PASS", "unique": 1, "mismatches": []},
             "http_resolution": {"gate": "PASS", "unique": 100, "successes": 100, "required": 99},
-            "cost": {"gate": "PASS", "index_ratio": 1.0, "rows_ratio": 1.0, "extra_model_calls": 0},
+            "cost": {"gate": "PASS", "index_ratio": 1.5, "rows_ratio": 1.0, "extra_model_calls": 0, "task_count": len(tres), "measured_count": len(tres), "baseline_total": 30 * len(tres), "candidate_total": 30 * len(tres), "baseline_bytes": 400, "candidate_bytes": 600, "aux_bytes": 200},
         }
     return fn
 

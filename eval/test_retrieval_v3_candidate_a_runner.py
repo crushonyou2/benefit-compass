@@ -1739,7 +1739,7 @@ def test_canonical_safety_full_evidence_preserved():
         "production_exclusion": {"gate": "PASS", "expected_tasks": 180, "expected_slots": 900, "intrusions_task": 0, "intrusions_slot": 0},
         "official_link": {"gate": "PASS", "unique": 2, "mismatches": []},
         "http_resolution": {"gate": "PASS", "unique": 100, "successes": 99, "required": 99},
-        "cost": {"gate": "PASS", "index_ratio": 1.5, "rows_ratio": 2.0, "extra_model_calls": 0},
+        "cost": {"gate": "PASS", "index_ratio": 1.5, "rows_ratio": 2.0, "extra_model_calls": 0, "task_count": 180, "measured_count": 180, "baseline_total": 5400, "candidate_total": 10800, "baseline_bytes": 400, "candidate_bytes": 600, "aux_bytes": 200},
     }
     with tempfile.TemporaryDirectory() as td:
         log = pathlib.Path(td) / "audit.jsonl"
