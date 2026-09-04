@@ -1502,3 +1502,10 @@ One short section per working session: what was worked on, what was decided (wit
 - **Root tools broke mid-stage** (click_gate.py missing, fail-closed on bash/eval/write): mechanics continued via child task agents with independent kernels; coordinator made zero semantic judgments. Durable record written via ScribeFinal for the same reason.
 - **VERDICT: INFEASIBLE_STOP_HOLD. One normal commit+push (this record), verified clean/local=remote/diff-check/ml-service0/frozen-six/audit/result/protected-absent, then STOP for Web independent review. Protected freeze/execution NOT authorized.**
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
+
+## 2026-09-05 — Retrieval v3 D-072 SAME-STAGE narrow provenance correction (26→27 count + truncated cross-ref, no contract change)
+
+- **Reconciled start (actual wins):** branch `codex/retrieval-v3-user-search-quality` HEAD `22bafc4b11daab28b16900a191ed1e8738892e21` clean, local=upstream=direct remote identical (`22bafc4`), `git diff --check` PASS, `ml-service` diff 0 vs `5327661`. User explicitly authorized this SAME-STAGE narrow repair.
+- **Defects (verified from bytes, not assumed):** (1) `memory/DECISIONS.md` D-072 Phase C provenance claimed `26 child task calls` while parenthetical list enumerates 27 names (AuthorChunk0-5=6 + RepairChunk0/1/3/5=4 + MechanicMerge + MechanicReval + ReviewerA0-3=4 + ReviewerB0-3=4 + MechanicABC + AdjudicatorC0-3=4 + MechanicSelect + ScribeFinal = 27). (2) `docs/RETRIEVAL_V3_D072_DEV_V2_GENERATION_V4_STRATEGY.md` §9 ended `Full record: memory/DECISIONS.md D-072 Phase …` (truncated, 794-byte line 136).
+- **Fix (2 lines ONLY):** DECISIONS `26` → `27` (list unchanged); strategy tail `D-072 Phase …` → `D-072 Phase C execution record.` No SHA/contract/gate/threshold/census/selector change; no protected plaintext/branch/tag/worktree/audit/run/holdout contact; no history rewrite (original `26` + truncation preserved in git history at `22bafc4`).
+- **VERDICT: SAME-STAGE provenance corrected. One normal commit+push, verify clean/local=remote/diff-check/ml-service0, then STOP for Web independent review.**
