@@ -1404,3 +1404,13 @@ One short section per working session: what was worked on, what was decided (wit
 - **VERDICT: FIRST protected-dev REMAINS BLOCKED. Do NOT launch.**
 - **Owns whole repair in one session:** reconcile → reproduce → repair+mirror → tests + proofs → D-065 correction + SESSION-LOG → atomic commit+push → STOP. Next: **Web rereview**.
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
+
+## 2026-09-04 — Retrieval v3 D-065 SAME-STAGE Web rereview second correction — audit-path confinement (no D-066)
+
+- **Reconciled start:** `codex/retrieval-v3-user-search-quality` HEAD `86cdd31d009f` clean (local=upstream=direct actual remote), `git diff --check` PASS, `ml-service` diff 0 vs `5327661`; frozen 6 unchanged; results/audit absent; one-shot unconsumed. No D-066 per instruction.
+- **HOLD blocker (reproduced pre-mutation):** prereg ONE canonical log `eval/retrieval-v3/audit/events.jsonl`, but launcher accepted arbitrary alternate paths — one-shot check portable to a fresh empty chain. Confinement predicate absent on committed bytes.
+- **Repair (confinement only):** canonical-relative + resolving-absolute accept; sibling/alternate/underscore-mirror/outside/traversal reject at the shape choke point (pre-session/grant/append). `--audit-log` kept, noncanonical fails pre-session (proven). Grant/token/callback/env/runner semantics untouched. Module command verified: `python -m eval.retrieval_v3.launch` (repo root, exit 0); no `PYTHONPATH`-less `retrieval_v3` claim.
+- **Verification:** NEW 6 + launch 32 PASS; focused 95 + 1 SKIP; runner untouched (67 stands); full 445 + 1 SKIP (487 deselected). Mirrors identical; frozen 6 unchanged; `ml-service` 0; results/audit absent; no leakage; no strays.
+- **VERDICT: FIRST protected-dev REMAINS BLOCKED. Do NOT launch.**
+- **Owns whole correction in one session:** reconcile → reproduce → confine+mirror → tests + proofs → D-065 correction + SESSION-LOG → atomic commit+push → STOP. Next: **Web rereview**.
+- **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.

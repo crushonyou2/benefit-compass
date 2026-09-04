@@ -69,6 +69,38 @@ DEFAULT_AUDIT_LOG = REPO_ROOT / "eval" / "retrieval-v3" / "audit" / "events.json
 _HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 _BATCH_ID = "v3-candidate-dev-v1"
 
+# Prereg-ONE canonical v3 audit log (docs/RETRIEVAL_V3_PREREG.md section 9):
+# eval/retrieval-v3/audit/events.jsonl. The one-shot/rerun check is only
+# meaningful against this exact chain; any alternate log would bypass it.
+CANONICAL_AUDIT_REL = pathlib.Path("eval/retrieval-v3/audit/events.jsonl")
+
+
+def _is_canonical_audit_log_path(audit_log: object) -> bool:
+    """Exact canonical audit-log check (fail-closed, no IO).
+
+    Accepts the canonical relative path (either separator) and absolute paths
+    resolving to that exact repo file. Rejects sibling/alternate files, the
+    underscore mirror, outside paths, and any traversal segment — even one
+    that would normalize back — so the one-shot chain cannot be sidestepped.
+    """
+    try:
+        raw = str(audit_log)
+        if not raw.strip():
+            return False
+        if ".." in raw.replace("\\", "/").split("/"):
+            return False
+        if pathlib.PurePath(raw).as_posix() == pathlib.PurePath(str(CANONICAL_AUDIT_REL)).as_posix():
+            return True
+        probe = pathlib.Path(raw)
+        abs_probe = probe if probe.is_absolute() else (REPO_ROOT / probe)
+        try:
+            resolved = abs_probe.resolve()
+        except Exception:
+            return False
+        return resolved == (REPO_ROOT / CANONICAL_AUDIT_REL).resolve()
+    except Exception:
+        return False
+
 
 def _sha256_file(path: pathlib.Path) -> str:
     return hashlib.sha256(pathlib.Path(path).read_bytes()).hexdigest().lower()
@@ -194,6 +226,11 @@ def validate_launch_args(
         raise ValueError("canonical launch requires non-empty evalset_base shape (fail-closed, no IO)")
     if not isinstance(audit_log, (str, pathlib.Path)) or not str(audit_log).strip():
         raise ValueError("canonical launch requires non-empty audit_log shape (fail-closed)")
+    if not _is_canonical_audit_log_path(audit_log):
+        raise ValueError(
+            f"canonical launch requires the prereg ONE audit log {CANONICAL_AUDIT_REL.as_posix()} "
+            f"(fail-closed, alternate logs bypass one-shot): got {audit_log!r}"
+        )
     validate_output_path(output_path, strict_canonical=True)
     if not _is_canonical_output(output_path):
         raise ValueError(f"canonical launch must write exact canonical output (fail-closed): got {output_path!r}")

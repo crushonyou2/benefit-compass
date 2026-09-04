@@ -47,7 +47,7 @@ def _good_kwargs(**over):
         materialized_path="authorized/dev-evalset.jsonl",
         evalset_base="authorized",
         output_path="eval/retrieval-v3/results/v3-candidate-dev-result.json",
-        audit_log="nonexistent-audit-events.jsonl",
+        audit_log="eval/retrieval-v3/audit/events.jsonl",
     )
     kw.update(over)
     return kw

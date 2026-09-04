@@ -40,7 +40,7 @@ def _good_kwargs(**over):
         materialized_path="authorized/dev-evalset.jsonl",
         evalset_base="authorized",
         output_path="eval/retrieval-v3/results/v3-candidate-dev-result.json",
-        audit_log="nonexistent-audit-events.jsonl",
+        audit_log="eval/retrieval-v3/audit/events.jsonl",
     )
     kw.update(over)
     return kw
@@ -184,7 +184,10 @@ def test_post_transfer_no_double_close():
     assert sum(1 for a, _ in actions if a == "protected_access_end") == 1, "launcher must never double-close"
 
 
-def test_success_four_event_chain_run_once_tmp_log(tmp_path):
+def test_success_four_event_chain_run_once_tmp_log(tmp_path, monkeypatch):
+    # Confinement-boundary stub (this test proves lifecycle on a temp chain;
+    # confinement itself is pinned unstubbed below).
+    monkeypatch.setattr(L, "_is_canonical_audit_log_path", lambda p: True)
     from retrieval_v3 import audit as _audit
 
     log_path = tmp_path / "events.jsonl"
@@ -348,3 +351,127 @@ def test_launch_mirrors_identical():
     under = hyphen.parent.parent / "retrieval_v3" / "launch.py"
     assert hyphen.read_bytes() == under.read_bytes()
     assert hashlib.sha256(hyphen.read_bytes()).hexdigest() == hashlib.sha256(under.read_bytes()).hexdigest()
+
+
+def test_alternate_audit_rejected_before_session_grant():
+    import retrieval_v3.launch as _L
+
+    calls = []
+
+    def _boom_factory():
+        calls.append("session")
+        raise AssertionError("must not reach session creation")
+
+    def _boom_append(*a, **k):
+        calls.append("append")
+        raise AssertionError("must not append any grant event")
+
+    bad_logs = [
+        "eval/retrieval-v3/audit/alternate-empty.jsonl",
+        "eval/retrieval_v3/audit/events.jsonl",
+        "eval/other/events.jsonl",
+        "../outside/events.jsonl",
+        "eval/retrieval-v3/audit/../audit/events.jsonl",
+    ]
+    for bad in bad_logs:
+        with pytest.raises(ValueError, match="ONE audit log"):
+            _L.launch_canonical_dev(
+                **_good_kwargs(audit_log=bad),
+                audit_reader=_reader([]),
+                output_exists_fn=_never_exists,
+                audit_append_fn=_boom_append,
+                session_factory=_boom_factory,
+                adapter_builder=lambda *_a: (_ for _ in ()).throw(AssertionError("no build")),
+                runner_factory=lambda *_a: (_ for _ in ()).throw(AssertionError("no runner")),
+            )
+    assert calls == [], "noncanonical audit values must fail before session/grant/append"
+
+
+def test_canonical_audit_forms_accepted():
+    import retrieval_v3.launch as _L
+
+    canonical = [
+        "eval/retrieval-v3/audit/events.jsonl",
+        "eval\\retrieval-v3\\audit\\events.jsonl",
+        str((_L.REPO_ROOT / "eval" / "retrieval-v3" / "audit" / "events.jsonl").resolve()),
+        str(_L.DEFAULT_AUDIT_LOG),
+    ]
+    for good in canonical:
+        out = preflight_canonical_launch(
+            **_good_kwargs(audit_log=good), audit_reader=_reader([]), output_exists_fn=_never_exists
+        )
+        assert out["audit_events"] == 0
+
+
+def test_prior_run_start_not_bypassable_by_switching_logs():
+    import retrieval_v3.launch as _L
+
+    prior = {"action": "run_start", "set_role": "dev", "set_sha": GOOD_SHA}
+    with pytest.raises(ValueError, match="ONE audit log"):
+        _L.launch_canonical_dev(
+            **_good_kwargs(audit_log="eval/retrieval-v3/audit/alternate-empty.jsonl"),
+            audit_reader=_reader([]),
+            output_exists_fn=_never_exists,
+            audit_append_fn=lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("no append")),
+            session_factory=lambda: (_ for _ in ()).throw(AssertionError("no session")),
+            adapter_builder=lambda *_a: (_ for _ in ()).throw(AssertionError("no build")),
+            runner_factory=lambda *_a: (_ for _ in ()).throw(AssertionError("no runner")),
+        )
+    with pytest.raises(RuntimeError, match="rerun detected"):
+        preflight_canonical_launch(
+            **_good_kwargs(), audit_reader=_reader([prior]), output_exists_fn=_never_exists
+        )
+
+
+def test_cli_audit_option_forwards_and_launch_rejects(monkeypatch, capsys):
+    import retrieval_v3.launch as _L
+
+    seen = {}
+
+    def _fake_real(**kw):
+        seen.update(kw)
+        return {"selection": {"chosen": None, "eligible": []}}
+
+    monkeypatch.setattr(_L, "launch_canonical_dev_real", _fake_real)
+    assert main([
+        "--session-id", "g4", "--set-sha", GOOD_SHA,
+        "--materialized-evalset", "m.jsonl", "--materialized-evalset-base", "b",
+        "--audit-log", "eval/retrieval-v3/audit/alternate-empty.jsonl",
+    ]) == 0
+    assert seen["audit_log"] == "eval/retrieval-v3/audit/alternate-empty.jsonl", "CLI must not silently rewrite"
+    calls = []
+    with pytest.raises(ValueError, match="ONE audit log"):
+        _L.launch_canonical_dev(
+            **_good_kwargs(audit_log=seen["audit_log"]),
+            audit_reader=_reader([]),
+            output_exists_fn=_never_exists,
+            audit_append_fn=lambda *_a, **_k: calls.append("append"),
+            session_factory=lambda: (calls.append("session"), _FakeSession(calls))[1],
+            adapter_builder=lambda *_a: (_ for _ in ()).throw(AssertionError("no build")),
+            runner_factory=lambda *_a: (_ for _ in ()).throw(AssertionError("no runner")),
+        )
+    assert calls == [], "forwarded noncanonical value still fails before session/grant"
+    capsys.readouterr()
+
+
+def test_repo_root_module_command_supported():
+    import subprocess
+
+    import retrieval_v3.launch as _L
+
+    proc = subprocess.run(
+        [sys.executable, "-m", "eval.retrieval_v3.launch", "--help"],
+        cwd=str(_L.REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert proc.returncode == 0, proc.stderr[-500:]
+    assert "--session-id" in proc.stdout and "--set-sha" in proc.stdout
+
+
+def test_confinement_pins_statically():
+    src = pathlib.Path(L.__file__).read_text(encoding="utf-8")
+    assert "CANONICAL_AUDIT_REL" in src and "_is_canonical_audit_log_path" in src
+    assert "alternate logs bypass one-shot" in src
+    assert "--audit-log" in src, "CLI keeps the option; noncanonical values fail before session/grant"

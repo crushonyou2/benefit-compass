@@ -2315,3 +2315,19 @@ Verification (pure/static/mock + temp-log only, before commit): NEW 11 + updated
 ### VERDICT: FIRST protected-dev launch REMAINS BLOCKED (not authorized; do not launch)
 
 Next gate after this repair and its atomic commit+push is **STOP for Web rereview** (not FIRST dev, not candidate tuning). Do NOT authorize or execute FIRST protected dev from this workspace.
+
+**D-065 Web-rereview second correction (append-only, 2026-09-04 — no new decision id per instruction)**
+
+Web rereview issued HOLD on `86cdd31` with one reproduced blocker: prereg fixes the ONE canonical v3 audit log at `eval/retrieval-v3/audit/events.jsonl`, but `launch.preflight_canonical_launch` and `parse_launch_args` accepted an arbitrary alternate audit path (e.g. `eval/retrieval-v3/audit/alternate-empty.jsonl`), pointing the one-shot/rerun check at a fresh empty chain and bypassing the canonical audit lifecycle. Reproduced on committed bytes pre-mutation (confinement predicate absent; alternate/underscore/outside/traversal strings all passed shape validation). `86cdd31` history above preserved verbatim.
+
+Repair (audit-path confinement only): NEW `_is_canonical_audit_log_path` + `CANONICAL_AUDIT_REL` pin — accepts the canonical relative path (either separator) and absolute paths resolving to that exact repo file (no-IO resolve); rejects sibling/alternate files, the underscore mirror, outside paths, and any `..` segment even if it would normalize back. Enforced at the single shape choke point `validate_launch_args`, hence before frozen verification, session creation, grant append, and run. `--audit-log` CLI option kept: noncanonical values fail in preflight before session/grant (proven), canonical default unchanged. Grant/token/callback/env/runner semantics, thresholds, ranking, production, and frozen bytes all unchanged.
+
+Files: `eval/retrieval-v3/launch.py` (+ identical mirror) confinement only; `eval/test_retrieval_v3_d065_launch_orchestrator.py` + `eval/test_retrieval_v3_d065b_launch_grant.py` audit-log values set to the canonical string (fakes never touch FS) + 6 NEW adversarial tests (5-way alternate rejection with zero session/grant/append calls; canonical relative/backslash/absolute/default acceptance via grant-free preflight; prior-run_start non-bypassability both directions; CLI forwarding without silent rewrite + launch-level rejection; repo-root `python -m eval.retrieval_v3.launch --help` subprocess proof with returncode 0; static confinement pins). Temp-log lifecycle test stubs only the confinement boundary with the rejection paths pinned unstubbed. No protected execution, no real canonical audit/result write, no DB/model/HTTP run.
+
+Supported module command (empirically verified from repo root, exit 0): `python -m eval.retrieval_v3.launch`. No claim is made that `python -m retrieval_v3.launch` works without `PYTHONPATH=eval`.
+
+Verification (before commit): NEW 6 + launch 32 PASS; focused D-059+D-060+D-061+D-062+D-064+D-065+D-065b = 95 PASS + 1 SKIP (pre-existing symlink privilege); runner suite untouched this round (runner.py unmodified, prior 67 stands); full `eval/ -k retrieval_v3` 445 PASS + 1 SKIP (487 deselected; 439 + 6). `py_compile`/`git diff --check` PASS; mirrors byte-identical; frozen 6 SHAs unchanged; `ml-service` diff 0; results/audit absent; one-shot unconsumed; no secrets/path leakage; no stray artifacts (`git status` clean except intended files).
+
+### VERDICT: FIRST protected-dev launch REMAINS BLOCKED (not authorized; do not launch)
+
+Next gate after this correction and its atomic commit+push is **STOP for Web rereview** (not FIRST dev, not candidate tuning). Do NOT authorize or execute FIRST protected dev from this workspace.
