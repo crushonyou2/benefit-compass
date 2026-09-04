@@ -1472,3 +1472,11 @@ One short section per working session: what was worked on, what was decided (wit
 - **Untouched:** D-068 consumed/open, audit bytes, frozen six, ml-service 0, no history rewrite. Full evidence: `docs/RETRIEVAL_V3_D070_FAILED_GENERATION.md`.
 - **VERDICT: D-070 recorded as noncanonical failed-generation evidence. One normal commit+push, verify clean/local=remote/diff-check/ml-service0/frozen-six/audit, then D-071 fresh generation-v3 stage. Protected freeze/execution NOT authorized.**
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
+
+## 2026-09-04 — Retrieval v3 D-071 generation-v3 pre-result plan record (frozen, no source-truth content yet)
+
+- **Reconciled start:** HEAD `9e45c05` (D-070 record) clean, local=upstream=direct remote identical, `git diff --check` PASS, `ml-service` 0; frozen six exact; audit `90cfb54d...` untouched; result absent; dev/holdout absent; no dev-v2 refs; OMP `18.1.5` + default/plan xhigh, no override.
+- **Frozen v3 (new builder, before source-truth content):** plan `558f7df7...` (13477 bytes, version `retrieval-v3-dev-generation-v3`, seed `...-generation-v3-2026-09-04`) + lock `f17d8e40...` (`frozen_at` `2026-09-04T12:36:44+00:00`, all three not-read flags false) + rubric `9ceda4ee...`; failed-D070 fingerprint input `0acc6f27...` (273/273 unique) + dev-v1/holdout/history fingerprint copies + manifest `001e44c0...`. Counts unchanged: final 180 (130/50, 54 location) + reserve 273 (83 slots). Restored D-023 taxonomy/validators, C-every-273 protocol, exact lexicographically-smallest feasibility selector. Post-freeze: never mutate; infeasible => HOLD.
+- **Boundaries:** D-070 preserved/never reused; D-068 untouched; forbidden counts all 0; source-truth content NOT read and NO candidates generated as of this record. Full plan: `docs/RETRIEVAL_V3_D071_DEV_V2_GENERATION_V3_PLAN.md`.
+- **VERDICT: D-071 pre-result plan recorded. One normal commit+push, verify clean/local=remote/diff-check/ml-service0/frozen-six/audit/result/protected-absent, then Phase 5 snapshot+authoring. Protected freeze/execution NOT authorized.**
+- **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.

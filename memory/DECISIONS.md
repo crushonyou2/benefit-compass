@@ -2485,3 +2485,38 @@ Reconciled base (before mutation, actual state wins): branch `codex/retrieval-v3
 - Old D-068 remains consumed/open and untouched; audit `90cfb54d...` unchanged; frozen six unchanged; `ml-service` diff 0; no history rewrite. Standing decisions D-013/D-015/D-017/D-023/D-033/D-034/D-035/D-068/D-069 remain as history/corrected where applicable.
 
 Next gate after this record and its one normal commit+push is the D-071 fresh generation-v3 stage (new builder, new plan freeze, then STOP for Web review). Protected freeze/execution remains separately gated and NOT authorized.
+
+## D-071 · Retrieval v3 dev-v2 generation-v3 PRE-RESULT plan record — fresh D-070 supersession, plan/lock frozen, source-truth content NOT yet read, no candidates yet — 2026-09-04 (durable pre-execution record, then STOP-gated execution)
+
+Reconciled base (before mutation, actual state wins): branch `codex/retrieval-v3-user-search-quality` HEAD `9e45c05108887b1e68820b9d3359ae005a4e3077` (D-070 record) clean, local=upstream=direct actual remote identical, `git status --porcelain` clean, `git diff --check` PASS, `git diff 5327661445c37191a3fd61db195f3af4d2cf893a..HEAD -- ml-service/` **0**, frozen six byte-identical, audit 4 events `90cfb54df614bc59e01551943436fdafc3cd5cac121b071742acbb2fb604c506` byte-identical (D-068 open grant/run untouched), canonical result absent, `eval/retrieval-v3/dev/` + `holdout/` absent, no dev-v2 branch/tag. OMP `18.1.5`, default/plan `opencode-go/muse-spark-1.3-contributor:xhigh`, no project `.omp` override.
+
+### (1) D-070 supersession scope
+
+- D-070 generation-v2 (`dcb8fa5b...`) stays preserved as noncanonical failed evidence per D-070 record above; it is never repaired, completed, relabeled, or reused as truth/seed/partial pool. No C run on its missing 63 rows. Builder bytes preserved.
+- This D-071 stage supersedes only the generation plan: brand-new private builder (logical identity `bc-v3-dev-v2-builder-20260904-v3`, never the D-070 directory), brand-new plan version `retrieval-v3-dev-generation-v3`, brand-new seed `benefit-compass-retrieval-v3-dev-v2-generation-v3-2026-09-04`. Future protected dataset identity remains dev-v2 (D-069); this is generation-plan revision v3, not a dev-v3 dataset.
+- Standing numeric/annotation/isolation contracts are preserved EXACTLY (see §3); candidate-plan-v4 18-config untouched; D-068 consumed/open and untouched.
+
+### (2) Frozen v3 artifacts (bytes frozen BEFORE any source-truth content read)
+
+- `GENERATION_PLAN.json` 13477 bytes SHA256 `558f7df7e8a15ad14ba686b32dd7bb1c32ebdb1477dfde32a234e92486bdc769`; `PLAN_LOCK.json` SHA256 `f17d8e40e7ce1aeb7dbf84667a6a402ffe31be77c9575f21faec2b89223755e7` (`plan_bytes` 13477, `plan_sha256` `558f7df7...`, `frozen_at` `2026-09-04T12:36:44+00:00`, flags `source_truth_content_read_for_this_plan false`, `d070_semantic_rows_read_for_this_plan false`, `protected_old_plaintext_read false`); neutral `RUBRIC.json` 2924 bytes SHA256 `9ceda4ee52835e30aa556bd3fe95f2558751f5852576f3b8f332969bcf5521bc`.
+- One-time mechanical failed-D070 exclusion (query_text fields only -> hashes; no plaintext printed/stored outside old builder; no D-070 label/gold/mapping/metadata read): `input/failed_d070_query_fingerprints.json` SHA256 `0acc6f279fb3c89db3d5df9a8268cfc668571401945830d99763384216f06b53`, sorted unique count 273/273. Fingerprint-only copies: dev-v1 `57716c6a...` (180q/228g), holdout `3463a8a...` (250q/212g), history union `42e8534d...` (248q/248g); manifest `001e44c0...`. New-candidate query overlap must be 0 vs all four sets.
+- Post-freeze rule: NEVER mutate plan/lock; infeasible => STOP/HOLD; no expansion/relabel/retune/supplement/D-070 recycle.
+
+### (3) Exact unchanged counts
+
+- Final dev-v2 180: exact_navigation 21, natural_needs 25, exploratory_multi_valid 21, multi_constraint 25, short_keywords 18, colloquial_typo_spacing_abbrev 20, ambiguous 23, unsupported_no_answer 27; headline first six = 130; safety = 50 (23+27); location exact 54 with per-stratum 6/7/6/7/9.
+- Reserve 273 (uniform 1.5x, NOT tuned to D-070): 32/38/32/38/27/30/35/41; location slots 83 with per-stratum 9/11/9/12/8/9/11/14.
+- Headline rows labelable + source-truth-answerable + unambiguous + >=1 grade>=2 gold; ambiguous safety-only; unsupported source-truth negative with no grade 2/3 gold.
+
+### (4) Restored taxonomy, validators, C-every-query, exact selector
+
+- Mutually-exclusive authoring contracts frozen per stratum from standing D-023 (not D-070 shorthand): exact clean title; natural <=1 constraint with anchored-title exclusion; exploratory explicit multi wording; multi >=2 constraints; short EXACTLY 2-3 tokens with mechanical normalized equality/substring/fragment title exclusion; colloquial salient perturbation with private base->perturbed ledger and unperturbed-title exclusion; ambiguous exactly-one-missing-referent with private omission ledger (never shown to annotators, never final truth); unsupported exhaustive full-snapshot negative validation, no blacklist, no grade 2/3 gold.
+- Mechanical validators may reject/advance authored candidates only and cannot decide answerability/stratum/ambiguity/gold truth.
+- A/B: independent opaque IDs + independent deterministic hash orderings, packets {item_id, query_text} only, all 273 judged from query + neutral rubric + source-truth. C: EVERY 273 rows exactly once, independently ordered; disagreement rows carry only the frozen exact disagreement dimensions/values; agreement rows carry query only with NO A/B labels; C output final authoritative on ALL dimensions for ALL 273 with no A/B fallback; residual 0.
+- Final selector: input = 273 C-rows only; deterministic EXACT feasibility search (ascending candidate_id order, include-first depth-first backtracking with provable-infeasibility pruning only) for the lexicographically smallest feasible 180 tuple under all exact counts/validity/uniqueness/overlap constraints; infeasible => STOP/HOLD. Future case_ids v3d2-001..v3d2-180.
+
+### (5) Forbidden boundaries this stage
+
+- Old D-068 retry 0; D-070 completion/relabel/reuse 0; audit append 0; dev-v2 run_start 0; holdout plaintext access 0; old protected evalset plaintext access 0 (fingerprint/manifest refs only); plan mutation after freeze 0; result-driven tuning 0; candidate-plan config changes 0; production ml-service changes 0; history rewrite/amend/rebase/reset/force 0; protected branch/tag/worktree creation 0.
+- Source-truth content has NOT been read under this plan and NO candidate generation has occurred as of this record. Snapshot + authoring (Phase 5) proceed only after this record is committed, pushed, and remotely verified.
+- EVEN IF a local 180 seal later passes: NO dev-v2-freeze branch, NO dev-v2 tag, NO protected worktree/import, NO audit append, NO dev-v2 benchmark, NO holdout contact, NO tuning/Candidate-B — STOP for Web independent review.
