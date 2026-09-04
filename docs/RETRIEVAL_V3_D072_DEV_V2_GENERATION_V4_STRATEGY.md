@@ -105,3 +105,29 @@ Stage identity: D-072 is a NEW logical stage (user-authorized). D-071 rows are f
 D-068 consumed/open untouched; holdout sealed; no launcher/grant/run_start/run_end/result/benchmark/tuning/Candidate-B;
 no protected branch/tag/worktree/import; no ml-service change; no history rewrite; frozen six + audit bytes preserved;
 main stays plaintext-free; normal commits/pushes only.
+
+## 8. Phase B freeze record (frozen BEFORE source-truth content; immutable afterward)
+
+- Builder: `C:\Users\joji\Documents\programming\bc-v3-dev-v2-builder-20260904-v4` (new directory; never D-070/D-071).
+- Exclusion (`build_exclusions.py`): D-071 `candidates_merged.json` query_text ONLY → SHA256(NFC→strip→collapse
+  whitespace→casefold), sorted unique 273/273 → `input/failed_d071_query_fingerprints.json` SHA
+  `3a037d988bba8993cca642cd3e2e2c40dbb003301efe77b1d652328570e320f9`. No old plaintext printed/stored outside the
+  D-071 builder; no D-071 labels/golds/ledgers/mappings read. Byte-carried fingerprint-only inputs verified identical
+  to D-071 manifest: D-070 `0acc6f27...`, dev-v1 `57716c6a...` (180q/228g), holdout `3463a8a...` (250q/212g), history
+  `42e8534d...` (248q/248g). Zero protected branch/tag/worktree contact in this stage. Manifest
+  `input/EXCLUSION_INPUTS.json` SHA `3c655b87c3f30a4a21877b61c7692b834199d3d91a4fccb50c56568a2f796589`.
+- Frozen (`freeze_plan.py`, canonical single-line bytes + LF): `GENERATION_PLAN.json` 14884 bytes SHA
+  `296248b9a90f6c18c5e2dbc68e79973a3de4efb6fefdd6074d9197477b5ade92`; `RUBRIC.json` 3330 bytes SHA
+  `6c6c399bc2b1eceed343abf7eb16e5237873826e1263c33076cc1ee3061c606e`; `PLAN_LOCK.json` SHA
+  `b1180a41baaeccc82b066c750ed03146667c4270cb27fe2ec6d95a258466758d` (`frozen_at` `2026-09-04T14:25:05+00:00`).
+  Lock flags all false: `source_truth_content_read_for_this_plan=false`,
+  `d070_semantic_rows_read_for_plan=false`, `d071_semantic_rows_read_for_plan=false`,
+  `protected_old_plaintext_read=false`. Seed `benefit-compass-retrieval-v3-dev-v2-generation-v4-2026-09-04`
+  (new, no collision with v3 seed). Reserve uniform 2.0x: 42/50/42/50/36/40/46/54=360, location
+  12/14/12/16/10/12/14/18=108. Plan/rubric contain zero query/gold plaintext (0 non-ASCII bytes).
+- Provenance (actual, observed): OMP `18.1.5`; root session model `opencode-go/muse-spark-1.3-contributor:xhigh`
+  (runtime context; model config never changed); no project model override (no `opencode.json`/`.opencode.json`);
+  no child agents spawned through Phase B; no fallback model used. Phase C child agents/sessions will be recorded
+  with their model/session evidence at spawn time.
+- Gate: this record is committed+pushed and remote-verified BEFORE any Phase C source-truth content read.
+  Post-freeze rule in force: NEVER mutate plan/rubric/lock; infeasible → STOP/HOLD.

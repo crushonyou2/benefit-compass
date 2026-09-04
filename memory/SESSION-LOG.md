@@ -1488,3 +1488,11 @@ One short section per working session: what was worked on, what was decided (wit
 - **Recorded:** D-072 entry in `memory/DECISIONS.md` (postmortem + corrected 61/224/226/47 bookkeeping + task-local kappa N=364 agree=114 raw=0.3131868131868132 exp=0.3722150102644608 kappa=-0.09402613640462133 + labelability fix + typo correction + v4 basis) and NEW `docs/RETRIEVAL_V3_D072_DEV_V2_GENERATION_V4_STRATEGY.md` (plaintext-free). D-071/D-070 history untouched; D-071 rows failed-evidence only.
 - **VERDICT: Phase A recorded. One normal docs-only commit+push with clean/remote/diff-check/ml-service0/frozen-six/audit verification, then Phase B v4 plan freeze before source truth. Protected freeze/execution NOT authorized.**
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
+
+## 2026-09-04 — Retrieval v3 D-072 Phase B pre-result freeze (plan/rubric/lock frozen, no source-truth content yet)
+
+- **Reconciled start:** Phase A commit `e429e13` pushed, local=upstream=direct remote identical, clean, `git diff --check` PASS, `ml-service` 0; frozen six + audit exact. New builder `bc-v3-dev-v2-builder-20260904-v4`.
+- **Exclusion (mechanical, query_text-only):** D-071 fingerprints 273/273 unique (`3a037d98...`); carried D-070/dev-v1/holdout/history fingerprint bytes verified identical to D-071 manifest; manifest `3c655b87...`. Zero protected-ref contact; no D-071 semantic read for plan design.
+- **Frozen:** plan `296248b9...` (14884 B, v4, new seed, uniform-2.0x reserve 360/108) + rubric `6c6c399b...` (labelability fix) + lock `b1180a41...` (`2026-09-04T14:25:05+00:00`, all four not-read flags false). Recorded in `memory/DECISIONS.md` (D-072 Phase B) and strategy doc §8. Post-freeze: never mutate.
+- **VERDICT: Phase B pre-result record complete. One normal commit+push, verify clean/local=remote/diff-check/ml-service0/frozen-six/audit/result/protected-absent, then Phase C ONLY after remote verify. Protected freeze/execution NOT authorized.**
+- **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
