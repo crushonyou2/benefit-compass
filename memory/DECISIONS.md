@@ -2331,3 +2331,33 @@ Verification (before commit): NEW 6 + launch 32 PASS; focused D-059+D-060+D-061+
 ### VERDICT: FIRST protected-dev launch REMAINS BLOCKED (not authorized; do not launch)
 
 Next gate after this correction and its atomic commit+push is **STOP for Web rereview** (not FIRST dev, not candidate tuning). Do NOT authorize or execute FIRST protected dev from this workspace.
+
+## D-066 · Retrieval v3 FIRST protected-dev single execution — fail-closed loader reject, grant failure closed, no run_start, no retry — 2026-09-04 (user-authorized single launcher execution, then STOP for Web review)
+
+User authorization for D-066 FIRST protected-dev execution stands. Pre-gate PASS verified before any protected access (branch `codex/retrieval-v3-user-search-quality` HEAD `29769301cff4743f3849241a245d886e5a954c16` clean, local=upstream=direct actual remote identical, `git diff --check` PASS, `ml-service` diff 0 vs `5327661445c37191a3fd61db195f3af4d2cf893a`, frozen 6 exact prereg `7842018613d66aa4570f4db2f8ae5a698ceb46757995a6b7e26873177b36160e`/plan-v4 `a25d9c482094696ff7a438593979813ac568c91a977a2543a50618ca4f5177d6`/safe-action-v1 `c512fb5627179697a987b05a2431b8f7e30d1153af2ff6dca37995f6b232a35d`/policy-v2 `6fee9ec22d5d3ac153ff19a6b1b5d27ab6a6a43bda11e35821d689f938968fe5`/link-V2 `f028ce4697f1a19e8d37e9048f6d7cd07d87c35ad68478d0efa968b7c62a7e71`/cost-V1 `5891b0bab0621da71499c5c2c6a21a6ac6692bd3ee94d6cb5342adc480958323`, OMP `18.1.5` default/plan `opencode-go/muse-spark-1.3-contributor:xhigh`, canonical result/audit absent, D-066 free).
+
+### 0) Registered dev-freeze derivation by Git metadata only (no evalset open/hash pre-grant)
+
+`git worktree list` registers `C:/Users/joji/Documents/취준자료/safe-builders/benefit-compass-v3-dev-freeze-20260902` at `6448d63` `[codex/retrieval-v3-dev-freeze]`; `git ls-tree -r --name-only codex/retrieval-v3-dev-freeze` shows `eval/retrieval-v3/dev/evalset.jsonl` among 12 dev names; worktree `git rev-parse HEAD` `6448d63ea84ad8c76905e0223893632f45e279a1` matches local+remote `codex/retrieval-v3-dev-freeze`. No `cat`/`show`/`sha256`/`python-read` of the evalset before grant. Confined invocation uses materialized file inside base: file `.../eval/retrieval-v3/dev/evalset.jsonl`, base `.../eval/retrieval-v3/dev` (loader `resolved==base or base in parents` satisfied by construction).
+
+### 1) Single launcher execution (exactly once, never retried)
+
+Repo root: `python -m eval.retrieval_v3.launch --session-id d066-first-dev-20260904-01 --set-sha 2f014112f394541bb389a3db0aa1de7a1279b737ac8673d472ed351479fe7cd1 --materialized-evalset <registered-worktree>/eval/retrieval-v3/dev/evalset.jsonl --materialized-evalset-base <registered-worktree>/eval/retrieval-v3/dev --output eval/retrieval-v3/results/v3-candidate-dev-result.json --audit-log eval/retrieval-v3/audit/events.jsonl`. DATABASE_URL resolved by launcher via process env or repo `.env` fallback, value never printed. Exactly one process invocation in this stage; failure was not retried.
+
+Outcome fail-closed after grant: `Runner._run_dev_evaluation_inner` → `RealProtectedLoader.__call__` raised `ValueError: materialized dev evalset line <n> missing task id (fail-closed)`, surfaced as `RuntimeError: canonical protected loader failed (fail-closed)`. No retrieval/DB-ranking/latency/HTTP/model scoring completed; no candidate tuning. Loader schema (task_id/id + query/query_text) vs sealed dev bytes mismatch is recorded as observed failure only; no repair, no second open of the evalset, no code/prereg/threshold/ranking change in this stage.
+
+### 2) Canonical audit/result inspection only (post-grant, no evalset re-open)
+
+`eval/retrieval-v3/audit/events.jsonl` now 2 events, 1333 bytes: `protected_access_start` `event_hash 91666cda7154f3e10e41e52e43087e32a1a8bfa060ca211a05be92c3aa720cf9` outcome success, then `protected_access_end` `event_hash ae754e37d52845fef42229273643f2dcae397f8e21dfe52f959495487519d1fb` outcome failure, session `d066-first-dev-20260904-01`, role dev, sha `2f014112...`, `git_head 29769301...`, `git_dirty true`, `db_session_timezone GMT`, `evaluation_as_of_date 2026-09-04`. No `run_start`/`run_end` for dev/`2f014112...` (one-shot unconsumed). `eval/retrieval-v3/results/v3-candidate-dev-result.json` absent. No other result/audit created.
+
+### 3) Verification before commit (non-protected only)
+
+`git diff --check` PASS; `git diff 5327661..HEAD -- ml-service/` 0; frozen 6 SHAs unchanged (prefixes `78420186`/`a25d9c48`/`c512fb56`/`6fee9ec2`/`f028ce46`/`5891b0ba`); `git status --porcelain` shows only `?? eval/retrieval-v3/audit/` plus this record. No `runner.py`/`safety.py`/`real_adapters.py`/`result_schema.py`/`selection.py`/`candidate_registry.py`/production change; no dataset regenerate/reannotate/refreeze; no history rewrite/force/tag move; no holdout access/materialization.
+
+### 4) Protected/one-shot boundary — forbidden counts
+
+FIRST launcher invocations 1 (authorized, no retry); `protected_access_start` 1, `protected_access_end` 1 (failure, launcher-owned close, no double-close); `run_start` 0; canonical result creation 0; protected dev/holdout plaintext recovery beyond the confined loader open 0 (no `git show`/`cat-file`/`checkout`/`restore`/sparse/new worktree/traversal; no post-failure evalset open/hash); holdout access 0; live model encode 0; live HTTP/latency benchmark 0; Candidate B instantiate 0; score/action threshold change 0; safe-action/production-exclusion/headline/safety/location/latency/cost relaxation 0.
+
+### VERDICT: FIRST protected-dev FAILED fail-closed (loader reject). Do NOT retry in this workspace.
+
+Single authorized grant was consumed as failure-closed; canonical one-shot `run_start` remains unconsumed. Next gate after this record and its atomic commit/push of generated audit+records only is **STOP for Web independent review** (loader-contract disposition, not silent retry, not candidate tuning). Do NOT authorize a second launcher invocation from this workspace without explicit Web disposition.

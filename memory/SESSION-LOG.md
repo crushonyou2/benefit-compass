@@ -1414,3 +1414,13 @@ One short section per working session: what was worked on, what was decided (wit
 - **VERDICT: FIRST protected-dev REMAINS BLOCKED. Do NOT launch.**
 - **Owns whole correction in one session:** reconcile → reproduce → confine+mirror → tests + proofs → D-065 correction + SESSION-LOG → atomic commit+push → STOP. Next: **Web rereview**.
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
+
+## 2026-09-04 — Retrieval v3 D-066 FIRST protected-dev single execution — loader fail-closed, no retry
+
+- **Reconciled start:** `codex/retrieval-v3-user-search-quality` HEAD `29769301cff4743f3849241a245d886e5a954c16` clean (local=upstream=direct actual remote), `git diff --check` PASS, `ml-service` diff 0 vs `5327661`; frozen 6 exact; canonical result/audit absent; D-066 free; OMP `18.1.5` default/plan `opencode-go/muse-spark-1.3-contributor:xhigh`. Actual matched expected on all points before any protected access.
+- **Worktree by metadata only:** `safe-builders/benefit-compass-v3-dev-freeze-20260902` at `6448d63` `[codex/retrieval-v3-dev-freeze]` via `git worktree list`; `ls-tree --name-only` shows `eval/retrieval-v3/dev/evalset.jsonl`; worktree HEAD `6448d63...` matches. No evalset open/hash pre-grant. Base `.../eval/retrieval-v3/dev` confines file `.../evalset.jsonl`.
+- **Single execution:** `python -m eval.retrieval_v3.launch` once with session `d066-first-dev-20260904-01`, sha `2f014112...`, confined path/base, canonical output/audit. Never retried. Fail-closed: protected loader `missing task id` → `canonical protected loader failed`. No run_start, no result.
+- **Audit only:** `eval/retrieval-v3/audit/events.jsonl` 2 events (`91666cda...` start success → `ae754e37...` end failure, GMT, `2026-09-04`); result absent; one-shot unconsumed. Frozen 6 unchanged; `ml-service` 0; no code/prereg/holdout change.
+- **VERDICT: FAILED fail-closed. Do NOT retry. STOP for Web review.**
+- **Owns single-execution stage:** reconcile → derive-by-metadata → one launch → audit-only inspect → D-066 + SESSION-LOG → atomic commit+push audit+records → STOP.
+- **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
