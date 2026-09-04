@@ -2449,3 +2449,39 @@ User-authorized new logical stage on branch `codex/retrieval-v3-user-search-qual
 ### VERDICT: D-069 strategy frozen + scoring-invariant cache implemented (pre-result, no dev-v2, no protected execution). STOP for Web independent review.
 
 Do NOT create dev-v2, do NOT launch protected evaluation, do NOT touch holdout in this stage. Next gate after this record and its one normal commit+push is **STOP for Web independent review**.
+
+## D-070 · Retrieval v3 dev-v2 generation-v2 FAILED generation — CONTRACT_INVALID_GENERATION (taxonomy drift + C-not-every-query), local HOLD stop correct, 273 noncanonical evidence, fresh D-071 restart only — 2026-09-04 (Web independent disposition + durable failed-generation record)
+
+Reconciled base (before mutation, actual state wins): branch `codex/retrieval-v3-user-search-quality` HEAD `93f8bc0158c10138718b1f31a6fe9719d9fb4f93` clean, local=upstream=direct actual remote identical (`git rev-parse HEAD` + `@{u}` + `git ls-remote origin` all `93f8bc0...`), `git status --porcelain` clean, `git diff --check` PASS, `git diff 5327661445c37191a3fd61db195f3af4d2cf893a..HEAD -- ml-service/` **0**, frozen six byte-identical (prereg `7842018613d66aa4570f4db2f8ae5a698ceb46757995a6b7e26873177b36160e`, plan-v4 `a25d9c482094696ff7a438593979813ac568c91a977a2543a50618ca4f5177d6`, safe-action `c512fb5627179697a987b05a2431b8f7e30d1153af2ff6dca37995f6b232a35d`, policy-v2 `6fee9ec22d5d3ac153ff19a6b1b5d27ab6a6a43bda11e35821d689f938968fe5`, link-V2 `f028ce4697f1a19e8d37e9048f6d7cd07d87c35ad68478d0efa968b7c62a7e71`, cost-V1 `5891b0bab0621da71499c5c2c6a21a6ac6692bd3ee94d6cb5342adc480958323`), audit `eval/retrieval-v3/audit/events.jsonl` 4 events SHA256 `90cfb54df614bc59e01551943436fdafc3cd5cac121b071742acbb2fb604c506` byte-identical (D-066 pair + D-068 open `protected_access_start`/`run_start`, no close), canonical result absent (`results/` missing), `eval/retrieval-v3/dev/` + `holdout/` absent on working branch and on `main`, no local/remote `codex/retrieval-v3-dev-v2-freeze` branch, no `retrieval-v3-dev-v2*` tag. OMP effective config rechecked: `omp/18.1.5`, modelRoles default+plan `opencode-go/muse-spark-1.3-contributor:xhigh`, no project `.omp` override.
+
+### (1) Failed D-070 builder identity (preserved bytes, not mutated)
+
+- Private builder (outside repo, never reused): `C:\Users\joji\Documents\programming\bc-v3-dev-v2-builder-20260904` — preserved as failed-generation evidence, not mutated in this stage.
+- Frozen plan: `GENERATION_PLAN.json` SHA256 `dcb8fa5b142191ea992de5e276bb5ecef5387dbf2154b913fb6f7b4fe9712872`, version `retrieval-v3-dev-generation-v2`, seed `benefit-compass-retrieval-v3-dev-v2-2026-09-04`; `PLAN_LOCK.json` SHA256 `42bbe4678404ab01e7a2050d12f79f94b253b39416a407f5f1590e28f5f267b6`, `mutated_after_freeze false` (per local HOLD summary). Plan/lock SHAs re-verified this stage and match frozen values — no post-freeze mutation.
+- Source-truth aggregate only (per local HOLD summary; no source-truth content opened in this record phase): snapshot SHA256 `3ba5b1aaf122fdafe3c04b929eed6d584ee09213bc82366fc33983467153df41`, 13589 rows (youth 2631 / gov24 10958).
+- Pool aggregate: 273 candidates, `reserve_quotas_met true`, `bad_anchors 0`, exclusion query overlap 0 vs dev-v1, 0 vs history union, 0 vs holdout.
+
+### (2) Annotation aggregate (SHAs + diagnostics only, no per-query semantic read in this record phase)
+
+- A raw: `raw_A_H1.jsonl` `7c7c8edb12256d2a756aaba624dea5c6412d0d9c161ad77c8224d4b554f9bfee`, `raw_A_H2.jsonl` `964fbb68497e75197ceea02981d95c5da5bde8261095f79aca095bfb407e41f8`; B raw: `raw_B_H1.jsonl` `ebf97fb812db2d8ec2c98743313ab8d4bbbc201bdf85b9a75a644715c73e516a`, `raw_B_H2.jsonl` `7410813feb5ce0e3211b0569b22949e3c8de37f43d22b7c60681195a2d636217`; C outputs: `c_output_1.jsonl` `e11d48daf27baaf763e63315a1450f74bbee94fd1bf2a312b010a5a68eb6f5d7`, `c_output_2.jsonl` `66ff912be9414e4d9ae0987d605114b2921a4851d24d2689d484fef116719ecc`; merged `candidates_merged.json` `b8c4db365054fcea4b46e55f52ae6acec5e2b3a352815b0570887f25895c9f71`; `adjudicated_pool.json` `c0fba5e4d5bfa4231994dbb6f2d358a3264f5fa6bddc09785795e47fc935fe77`; builder agreement audit `agreement_audit_builder.json` `04f082faed14be006d41ac11ef57c8a13215c5da96b7ac9e82e62ba8f333d67f`.
+- A/B disagreements 210/273; kappas: stratum 0.6569, answerable 1.0, ambiguous 0.7607, location 1.0, per-gold-grade 0.0166.
+- Local feasibility census (D-070's own, noncanonical — see §4): ambiguous need 23 pool 13 `SHORTFALL_10`; natural_needs_location need 7 pool 5 `SHORTFALL_2`; short_keywords need 18 pool 13 `SHORTFALL_5`; verdict `HOLD_FEASIBILITY`, decided `2026-09-04T11:29:59+00:00`.
+- Local HOLD summary: `D070_HOLD_SUMMARY.json` SHA256 `4814d2a9c7d937fac747ff424953e6905638e2e82679bec8ac197ad4ab5b6fe4`.
+- Forbidden counts (per local summary, all 0): old-dev retry 0, plan mutation 0, audit append 0, dev-v2 run_start 0, holdout plaintext 0, old protected plaintext 0, candidate tuning 0, DB/ranking/vector/chunk query 0, ml-service change 0, history rewrite 0. Not done: no selector seal (infeasible), no protected branch/tag/worktree, no main D-070 record (this entry is the first), no dev-v2 run, no holdout contact.
+
+### (3) What D-070 did NOT create
+
+- NO protected worktree/branch/tag, NO main record (before this entry), NO dev-v2 run, NO holdout contact, NO audit append (audit bytes unchanged this stage), NO canonical result. D-070 never sealed/imported/evaluated anything.
+
+### (4) Web independent disposition — AUTHORIZED CORRECTION (supersedes D-070's HOLD_FEASIBILITY as canonical root cause)
+
+- D-070's local STOP before seal/import was correct, but its `HOLD_FEASIBILITY` label is NOT sufficient as canonical root cause. Canonical root cause is **CONTRACT_INVALID_GENERATION** on two standing-contract defects:
+- 1) Generation-v2 taxonomy weakened D-023 standing mutually-exclusive authoring rules — especially short_keywords (exactly 2-3 tokens AND not title/fragment/broad/>=2-constraints; exact-title substring exclusion is a predeclared mechanical validator) and ambiguous (omit essential referent, no exact title/broad request, location alone must not remove ambiguity). Aggregate symptoms only: intended short 27 -> final short 13 / exact 13 / ambiguous 1; intended ambiguous 35 -> final ambiguous 10 / exploratory 10 / natural 15. These counts MUST NOT change reserve/quota — uniform 1.5x reserve stands.
+- 2) Standing D-023/D-033 requires A/B independent + third C on EVERY query. D-070 ran C only on the 210/273 A/B-disagreement rows and merged 63 A/B-agreement rows without C. Its adjudicated census is therefore not canonical feasibility evidence.
+- Directives: do NOT repair/relabel/complete D-070; do NOT run C on the missing 63; preserve builder bytes; fresh restart only (D-071 generation-v3). The D-070 273 cannot be completed, repaired, or reused as truth, seed, or partial pool.
+
+### (5) Untouched standing state
+
+- Old D-068 remains consumed/open and untouched; audit `90cfb54d...` unchanged; frozen six unchanged; `ml-service` diff 0; no history rewrite. Standing decisions D-013/D-015/D-017/D-023/D-033/D-034/D-035/D-068/D-069 remain as history/corrected where applicable.
+
+Next gate after this record and its one normal commit+push is the D-071 fresh generation-v3 stage (new builder, new plan freeze, then STOP for Web review). Protected freeze/execution remains separately gated and NOT authorized.
