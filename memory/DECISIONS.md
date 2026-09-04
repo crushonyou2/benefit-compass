@@ -2520,3 +2520,32 @@ Reconciled base (before mutation, actual state wins): branch `codex/retrieval-v3
 - Old D-068 retry 0; D-070 completion/relabel/reuse 0; audit append 0; dev-v2 run_start 0; holdout plaintext access 0; old protected evalset plaintext access 0 (fingerprint/manifest refs only); plan mutation after freeze 0; result-driven tuning 0; candidate-plan config changes 0; production ml-service changes 0; history rewrite/amend/rebase/reset/force 0; protected branch/tag/worktree creation 0.
 - Source-truth content has NOT been read under this plan and NO candidate generation has occurred as of this record. Snapshot + authoring (Phase 5) proceed only after this record is committed, pushed, and remotely verified.
 - EVEN IF a local 180 seal later passes: NO dev-v2-freeze branch, NO dev-v2 tag, NO protected worktree/import, NO audit append, NO dev-v2 benchmark, NO holdout contact, NO tuning/Candidate-B — STOP for Web independent review.
+
+## D-072 · Retrieval v3 dev-v2 generation-v4 strategy — D-071 postmortem + corrections, pre-result v4 basis — 2026-09-04 (append-only; D-071 history untouched)
+
+Reconciled base (actual wins): branch `codex/retrieval-v3-user-search-quality` HEAD `bba8e451fc29485de2cd184c865e975583510218` clean, local=upstream=direct remote identical, `git diff --check` PASS, `ml-service` diff 0, frozen six byte-identical (`78420186`/`a25d9c48`/`c512fb56`/`6fee9ec2`/`f028ce46`/`5891b0ba`), audit `90cfb54d...` byte-identical, result absent, dev/holdout absent, no dev-v2 refs; OMP `18.1.5`, no project override. No protected plaintext read in this record phase.
+
+### (1) D-071 genuine infeasibility (first durable record; execution lived only in the private builder)
+
+- Builder `bc-v3-dev-v2-builder-20260904-v3` preserved byte-for-byte, never relabeled/repaired/reused. Verdict `INFEASIBLE_STOP_HOLD` (`D071_HOLD_SUMMARY.json` `c2f200e0...`, `2026-09-04T13:21:03+00:00`). Frozen bytes verified: plan `558f7df7...` (13477 B) + lock `f17d8e40...` (`mutated_after_freeze false`) + rubric `9ceda4ee...` + adjudicated pool `64ece2a9...` (273 rows). Contract-valid generation/annotation (C 273/273, no A/B fallback); infeasibility is genuine, not procedural. No protected benchmark result exists anywhere; this is pre-result dataset-generation strategy, not candidate/result tuning.
+- C census vs need: exact 49 loc22 (need 21/6); natural 66 loc18 (need 25/7); exploratory 33 loc9 (need 21/6); multi 37 loc14 (need 25/8); short 21 loc2 (need 18/5); colloquial 16 loc5 (need 20/6); ambiguous 8 loc1 valid 0/0 (need 23/7); unsupported 43 loc14 (need 27/9). Necessary shortfalls: short loc2<5; colloquial total16<20 and loc5<6; ambiguous total8<23 and loc1<7.
+
+### (2) Corrected disagreement meanings (old artifact bytes preserved)
+
+- `disagreement_matrix.json` 61 is query-six-dimension-only, not overall semantic disagreement. Correct: query-level six-dimension disagreement 61/273; gold semantic disagreement (identity/grade/equiv) 224/273; ANY semantic disagreement union 226/273; full semantic agreement 47/273.
+- Per-gold Cartesian x273 kappa .5049 is NOT standing. Task-local gold unit (`candidate_id`, `source`, `source_id`), union A/B within candidate, ABSENT sentinel, grade category only — reduces to D-034 identity metric when selected gold identities are globally unique. Mechanical D-071 recomputation (diagnostic-only, never a gate): N=364 agree=114 raw=0.3131868131868132 expected=0.3722150102644608 kappa=-0.09402613640462133; A {3:230 ABSENT:97 2:35 1:2}; B {ABSENT:125 3:148 2:90 1:1}.
+
+### (3) Rubric mismatch + typo corrections (prospective only; old text never edited)
+
+- D-071 C marked all 8 C-ambiguous rows `labelable=false`: rubric conflated ambiguity with unlabelability. v4 rule: `labelable=true` = coherent/interpretable enough to judge expected handling; intentionally ambiguous (exactly one essential referent omitted) can and normally should be `labelable=true` (CLARIFY/ABSTAIN, safety-only); `labelable=false` reserved for contradictory/incoherent/non-evaluable text. No quotas/intended labels in rubric. Selected FINAL 180 MUST all be `labelable=true` (0-unlabelable invariant).
+- D-071 durable shorthand wrote exact-dev location vector `6/7/6/7/9`; standing vector is `6/7/6/8/5/6/7/9` (sum 54). Corrected here only.
+
+### (4) v4 basis (frozen before source-truth content; immutable afterward)
+
+- NEW builder `bc-v3-dev-v2-builder-20260904-v4`; plan_version `retrieval-v3-dev-generation-v4`; seed `benefit-compass-retrieval-v3-dev-v2-generation-v4-2026-09-04` (truthful distinct suffix if collision, recorded). Final contract EXACTLY: 180 at 21/25/21/25/18/20/23/27; headline 130; safety 50 (23+27); location 54 at 6/7/6/8/5/6/7/9; 18 configs unchanged. Uniform 2.0x reserve per cell (symmetric capacity, no gate change, untargeted to D-071): slots 42/50/42/50/36/40/46/54=360; location 12/14/12/16/10/12/14/18=108. D-023 authoring contracts + mechanical validators; neutral rubric per (3); A/B all-360 + C every-360 (frozen disagreement values only on disagreement rows; query-only on agreement rows; no A/B fallback); agreement artifact with query_dim_any/gold_any/full_agreement + §2 per-gold diagnostic; exact lexicographically-smallest feasible-180 selector (selected-global gold uniqueness only; canonical+failed overlaps 0); infeasible→STOP/HOLD. Freeze plan/rubric/lock with all-not-read flags false, hash, never mutate. Exclusions: D-071 failed-query fingerprints (query_text-only hashes, 273) + D-070 failed + dev-v1/holdout/history fingerprint-only; new-query overlap 0 vs all five; new-gold overlap 0 vs canonical three. Pre-result record committed+pushed+remote-verified BEFORE source truth; Phase C then snapshot→360 fresh→validators→A/B→agreement→C→selector→PRIVATE sealed or HOLD, then STOP. No protected import/ref/audit/run in any outcome.
+- Full strategy: `docs/RETRIEVAL_V3_D072_DEV_V2_GENERATION_V4_STRATEGY.md` (plaintext-free).
+
+### (5) Forbidden boundaries this stage
+
+- D-068 untouched; holdout sealed; old protected dev plaintext forbidden (fingerprint/manifest-only); no launcher/grant/run/result/benchmark/tuning/Candidate-B; no protected branch/tag/worktree/import; no ml-service change; no history rewrite; frozen six + audit bytes preserved; main plaintext-free; normal commits/pushes only.
+- Phase A verdict: postmortem recorded. One normal docs-only commit+push, verify clean/local=remote/diff-check/ml-service0/frozen-six/audit, then v4 plan freeze (Phase B) in the new builder, still before source truth.
