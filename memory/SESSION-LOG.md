@@ -1531,3 +1531,15 @@ One short section per working session: what was worked on, what was decided (wit
 - **Phase B freeze (before source truth, immutable):** v4 merged `f72b39dd...` query_text-only -> 360/360 unique -> `failed_d072` `ff3f65d6...`; carried D-070 `0acc6f27...` + D-071 `3a037d98...` + dev-v1 `57716c6a...` + holdout `3463a8a...` + history `42e8534d...`; manifest `883d71ce...`. Plan `70cc98ff...` (16711 B) + rubric `24989203...` (3330 B, dims/rules/role identical to v4) + lock `dff69b07...` (`2026-09-04T17:24:27+00:00`, all five not-read flags false). Zero non-ASCII bytes; `source_truth.jsonl` ABSENT; candidates ABSENT. No D-072 semantic read for plan design beyond Web-supplied aggregates.
 - **VERDICT: D-073 pre-result freeze complete. One normal commit+push, verify clean/local=remote/diff-check/ml-service0/frozen-six/audit/result/protected-absent, then STOP for Web independent review. Phase C generation NOT authorized.**
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
+
+## 2026-09-05 — Retrieval v3 D-074 generation-v5 Phase C execution (INFEASIBLE_STOP_HOLD, private HOLD summary only)
+
+- **Reconciled start:** branch `codex/retrieval-v3-user-search-quality` HEAD `7a3be79` clean, local=upstream=direct remote, diff-check PASS, ml-service 0, frozen six + audit (`90cfb54d`, D-068 open) exact, result/dev/holdout absent, no dev-v2 refs; OMP `18.1.5`, root/plan `muse-spark-1.3-contributor:xhigh`, no override. Plan/rubric/lock SHAs re-verified before use; exclusion inputs pinned OK.
+- **Snapshot:** fresh read-only policy-table SELECT in v5 builder: 13589 rows (gov24 10958 / youth 2631), SHA `9fe19465...`; DSN never printed.
+- **Generation:** 2 authors, 360 fresh queries, exact reserve/location slots; mechanical validation 0 fails; merged `86bdf170`; query overlap 0 vs all six sets.
+- **A/B:** frozen packets `634c9baa`/`cdaa9e49`; raw `4fcfc113`/`442d3d1f`; agreement any_semantic 258 / full 102 (diagnostic; audit `d8161fcb`).
+- **C:** packets `03b6f6cf`/`5b30c592`; outputs `ee9e5ee5`/`422e4a09`; pool `4ad4a5e0` 360/360, residual 0. C census ambiguous 53 (need 23 — v5 paired-grounded fix works), but exploratory/short-loc/colloquial fall short after overlap gating.
+- **Selector:** eligible 282/360; shortfalls exploratory 18<21, short_loc 3<5, colloquial 19<20, colloquial_loc 5<6 → INFEASIBLE_STOP_HOLD. `D074_HOLD_SUMMARY.json` `8cae92e1` (builder only); NO seal; no supplement/relabel/plan change. Full record: `memory/DECISIONS.md` D-074.
+- **Provenance:** 5 child task agents, all self-report `muse-spark-1.3-contributor`; coordinator authored/labeled nothing. Two tooling incidents with no data impact (vacuous pool build caught by assert + fixed pre-selection; identical-command shell caching → artifact-grounded verification). Forbidden counts all 0.
+- **VERDICT: D-074 Phase C complete as HOLD. One normal commit+push, then STOP for Web independent review. No protected import/ref/audit/run.**
+- **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
