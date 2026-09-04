@@ -889,15 +889,20 @@ class RealProtectedLoader:
                 ) from None
             if not isinstance(obj, dict):
                 raise ValueError(f"materialized dev evalset line {lineno} must be an object (fail-closed)")
-            if not (obj.get("task_id") or obj.get("id") or obj.get("case_id")):
+            # D-067 HOLD repair: the case_id fallback is a non-empty string
+            # only (str with non-blank content). Non-string (int/bool/list)
+            # or blank case_id never satisfies the id gate and never aliases.
+            _case_id = obj.get("case_id")
+            _valid_case_id = isinstance(_case_id, str) and _case_id.strip() != ""
+            if not (obj.get("task_id") or obj.get("id") or _valid_case_id):
                 raise ValueError(f"materialized dev evalset line {lineno} missing task id (fail-closed)")
             if not isinstance(obj.get("query") or obj.get("query_text"), str):
                 raise ValueError(f"materialized dev evalset line {lineno} missing query text (fail-closed)")
             # D-067: sealed dev v1 keys the task id as case_id (D-033 section 2:
             # case_id v3d-001..v3d-180, query_text). Alias it in-memory so the
             # runner-facing task-id contract holds; raw bytes/SHA untouched.
-            if not obj.get("task_id") and not obj.get("id") and obj.get("case_id"):
-                obj["task_id"] = obj["case_id"]
+            if not obj.get("task_id") and not obj.get("id") and _valid_case_id:
+                obj["task_id"] = _case_id
             tasks.append(obj)
         if not tasks:
             raise ValueError("materialized dev evalset empty (fail-closed)")

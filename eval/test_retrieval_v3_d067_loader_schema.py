@@ -165,8 +165,43 @@ def test_d067_mirrors_byte_identical_and_static_contract():
     assert a == b, "real_adapters mirrors must stay byte-identical"
     text = a.decode("utf-8")
     assert 'obj.get("case_id")' in text
+    assert "_valid_case_id" in text, "case_id non-empty-string gate must be present"
+    assert 'isinstance(_case_id, str) and _case_id.strip() != ""' in text
     assert "D-067" in text
     # fail-closed gates intact in both mirrors
     assert "missing task id (fail-closed)" in text
     assert "missing query text (fail-closed)" in text
     assert "SHA mismatch" in text
+
+
+@pytest.mark.parametrize("bad", [123, 0, True, False, "   ", "\t\n ", ["x"],
+                                 {"k": "v"}, None, ""])
+def test_d067_hold_invalid_case_id_never_satisfies_id_gate(tmp_path, bad):
+    # Web HOLD repro lockdown (SAME-STAGE, synthetic only): when task_id/id
+    # are absent, a non-string or blank case_id MUST fail-closed — it must
+    # neither satisfy the id gate nor alias into task_id.
+    mat = tmp_path / "dev.jsonl"
+    sha = _write([json.dumps({"case_id": bad, "query_text": "q"},
+                             ensure_ascii=False)], mat)
+    with pytest.raises(ValueError, match="task id"):
+        RealProtectedLoader(str(mat), allowed_base=str(tmp_path))("dev", sha)
+
+
+def test_d067_hold_padded_string_case_id_loads_raw_preserved(tmp_path):
+    # Non-blank strings pass the gate; the alias preserves raw bytes value
+    # (no loader-side normalization of task content).
+    mat = tmp_path / "dev.jsonl"
+    sha = _write([json.dumps({"case_id": "  v3d-007  ", "query_text": "q"},
+                             ensure_ascii=False)], mat)
+    tasks = RealProtectedLoader(str(mat), allowed_base=str(tmp_path))("dev", sha)
+    assert tasks[0]["task_id"] == "  v3d-007  "
+
+
+def test_d067_hold_invalid_case_id_ignored_when_task_id_present(tmp_path):
+    # Precedence path: a present task_id keeps working; the invalid case_id
+    # is ignored, never aliased over it.
+    mat = tmp_path / "dev.jsonl"
+    sha = _write([json.dumps({"task_id": "t-keep", "case_id": 123,
+                              "query": "q"}, ensure_ascii=False)], mat)
+    tasks = RealProtectedLoader(str(mat), allowed_base=str(tmp_path))("dev", sha)
+    assert tasks[0]["task_id"] == "t-keep"
