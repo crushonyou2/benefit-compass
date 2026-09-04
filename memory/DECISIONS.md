@@ -2413,3 +2413,39 @@ D-068 launcher invocations 1 (authorized, no retry, timeout-killed); new `protec
 ### VERDICT: D-068 repaired-dev execution TIMED OUT after run_start (grant/run open, no result). Do NOT retry in any workspace.
 
 The canonical one-shot `run_start` for dev `2f014112...` is now consumed and open. The same protected dev benchmark MUST NEVER be re-executed (no second launcher invocation for this set under any circumstance). No manual audit append/close and no direct-runner repair. Next gate after this record and its atomic commit/push of generated audit+records only is **STOP for Web independent review** (open grant/run disposition + timeout handling, not silent retry, not candidate tuning, holdout untouched).
+## D-069 · Retrieval v3 pre-result recovery strategy + non-timed scoring-phase invariant cache — 2026-09-04 (user-authorized new logical stage, then STOP for Web review)
+
+User-authorized new logical stage on branch `codex/retrieval-v3-user-search-quality` from HEAD `7018efcf86619ea7c184b6c3e38db60988f96ee1` clean (local=upstream=direct remote identical, `git diff --check` PASS, `ml-service` diff 0). Frozen six byte/SHA identical (prereg `78420186...`, plan-v4 `a25d9c48...`, safe-action `c512fb56...`, policy-v2 `6fee9ec2...`, link-V2 `f028ce46...`, cost-V1 `5891b0ba...`); audit `events.jsonl` 4 events SHA `90cfb54d...` preserved exactly; canonical result absent. No protected dev/holdout plaintext access, no fingerprint reads, no launcher invocation, no retrieval/DB/model/embedding/HTTP/latency real execution, no DATABASE_URL use, no result/dataset creation, no Candidate B, no production change, no history rewrite in this stage.
+
+### 1) Recovery contract (frozen in `docs/RETRIEVAL_V3_D069_RECOVERY_STRATEGY.md`)
+
+- D-068 old dev SHA `2f014112...` with real canonical `run_start` and open `protected_access_start`/`run` is immutable historical evidence; same set can never rerun; no synthetic audit closure permitted.
+- Because D-068 produced no canonical result and post-timeout scoring/tuning/config/threshold changes were zero, the existing holdout remains sealed, unused, and eligible to remain the future final holdout. This stage does NOT access it.
+- Continuing v3 requires a FUTURE fresh protected dev-v2 identity, not a retry/resume: new set SHA, new branch/tag identity, new session/run identity, canonical same audit chain preserving old open history. Proposed frozen names: branch `codex/retrieval-v3-dev-v2-freeze`, tag `retrieval-v3-dev-v2`.
+- Future fresh dev-v2 must preserve the existing exact dev contract: total 180, headline 130, safety 50 = ambiguous 23 + unsupported 27, location-bearing 54, standing exact strata/location/source-truth/annotation/isolation rules; same existing 18-config candidate-plan-v4 and deterministic selection; no config addition/deletion/value change; no result-driven adaptation.
+- Fresh dev-v2 must use fingerprint-only zero-overlap checks against historical v3 dev-v1 and existing holdout and prior history, without reading old protected plaintext. Builder must be isolated from candidate code/results as standing freeze rules require.
+- Existing holdout may be considered only after a valid fresh dev-v2 canonical result selects a finalist under standing gates, followed by a separate Web review/user approval. No holdout access now.
+- If fresh dev-v2 later consumes `run_start` and again fails to produce a result, that dev-v2 set also becomes non-rerunnable; STOP for a new strategy decision rather than retry.
+- D-069 does NOT relax headline/safety/location/latency/cost/Candidate-B/MAX24/18-config/production-exclusion/link-provenance rules and does NOT supersede the frozen six. It supersedes only the recovery/disposition after D-068 timeout by authorizing a future independent dev-v2 strategy.
+
+### 2) Meaning-preserving runtime repair — scoring phase only
+
+- Observed waste on committed bytes: runner loops 18 configs x 180 tasks; `_retrieve_for_query` accepts `qvec` but scoring calls it without reuse; `dense_top100` and exact candidate discovery are config-invariant yet recomputed per config.
+- Narrow optimization in BOTH mirrored runner files byte-identically: during the ordinary NON-TIMED scoring phase only, compute/reuse per-task config-invariant retrieval state across all 18 configs (stripped query, query embedding/qvec, dense top100 + COSINE_MIN filtered pool, exact candidate discovery/order). Reuse preserves exact output semantics and tie ordering; no ranking function or numerical formula changed; no numpy/approximate cosine/new model/DB path; existing computed Python results reused.
+- Sparse top100 NOT cached (field-weight dependent; dense/query/exact reuse sufficient by design).
+- Timed latency closures remain standalone full end-to-end calls exactly as before: no scoring cache reuse into `measure_paired_latency`, no embedding/dense cache in timed samples; warmup 30 / all 180 / 18-config complete D-041 evidence unchanged.
+- Safety/cost/oracle/headline/selection/result-schema semantics unchanged. Runner+tests only for runtime code.
+- Cache scope is one run only (local to the scoring phase) and key-safe (`(task_id, query)` tuple; missing id bypasses cache; mismatch recomputes fresh, never cross-contaminates). Fail closed on malformed/blank query as before.
+
+### 3) Verification (pure/static/mock/synthetic only)
+
+- NEW `eval/test_retrieval_v3_d069_scoring_cache.py` proves: cached scoring outputs exactly equal uncached semantics across representative configs (union/hybrid, field-weight, dedup/diversification, exact boosts, same qvec); N-task x 18-config scoring-phase embedding calls = N and dense invariant = N; task/query safe (no cross-contamination; blank fail-closed); timed latency path NOT cached (existing `measure_paired_latency` coverage/18-config loop remains; static + runtime proof); frozen six unchanged; audit SHA `90cfb54d...`; canonical result absent; `ml-service` diff 0; mirror identity.
+- Existing runner/selection/result-schema tests pass; full `eval/ -k retrieval_v3` pass if practical. No real DB/model/network.
+
+### 4) Protected/one-shot boundary — forbidden counts
+
+- Launcher invocations 0; new `protected_access_start`/`protected_access_end`/`run_start`/`run_end` 0; canonical result creation 0; protected dev/holdout plaintext access/recovery 0 (no `git show`/`cat-file`/`checkout`/`restore`/sparse/new worktree/traversal); fingerprint reads 0; holdout access/materialization 0; retrieval/DB/model/embedding/HTTP/latency real execution 0; DATABASE_URL use 0; result/dataset creation 0; Candidate B 0; config addition/deletion/value change 0; MAX24 change 0; gate relaxation 0; production change 0; history rewrite/force/tag move 0.
+
+### VERDICT: D-069 strategy frozen + scoring-invariant cache implemented (pre-result, no dev-v2, no protected execution). STOP for Web independent review.
+
+Do NOT create dev-v2, do NOT launch protected evaluation, do NOT touch holdout in this stage. Next gate after this record and its one normal commit+push is **STOP for Web independent review**.

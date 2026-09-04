@@ -201,29 +201,116 @@ class Runner:
         # by run_dev_evaluation when bound; None for pure/mock runs).
         self.evaluation_session = evaluation_session
 
+    def _compute_scoring_invariants(
+        self,
+        query: str,
+        policies: list[dict],
+    ) -> dict:
+        """D-069: per-task config-invariant retrieval state for NON-TIMED scoring reuse.
+
+        Computes exactly the same stripped query, query embedding, dense top100 +
+        COSINE_MIN filtered pool, and exact candidate discovery/order as the uncached
+        `_retrieve_for_query` path. No ranking/numerical change. The scoring phase only
+        reuses the returned state across all 18 configs via `_scoring_state`. Timed
+        latency closures MUST NOT use this cache (standalone full calls).
+        """
+        # Fail-closed blank identical to _retrieve_for_query.
+        if not isinstance(query, str) or not query.strip():
+            raise ValueError("empty query (fail-closed)")
+        q_stripped = strip_region(query)
+        if not q_stripped.strip():
+            raise ValueError("empty query after strip_region (fail-closed)")
+        if self.embedding_fn is None:
+            raise RuntimeError("embedding_fn not injected (fail-closed, no real model load)")
+        qvec = self.embedding_fn(f"query: {q_stripped}")
+        if len(qvec) != 768:
+            raise ValueError(f"embedding dim must be 768, got {len(qvec)}")
+        d_top100 = dense_top100(qvec, policies)
+        d_filtered = filter_dense_by_cosine_min(d_top100, 0.78)
+        exact_candidates = []
+        for p in policies:
+            it = is_exact_title(q_stripped, p.get("title") or "")
+            io = is_exact_org(q_stripped, p.get("org") or "")
+            if it or io:
+                exact_candidates.append({
+                    "policy": p,
+                    "source": p["source"],
+                    "source_id": p["source_id"],
+                    "policy_id": p["id"],
+                    "is_exact_title": it,
+                    "is_exact_org": io,
+                })
+        exact_candidates.sort(key=lambda x: (-x["is_exact_title"], -x["is_exact_org"], x["source"], x["source_id"], x["policy_id"]))
+        return {
+            "query": query,
+            "q_stripped": q_stripped,
+            "qvec": qvec,
+            "dense_top100": d_top100,
+            "dense_filtered": d_filtered,
+            "exact_candidates": exact_candidates,
+        }
+
     def _retrieve_for_query(
         self,
         query: str,
         policies: list[dict],
         config: dict,
         qvec: list[float] | None = None,
+        _scoring_state: dict | None = None,
     ) -> dict:
-        """Execute retrieval for single query under config — returns pools and final top30."""
+        """Execute retrieval for single query under config — returns pools and final top30.
+
+        D-069: optional `_scoring_state` reuses validated NON-TIMED scoring invariants
+        (q_stripped/qvec/dense_top100/dense_filtered/exact_candidates) when key-safe.
+        When absent/invalid/mismatched, full recompute preserves exact uncached semantics.
+        Timed latency closures MUST call without `_scoring_state` (standalone full calls).
+        """
         # D-039: fail-closed blank at lowest level (D-037 only checked callers). Blank never silently retrieves.
         if not isinstance(query, str) or not query.strip():
             raise ValueError("empty query (fail-closed)")
         q_stripped = strip_region(query)
         if not q_stripped.strip():
             raise ValueError("empty query after strip_region (fail-closed)")
-        if qvec is None:
-            if self.embedding_fn is None:
-                raise RuntimeError("embedding_fn not injected (fail-closed, no real model load)")
-            qvec = self.embedding_fn(f"query: {q_stripped}")
-            if len(qvec) != 768:
-                raise ValueError(f"embedding dim must be 768, got {len(qvec)}")
-
-        d_top100 = dense_top100(qvec, policies)
-        d_filtered = filter_dense_by_cosine_min(d_top100, 0.78)
+        # D-069: reuse validated scoring invariants when key-safe; else full recompute.
+        _use_cached = False
+        _cached_d_top100: list | None = None
+        _cached_d_filtered: list | None = None
+        _cached_exact: list | None = None
+        if isinstance(_scoring_state, dict):
+            try:
+                _cq = _scoring_state.get("query")
+                _cs = _scoring_state.get("q_stripped")
+                _cv = _scoring_state.get("qvec")
+                _dt = _scoring_state.get("dense_top100")
+                _df = _scoring_state.get("dense_filtered")
+                _ec = _scoring_state.get("exact_candidates")
+                if (
+                    _cq == query
+                    and isinstance(_cs, str) and _cs == q_stripped
+                    and isinstance(_cv, list) and len(_cv) == 768
+                    and isinstance(_dt, list) and isinstance(_df, list) and isinstance(_ec, list)
+                ):
+                    qvec = _cv
+                    _cached_d_top100 = _dt
+                    _cached_d_filtered = _df
+                    _cached_exact = _ec
+                    _use_cached = True
+            except Exception:
+                _use_cached = False
+        if _use_cached:
+            assert _cached_d_top100 is not None and _cached_d_filtered is not None and _cached_exact is not None
+            d_top100 = _cached_d_top100
+            d_filtered = _cached_d_filtered
+            exact_candidates_reused = _cached_exact
+        else:
+            if qvec is None:
+                if self.embedding_fn is None:
+                    raise RuntimeError("embedding_fn not injected (fail-closed, no real model load)")
+                qvec = self.embedding_fn(f"query: {q_stripped}")
+                if len(qvec) != 768:
+                    raise ValueError(f"embedding dim must be 768, got {len(qvec)}")
+            d_top100 = dense_top100(qvec, policies)
+            d_filtered = filter_dense_by_cosine_min(d_top100, 0.78)
         s_top100 = sparse_top100(q_stripped, policies, config)
 
         fused = fuse_candidates(
@@ -239,20 +326,23 @@ class Runner:
 
         final_top30 = full_top30_pipeline(fused, config["dedup_cosine_threshold"], config["diversification_lambda"], qvec=qvec)
 
-        exact_candidates = []
-        for p in policies:
-            it = is_exact_title(q_stripped, p.get("title") or "")
-            io = is_exact_org(q_stripped, p.get("org") or "")
-            if it or io:
-                exact_candidates.append({
-                    "policy": p,
-                    "source": p["source"],
-                    "source_id": p["source_id"],
-                    "policy_id": p["id"],
-                    "is_exact_title": it,
-                    "is_exact_org": io,
-                })
-        exact_candidates.sort(key=lambda x: (-x["is_exact_title"], -x["is_exact_org"], x["source"], x["source_id"], x["policy_id"]))
+        if _use_cached:
+            exact_candidates = exact_candidates_reused
+        else:
+            exact_candidates = []
+            for p in policies:
+                it = is_exact_title(q_stripped, p.get("title") or "")
+                io = is_exact_org(q_stripped, p.get("org") or "")
+                if it or io:
+                    exact_candidates.append({
+                        "policy": p,
+                        "source": p["source"],
+                        "source_id": p["source_id"],
+                        "policy_id": p["id"],
+                        "is_exact_title": it,
+                        "is_exact_org": io,
+                    })
+            exact_candidates.sort(key=lambda x: (-x["is_exact_title"], -x["is_exact_org"], x["source"], x["source_id"], x["policy_id"]))
         union_map = {}
         for e in d_filtered:
             key = (e["source"], e["source_id"])
@@ -605,6 +695,10 @@ class Runner:
             all_config_results = {}
             _cost_qvec_cache: dict = {}
             _cost_qstripped_cache: dict = {}
+            # D-069: NON-TIMED scoring-phase only invariant cache (one run, key-safe).
+            # Key is (task_id, query); missing id bypasses cache; mismatch recomputes fresh.
+            # Timed latency closures below MUST NOT read this cache (standalone full calls).
+            _scoring_invariant_cache: dict = {}
             for cfg in self.plan_data["configs"]:
                 cid = cfg["config_id"]
                 task_results = []
@@ -627,7 +721,18 @@ class Runner:
                     q = task.get("query") or task.get("query_text") or ""
                     if not isinstance(q, str) or not q.strip():
                         raise ValueError(f"empty query (fail-closed): task {task.get('task_id') or task.get('id')}")
-                    res = self._retrieve_for_query(q, retrieval_policies, cfg)
+                    _rtid_for_cache = task.get("task_id") or task.get("id")
+                    _scoring_state = None
+                    if isinstance(_rtid_for_cache, str) and _rtid_for_cache.strip():
+                        _cache_key = (_rtid_for_cache, q)
+                        _scoring_state = _scoring_invariant_cache.get(_cache_key)
+                        if _scoring_state is None:
+                            _scoring_state = self._compute_scoring_invariants(q, retrieval_policies)
+                            _scoring_invariant_cache[_cache_key] = _scoring_state
+                    if _scoring_state is None:
+                        res = self._retrieve_for_query(q, retrieval_policies, cfg)
+                    else:
+                        res = self._retrieve_for_query(q, retrieval_policies, cfg, _scoring_state=_scoring_state)
                     final_top30 = res["final_top30"]
                     _rtid = task.get("task_id") or task.get("id")
                     if _rtid not in _cost_qvec_cache:
