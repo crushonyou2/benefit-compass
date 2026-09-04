@@ -48,7 +48,6 @@ def _good_kwargs(**over):
         evalset_base="authorized",
         output_path="eval/retrieval-v3/results/v3-candidate-dev-result.json",
         audit_log="nonexistent-audit-events.jsonl",
-        expected_event_hash=None,
     )
     kw.update(over)
     return kw
@@ -130,8 +129,6 @@ def test_arg_shape_rejects_non_dev_bad_ids_and_paths():
         validate_launch_args(**_good_kwargs(materialized_path="  "))
     with pytest.raises(ValueError, match="evalset_base"):
         validate_launch_args(**_good_kwargs(evalset_base=""))
-    with pytest.raises(ValueError, match="64-hex"):
-        validate_launch_args(**_good_kwargs(expected_event_hash="xyz"))
     with pytest.raises(ValueError, match="canonical"):
         validate_launch_args(**_good_kwargs(output_path="eval/other/result.json"))
     with pytest.raises(ValueError):
@@ -139,9 +136,11 @@ def test_arg_shape_rejects_non_dev_bad_ids_and_paths():
 
 
 def test_signature_structurally_forbids_fakes():
-    for fn in (launch_canonical_dev, preflight_canonical_launch):
+    import retrieval_v3.launch as _L
+    for fn in (launch_canonical_dev, preflight_canonical_launch, _L.launch_canonical_dev_real, validate_launch_args):
         params = set(inspect.signature(fn).parameters)
         assert "tasks" not in params and "policies" not in params and "skip_audit" not in params
+        assert "expected_event_hash" not in params, "HOLD repair: launcher accepts no external token"
     params = set(inspect.signature(launch_canonical_dev).parameters)
     assert {"session_factory", "adapter_builder", "runner_factory"} <= params
     assert callable(launch_canonical_dev_real)
@@ -227,6 +226,9 @@ class _FakeRunner:
         self.seen = kw
         if self._error is not None:
             raise self._error
+        cb = kw.get("on_grant_verified")
+        if callable(cb):
+            cb()
         return self._result
 
 
@@ -243,6 +245,11 @@ def _launch_with(log, runner_error=None, adapter_error=None):
         return {"marker": "adapters"}
 
     holder = {}
+    appended = []
+
+    def _append(_path, **kw):
+        appended.append(kw)
+        return {"event_hash": "aa" * 32}
 
     def _runner_factory(adapters, session):
         log.append("runner")
@@ -253,18 +260,21 @@ def _launch_with(log, runner_error=None, adapter_error=None):
         **_good_kwargs(),
         audit_reader=_no_side_effect_reader([]),
         output_exists_fn=_false_exists(),
+        audit_append_fn=_append,
         session_factory=_factory,
         adapter_builder=_builder,
         runner_factory=_runner_factory,
     )
-    return result, holder["runner"]
+    return result, holder["runner"], appended
 
 
 def test_ordered_launch_success_closes_exactly_once():
     log = []
-    result, runner = _launch_with(log)
+    result, runner, appended = _launch_with(log)
     assert result == {"ok": True}
     assert log == ["session", "adapters", "runner", "run", "close"]
+    assert runner.seen["expected_event_hash"] == "aa" * 32
+    assert [(a["action"], a.get("outcome")) for a in appended] == [("protected_access_start", "success")]
     assert runner.seen["tasks"] == [] and runner.seen["policies"] == []
     assert runner.seen["skip_audit"] is False
     assert runner.seen["set_role"] == "dev" and runner.seen["set_sha"] == GOOD_SHA
@@ -337,6 +347,7 @@ def test_session_close_failure_surfaces():
             **_good_kwargs(),
             audit_reader=_no_side_effect_reader([]),
             output_exists_fn=_false_exists(),
+            audit_append_fn=lambda _p, **kw: {"event_hash": "bb" * 32},
             session_factory=_factory,
             adapter_builder=lambda s, m, b: {"marker": "a"},
             runner_factory=lambda a, s: _FakeRunner(log),

@@ -1394,3 +1394,13 @@ One short section per working session: what was worked on, what was decided (wit
 - **VERDICT: FIRST protected-dev REMAINS BLOCKED. Do NOT launch.**
 - **Owns whole stage in one session:** reconcile → implement+mirror → tests + proofs → D-065 + SESSION-LOG → atomic commit+push → STOP. Next: **Web read-only independent review**.
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
+
+## 2026-09-04 — Retrieval v3 D-065 SAME-STAGE Web HOLD narrow repair — launcher-owned grant lifecycle (no D-066)
+
+- **Reconciled start:** `codex/retrieval-v3-user-search-quality` HEAD `75069eb647be52723833f531f5af8fdc9950510b` clean (local=upstream=direct actual remote), `git diff --check` PASS, `ml-service` diff 0 vs `5327661`; frozen 6 unchanged; results/audit absent; one-shot unconsumed. No D-066 allocated per instruction; repair recorded as D-065 correction.
+- **HOLD findings (reproduced on committed bytes pre-mutation):** launch.py 0× append / 0× DATABASE_URL / 0× argparse; runner imports no launch; external token passthrough; 15 existing tests never create a grant. Marker-only hardening ruled out by hard-gate clarification — not implemented.
+- **Repair:** launcher-owned single `protected_access_start` + exact token + `on_grant_verified` callback (Runner, additive optional kwarg) + pre/post-transfer close ownership + append-fail-no-run + secret-safe env-or-repo-.env loader + token-free one-shot CLI + runner-CLI claim correction (behavior preserved for pinned tests). Retrieval semantics untouched.
+- **Verification:** NEW 11 + updated 15 = 26 PASS; focused 89 + 1 SKIP; runner 67; full 439 + 1 SKIP (487 deselected). Mirrors identical; frozen 6 unchanged; `ml-service` 0; results/audit absent; no leakage.
+- **VERDICT: FIRST protected-dev REMAINS BLOCKED. Do NOT launch.**
+- **Owns whole repair in one session:** reconcile → reproduce → repair+mirror → tests + proofs → D-065 correction + SESSION-LOG → atomic commit+push → STOP. Next: **Web rereview**.
+- **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.

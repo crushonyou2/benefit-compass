@@ -1,30 +1,43 @@
 """Canonical FIRST-dev launch orchestrator — narrow preflight + ordered launch (D-065).
 
 SAME-STAGE narrow implementation in the pre-result launch-contract stage.
-No frozen contract/threshold/ranking/audit semantic change; only centralizes
-the existing canonical launch boundary so the CLI cannot bypass it:
+D-065 HOLD-repair correction: 75069eb never owned the grant lifecycle (zero
+audit appends; external token passthrough; reliance on the Runner's internal
+verification). This repair makes the launcher the single grant owner:
 
-  preflight (no DB, no protected plaintext, no append)
+  preflight (no DB, no protected plaintext, no append, no grant)
     frozen file SHAs (plan-v4 / prereg / link-V2 / cost-V1, non-protected
     docs only) + candidate-plan 18-config/policy-ref validation
     + arg shape (dev-only, 64-hex set_sha, non-empty session/materialized
     shape, exact canonical output) + audit chain integrity + one-shot
     zero prior run_start + canonical output absent
-  ordered launch (injected factories, no fakes in signature)
-    session_factory -> adapter_builder -> runner_factory -> run
+  ordered launch (injected factories, no fakes and no external token in signature)
+    session_factory -> adapter_builder -> runner_factory (structural)
+    -> launcher appends exactly one protected_access_start, captures the
+    returned event_hash, passes it as the exact expected_event_hash token
+    -> run_dev_evaluation with the ownership-transfer callback
+    -> grant appended but callback never received: launcher closes
+    protected_access_end(failure) exactly once; callback received: the
+    Runner exclusively owns closure and the launcher never double-closes.
+    Grant-append failure means no run. Session closes exactly once always.
 
-Preflight never stats/resolves/reads the materialized protected evalset;
-existence/content/SHA checks stay post-grant inside the protected loader.
-No DB/model/embedding/HTTP/latency execution here; tests inject fakes.
-No IO at import. FIRST dev remains BLOCKED pending Web review.
+No frozen contract/threshold/ranking/audit semantic change. Preflight never
+stats/resolves/reads the materialized protected evalset; existence/content/SHA
+checks stay post-grant inside the protected loader. No DB/model/embedding/HTTP/
+latency execution here; tests inject fakes. No IO at import. The supported
+FIRST-dev entrypoint is the CLI below (no external token accepted anywhere).
+runner.main_canonical_dev is superseded (retained for pinned unit-test
+compatibility only). FIRST dev remains BLOCKED pending Web review.
 """
 
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import pathlib
 import re
+import sys
 
 from . import audit
 from .candidate_registry import (
@@ -107,6 +120,42 @@ def verify_frozen_files(repo_root: str | pathlib.Path | None = None) -> dict:
     return {"plan": plan_data, "shas": shas, "plan_path": str(plan_path)}
 
 
+def resolve_database_url(repo_root: str | pathlib.Path | None = None, env=None) -> str:
+    """Resolve DATABASE_URL secret-safely: process env first, repo .env fallback.
+
+    The value is returned, never printed, logged, or interpolated into any
+    message or event. All failures are type/name-only (fail-closed).
+    """
+    mapping = os.environ if env is None else env
+    try:
+        direct = mapping.get("DATABASE_URL", "")
+    except Exception as e:
+        raise RuntimeError(f"DATABASE_URL unreadable ({type(e).__name__}, fail-closed)") from None
+    if isinstance(direct, str) and direct.strip():
+        return direct.strip()
+    dotenv_path = (pathlib.Path(repo_root) if repo_root is not None else REPO_ROOT) / ".env"
+    try:
+        text = dotenv_path.read_text(encoding="utf-8")
+    except Exception as e:
+        raise RuntimeError(f"DATABASE_URL unavailable ({type(e).__name__}, fail-closed, no fallback)") from None
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or "=" not in stripped:
+            continue
+        key, _, value = stripped.partition("=")
+        key = key.strip()
+        if key.startswith("export "):
+            key = key[len("export "):].strip()
+        if key != "DATABASE_URL":
+            continue
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in ("\"", "'"):
+            value = value[1:-1]
+        if value.strip():
+            return value.strip()
+    raise RuntimeError("DATABASE_URL unavailable (fail-closed, no fallback)")
+
+
 def _is_canonical_output(output_path: str | pathlib.Path) -> bool:
     try:
         out_posix = pathlib.PurePath(str(output_path)).as_posix()
@@ -127,9 +176,12 @@ def validate_launch_args(
     evalset_base: object,
     output_path: object,
     audit_log: object,
-    expected_event_hash: object = None,
 ) -> dict:
-    """Pure shape validation. No FS stat/resolve/read of the protected file, no DB."""
+    """Pure shape validation. No FS stat/resolve/read of the protected file, no DB.
+
+    D-065 HOLD repair: no external expected_event_hash is accepted anywhere —
+    the launcher appends the grant itself and passes the exact returned token.
+    """
     if set_role != "dev":
         raise ValueError(f"canonical launch forbids role {set_role!r} (dev only, fail-closed)")
     if not isinstance(set_sha, str) or not _HEX64_RE.match(set_sha.lower()):
@@ -142,9 +194,6 @@ def validate_launch_args(
         raise ValueError("canonical launch requires non-empty evalset_base shape (fail-closed, no IO)")
     if not isinstance(audit_log, (str, pathlib.Path)) or not str(audit_log).strip():
         raise ValueError("canonical launch requires non-empty audit_log shape (fail-closed)")
-    if expected_event_hash is not None:
-        if not isinstance(expected_event_hash, str) or not _HEX64_RE.match(expected_event_hash.lower()):
-            raise ValueError("expected_event_hash must be 64-hex when supplied (fail-closed)")
     validate_output_path(output_path, strict_canonical=True)
     if not _is_canonical_output(output_path):
         raise ValueError(f"canonical launch must write exact canonical output (fail-closed): got {output_path!r}")
@@ -164,12 +213,11 @@ def preflight_canonical_launch(
     evalset_base: str | pathlib.Path,
     output_path: str | pathlib.Path,
     audit_log: str | pathlib.Path,
-    expected_event_hash: str | None = None,
     repo_root: str | pathlib.Path | None = None,
     audit_reader=None,
     output_exists_fn=None,
 ) -> dict:
-    """Fail-fast preflight before any DB capture/grant/run_start. No protected IO, no append.
+    """Fail-fast preflight before any DB capture/grant/run_start. No protected IO, no append, no grant.
 
     Order: arg shape -> frozen files -> audit chain + one-shot -> output absent.
     """
@@ -181,7 +229,6 @@ def preflight_canonical_launch(
         evalset_base=evalset_base,
         output_path=output_path,
         audit_log=audit_log,
-        expected_event_hash=expected_event_hash,
     )
     frozen = verify_frozen_files(repo_root)
     reader = audit_reader if audit_reader is not None else audit.read_and_verify_chain
@@ -230,19 +277,25 @@ def launch_canonical_dev(
     evalset_base: str | pathlib.Path,
     output_path: str | pathlib.Path,
     audit_log: str | pathlib.Path,
-    expected_event_hash: str | None = None,
     session_factory,
     adapter_builder,
     runner_factory,
     repo_root: str | pathlib.Path | None = None,
     audit_reader=None,
     output_exists_fn=None,
+    audit_append_fn=None,
 ) -> dict:
-    """Ordered canonical launch with exact-once session ownership. Injected factories only.
+    """Ordered canonical launch with launcher-owned grant and exact-once session ownership.
 
-    No tasks/policies/skip_audit parameters exist by construction (fakes forbidden).
-    Preflight runs before session creation (no DB on preflight failure).
-    Session closes exactly once on every post-creation exit.
+    No tasks/policies/skip_audit/expected_event_hash parameters exist by
+    construction (fakes and external tokens forbidden). Preflight runs before
+    session creation (no DB on preflight failure). After structural
+    session/adapter/runner construction the launcher appends exactly one
+    protected_access_start and passes the exact returned event_hash as the
+    run token with the ownership-transfer callback. Grant appended but
+    callback never received: the launcher closes protected_access_end(failure)
+    exactly once. Callback received: the Runner exclusively owns closure and
+    the launcher never double-closes. Grant-append failure means no run.
     """
     if not callable(session_factory):
         raise ValueError("launch requires session_factory callable (fail-closed)")
@@ -258,17 +311,41 @@ def launch_canonical_dev(
         evalset_base=evalset_base,
         output_path=output_path,
         audit_log=audit_log,
-        expected_event_hash=expected_event_hash,
         repo_root=repo_root,
         audit_reader=audit_reader,
         output_exists_fn=output_exists_fn,
     )
+    sha = preflight["args"]["set_sha"]
     try:
         session = session_factory()
     except Exception as e:
         raise RuntimeError(f"launch session creation failed (fail-closed): {type(e).__name__}") from e
     if session is None:
         raise RuntimeError("launch session factory returned None (fail-closed)")
+    append = audit_append_fn if audit_append_fn is not None else audit.append_event
+    grant_event = None
+    grant_close_tried = False
+    transferred = False
+
+    def _signal_grant_verified() -> None:
+        nonlocal transferred
+        transferred = True
+
+    def _close_grant_failure() -> None:
+        nonlocal grant_close_tried
+        if grant_close_tried:
+            raise RuntimeError("launcher grant close already attempted (exact-one violation, fail-closed)")
+        grant_close_tried = True
+        append(
+            str(audit_log),
+            action="protected_access_end",
+            set_role="dev",
+            set_sha=sha,
+            candidate_id=_BATCH_ID,
+            session_id=session_id,
+            outcome="failure",
+        )
+
     try:
         try:
             adapters = adapter_builder(session, materialized_path, evalset_base)
@@ -281,19 +358,47 @@ def launch_canonical_dev(
         run_fn = getattr(runner, "run_dev_evaluation", None)
         if not callable(run_fn):
             raise ValueError("launch runner must expose run_dev_evaluation (fail-closed)")
+        try:
+            grant_event = append(
+                str(audit_log),
+                action="protected_access_start",
+                set_role="dev",
+                set_sha=sha,
+                candidate_id=_BATCH_ID,
+                session_id=session_id,
+                outcome="success",
+            )
+        except Exception as e:
+            raise RuntimeError(f"launch grant append failed (fail-closed, no run): {type(e).__name__}") from e
+        token = grant_event.get("event_hash") if isinstance(grant_event, dict) else None
+        if not isinstance(token, str) or not _HEX64_RE.match(token.lower()):
+            try:
+                _close_grant_failure()
+            except Exception as ce:
+                raise RuntimeError(
+                    f"launch grant token invalid and close failed (fail-closed): {type(ce).__name__}"
+                ) from None
+            raise RuntimeError("launch grant append returned invalid event_hash (fail-closed, no run)")
         result = run_fn(
             tasks=[],
             policies=[],
             session_id=session_id,
             set_role="dev",
-            set_sha=preflight["args"]["set_sha"],
+            set_sha=sha,
             audit_log=audit_log,
-            expected_event_hash=expected_event_hash,
+            expected_event_hash=token.lower(),
             output_path=output_path,
             skip_audit=False,
+            on_grant_verified=_signal_grant_verified,
         )
         return result
     finally:
+        grant_err = None
+        if grant_event is not None and not transferred and not grant_close_tried:
+            try:
+                _close_grant_failure()
+            except Exception as e:
+                grant_err = e
         try:
             closed = bool(getattr(session, "is_closed", False))
         except Exception:
@@ -302,7 +407,14 @@ def launch_canonical_dev(
             try:
                 session.close()
             except Exception as e:
+                if grant_err is not None:
+                    raise RuntimeError(
+                        f"launch grant close failed ({type(grant_err).__name__}) and session close failed "
+                        f"({type(e).__name__}, fail-closed)"
+                    ) from None
                 raise RuntimeError(f"launch session close failed (fail-closed): {type(e).__name__}") from None
+        if grant_err is not None:
+            raise RuntimeError(f"launch grant close failed (fail-closed): {type(grant_err).__name__}") from None
 
 
 def launch_canonical_dev_real(
@@ -313,15 +425,21 @@ def launch_canonical_dev_real(
     evalset_base: str | pathlib.Path,
     output_path: str | pathlib.Path = CANONICAL_DEV_OUTPUT_REL,
     audit_log: str | pathlib.Path = DEFAULT_AUDIT_LOG,
-    expected_event_hash: str | None = None,
 ) -> dict:
-    """Real wiring entry point (lazy imports, no IO at import). Delegates to launch_canonical_dev."""
+    """Real wiring entry point (lazy imports, no IO at import). Delegates to launch_canonical_dev.
+
+    Resolves DATABASE_URL secret-safely (process env first, repo .env fallback)
+    before session creation; the value travels only into the governing session
+    constructor, never into results, audit events, or messages.
+    """
     from .real_adapters import RealEvaluationSession, build_real_adapters
 
     from .runner import Runner
 
+    database_url = resolve_database_url()
+
     def _session_factory():
-        return RealEvaluationSession()
+        return RealEvaluationSession(env={"DATABASE_URL": database_url})
 
     def _adapter_builder(session, mat_path, base):
         return build_real_adapters(session, materialized_path=mat_path, evalset_base=base)
@@ -342,7 +460,6 @@ def launch_canonical_dev_real(
             evaluation_session=session,
         )
 
-    _ = os.name
     return launch_canonical_dev(
         session_id=session_id,
         set_role="dev",
@@ -351,8 +468,43 @@ def launch_canonical_dev_real(
         evalset_base=evalset_base,
         output_path=output_path,
         audit_log=audit_log,
-        expected_event_hash=expected_event_hash,
         session_factory=_session_factory,
         adapter_builder=_adapter_builder,
         runner_factory=_runner_factory,
     )
+
+
+def parse_launch_args(argv=None):
+    """Supported one-shot FIRST-dev launcher CLI. No external token accepted."""
+    import argparse
+
+    p = argparse.ArgumentParser(
+        description="Retrieval v3 canonical FIRST-dev launcher (launcher-owned grant lifecycle, no external token)"
+    )
+    p.add_argument("--session-id", required=True, help="non-empty launch session id (also the grant session)")
+    p.add_argument("--set-sha", required=True, help="64-hex materialized dev evalset SHA")
+    p.add_argument("--materialized-evalset", required=True, help="authorized materialized dev evalset path")
+    p.add_argument("--materialized-evalset-base", required=True, help="authorized base confining the evalset file")
+    p.add_argument("--output", default=str(CANONICAL_DEV_OUTPUT_REL), help="exact canonical output path")
+    p.add_argument("--audit-log", default=str(DEFAULT_AUDIT_LOG), help="canonical audit log path")
+    return p.parse_args(argv)
+
+
+def main(argv=None) -> int:
+    """Actual supported one-shot CLI entrypoint: preflight, one grant, one run, no external token."""
+    args = parse_launch_args(argv)
+    result = launch_canonical_dev_real(
+        session_id=args.session_id,
+        set_sha=args.set_sha,
+        materialized_path=args.materialized_evalset,
+        evalset_base=args.materialized_evalset_base,
+        output_path=args.output,
+        audit_log=args.audit_log,
+    )
+    selection = result.get("selection", {}) if isinstance(result, dict) else {}
+    print(json.dumps({"chosen": selection.get("chosen"), "eligible": selection.get("eligible")}, ensure_ascii=False))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

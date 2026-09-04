@@ -315,18 +315,23 @@ class Runner:
         expected_event_hash: str | None = None,
         output_path: str | pathlib.Path | None = None,
         skip_audit: bool = False,
+        on_grant_verified: Callable[[], None] | None = None,
     ) -> dict:
         """Run full dev evaluation over tasks — pure logic with injected fakes, audit lifecycle.
 
         D-056 ownership: when evaluation_session is bound, it is closed exactly
         once here on every exit (success or any failure: capture, corpus,
         grant, loader, retrieval, safety, latency, result write, audit close).
+        D-065 HOLD repair: optional lifecycle-only on_grant_verified signal,
+        forwarded to inner; fired immediately after successful canonical grant
+        verification, before the protected loader (launcher ownership transfer).
         """
         session = self.evaluation_session
         try:
             return self._run_dev_evaluation_inner(
                 tasks, policies, session_id, set_role, set_sha,
                 audit_log, expected_event_hash, output_path, skip_audit,
+                on_grant_verified,
             )
         finally:
             if session is not None and not session.is_closed:
@@ -343,6 +348,7 @@ class Runner:
         expected_event_hash: str | None = None,
         output_path: str | pathlib.Path | None = None,
         skip_audit: bool = False,
+        on_grant_verified: Callable[[], None] | None = None,
     ) -> dict:
         """Run full dev evaluation over tasks — pure logic with injected fakes, audit lifecycle."""
         # D-039: explicit canonical protected-dev mode (grant-before-loader, exact 180/130/54, no fake adapters).
@@ -434,6 +440,25 @@ class Runner:
             except Exception as e:
                 raise RuntimeError(f"protected access grant verification failed (fail-closed): {e}") from e
             grant_verified = True
+            # D-065 HOLD repair: lifecycle-only ownership-transfer signal — fires immediately
+            # after successful grant verification (grant_verified=True), before the protected
+            # loader. The launcher uses it to transfer grant-closure ownership to the Runner;
+            # callback silence means the launcher closes protected_access_end(failure) itself.
+            if on_grant_verified is not None:
+                if not callable(on_grant_verified):
+                    try:
+                        _close_grant("failure")
+                    except Exception as ce:
+                        raise RuntimeError(f"grant close on signal-type failure failed (fail-closed): {ce}") from ce
+                    raise ValueError("on_grant_verified must be callable (fail-closed)")
+                try:
+                    on_grant_verified()
+                except Exception as e:
+                    try:
+                        _close_grant("failure")
+                    except Exception as ce:
+                        raise RuntimeError(f"grant close on signal failure failed (fail-closed): {ce}") from e
+                    raise RuntimeError(f"grant-verified signal failed (fail-closed): {type(e).__name__}") from e
             try:
                 tasks = self.protected_set_loader(set_role, set_sha)
             except Exception as e:
@@ -1107,7 +1132,12 @@ def main_mock(args):
     return 0
 
 def main_canonical_dev(args):
-    """Canonical-dev CLI: forbids --tasks/--policies/--skip-audit/fakes; lazy real adapters; exact canonical output."""
+    """Canonical-dev CLI: forbids --tasks/--policies/--skip-audit/fakes; lazy real adapters; exact canonical output.
+
+    D-065 HOLD-repair note: superseded as the supported FIRST-dev entrypoint by the
+    eval.retrieval-v3.launch CLI (launcher-owned grant lifecycle: the launcher appends
+    protected_access_start itself and passes the exact token). Retained for pinned
+    unit-test compatibility only — do not use for FIRST-dev."""
     if args.tasks:
         raise ValueError("canonical-dev forbids --tasks (protected loader after grant only, fail-closed)")
     if args.policies:
