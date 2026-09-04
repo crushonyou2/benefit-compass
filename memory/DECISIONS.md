@@ -2361,3 +2361,29 @@ FIRST launcher invocations 1 (authorized, no retry); `protected_access_start` 1,
 ### VERDICT: FIRST protected-dev FAILED fail-closed (loader reject). Do NOT retry in this workspace.
 
 Single authorized grant was consumed as failure-closed; canonical one-shot `run_start` remains unconsumed. Next gate after this record and its atomic commit/push of generated audit+records only is **STOP for Web independent review** (loader-contract disposition, not silent retry, not candidate tuning). Do NOT authorize a second launcher invocation from this workspace without explicit Web disposition.
+
+## D-067 · Retrieval v3 narrow loader-schema repair — accept sealed case_id (+ in-memory task_id alias), no contract change — 2026-09-04 (user-authorized, one session owns reconcile+repair+tests+commit+push, then STOP for Web review)
+
+User explicitly authorized proceeding after the D-066 Web HOLD. This workspace owns fresh read-only reconcile -> narrow loader repair+mirror -> pure/static/synthetic tests -> append-only D-067 + SESSION-LOG -> ONE normal atomic commit+push -> verify local=upstream=actual remote clean -> STOP for Web independent review. No second launcher invocation and no FIRST protected-dev execution in this stage. D-061/D-062/D-064/D-065/D-066 history preserved verbatim; this D-067 supersedes NOTHING in any frozen contract, numeric gate, threshold, ranking, audit schema, or one-shot semantics — it only aligns the loader's task-id schema with the sealed dev bytes.
+
+Reconciled base (before mutation, actual repo/Git/origin wins, read-only): branch `codex/retrieval-v3-user-search-quality` HEAD `e028b7b2870e74e30d01ae99c30e6e7df991a06b` clean, `origin/codex/retrieval-v3-user-search-quality` identical `e028b7b...` verified via fetch + rev-parse equality, actual remote `https://github.com/crushonyou2/benefit-compass.git` identical, `git status --porcelain` clean, `git diff --check` PASS, `git diff 5327661445c37191a3fd61db195f3af4d2cf893a..HEAD -- ml-service/` 0, frozen 6 exact (prefixes `78420186`/`a25d9c48`/`c512fb56`/`6fee9ec2`/`f028ce46`/`5891b0ba`), canonical result absent, audit `eval/retrieval-v3/audit/events.jsonl` 2 events (D-066 failure pair `91666cda...`/`ae754e37...`, untouched in this stage), one-shot `run_start` unconsumed.
+
+### 1) Root cause (no protected plaintext opened in this stage)
+
+D-033 section 2 (durable non-protected record on this branch) documents sealed dev v1 evalset keys as `case_id v3d-001..v3d-180` + `query_text` (+ `stratum`/`location_bearing`/`labelable`/`source_truth_answerable`/`ambiguous`/`ambiguity_type`/`golds`/`provenance_candidate_id`/`origin dev`). The loader accepted only `task_id`/`id` as the task id, so the sealed first line failed `missing task id (fail-closed)` — the exact D-066 outcome. The query side already accepted `query_text`, so the id alias is the single mismatch. Runner downstream resolves ids via `task_id`/`id`, reads `query`/`query_text`, `stratum`, `location_bearing`, `golds`/`gold` — every other sealed key already matches — so a loader-only in-memory alias is sufficient and the runner stays byte-identical.
+
+### 2) Narrow repair (both mirrors byte-identical, runner/prereg/gates untouched)
+
+In `eval/retrieval_v3/real_adapters.py` + `eval/retrieval-v3/real_adapters.py` `RealProtectedLoader.__call__` only: the fail-closed id check becomes `obj.get("task_id") or obj.get("id") or obj.get("case_id")`; when both `task_id` and `id` are absent and `case_id` is present, `obj["task_id"] = obj["case_id"]` is set in-memory on the freshly parsed line dict (raw bytes/SHA verification precedes parsing and is untouched). Precedence for pre-existing shapes is `task_id` > `id` > `case_id`. All other gates unchanged: dev-only role, 64-hex `set_sha`, authorized-base confinement, exact raw-byte SHA equality, strict UTF-8, per-line JSONL object, query-text presence, non-empty set. No `runner.py`, prereg, candidate-plan, threshold, ranking, audit-schema, production, or one-shot change.
+
+### 3) Verification (pure/static/synthetic only)
+
+NEW `eval/test_retrieval_v3_d067_loader_schema.py` 9 PASS: `case_id`-only loads with `task_id` alias; `task_id` precedence preserved; `id`-only untouched (no alias injected); missing/empty id keys still fail-closed; query gates unchanged; malformed/SHA/role gates unchanged; synthetic sealed-shape 180 (`case_id` + `query_text` + exact strata 21/25/21/25/18/20/23/27 + location 6/7/6/8/5/6/7/9 + graded source-truth golds) loads through the repaired loader into `validate_canonical_dev_tasks` PASS (`n` 180 / headline 130 / location 54); mirrors byte-identical + static contract. Regression: D-056 + D-059 + D-057-transport + candidate-A mirror-identity 80 PASS + 1 SKIP (pre-existing symlink). `git diff --check` PASS; mirrors identical; frozen 6 unchanged; `ml-service` 0; result still absent; audit chain untouched (still 2 events).
+
+### 4) Protected/one-shot boundary — forbidden counts
+
+Launcher invocations 0; new `protected_access_start`/`protected_access_end` 0; `run_start` 0; canonical result creation 0; protected dev/holdout plaintext opens 0 (no `git show`/`cat-file`/`checkout`/`restore`/sparse/new worktree/traversal; no evalset open/hash; sealed schema taken from the D-033 durable record only); holdout access 0; live model encode 0; live HTTP/latency benchmark 0; Candidate B instantiate 0; score/action threshold change 0; safe-action/production-exclusion/headline/safety/location/latency/cost relaxation 0; history rewrite/force/tag move 0.
+
+### VERDICT: loader-schema repair complete. FIRST protected-dev re-execution NOT authorized in this stage.
+
+Next gate after this record and its atomic commit/push (repair + tests + records only) is **STOP for Web independent review** (loader-contract disposition + re-execution authorization, not silent retry, not candidate tuning). Do NOT authorize a launcher invocation from this workspace without explicit Web disposition.

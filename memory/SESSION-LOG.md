@@ -1424,3 +1424,13 @@ One short section per working session: what was worked on, what was decided (wit
 - **VERDICT: FAILED fail-closed. Do NOT retry. STOP for Web review.**
 - **Owns single-execution stage:** reconcile → derive-by-metadata → one launch → audit-only inspect → D-066 + SESSION-LOG → atomic commit+push audit+records → STOP.
 - **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
+
+## 2026-09-04 — Retrieval v3 D-067 narrow loader-schema repair after D-066 Web HOLD — case_id alias, no contract change
+
+- **Reconciled start:** `codex/retrieval-v3-user-search-quality` HEAD `e028b7b2870e74e30d01ae99c30e6e7df991a06b` clean (local=upstream=direct actual remote via fetch + rev-parse), `git diff --check` PASS, `ml-service` diff 0 vs `5327661`; frozen 6 exact (`78420186`/`a25d9c48`/`c512fb56`/`6fee9ec2`/`f028ce46`/`5891b0ba`); canonical result absent; audit 2 events (D-066 pair, untouched); one-shot unconsumed. User explicitly authorized proceeding after D-066 Web HOLD.
+- **Root cause (protected plaintext never opened):** D-033 §2 documents sealed dev v1 keys as `case_id v3d-001..v3d-180` + `query_text`; loader accepted only `task_id`/`id` → D-066 `missing task id` fail-closed. Query side already accepted `query_text`; runner's other reads (`stratum`, `location_bearing`, `golds`) already match sealed keys — loader-only alias suffices, runner untouched.
+- **Repair (mirrors byte-identical):** `RealProtectedLoader.__call__` in `eval/retrieval_v3/real_adapters.py` + `eval/retrieval-v3/real_adapters.py` accepts `case_id` as third id source and aliases `obj["task_id"] = obj["case_id"]` in-memory when `task_id`/`id` absent (raw bytes/SHA untouched; precedence `task_id` > `id` > `case_id`). All other fail-closed gates unchanged; no runner/prereg/plan/gate/production change.
+- **Verification (pure/static/synthetic only):** NEW `eval/test_retrieval_v3_d067_loader_schema.py` 9 PASS (alias, precedence, fail-closed preserved, synthetic sealed-shape 180 → `validate_canonical_dev_tasks` 180/130/54, mirror identity). Regression D-056 + D-059 + D-057-transport + mirror-identity 80 PASS + 1 SKIP (pre-existing symlink). `git diff --check` PASS; frozen 6 unchanged; `ml-service` 0; result absent; audit untouched.
+- **VERDICT: repair complete. No launcher invocation, no protected/holdout plaintext access, no re-execution in this stage. STOP for Web review.**
+- **Owns whole stage in one session:** reconcile → repair+mirror → tests + proofs → D-067 + SESSION-LOG → atomic commit+push → STOP. Next: **Web independent review** (disposition + re-execution authorization).
+- **Commit details (to be filled after push):** commit SHA/message, push/reconcile, forbidden counts, final SHAs.
