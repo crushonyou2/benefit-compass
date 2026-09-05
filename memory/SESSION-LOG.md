@@ -1787,3 +1787,12 @@ One short section per working session: what was worked on, what was decided (wit
 - **Fix (3 additions ONLY):** new `docs/RETRIEVAL_V3_D090_CONTRACT_INVALID_GENERATION.md` + DECISIONS `D-090` block + this entry. v9r8 builder/smoke/probe dirs + Paseo/OMP evidence preserved untouched. v9r8 non-resumable/non-repairable; successor needs a fresh identity/plan outside this root.
 +
 - **VERDICT: D-090 closure complete. One normal commit+push, verify clean/local=upstream=direct remote/diff-check/ml-service0/audit-exact/result-dev-holdout-devv2-absent, then STOP this D-090 root.**
+## 2026-09-06 — Retrieval v3 D-091 generation-v9r9 PRE-RESULT frozen (one confined smoke, Phase C not run)
+
+- **Reconciled base (actual wins, observed):** HEAD `708e8def45112cc83e5be9e58867934262874b02` clean local=upstream=direct remote, `git diff --check` PASS, `ml-service` diff 0, audit 4 events `90cfb54df614bc59e01551943436fdafc3cd5cac121b071742acbb2fb604c506` (no append), result/dev/holdout/dev-v2 absent, no dev-v2 refs. OMP `18.1.5` default/plan `opencode-go/muse-spark-1.3-contributor:xhigh`. Capsule `4c3eeb39…` 43/43.
+- **Build:** v9r9 builder from verified capsule (mechanical identity swap + coordinator confinement only); SHAs ext `31c05ed0…` / wrapper `61300a12…` / driver `fdf91460…` / auditor `3fc5a3c0…` / launcher `da3ac113…` / freeze `d1e75317…`. Pre-smoke: Bun `PROBE_PASS`, confinement 148 checks PASS (UTF-8 + simulated-cp949 parents), TEN 45/45, dry-freezes PASS. Web HOLDs repaired (7+3+UTF-8), FINAL PASS, no byte changes after approval.
+- **ONE smoke:** agent `772e5402…` in fresh `~/bc-v9r9-coord-smoke-20260906/cwd`, idle; audit `SMOKE_PASS` — session 9 lines `90543d99…`, `{phasec_probe: 1}`, forbidden 0, wrapper exact-one frozen surface, descendants 0, provenance PASS. Single launch only.
+- **Real freeze once:** `frozen_at` `2026-09-05T21:12:46+00:00`; plan 47608 `c6ba5ad5…` / lock `e904f285…` / manifest `353df31a…`; 53 files pinned == disk. No snapshot/authors/A/B/C/selector/benchmark/protected/dev-v2.
+- **Fix (3 additions ONLY):** new `docs/RETRIEVAL_V3_D091_PREPARATION_V9R9_PRERESULT.md` + DECISIONS `D-091` block + this entry. v9r9 builder/smoke staging/Paseo/OMP evidence preserved untouched outside repo. Phase C only after independent Web review.
++
+- **VERDICT: D-091 pre-result complete. One normal commit+push, verify clean/local=upstream/direct remote/diff-check/ml-service0/audit-exact/result-dev-holdout-devv2-absent, then STOP this D-091 root. No Phase C here.**
