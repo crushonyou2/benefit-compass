@@ -1699,3 +1699,14 @@ One short section per working session: what was worked on, what was decided (wit
 - **Fix (3 additions ONLY):** new `docs/RETRIEVAL_V3_D083_GENERATION_V9R4_PRERESULT.md` + DECISIONS `D-083` block + this entry. D-083 verdict: v9r4 frozen pre-result with D-082-class mechanics repaired; numerics/semantics/gates identical to v9r3; no execution authorized beyond freeze + neutral synthetic test.
 
 - **VERDICT: D-083 pre-result freeze complete. One normal commit+push, verify clean/local=remote/diff-check/ml-service0/frozen-six/audit-exact/result-dev-holdout-devv2-absent/v9r3-bytes-unchanged/v9r4-sourcetruth-absent, then STOP for Web review. No Phase C execution.**
+## 2026-09-06 — Retrieval v3 D-083-HOLD generation-v9r4 Web-HOLD closure (two blockers, docs + ledger, no execution)
+
+- **Authorization (observed):** user message explicitly authorizes SAME-STAGE repair now, naming exactly two blockers; scope limited to HOLD record first (this commit), then a fresh v9r5 pre-result builder only — preserve v9r4 as Web-HOLD evidence, no source truth/authors/A-B-C/selector/protected.
+
+- **Reconciled start (actual wins, observed):** branch `codex/retrieval-v3-user-search-quality` HEAD `1013a7f133b947291e855405b795256a2498411f` clean, local=upstream=direct remote identical, `git diff --check` PASS, `ml-service` diff 0, OMP `18.1.5` modelRoles default/plan `muse-spark-1.3:xhigh` no override, v9r4 builder byte-identical (`0aea725f`/`08e598a4`/`aad284f1`), frozen six + audit (`90cfb54d`, 4 events) exact, result/dev/holdout/dev-v2 absent, no dev-v2 refs; protected v3 freeze branches untouched. No source-truth/anchor/candidate/semantic-row plaintext read in this stage.
+
+- **Blockers (observed, structural):** (1) v9r4 `validate_pool.py` L144 loads d082 but L146–147 loop checks eight sets only; (2) v9r4 packet exact bytes never frozen/copied/pinned, no packet rehash or regenerated-byte check before keymap write, merge rehashes chunks only. Reviewer raw eight-field schema sound.
+
+- **Fix (3 additions ONLY):** new `docs/RETRIEVAL_V3_D083_WEB_HOLD_V9R4.md` + DECISIONS `D-083-HOLD` block + this entry. D-083/v9r4 text and bytes untouched. No snapshot/generation/A-B-C/selector/benchmark/protected access, no ml-service change, no history rewrite, no Desktop/browser/computer.
+
+- **VERDICT: D-083-HOLD closure complete. One normal commit+push, verify clean/local=remote/diff-check/ml-service0/frozen-six/audit-exact/result-dev-holdout-devv2-absent/v9r4-bytes-unchanged, then repair stage. No D-084 execution here.**
