@@ -1803,3 +1803,11 @@ One short section per working session: what was worked on, what was decided (wit
 +- **Fix (3 additions ONLY):** new `docs/RETRIEVAL_V3_D092_D091_PRERESULT_CORRECTION.md` + DECISIONS `D-092` block + this entry. v9r9 builder/smoke staging/Paseo/OMP evidence untouched outside repo. D-091 PRE-RESULT VALID/PASS stands; Phase C only after Web verifies this correction.
 +
 +- **VERDICT: D-092 correction complete. One normal commit+push, verify clean/local=upstream/direct remote/diff-check/ml-service0/audit-exact/result-dev-holdout-devv2-absent, then STOP this D-092 root. No Phase C here.**
+## 2026-09-06 — Retrieval v3 D-093 generation-v9r9 Phase C CONTRACT_INVALID_GENERATION (single frozen execute, docs-only closure)
++
++- **Reconciled base (actual wins, observed before launch):** HEAD `3c5e273c7862ef7ccb53825b17fe3d544ca3b069` clean local=upstream=direct remote, `git diff --check` PASS, `ml-service` diff 0, audit 4 events `90cfb54df614bc59e01551943436fdafc3cd5cac121b071742acbb2fb604c506` (no append), canonical v3 result/dev/holdout/dev-v2 absent, no dev-v2 refs. OMP `18.1.5` default/plan `opencode-go/muse-spark-1.3-contributor:xhigh`. Frozen 53/53 PASS; coordinator cwd / Phase-C root / run lock absent before launch.
++- **ONE execute:** fresh `C:\Users\joji\bc-v9r9-coord-execute-20260906\cwd`, coordinator `883c9301-a7be-4277-9fec-9755571b0430` (Parent null, exact cwd/model, execute mode), `phasec_execute` once, frozen driver once.
++- **Failure (Web-observed ground truth):** driver lock acquired; snapshot/meta/anchors created; Author-1 `f1d2e97e-4b22-432d-823c-ace7d7242989` ended `Status=error`, transcript `[System Error] Interrupted by user (stopReason=aborted, model=opencode-go/muse-spark-1.3-contributor)`; no chunks/candidates/A/B/C/selector/evalset; no author2/reviewers/C/selector/benchmark/protected/dev-v2. No cause speculated; no repair proposed/executed.
++- **Fix (3 additions ONLY):** new `docs/RETRIEVAL_V3_D093_CONTRACT_INVALID_GENERATION.md` + DECISIONS `D-093` block + this entry. All builder/Phase-C/coordinator/author evidence preserved untouched outside repo.
+++
++- **VERDICT: D-093 closure complete. One normal commit+push, verify clean/local=upstream/direct remote/diff-check/ml-service0/audit-exact/result-dev-holdout-devv2-absent, then STOP this D-093 root. No further generation here.**
