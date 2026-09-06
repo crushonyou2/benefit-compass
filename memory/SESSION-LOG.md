@@ -1973,3 +1973,10 @@ One short section per working session: what was worked on, what was decided (wit
 - Independent review confirms narrow D-112 bundled-Paseo-CLI gate; D-110 writer envelope + helper zero-deny unchanged; semantic core normalized-equal.
 - Final non-model battery PASS: CLI64, preflight36, reachability87, lifecycle53, role170, completion, TEN45/0, confinement204, freeze-binding66, compile/Bun/tsc, mechanics55/55.
 - Verdict **D-113 PRE-SMOKE PASS**. One v9r17 Smoke A authorized only after final duplicate check; Smoke B conditional on frozen A PASS; any smoke failure closes generation with no retry/repair.
+
+## 2026-09-07 — Retrieval v3 D-114 generation-v9r17 Smoke A/B PASS
+
+- Smoke A exactly once: `28ff4ba5-6b00-42dd-862c-5bc603e9a486`, stable 10-line session `de1b5c92...a1c`, phasec_probe1, frozen auditor PASS, descendants0/fallback true/idle.
+- Smoke B exactly once after A PASS: `769f2ca9-2778-45df-8e35-85783b0613db`, stable 18-line session `2837be1a...5eac`, probe1/todo3, exact deny triple + six allowed writes/6x1 outputs, frozen lifecycle auditor PASS, descendants0/fallback true/idle.
+- No retries. Final builder 68/cache0/key bytes unchanged; no freeze/Phase C/protected/production/audit change.
+- Next: separate real-freeze pre-gate; freeze must bind these exact A/B evidences. No new smoke.
