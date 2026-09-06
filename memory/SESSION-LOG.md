@@ -2023,3 +2023,9 @@ One short section per working session: what was worked on, what was decided (wit
 - Conditional Smoke B exactly once: agent `4b5789ff...0cae`, session21 SHA `c0d7dc43...8c58`, probe1/todo4, exact 3 denies + 6 allowed 1-row writes, stable lifecycle auditor PASS.
 - No retry/second smoke. Builder70/cache0; no PLAN_LOCK/FROZEN_HASHES/run lock/source truth/evalset/protected/holdout/production change.
 - Next: separate real-freeze pre-gate binding these exact A/B proofs; no new smoke permitted.
+## 2026-09-07 — Retrieval v3 D-121 generation-v9r18 real freeze PASS
+
+- D-120 exact smoke evidence bound in one real freeze: plan `848b5862...c532`, lock `20d8a145...a868c`, frozen hashes `7f3f4903...01955`.
+- Independent rehash 71/71 exact; builder72/cache0; no Phase-C runtime/source truth/evalset.
+- Post-freeze stale Smoke-A lock note says adversarial prompt, but operative plan says neutral deterministic and frozen auditor does not gate prompt wording. Append-only correction only; frozen bytes untouched.
+- Verdict REAL FREEZE PASS. Next separate Phase-C/source-truth preexec gate; no new smoke.
