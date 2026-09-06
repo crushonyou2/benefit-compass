@@ -3121,3 +3121,11 @@ Docs-only durable real-freeze record after D-107 Smoke A/B PASS. Full record: `d
 - (4) PLAN_LOCK binds exact D-107 A agent/cwd/session/wrapper with session SHA `440409af...02bf` and `SMOKE_PASS`, plus exact B agent/cwd/session/wrapper with session SHA `0a7b32dc...70d3` and `LIFECYCLE_SMOKE_PASS`. Post-freeze session rehashes remain exact.
 - (5) Independent full `FROZEN_HASHES.json` rehash: 67 entries, missing0, mismatch0. Five auditor-created pyc files were proven builder-local and absent from frozen keys, then exact-path cleaned; final builder 68 files (=66+lock+frozen hashes), cache0, frozen mismatch0.
 - (6) Boundary: no phasec run lock/source truth/evalset/out/runtime semantic artifacts, no Phase C/protected/holdout/production/audit change. **v9r15 REAL FREEZE PASS.** Next logical stage is Phase-C/source-truth pre-execution gate on these exact frozen bytes.
+
+## D-109 · Retrieval v3 generation-v9r15 Phase-C PRE-EXECUTION Web PASS — 2026-09-07
+
+Docs-only independent post-freeze gate. Full record: `docs/RETRIEVAL_V3_D109_GENERATION_V9R15_PHASEC_PREEXEC_PASS.md`.
+
+Reconciled D-108 `8ba67471e35e862245aff19ff98ec30102fb9da2`: local/upstream/direct remote equal, clean/diff-check PASS/ml-service0; audit4 same SHA; OMP 18.1.5 Muse Spark xhigh. D-108 lock `8c94ff00...8d70` and frozen hashes `e9e9df7a...df7` exact; all 67 frozen entries rehash with 0 mismatch; builder 68 files/cache0; run lock/source truth/evalset/out absent.
+
+Frozen execute path reviewed: coordinator execute surface only `todo+phasec_execute`; fixed driver verifies hashes first, atomic one-run lock, absence/fresh-root gates, single read-only policy-table snapshot, then owns all Author/A/B/C/selector sequencing and audits. Fixed Paseo path exists; `.env` has DATABASE_URL key without value disclosure; psycopg2 available. Phase-C root, planned execute cwd/session, run lock, and matching execute/Phase-C Paseo agents are all absent/0. **PRE-EXECUTION PASS:** exactly one frozen execute coordinator is authorized; no alternate/manual driver path, no retry/repair on frozen failure.

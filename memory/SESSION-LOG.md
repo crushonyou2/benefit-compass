@@ -1935,3 +1935,10 @@ One short section per working session: what was worked on, what was decided (wit
 - **Successful freeze:** `2026-09-06T16:27:59+00:00`; plan `83307b65...f6e3`, lock `8c94ff00...8d70`, FROZEN_HASHES `e9e9df7a...7df7`, manifest `62913a9a...5fb2`, 67 frozen entries. PLAN_LOCK binds exact D-107 A/B agent/cwd/session/wrapper evidence and exact session SHAs/verdicts.
 - **Independent verify:** all 67 frozen entries rehashed, missing0/mismatch0. Five non-frozen builder-local pyc files from auditor preflight were exact-path cleaned; final builder 68 files/cache0 and frozen mismatch0. Smoke session SHAs unchanged.
 - **Boundary/verdict:** phasec run lock/source truth/evalset/out absent; no Phase C/protected/holdout/production/audit change. **D-108 REAL FREEZE PASS.** Next is separate Phase-C/source-truth pre-execution gate on exact frozen bytes.
+
+## 2026-09-07 — Retrieval v3 D-109 generation-v9r15 Phase-C PRE-EXECUTION PASS
+
+- D-108 repo/remote/freeze state re-reconciled: lock/frozen hashes exact, 67/67 frozen files match, builder 68/cache0, no runtime artifacts, ml-service0, audit4 unchanged, OMP 18.1.5 Muse Spark xhigh.
+- Frozen execute path independently reviewed: one `phasec_execute` -> one fixed driver; driver owns hash/rerun/absence/fresh-root/snapshot/Author/A-B/C/selector order and fail-closes.
+- Actual prerequisites: fixed Paseo command present; DATABASE_URL key present without secret disclosure; psycopg2 available; Phase-C root + execute cwd/session absent; matching current Paseo execute agents 0.
+- Verdict: **D-109 PRE-EXECUTION PASS.** Exactly one frozen coordinator execute launch authorized. No manual helper execution, no duplicate launch, no retry/same-generation patch on contract failure.
