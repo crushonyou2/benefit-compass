@@ -1895,3 +1895,11 @@ One short section per working session: what was worked on, what was decided (wit
 - **Independent Web:** lifecycle53/reachability87/role-tools166/completion/TEN45-0/confinement182/compile/Bun/tsc/mechanics52 all PASS. TEN's first caller-shell run hit cp949 decode; `PYTHONUTF8=1` rerun passed and normalized test text equals v9r13. Web pycache artifacts cleaned exact-path.
 - **Immutability/boundary:** v9r13 key hashes + Smoke A/B session SHAs unchanged; root transcript actual model-launch commands 0; no v9r14 smoke roots, real freeze/source truth/evalset/runtime semantics/ref/worktree; repo unchanged during executor/review.
 - **Verdict:** **D-103 PRE-SMOKE PASS.** Next exactly one Smoke A then, only if PASS, exactly one Smoke B; no retry/repair and no Phase C/protected action yet.
+
+## 2026-09-06 — Retrieval v3 D-104 generation-v9r14 one-shot Smoke A/B PASS (docs-only gate record)
+
+- **Base:** D-103 `0e791fb4b4b9720b536df4256040ab044bf88321`, clean/local=upstream=direct remote, ml-service0, audit4 same SHA, result/dev/holdout/dev-v2 absent; v9r14 final hashes exact.
+- **Smoke A:** exactly one agent `6546b6e9-e5de-4478-a623-e30930516987`; frozen audit PASS, session `f6b0859a...19de0`, 10 lines, phasec_probe1, descendants0/fallback proven; no retry.
+- **Smoke B:** exactly one agent `14f00fa1-f157-4d54-a4d3-b6b3d7917208`; frozen runner/auditor PASS, session `4307a8d7...057c3`, 19 lines, probe1/todo4, exact deny triple, 9 access-log rows, six exact allowed writes and 6x1 outputs, descendants0/fallback proven; no retry. Independent same-evidence auditor rerun also PASS.
+- **Immutability:** post-smoke source hashes remain D-103 exact. Auditor pycache only was exact-path cleaned; final builder 65 files, pycache0. No real freeze/source truth/runtime semantic artifacts/Phase C/protected/holdout/production/audit/ref/worktree changes.
+- **Verdict:** **D-104 ONE-SHOT SMOKE GATE PASS.** Next stage read-only pre-freeze reconciliation + real-freeze gate only; Phase C remains blocked pending freeze completion and independent approval.
