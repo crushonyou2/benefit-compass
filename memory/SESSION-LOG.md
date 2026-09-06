@@ -1980,3 +1980,11 @@ One short section per working session: what was worked on, what was decided (wit
 - Smoke B exactly once after A PASS: `769f2ca9-2778-45df-8e35-85783b0613db`, stable 18-line session `2837be1a...5eac`, probe1/todo3, exact deny triple + six allowed writes/6x1 outputs, frozen lifecycle auditor PASS, descendants0/fallback true/idle.
 - No retries. Final builder 68/cache0/key bytes unchanged; no freeze/Phase C/protected/production/audit change.
 - Next: separate real-freeze pre-gate; freeze must bind these exact A/B evidences. No new smoke.
+
+## 2026-09-07 — Retrieval v3 D-115 generation-v9r17 REAL FREEZE PASS
+
+- One successful real freeze after D-114 A/B PASS; no retry or new smoke.
+- frozen_at `2026-09-06T18:30:47+00:00`; plan `6b879951...1600`; lock `71196c83...1bc1`; FROZEN_HASHES `7e11179d...d080`; 69 entries.
+- PLAN_LOCK binds exact stable A/B agents, cwd/session/wrapper, SHAs and auditor PASS verdicts.
+- Independent 69/69 rehash exact; non-frozen pycache exact-path cleaned; final builder 70/cache0.
+- No Phase C/source truth/evalset/protected/holdout/production/audit change. Next: separate Phase-C/source-truth pre-execution gate.
