@@ -1942,3 +1942,11 @@ One short section per working session: what was worked on, what was decided (wit
 - Frozen execute path independently reviewed: one `phasec_execute` -> one fixed driver; driver owns hash/rerun/absence/fresh-root/snapshot/Author/A-B/C/selector order and fail-closes.
 - Actual prerequisites: fixed Paseo command present; DATABASE_URL key present without secret disclosure; psycopg2 available; Phase-C root + execute cwd/session absent; matching current Paseo execute agents 0.
 - Verdict: **D-109 PRE-EXECUTION PASS.** Exactly one frozen coordinator execute launch authorized. No manual helper execution, no duplicate launch, no retry/same-generation patch on contract failure.
+
+## 2026-09-07 — Retrieval v3 D-110 v9r15 Phase-C CONTRACT_INVALID_GENERATION
+
+- **Execute:** one coordinator only (`1116cbcf-bc13-4466-b7a1-26409f3c1f06`), execute wrapper exact, `phasec_execute=1`, frozen execute auditor PASS; no retry after caller-side PATH verifier error because actual launch evidence already existed.
+- **Driver:** one run lock; fresh source truth 13,589 rows SHA `9fe19465...c1a5`; anchors/slots; Author-1 only.
+- **Author-1:** agent `0cfa383a-3101-4d4f-9e56-1968fc2b2c49`, session 542 lines SHA `7b112662...1df3`, wrapper author1 exact, final 6x30 outputs. Access log nevertheless has two denied writes (bad target, then 2-row shape). Frozen role-access auditor rc3 on first deny.
+- **Stop boundary:** driver exited before collect/Author-2/A-B/C/selector; evalset/protected evaluation/holdout/production/audit append absent. Frozen 67/67 pins unchanged.
+- **Verdict:** **D-110 CONTRACT_INVALID_GENERATION / non-resumable / non-repairable.** Preserve all v9r15 failure evidence. No retry/run-lock removal/manual continuation/patch; fresh successor required.
