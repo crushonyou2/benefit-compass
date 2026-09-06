@@ -1903,3 +1903,10 @@ One short section per working session: what was worked on, what was decided (wit
 - **Smoke B:** exactly one agent `14f00fa1-f157-4d54-a4d3-b6b3d7917208`; frozen runner/auditor PASS, session `4307a8d7...057c3`, 19 lines, probe1/todo4, exact deny triple, 9 access-log rows, six exact allowed writes and 6x1 outputs, descendants0/fallback proven; no retry. Independent same-evidence auditor rerun also PASS.
 - **Immutability:** post-smoke source hashes remain D-103 exact. Auditor pycache only was exact-path cleaned; final builder 65 files, pycache0. No real freeze/source truth/runtime semantic artifacts/Phase C/protected/holdout/production/audit/ref/worktree changes.
 - **Verdict:** **D-104 ONE-SHOT SMOKE GATE PASS.** Next stage read-only pre-freeze reconciliation + real-freeze gate only; Phase C remains blocked pending freeze completion and independent approval.
+
+## 2026-09-07 — Retrieval v3 D-105 generation-v9r14 pre-freeze CONTRACT_INVALID_GENERATION (docs-only closure)
+
+- **Base:** D-104 `22189f1e01c8e5cdb3d15a5ff544ec8b182538b9`, clean local/upstream/direct remote; ml-service0; audit4 same SHA; canonical result/dev/holdout/dev-v2 absent; v9r14 final bytes and both consumed smoke sessions unchanged.
+- **Pre-freeze defect:** frozen `freeze_plan_v9r14.py` omits argparse registration for `--lifesmoke-cwd` while requiring `args.lifesmoke_cwd` in the pinning gate, lifecycle auditor call, and lock record.
+- **Proof:** final-byte `--help` omits the flag; explicitly supplying actual lifecycle cwd returns argparse rc2 unrecognized argument before body writes. Real PLAN_LOCK/FROZEN_HASHES/run lock/source truth/evalset remain absent.
+- **Verdict:** v9r14 CONTRACT_INVALID_GENERATION / non-resumable / non-repairable because one-shot smokes are already consumed and post-smoke freeze-script repair/bypass is forbidden. No freeze/Phase C/protected evaluation/production/audit change. Preserve builder and both smoke evidence roots. Successor must be fresh and must prove exact freeze-CLI smoke binding before smokes.
