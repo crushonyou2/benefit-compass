@@ -1918,3 +1918,12 @@ One short section per working session: what was worked on, what was decided (wit
 - **Regression:** final `FREEZE_BINDING_PASS` 66 checks, including actual disposable production-main traversal through A and B auditor calls with externally mocked synthetic PASS outputs and exact resulting lock bindings; v9r14 final-byte rc2 discriminator retained.
 - **Independent Web:** lifecycle53/reachability87/role-tools166/completion/TEN45-0/confinement192/compile/Bun/tsc/mechanics53 all PASS. Core semantic files normalized byte-equivalent; deltas only authorized binding/lineage/SHA/test changes.
 - **Boundary:** v9r14 hashes/smoke sessions unchanged; v9r15 real builder lock/source-truth/evalset/runtime outputs absent, pycache0, smoke roots absent, repo untouched. **D-106 PRE-SMOKE PASS.** Next exactly one Smoke A then conditional one Smoke B.
+
+## 2026-09-07 — Retrieval v3 D-107 generation-v9r15 one-shot Smoke A/B PASS (docs-only gate record)
+
+- **Base:** D-106 `ff186a48210c102129062ed9fc594159486b3769`, clean local/upstream/direct remote, ml-service0, audit4 same SHA, OMP 18.1.5 Muse Spark contributor xhigh; v9r15 D-106 hashes exact; no real freeze/source truth/evalset.
+- **Smoke A:** existing one-shot agent `d7424247-c7fe-4d60-b2f9-69effe362c31`; session `440409af...02bf`, 10 lines, phasec_probe1; frozen audit rc0 `SMOKE_PASS`, descendants0/fallback proven. No relaunch/retry.
+- **Smoke B:** existing one-shot agent `79114e77-92c7-4a9b-aae8-232e65b35237`; session `0a7b32dc...70d3`, 19 lines, probe1/todo4; exact deny triple, six allowed writes, 9 access rows, six 59-byte/1-row outputs; frozen audit rc0 `LIFECYCLE_SMOKE_PASS`, descendants0/fallback proven. No relaunch/retry.
+- **Auditor environment:** first attempts failed before semantic verdict because Paseo was missing from PATH, then Windows cp949 decoding failed on Paseo JSON. The unchanged frozen auditors were run with Paseo on PATH and Python UTF-8 mode (`-X utf8`), per the standing D-103 Windows execution condition, and both passed. No model execution was repeated.
+- **Cleanup/immutability:** auditor-import pycache only was exact-path verified inside v9r15 builder then removed. Final builder 66 files, pycache0; D-106 key SHAs unchanged; no PLAN_LOCK/FROZEN_HASHES/run lock/source truth/evalset/runtime semantic artifact.
+- **Verdict:** **D-107 ONE-SHOT SMOKE GATE PASS.** Next stage is read-only v9r15 real-freeze pre-gate binding the exact A/B evidence. No second smoke; no Phase C until freeze completion + independent approval.
