@@ -1994,3 +1994,10 @@ One short section per working session: what was worked on, what was decided (wit
 - D-115 frozen state exact: 69/69, builder70/cache0/runtime0; repo/remote/ml-service/audit unchanged.
 - OMP Muse Spark xhigh, bundled Paseo daemon reachable, DB prerequisite present, Phase-C/execute roots/sessions/agents 0.
 - Verdict: exactly one frozen execute coordinator authorized. Contract failure closes v9r17; no retry/resume/same-generation patch.
+
+## 2026-09-07 — Retrieval v3 D-117 v9r17 Phase-C CONTRACT_INVALID_GENERATION
+
+- One execute only. Fresh snapshot 13,589; Author-1/2 both 180 rows and frozen ROLE_ACCESS_PASS/zero-deny; merged pool 360 and A/B packets 360 each.
+- Frozen driver failed before Reviewer-A launch: prepared reviewer root contains forbidden extra `search_snapshot.py`; frozen plan/driver exact root contract explicitly permits no helper scripts.
+- Reviewer agents 0; raw A/B/C/selector/evalset/protected/holdout untouched. Frozen 69/69 exact.
+- Verdict: v9r17 CONTRACT_INVALID_GENERATION / non-resumable / non-repairable. Fresh successor only; remove obsolete helper staging copy and regression-test exact prepared set. v9r17 rows remain failure evidence, not semantic reuse material.

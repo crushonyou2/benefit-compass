@@ -3188,3 +3188,9 @@ D-114 `5792ef5cc063b69442c252c2d59ad838316fc9b5` reconciled local=upstream=remot
 Docs-only post-freeze gate. Full record: `docs/RETRIEVAL_V3_D116_GENERATION_V9R17_PHASEC_PREEXEC_PASS.md`.
 
 D-115 `c0d6be013b79419cb1b0123730bbb07e5b8463f7` reconciled local/upstream/remote clean, ml-service0, audit4 unchanged; lock `71196c83...1bc1`, frozen hashes `7e11179d...d080`, 69/69 exact, builder70/cache0/runtime0. OMP 18.1.5 Muse Spark xhigh; frozen bundled Paseo daemon running/reachable; DB key present without disclosure; psycopg2 PASS; Phase-C/execute root+session+agents 0. **PRE-EXECUTION PASS:** exactly one frozen execute coordinator authorized; failure => preserve/close, no rerun/resume/patch.
+
+## D-117 · Retrieval v3 generation-v9r17 Phase-C CONTRACT_INVALID_GENERATION — reviewer staging exact-set mismatch — 2026-09-07
+
+Full closure: `docs/RETRIEVAL_V3_D117_V9R17_PHASEC_CONTRACT_INVALID_GENERATION.md`.
+
+D-116 one-shot execute consumed exactly once. Frozen driver snapshot 13,589 rows, then Author-1/2 each completed 6x30 and independently re-audit `ROLE_ACCESS_PASS` with zero helper denies; 360-row merged candidate pool and two 360-row reviewer packets were built. Before any reviewer agent launch, driver rc3: `reviewerA: prepared staging contents unexpected: ['RUBRIC.json', 'packet.jsonl', 'reviewer_brief.md', 'search_snapshot.py', 'source_truth.jsonl']`. Static cause: frozen plan/driver require exact reviewer root `{packet.jsonl,RUBRIC.json,source_truth.jsonl,reviewer_brief.md,out/}` and explicitly no helper scripts, while frozen `build_packets_ab.py` copies `search_snapshot.py`. Reviewer agents 0; raw A/B/C/selector/evalset/protected/holdout untouched. Frozen 69/69 bytes exact. **v9r17 HARD HOLD / CONTRACT_INVALID_GENERATION / NON-RESUMABLE / NON-REPAIRABLE.** Fresh successor only; preserve no-helper-script contract, remove obsolete staging copy + add exact-set regression; do not reuse v9r17 semantic rows.
