@@ -1927,3 +1927,11 @@ One short section per working session: what was worked on, what was decided (wit
 - **Auditor environment:** first attempts failed before semantic verdict because Paseo was missing from PATH, then Windows cp949 decoding failed on Paseo JSON. The unchanged frozen auditors were run with Paseo on PATH and Python UTF-8 mode (`-X utf8`), per the standing D-103 Windows execution condition, and both passed. No model execution was repeated.
 - **Cleanup/immutability:** auditor-import pycache only was exact-path verified inside v9r15 builder then removed. Final builder 66 files, pycache0; D-106 key SHAs unchanged; no PLAN_LOCK/FROZEN_HASHES/run lock/source truth/evalset/runtime semantic artifact.
 - **Verdict:** **D-107 ONE-SHOT SMOKE GATE PASS.** Next stage is read-only v9r15 real-freeze pre-gate binding the exact A/B evidence. No second smoke; no Phase C until freeze completion + independent approval.
+
+## 2026-09-07 — Retrieval v3 D-108 generation-v9r15 REAL FREEZE PASS (docs-only gate record)
+
+- **Base:** D-107 `46d0779d8eab5afcc2ec22d142fb40a6935c42ef`, clean local/upstream/direct remote, ml-service0, audit4 same SHA; v9r15 66 final source/support files, D-106 hashes exact, no freeze/runtime artifacts.
+- **Pre-write transport failure:** first freeze call reached frozen Smoke-A auditor but child Python cp949 decode made Paseo descendant listing unparseable. No PLAN_LOCK/FROZEN_HASHES was written; builder/hash/session reconcile proved exact unchanged state. No smoke/model retry. Both child auditors were then proven PASS under `PYTHONUTF8=1` + Paseo PATH.
+- **Successful freeze:** `2026-09-06T16:27:59+00:00`; plan `83307b65...f6e3`, lock `8c94ff00...8d70`, FROZEN_HASHES `e9e9df7a...7df7`, manifest `62913a9a...5fb2`, 67 frozen entries. PLAN_LOCK binds exact D-107 A/B agent/cwd/session/wrapper evidence and exact session SHAs/verdicts.
+- **Independent verify:** all 67 frozen entries rehashed, missing0/mismatch0. Five non-frozen builder-local pyc files from auditor preflight were exact-path cleaned; final builder 68 files/cache0 and frozen mismatch0. Smoke session SHAs unchanged.
+- **Boundary/verdict:** phasec run lock/source truth/evalset/out absent; no Phase C/protected/holdout/production/audit change. **D-108 REAL FREEZE PASS.** Next is separate Phase-C/source-truth pre-execution gate on exact frozen bytes.
