@@ -2001,3 +2001,12 @@ One short section per working session: what was worked on, what was decided (wit
 - Frozen driver failed before Reviewer-A launch: prepared reviewer root contains forbidden extra `search_snapshot.py`; frozen plan/driver exact root contract explicitly permits no helper scripts.
 - Reviewer agents 0; raw A/B/C/selector/evalset/protected/holdout untouched. Frozen 69/69 exact.
 - Verdict: v9r17 CONTRACT_INVALID_GENERATION / non-resumable / non-repairable. Fresh successor only; remove obsolete helper staging copy and regression-test exact prepared set. v9r17 rows remain failure evidence, not semantic reuse material.
+
+## 2026-09-07 — Retrieval v3 D-118 generation-v9r18 PRE-SMOKE PASS
+
+- Reconciled D-117 repo/remote/audit/OMP; v9r18 builder 70 files/cache0/runtime0/smoke0.
+- Fresh successor repair removes obsolete `search_snapshot.py` staging from Reviewer A/B and C without widening driver allowlists; exact-set regression PASS 24.
+- D-117 complete 360-query failed pool is fingerprint-only freshness evidence: 11th query set `fc681a83...b5e4`, no semantic/template reuse, gold exclusions unchanged; ELEVEN 55/55 overlap 0. This follows D-087's complete failed-360 → new fingerprint-exclusion precedent.
+- Corrected unsupported D-112 daemon-cause wording before any smoke/freeze; canonical connection-failure/closed/aborted evidence only.
+- Final non-model battery PASS: CLI64, preflight36, reachability87, lifecycle53, role171, completion, confinement210, freeze-binding66, mechanics56/56, compile/Bun/tsc.
+- Verdict **D-118 PRE-SMOKE PASS**. One v9r18 Smoke A authorized only after final duplicate check; Smoke B conditional on stable frozen A PASS; any smoke failure closes generation with no retry/repair.
