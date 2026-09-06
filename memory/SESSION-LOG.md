@@ -2010,3 +2010,10 @@ One short section per working session: what was worked on, what was decided (wit
 - Corrected unsupported D-112 daemon-cause wording before any smoke/freeze; canonical connection-failure/closed/aborted evidence only.
 - Final non-model battery PASS: CLI64, preflight36, reachability87, lifecycle53, role171, completion, confinement210, freeze-binding66, mechanics56/56, compile/Bun/tsc.
 - Verdict **D-118 PRE-SMOKE PASS**. One v9r18 Smoke A authorized only after final duplicate check; Smoke B conditional on stable frozen A PASS; any smoke failure closes generation with no retry/repair.
+
+## 2026-09-07 — Retrieval v3 D-119 D-118 PRE-SMOKE correction
+
+- Final duplicate-gate review caught stale carry docstring saying no D117 set/TEN while operative v9r18 is ELEVEN. Smoke/freeze/runtime still 0.
+- Same OMP executor repaired only that stale prose and repinned derived plan mechanics; no v9r17 query plaintext re-read and no semantic/gate change.
+- Corrected final plan `848b5862...c532`, carry `91a097fc...dcab`; manifest/D117 fingerprint/rubric unchanged. Full suite PASS; mechanics56/56; builder70/cache0/runtime0.
+- D-118 is superseded only for stale final-byte hashes/prose omission by D-119; corrected v9r18 PRE-SMOKE PASS stands. Next one Smoke A after fresh duplicate gate.
