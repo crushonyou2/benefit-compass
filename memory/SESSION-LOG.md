@@ -1950,3 +1950,11 @@ One short section per working session: what was worked on, what was decided (wit
 - **Author-1:** agent `0cfa383a-3101-4d4f-9e56-1968fc2b2c49`, session 542 lines SHA `7b112662...1df3`, wrapper author1 exact, final 6x30 outputs. Access log nevertheless has two denied writes (bad target, then 2-row shape). Frozen role-access auditor rc3 on first deny.
 - **Stop boundary:** driver exited before collect/Author-2/A-B/C/selector; evalset/protected evaluation/holdout/production/audit append absent. Frozen 67/67 pins unchanged.
 - **Verdict:** **D-110 CONTRACT_INVALID_GENERATION / non-resumable / non-repairable.** Preserve all v9r15 failure evidence. No retry/run-lock removal/manual continuation/patch; fresh successor required.
+
+## 2026-09-07 — Retrieval v3 D-111 generation-v9r16 PRE-SMOKE Web PASS
+
+- **Base:** D-110 `7091d7c053c413b583381639bcaefb3089834e74`, clean local/upstream/direct remote, ml-service0, audit4 same SHA, OMP 18.1.5 Muse Spark xhigh; v9r15 frozen pins 67/67 exact.
+- **Fresh successor:** v9r16 private builder from 66 pinned source/support files only + new writer-preflight regression; final 67 files/cache0. v9r15 runtime/source-truth/authored rows not reused.
+- **Repair:** role_write_chunk now `{chunk,lines}`, target derived internally after local exact chunk/row preflight. Local malformed envelope produces zero helper/filesystem/access-log access and is not itself CONTRACT_INVALID; helper DENY remains fatal and zero-deny helper audit unchanged.
+- **Independent PASS:** preflight36, lifecycle53, reachability87, role-tools170, completion, TEN45/0 exact counts, confinement198, freeze-binding66, compile/Bun/tsc, mechanics54/54; 14 semantic core files normalize identical to v9r15.
+- **Boundary/verdict:** no smoke/freeze/Phase C/runtime artifacts; v9r16 smoke roots/sessions/agents absent. **D-111 PRE-SMOKE PASS.** Next exactly one Smoke A then conditional one Smoke B; no retry/same-generation repair.
