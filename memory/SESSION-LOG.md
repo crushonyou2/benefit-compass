@@ -2017,3 +2017,9 @@ One short section per working session: what was worked on, what was decided (wit
 - Same OMP executor repaired only that stale prose and repinned derived plan mechanics; no v9r17 query plaintext re-read and no semantic/gate change.
 - Corrected final plan `848b5862...c532`, carry `91a097fc...dcab`; manifest/D117 fingerprint/rubric unchanged. Full suite PASS; mechanics56/56; builder70/cache0/runtime0.
 - D-118 is superseded only for stale final-byte hashes/prose omission by D-119; corrected v9r18 PRE-SMOKE PASS stands. Next one Smoke A after fresh duplicate gate.
+## 2026-09-07 — Retrieval v3 D-120 generation-v9r18 Smoke A/B PASS
+
+- D-119 final bytes consumed exactly one Smoke A: agent `69a090c5...7dea`, session10 SHA `81aaddc5...2b35`, phasec_probe1, stable frozen auditor PASS.
+- Conditional Smoke B exactly once: agent `4b5789ff...0cae`, session21 SHA `c0d7dc43...8c58`, probe1/todo4, exact 3 denies + 6 allowed 1-row writes, stable lifecycle auditor PASS.
+- No retry/second smoke. Builder70/cache0; no PLAN_LOCK/FROZEN_HASHES/run lock/source truth/evalset/protected/holdout/production change.
+- Next: separate real-freeze pre-gate binding these exact A/B proofs; no new smoke permitted.
