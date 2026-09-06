@@ -1966,3 +1966,10 @@ One short section per working session: what was worked on, what was decided (wit
 - **Smoke B:** exactly once agent `b2754ce2-9cd4-496f-8143-8c50b7c3bbc9`; session `fe37e40c...9b58c` 13 lines, todo1/probe1, exact deny triple + six allowed writes/6x1 outputs. Paseo daemon dropped during early inspect after launch; runner exited.
 - **Hard failure:** after daemon evidence recovery, B agent is closed and session final stopReason is aborted; frozen lifecycle auditor rc3 because status != idle. No model resume/relaunch.
 - **Verdict:** v9r16 CONTRACT_INVALID_GENERATION / non-resumable / non-repairable. No real freeze/Phase C/protected/production change. Preserve evidence; fresh successor only.
+
+## 2026-09-07 — Retrieval v3 D-113 generation-v9r17 PRE-SMOKE PASS
+
+- Reconciled D-112 repo/remote/audit/OMP; v9r17 builder 68 files/cache0/runtime0/smoke0.
+- Independent review confirms narrow D-112 bundled-Paseo-CLI gate; D-110 writer envelope + helper zero-deny unchanged; semantic core normalized-equal.
+- Final non-model battery PASS: CLI64, preflight36, reachability87, lifecycle53, role170, completion, TEN45/0, confinement204, freeze-binding66, compile/Bun/tsc, mechanics55/55.
+- Verdict **D-113 PRE-SMOKE PASS**. One v9r17 Smoke A authorized only after final duplicate check; Smoke B conditional on frozen A PASS; any smoke failure closes generation with no retry/repair.
