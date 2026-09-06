@@ -2029,3 +2029,8 @@ One short section per working session: what was worked on, what was decided (wit
 - Independent rehash 71/71 exact; builder72/cache0; no Phase-C runtime/source truth/evalset.
 - Post-freeze stale Smoke-A lock note says adversarial prompt, but operative plan says neutral deterministic and frozen auditor does not gate prompt wording. Append-only correction only; frozen bytes untouched.
 - Verdict REAL FREEZE PASS. Next separate Phase-C/source-truth preexec gate; no new smoke.
+## 2026-09-07 — Retrieval v3 D-122 v9r18 Phase-C PRE-EXECUTION PASS
+
+- Reconciled D-121 frozen state: lock/frozen hashes exact, 71/71 mismatch0, repo clean, runtime/Phase-C/execute roots/agents0, OMP/Paseo/DB ready.
+- Frozen driver exact prepared sets confirm D-117 fix for Reviewer A/B and C; no search_snapshot helper staging.
+- Verdict PRE-EXEC PASS. Exactly one execute coordinator authorized; failure => preserve/close, no retry/run-lock removal/manual role launch. Protected dev/holdout forbidden.
