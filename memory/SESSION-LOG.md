@@ -1958,3 +1958,11 @@ One short section per working session: what was worked on, what was decided (wit
 - **Repair:** role_write_chunk now `{chunk,lines}`, target derived internally after local exact chunk/row preflight. Local malformed envelope produces zero helper/filesystem/access-log access and is not itself CONTRACT_INVALID; helper DENY remains fatal and zero-deny helper audit unchanged.
 - **Independent PASS:** preflight36, lifecycle53, reachability87, role-tools170, completion, TEN45/0 exact counts, confinement198, freeze-binding66, compile/Bun/tsc, mechanics54/54; 14 semantic core files normalize identical to v9r15.
 - **Boundary/verdict:** no smoke/freeze/Phase C/runtime artifacts; v9r16 smoke roots/sessions/agents absent. **D-111 PRE-SMOKE PASS.** Next exactly one Smoke A then conditional one Smoke B; no retry/same-generation repair.
+
+## 2026-09-07 — Retrieval v3 D-112 v9r16 post-smoke CONTRACT_INVALID_GENERATION
+
+- **Base:** D-111 `5657d8737fcafd2a8a01325a98cb89c3c4cf50a9`, clean/remote equal, ml-service0, audit4 unchanged, final v9r16 bytes exact.
+- **Smoke A:** one non-model transport attempt failed before agent/session/wrapper; preserved. Actual model Smoke A exactly once agent `350c1a36-f18e-41ca-8c58-134212c508cc`, stable session `59c6cb6f...f0517` 11 lines, phasec_probe1, frozen audit PASS.
+- **Smoke B:** exactly once agent `b2754ce2-9cd4-496f-8143-8c50b7c3bbc9`; session `fe37e40c...9b58c` 13 lines, todo1/probe1, exact deny triple + six allowed writes/6x1 outputs. Paseo daemon dropped during early inspect after launch; runner exited.
+- **Hard failure:** after daemon evidence recovery, B agent is closed and session final stopReason is aborted; frozen lifecycle auditor rc3 because status != idle. No model resume/relaunch.
+- **Verdict:** v9r16 CONTRACT_INVALID_GENERATION / non-resumable / non-repairable. No real freeze/Phase C/protected/production change. Preserve evidence; fresh successor only.

@@ -3152,3 +3152,15 @@ Reconciled base: branch `codex/retrieval-v3-user-search-quality`, HEAD/local/ups
 - (4) Web independent final-byte battery PASS: preflight36/lifecycle53/reachability87/role-tools170/completion/TEN45-0/confinement198/freeze-binding66/compile/Bun/tsc/mechanics54/54. Fourteen semantic core files normalize byte-identical to v9r15.
 - (5) Final plan `729597182ba7ac646ee859b3b8a05baee448794d2aa7d84a27b60189c70d3105`; role ext `408ce7edff2b9af6abd3690a5648cb668517a453f4c06116c7de4350a3429509`; preflight `d1313f41501d9642c22224d9a5c34f1f92cd08608e9dab3a65f354cbf969f257`; freeze script `9741d4a01fec5d5141ea2061969d54c92d261c75a8e615642a1f99d02431a3e1`.
 - (6) Boundary: no lock/frozen hashes/run lock/source truth/anchors/slots/runtime/evalset; v9r16 Smoke A/B roots/sessions/agents absent. **PRE-SMOKE PASS.** Next exactly one Smoke A; only if PASS exactly one Smoke B. No retry/repair.
+
+## D-112 · Retrieval v3 generation-v9r16 post-smoke CONTRACT_INVALID_GENERATION — Smoke B daemon-loss / terminal-state failure — 2026-09-07
+
+Docs-only closure after D-111 PRE-SMOKE PASS. Full record: `docs/RETRIEVAL_V3_D112_V9R16_POSTSMOKE_CONTRACT_INVALID_GENERATION.md`. v9r16 builder and all smoke evidence are preserved.
+
+Reconciled base: D-111 `5657d8737fcafd2a8a01325a98cb89c3c4cf50a9`, clean local/upstream/direct remote, ml-service0, audit4 same SHA; final v9r16 bytes exact.
+
+- (1) One preliminary coordinator transport attempt forced desktop `paseo.exe`, failed before model launch, and created only wrapper_bin in a preserved root: no wrapper invocation/session/agent. It did not consume Smoke A.
+- (2) Actual Smoke A exactly once PASS: agent `350c1a36-f18e-41ca-8c58-134212c508cc`, exact r1 cwd/model/xhigh/Parent-null; stable session 11 lines SHA `59c6cb6f46afefdbc33d20b17e3df62de22de5d8881638bdee323a85790f0517`, phasec_probe1; frozen coordinator auditor rc0 SMOKE_PASS, descendants0/fallback proven.
+- (3) Smoke B exactly once: agent `b2754ce2-9cd4-496f-8143-8c50b7c3bbc9`, exact lifecycle staging/model/xhigh/Parent-null; session 13 lines SHA `fe37e40cea0cf20126468d092b06d7940beed3b5e57d00117e60c35cd5a9b58c`, calls todo1/probe1; exact 9-row helper log and 6x1 outputs. Runner lost Paseo daemon during early provenance inspect after launch.
+- (4) Daemon recovery was evidence-read only, no model resume/relaunch. Existing B agent is `closed`; session final stop is `aborted`, not `stop`; frozen lifecycle auditor rc3 `agent status='closed' not idle at audit`. Therefore B fails the frozen lifecycle contract despite deterministic helper proof succeeding.
+- (5) Final builder 67 files/cache0; D-111 bytes unchanged; no real freeze/Phase C/source truth/evalset/protected/holdout/production/audit change. **v9r16 = HARD HOLD / CONTRACT_INVALID_GENERATION / NON-RESUMABLE / NON-REPAIRABLE.** No retry/same-generation repair. Fresh successor required to continue.
