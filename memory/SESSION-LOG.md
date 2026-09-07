@@ -2034,3 +2034,11 @@ One short section per working session: what was worked on, what was decided (wit
 - Reconciled D-121 frozen state: lock/frozen hashes exact, 71/71 mismatch0, repo clean, runtime/Phase-C/execute roots/agents0, OMP/Paseo/DB ready.
 - Frozen driver exact prepared sets confirm D-117 fix for Reviewer A/B and C; no search_snapshot helper staging.
 - Verdict PRE-EXEC PASS. Exactly one execute coordinator authorized; failure => preserve/close, no retry/run-lock removal/manual role launch. Protected dev/holdout forbidden.
+
+## 2026-09-08 — Retrieval v3 D-123 v9r18 Phase-C CONTRACT_INVALID_GENERATION
+
+- D-122 one-shot execute consumed exactly once; both Authors completed 180+180, then frozen pool validator failed rc1/driver rc3 before merged pool or Reviewer A/B. Execute session10 SHA `cbf4750d...7052b`; run lock preserved; current v9r18 process count0.
+- Exact eight failures reproduced under frozen UTF-8 mode. Mechanical root cause separates one slot-binding mutation (`220`, location false→true) from six validator false negatives for real `천안`/`아산` location tokens; dup-anchor 34/171 diagnostic only.
+- Frozen plan/lock/FROZEN_HASHES remain `848b5862...c532` / `20d8a145...a868c` / `7f3f4903...01955`, 71/71 exact. Candidate files remain 180 `158e4763...e6c5` + 180 `01028483...008d`; merged/evalset absent. Audit4 `90cfb54d...c506`, protected dev/holdout and production unchanged.
+- D-087 precedent permits complete failed 180+180 only as hash-only freshness evidence: 360/360 unique, zero overlap existing ELEVEN; fresh successor may use TWELVE sets / 66 pairwise checks, no semantic/template reuse, gold exclusions unchanged.
+- Verdict v9r18 **CONTRACT_INVALID_GENERATION / NON-RESUMABLE / NON-REPAIRABLE**. Fresh successor pre-smoke mechanics only next; no model smoke/protected evaluation in this closure.
