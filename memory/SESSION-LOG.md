@@ -2059,3 +2059,11 @@ One short section per working session: what was worked on, what was decided (wit
 - Actual Smoke A exactly once: agent `5c235429-3a47-43a1-b4a9-596dec662c7d`, Parent-null/exact cwd/model/xhigh/fallback-false/final-idle; stable session10 SHA `86bc67ed...d313`, `phasec_probe=1`; frozen auditor twice rc0 `SMOKE_PASS`, descendants0/fallback true/exact wrapper controls.
 - No second A. Post-audit plan/manifest/rubric and mechanics unchanged; two builder-local pycache dirs exact-path cleaned only. No PLAN_LOCK/FROZEN_HASHES/run lock; Smoke B root/session0; no freeze/PhaseC/protected/holdout/production/audit change.
 - Verdict **D-125 SMOKE A PASS**. STOP. Next separate stage: Smoke-B duplicate gate then exactly one B only if authorized.
+
+## 2026-09-08 — Retrieval v3 D-126 v9r19 Smoke B CONTRACT_INVALID_GENERATION
+
+- D-125 base/final bytes and duplicate gate reconciled: `e4462db...f69b` local=upstream=origin clean; plan `a442f564...20705`, manifest `1caffc01...6e3b`, rubric `08e598a4...02fe`, mechanics57/57, audit4/ml-service0/protected absent; Smoke A stable PASS; B root/agent/session/process0. One self-match process false positive stopped prelaunch and consumed nothing.
+- Frozen no-argv lifecycle runner invoked exactly once. B agent `e9cbcb94-e2cf-4bb6-be5f-95c5743e0d55`, exact cwd/model/xhigh/Parent-null/final-idle. One session dir/one session file preserved.
+- Frozen auditor passed preceding wrapper/session/probe/access-log/6x1/final-stop/first-descendant checks, then rc3 `agent listing unparseable; descendants unprovable` on mandatory daemon-listing JSON parse. No retry/bypass.
+- Preserved evidence: access log 9 rows `02421b49...16d7`; wrapper log 1 row `3e9c9ca9...fe4a`; chunks0..5 each 59B/1row; session path preserved but post-failure hash denied by live file lock. Two builder pycache dirs left untouched.
+- Verdict **D-126 CONTRACT_INVALID_GENERATION / NON-RESUMABLE / NON-REPAIRABLE**. No second Smoke B, no real freeze, no Phase C, no protected dev-v2/holdout/production/audit change. Fresh successor only.
