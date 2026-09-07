@@ -2042,3 +2042,12 @@ One short section per working session: what was worked on, what was decided (wit
 - Frozen plan/lock/FROZEN_HASHES remain `848b5862...c532` / `20d8a145...a868c` / `7f3f4903...01955`, 71/71 exact. Candidate files remain 180 `158e4763...e6c5` + 180 `01028483...008d`; merged/evalset absent. Audit4 `90cfb54d...c506`, protected dev/holdout and production unchanged.
 - D-087 precedent permits complete failed 180+180 only as hash-only freshness evidence: 360/360 unique, zero overlap existing ELEVEN; fresh successor may use TWELVE sets / 66 pairwise checks, no semantic/template reuse, gold exclusions unchanged.
 - Verdict v9r18 **CONTRACT_INVALID_GENERATION / NON-RESUMABLE / NON-REPAIRABLE**. Fresh successor pre-smoke mechanics only next; no model smoke/protected evaluation in this closure.
+
+## 2026-09-08 — Retrieval v3 D-124 generation-v9r19 PRE-SMOKE Web PASS
+
+- Fresh successor builder `bc-v3-dev-v2-builder-20260908-v9r19`; v9r18 immutable evidence untouched. Hold base D-123 `f7c93cb8...3bfe`.
+- Final plan `a442f564...20705` / manifest `1caffc01...6e3b` / rubric `08e598a4...02fe`; 57/57 mechanics exact, parse errors0.
+- D-123 mechanics: exact per-ID slot binding; one frozen author/validator location contract with 천안/아산 and particle forms; failed-v9r18 360 carried hash-only as D123 `2821c326...d3ba`; exact TWELVE sets / 66 pairwise / overlap0; no semantic/template reuse; gold exclusions unchanged.
+- Final non-model suite PASS: CLI64, preflight36, reach87, lifecycle53, role172, completion, confinement210, freeze-binding66, staging24, twelve66, slot/location. Cache0; no PLAN_LOCK/FROZEN_HASHES/run lock/source truth/runtime root/process.
+- Actual OMP binary reconciled to 18.1.13; effective default/plan still Muse Spark 1.3 xhigh. V9r19 future compatibility text updated; historical v9r18 provenance not rewritten.
+- Repo/local/upstream/origin D-123 base equal before D124 write; ml-service diff0; protected dev/holdout paths absent; audit4 unchanged. Verdict **PRE-SMOKE PASS only**. No model/smoke/freeze/PhaseC/protected/holdout execution. Next stage separately gates one final-byte Smoke A.
