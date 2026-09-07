@@ -2051,3 +2051,11 @@ One short section per working session: what was worked on, what was decided (wit
 - Final non-model suite PASS: CLI64, preflight36, reach87, lifecycle53, role172, completion, confinement210, freeze-binding66, staging24, twelve66, slot/location. Cache0; no PLAN_LOCK/FROZEN_HASHES/run lock/source truth/runtime root/process.
 - Actual OMP binary reconciled to 18.1.13; effective default/plan still Muse Spark 1.3 xhigh. V9r19 future compatibility text updated; historical v9r18 provenance not rewritten.
 - Repo/local/upstream/origin D-123 base equal before D124 write; ml-service diff0; protected dev/holdout paths absent; audit4 unchanged. Verdict **PRE-SMOKE PASS only**. No model/smoke/freeze/PhaseC/protected/holdout execution. Next stage separately gates one final-byte Smoke A.
+
+## 2026-09-08 — Retrieval v3 D-125 generation-v9r19 Smoke A PASS
+
+- Reconciled D-124 final bytes and actual repo/origin/audit/OMP/Paseo duplicate gate: `4e7a2a9...a3dc` local=upstream=origin clean; ml-service0; protected paths absent; audit4 unchanged; plan `a442f564...20705`, manifest `1caffc01...6e3b`, rubric `08e598a4...02fe`, mechanics57/57; OMP18.1.13 Muse Spark xhigh; exact bundled Paseo0.7.2 running/reachable; v9r19 agents/session/process0.
+- One caller-side import harness failure occurred before frozen launcher/Paseo/model/agent/session/wrapper; reserved cwd stayed empty and duplicate proof stayed0, so no Smoke was consumed and no frozen bytes changed.
+- Actual Smoke A exactly once: agent `5c235429-3a47-43a1-b4a9-596dec662c7d`, Parent-null/exact cwd/model/xhigh/fallback-false/final-idle; stable session10 SHA `86bc67ed...d313`, `phasec_probe=1`; frozen auditor twice rc0 `SMOKE_PASS`, descendants0/fallback true/exact wrapper controls.
+- No second A. Post-audit plan/manifest/rubric and mechanics unchanged; two builder-local pycache dirs exact-path cleaned only. No PLAN_LOCK/FROZEN_HASHES/run lock; Smoke B root/session0; no freeze/PhaseC/protected/holdout/production/audit change.
+- Verdict **D-125 SMOKE A PASS**. STOP. Next separate stage: Smoke-B duplicate gate then exactly one B only if authorized.
