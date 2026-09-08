@@ -2215,3 +2215,12 @@ One short section per working session: what was worked on, what was decided (wit
 - Review caches cleaned exact-path inside builder: cache0/pyc0, pins unchanged. Final locks/runtime/source truth/evalset0; Smoke-A root/session/process0; registry336 parseable/error0/exact-cwd-match0.
 - Independent final review: prior path blocker cleared; symbolic `$R` briefs are not literal-path violations; no remaining blocker.
 - **D-143 supersedes D-142 only for current final-byte PRE-SMOKE authorization.** Corrected bytes are eligible for exactly-one Smoke A in the user-authorized next gate; later stages remain prohibited.
+
+## 2026-09-08 — Retrieval v3 D-144 v9r23 resource-parity PRE-SMOKE correction PASS
+
+- Post-D-143 review at D-143 base `41c484e...5731307` found a missed hard blocker: reviewer/C brief `$R/...` paths, author snapshot/meta as local inputs, C generic `"c_packet_k"` example the helper would DENY. No v9r23 one-shot execution had occurred.
+- Same sole executor `3526a9e5...5650a` repaired only prompt/brief wording to the kind-bound contract (session-cwd binding, exact resource names, tool-derived writes); added permanent confinement parity regression (216->251); repinned mechanics. No semantic change.
+- Final plan `6bddf1fe4661819b9cb7029f2694194298a91c99ba6d5d491e8634eae4b67eae` / 69,469B; mechanics60/60. Full static battery PASS: confinement251/binding87/completion5x0s/staging41/role220/preflight36/reach87/lifecycle53/registry37/Paseo64/thirteen78-0/rerun66/carry13/slot6+5.
+- One transient test-only plus1s flake re-passed 66/66 (harness second-truncation, not freeze weakness). Fresh worker-7 READ-ONLY final review PASSed exact bytes, blockers none. Cache-dirs0/pyc0 post-cleanup, plan SHA unchanged.
+- Final locks/runtime/source truth/evalset0; Smoke-A root/session/process0. V9r22 frozen75/75 + run lock preserved.
+- **D-144 supersedes D-143 only for current final-byte PRE-SMOKE authorization.** This closure does NOT authorize Smoke A; next separate user `진행해` triggers a fresh read-only prelaunch gate, then at most one Smoke A on `6bddf1fe` bytes; later stages remain prohibited.
