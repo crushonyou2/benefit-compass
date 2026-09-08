@@ -3364,3 +3364,15 @@ Final static battery PASS: freeze-binding87, rerun/timestamp66, thirteen-set78/0
 Process provenance: Windows `paseo.cmd` multiline transport initially delivered only the first paragraph of the implementation and first inline repair prompts. This was structurally detected before any Smoke/freeze/PhaseC/model-generation boundary; the same executor was retained and complete repair contracts were resent via `--prompt-file`, with no replacement executor/generation agent. A later read-only registry count=1 was a PowerShell automatic `$Matches` accumulator bug; corrected recount0, no runtime effect.
 
 **Decision:** D-142 / v9r23 PRE-SMOKE WEB PASS. No Smoke A/B, real freeze, Phase C, protected dev-v2/holdout, production, or audit append occurred. The next separately authorized gate may fresh-reconcile duplicates/runtime/provenance and consume exactly one Smoke A on these exact final bytes only; later one-shot stages remain prohibited until separately gated.
+
+## D-143 · Retrieval v3 generation-v9r23 literal-path PRE-SMOKE correction PASS — 2026-09-08
+
+Full record: `docs/RETRIEVAL_V3_D143_V9R23_LITERAL_PATH_PRESMOKE_CORRECTION.md`.
+
+D-142 remains historical evidence but its current-final-byte Smoke-A authorization is superseded. During the fresh Smoke-A prelaunch gate at D-142 commit `ac97086be76ef5f8f231c591561541874d7458ff`, independent read-only review proved the SHA-pinned `phasec_driver.run_agent_stage()` appended `Your staging root is: {staging}` to Author/Reviewer/C prompts, contradicting the D-142 final plan's no-literal-staging-path + kind-bound-tool contract. No v9r23 Smoke/freeze/PhaseC/model-generation role had been consumed.
+
+The same sole executor `3526a9e5-dabd-498d-9c67-3df795c5650a` repaired only the pre-smoke path surface: the semantic-role driver no longer appends the concrete staging path; all five role prompts bind the staging root to session cwd; the same-class lifecycle-smoke path append was removed; exact `--cwd` and provenance verification, prepared sets and kind-bound tools remain unchanged. Permanent production-source regression coverage was added and mechanics repinned. Symbolic `$R/...` in reviewer/C briefs is not a literal Windows path and independent review accepted it under the standing contract.
+
+Final plan `27b5906fae19d016fc3beb845d3c547788fa1815f4d0b41c97d13f5572669065` / 69,469B; mechanics 60/60 exact. Final static battery PASS including confinement227, binding87, completion fail-fast 5x0.0s, CLI64, preflight36, reachability87, lifecycle53, role220, staging41, thirteen78/0, registry37, rerun66, carry13, slot/location6+5. Builder cache0/pyc0, locks/runtime/source truth/evalset0. Smoke-A root/session/process0; registry336 parseable/error0/exact-cwd-match0. V9r22 frozen75/75 + run lock preserved.
+
+**Decision:** D-143 PRE-SMOKE CORRECTION PASS. It supersedes D-142 only for current final-byte authorization; D-142 stays historical. The corrected final bytes may consume exactly one Smoke A in the already separately authorized gate after final read-only duplicate/provenance reconcile. Smoke B/real freeze/Phase C/protected/holdout/production remain prohibited.

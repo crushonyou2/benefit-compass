@@ -2206,3 +2206,12 @@ One short section per working session: what was worked on, what was decided (wit
 - Final real builder76/cache0; no PLAN_LOCK/FROZEN_HASHES/runlock/source truth/runtime/evalset; v9r23 Smoke/PhaseC/execute roots, generation OMP sessions, registry identities/processes0. Latest independent reviewer PASS/blockers none.
 - Process notes: initial Windows `paseo.cmd` multiline prompts were truncated to the first paragraph; detected before one-shot consumption and repaired in the same executor using `--prompt-file`. Read-only registry `1` observation was a PowerShell `$Matches` accumulator false positive; corrected count0.
 - **D-142 PRE-SMOKE PASS only.** Next separate gate: fresh duplicate/runtime/provenance check, then exactly one Smoke A on final bytes. Smoke B/real freeze/Phase C/protected/holdout/production remain prohibited.
+
+## 2026-09-08 — Retrieval v3 D-143 v9r23 literal-path PRE-SMOKE correction PASS
+
+- Smoke-A prelaunch review at D-142 base `ac97086...58ff` found a missed hard blocker: pinned `phasec_driver.run_agent_stage()` appended the absolute staging path to all semantic-role prompts despite the current no-literal-path/kind-bound contract. No v9r23 one-shot execution had occurred.
+- Same sole executor `3526a9e5...5650a` repaired only that path surface plus the same-class lifecycle-smoke append, changed role prompts to session-cwd root binding, added production regression coverage, and repinned mechanics. No semantic/rubric/quota/selector/gold change.
+- Final plan `27b5906fae19d016fc3beb845d3c547788fa1815f4d0b41c97d13f5572669065` / 69,469B; mechanics60/60. Full static battery PASS: confinement227/binding87/completion5x0s/CLI64/preflight36/reach87/lifecycle53/role220/staging41/thirteen78-0/registry37/rerun66/carry13/slot6+5.
+- Review caches cleaned exact-path inside builder: cache0/pyc0, pins unchanged. Final locks/runtime/source truth/evalset0; Smoke-A root/session/process0; registry336 parseable/error0/exact-cwd-match0.
+- Independent final review: prior path blocker cleared; symbolic `$R` briefs are not literal-path violations; no remaining blocker.
+- **D-143 supersedes D-142 only for current final-byte PRE-SMOKE authorization.** Corrected bytes are eligible for exactly-one Smoke A in the user-authorized next gate; later stages remain prohibited.
