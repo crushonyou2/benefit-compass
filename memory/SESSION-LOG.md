@@ -2378,3 +2378,12 @@ One short section per working session: what was worked on, what was decided (wit
 +
 - Uncommitted body-absent draft replaced (transport truncation, never committed; `15ed55e` intact). Full raw Web result bound byte-exact: frozen auditor on `7989e333` + smoke cwd rc0 `SMOKE_PASS` (session `5fea1aa7…`/10, probe1, descendants0, fallback true), no mutation/relaunch.
 - **Independent review FINAL PASS. D-157 SMOKE A PASS stands complete. STOP before Smoke B.**
+
+## 2026-09-09 — Retrieval v3 D-158 v9r25 exactly-one Smoke B PASS (Web FINAL PASS)
+
+- Fresh prelaunch reconcile at `8c5b5f7...4af0` local=upstream=origin-branch clean: ml-service0 vs `53276614`, audit4 `90cfb54d`, protected absent, plan76168 `c017d6578`, mechanics65/65, one-shot absent, lifecycle root/session absent, registry362/0 lifecycle0 (+1 = D-158 executor `0076e894`), Smoke-A re-audit `SMOKE_PASS` 10 lines `5fea1aa7` unchanged, OMP18.1.13 muse-spark:xhigh, Paseo0.7.2 exact CLI, v9r24 untouched.
+- Full non-model battery PASS (rc0): lifecycle53, role250, completion GATE, confinement251, reach87, CLI64, registry37, writer36, staging41, binding87, rerun66, FIFTEEN15/105/0, D149-358/360/2, D150-7, D156-9, slot6+5. Preflight 2-dir/47-pyc caches removed exact-target-only; plan/mechanics reverified.
+- Same sole executor `0076e894` ran frozen `run_lifecycle_smoke.py` exactly once (no argv, no retry): agent `73e51095` (`v9r25-lifecyclesmoke`, exact cwd, null parent, omp/muse-spark/xhigh/full, idle), session 21 lines/44189B `3c764741`, probe1/todo4, deny triple 1 each, six 59B writes (frozen SHAs), wrapper 1 row/471B `acba3c92`, access 9 rows/2792B `a9c57e61`, ext `59cd5eb4`, descendants0, fallback true. Embedded audit + 15 s stability re-audit both rc0 `LIFECYCLE_SMOKE_PASS` identical; Smoke-A unchanged after.
+- Web independent FINAL PASS on exact evidence (auditor reruns + registry/wrapper/access/output/ext/plan/mechanics/cache/downstream/audit4/protected/ml/v9r24 verified). Observer `Get-FileHash` sharing violation after auditor success = handle contention, not generation failure.
+- Post-run registry363/0/dup0 (A and B id/title/cwd 1/1/1, children0), session dir one jsonl, cache0, downstream absent, agent idle preserved. Durable records: new D158 doc + append-only DECISIONS/SESSION-LOG only.
+- **D-158 SMOKE B PASS. Smoke A/B each consumed exactly once, non-repeatable. STOP before real freeze.** Next separate `진행해` only may authorize real-freeze pre-gate + exactly-once real freeze; Phase C/protected/holdout/production/audit append prohibited.
