@@ -2347,3 +2347,9 @@ One short section per working session: what was worked on, what was decided (wit
 - Initial `5b310e3` PRE-SMOKE PASS was premature: Web found author_brief FOURTEEN/D-155 omission, freeze fourteen-gate/360+FOURTEEN/lock gaps, carry docstring gap, static-only local-reject proof, and vacuous `or True`. Same executor repaired without runtime: operative FIFTEEN wording (history preserved), freeze fifteen-gate/FIFTEEN summary/fifteenth lock, carry D155 15th-set doc, Bun hermetic probe (`d156_unknown_spawns:0`, `d156_cross_spawns:1`) invoked by D156 test, chunk_1 absent-before/after hardening. Re-synced plan76168 `58b8b1c8` / manifest4766 `d917de37` via disposable repro; full battery PASS; cache0/pyc0; zero runtime.
 
 - **D-156 CORRECTION PASS same-stage. STOP before Smoke A.**
+
+## 2026-09-09 — D-156 CORRECTION 2 reviewer plaintext-free + log hardening
+
+- Web found reviewer retryable could echo model IDs and 60-row log could truncate. Same executor hardened reviewerA/B/C only to expected IDs fail-closed with compact reviewer_retryable logging; audit compact support with frozen whitelist; authors unchanged. Added marker-leak (LEAKMARKER absent, expected-only) and 60-shape compact-parseable regressions (D156 checks 9). Re-synced plan76168 c017d6578 via disposable repro; battery PASS; cache0/pyc0; zero runtime.
+
+- **D-156 CORRECTION 2 PASS same-stage. STOP before Smoke A.**
