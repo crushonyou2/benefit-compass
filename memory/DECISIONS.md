@@ -3579,3 +3579,9 @@ Exactly one frozen coordinator `7989e333-d302-4d8b-886c-0d230c4b9f3c` (`D157 v9r
 Supersedes nothing; pins the generic sole-executor wording in the initial D-157 closure without rewriting history. Read-only from own process env + exact registry record (no launch): executor `ad48ef61-1877-45db-b4e5-ee48511c3c54` (`D157 v9r25 Smoke A executor`, exact repo cwd, top-level labels `{}`, `PASEO_CLI` equals the frozen bundled pin). Registry 361/0 with executor children 0 and still exactly one D157 smoke record (`7989e333`). Full record: D157 doc CORRECTION section.
 
 **Decision:** D-157 SMOKE A PASS stands. STOP before Smoke B.
+
+## D-157 CORRECTION 2 · Independent Web FINAL PASS on exact evidence — 2026-09-09
++
+Replaces the uncommitted body-absent draft (transport truncation; never committed, not history; `15ed55e` intact). Web independently ran frozen `audit_coord_smoke.py` on agent `7989e333` + smoke cwd, mode smoke, `PYTHONDONTWRITEBYTECODE=1`: rc0, no mutation/relaunch. Every raw field byte-exact vs closure: `SMOKE_PASS`, session `5fea1aa75b1d1f0f419bfaccf5c2d3ce84f9d036e8b1040ccd99d2ead4c7032b`/10 lines, `{phasec_probe:1}`, todo/smoke/frozen controls, descendants0, fallback true. Full record: D157 doc CORRECTION 2 section.
++
+**Decision:** Independent review FINAL PASS. D-157 SMOKE A PASS stands complete. STOP before Smoke B.

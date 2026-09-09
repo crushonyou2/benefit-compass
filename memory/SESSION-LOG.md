@@ -2373,3 +2373,8 @@ One short section per working session: what was worked on, what was decided (wit
 
 - Initial D-157 closure left the sole executor generic. Same executor pinned read-only (own env + exact registry record, no launch): `ad48ef61-1877-45db-b4e5-ee48511c3c54` (`D157 v9r25 Smoke A executor`, repo cwd, top-level, frozen bundled CLI), registry 361/0 with executor children 0 and one D157 smoke record unchanged.
 - **D-157 SMOKE A PASS stands. STOP before Smoke B.**
+
+## 2026-09-09 — D-157 CORRECTION 2 independent Web FINAL PASS
++
+- Uncommitted body-absent draft replaced (transport truncation, never committed; `15ed55e` intact). Full raw Web result bound byte-exact: frozen auditor on `7989e333` + smoke cwd rc0 `SMOKE_PASS` (session `5fea1aa7…`/10, probe1, descendants0, fallback true), no mutation/relaunch.
+- **Independent review FINAL PASS. D-157 SMOKE A PASS stands complete. STOP before Smoke B.**
