@@ -2359,3 +2359,17 @@ One short section per working session: what was worked on, what was decided (wit
 - Web found one v9r25 byproduct (`__pycache__/role_fs_helper.cpython-311.pyc`, 2026-09-09T06:58:41Z) from post-closure inspection/import. Removed ONLY that resolved target inside the builder; source/mechanics/plan/input untouched, no Smoke/freeze/Phase-C. Reverified cache0/pyc0, zero runtime, plan c017d6578 unchanged, audit/protected/ml unchanged.
 
 - **D-156 CORRECTION 3 PASS same-stage. STOP before Smoke A.**
+
+## 2026-09-09 — Retrieval v3 D-157 v9r25 exactly-one Smoke A PASS (sole-executor audits)
+
+- Fresh D-156 prelaunch reconcile: repo `4d0bfa1...27e7470a` local=upstream=direct origin clean, ml-service0 vs `53276614`, audit4 SHA `90cfb54d...c506`, protected dev/dev-v2/holdout absent; plan76168 `c017d6578...3c`, rubric `08e598a4`, excl4766 `d917de37`, D155fp24931 `4e1f980d` 360/0/overlap0, mechanics65/65 exact, freeze/runlock/source/candidates absent, registry360/0 title/cwd0, smoke root/session absent; OMP18.1.13 muse-spark:xhigh, Paseo0.7.2. Own-probe cache 1 pyc exact-target cleaned with plan/mechanics reverified; v9r24 freeze read-only hashes all match D-156, untouched.
+- Same sole executor (no subagent/worker/second executor) launched exactly one frozen coordinator `7989e333...4b9f3c` (`D157 v9r25 Smoke A`, exact smoke cwd, Parent null, omp/muse-spark-1.3, idle) with the exact neutral single-probe prompt. Verify PASS + wait600 rc0. Exact session `...\-bc-v3-v9r25-coord-smoke-20260909-cwd\2026-09-09T07-48-18-308Z_01a08523-9b04-77dd-afdd-2de330ce19bf.jsonl` 10 lines/20109B SHA `5fea1aa7...4c7032b`; wrapper one row 547B SHA `36cd121f...29c44d`, todo/smoke/frozen controls, ext5013 `037db26c...6c88`.
+- Frozen auditor rc0 `SMOKE_PASS` (`phasec_probe=1`, `todo=0`, descendants0, fallback proven) three times identically, third after 13 s stability gap; no second launch.
+- Post-run registry361/0 with exactly one D157 record (title1/cwd1/both1); later-stage roots absent; one-shot artifacts absent; audit4/ml-service0/protected unchanged; final plan/mechanics/cache0; v9r24 evidence preserved.
+- Durable records: new D157 doc + append-only DECISIONS/SESSION-LOG. No builder/repo other changes. Independent auditor rerun pending (no second executor in this stage).
+- **D-157 SMOKE A PASS (sole-executor audits). Smoke A permanently consumed/non-repeatable. STOP before Smoke B.** Next fresh `진행해` only may authorize Smoke-B duplicate/preflight + exactly-one lifecycle Smoke B (preferably after independent rerun); real freeze/Phase C/protected dev-v2/holdout/production/audit append remain prohibited.
+
+## 2026-09-09 — D-157 CORRECTION executor provenance pin
+
+- Initial D-157 closure left the sole executor generic. Same executor pinned read-only (own env + exact registry record, no launch): `ad48ef61-1877-45db-b4e5-ee48511c3c54` (`D157 v9r25 Smoke A executor`, repo cwd, top-level, frozen bundled CLI), registry 361/0 with executor children 0 and one D157 smoke record unchanged.
+- **D-157 SMOKE A PASS stands. STOP before Smoke B.**
