@@ -2333,3 +2333,11 @@ One short section per working session: what was worked on, what was decided (wit
 ## 2026-09-09 — D-155 closure-provenance wording correction
 
 - Supersedes only the tooling-note wording in `ad2f039`; D-155 verdict unchanged. Prelaunch reconcile ran live git/shell checks successfully before execute (local/upstream/direct origin, clean tree, frozen exactness, zero-state). Click failure (stale 0.94.1 vs installed 0.96.0) hit only the post-failure closure recording; same agent `d87e6ca0` reloaded (`paseo agent reload`), exec/write recovered, closure applied. Zero effect on execution/verdict/evidence/boundaries/production/audit. No-semantic/protected-read scope is closure-reconcile direct reads only.
+
+## 2026-09-09 — Retrieval v3 D-156 v9r25 PRE-SMOKE PASS
+
+- Base reconciled read-only: branch `codex/retrieval-v3-user-search-quality`, HEAD=upstream=direct origin `6e3b3584ece725f716fadeda32f5133365cef0fb` clean, ml-service0 vs `53276614`, audit4 `90cfb54d`, protected dev/dev-v2/holdout absent, OMP18.1.13 muse-spark:xhigh, Paseo0.7.2. D-155/v9r24 immutable (Author1 `4b8bbcc7`/180, Author2 `3ac7af94`/180, 360/360/0, FOURTEEN PASS, 3 DENYs).
+- Built fresh v9r25 (no runtime): plan76169 `9776649e`, rubric3334 `08e598a4`, failed_d155 24931 `4e1f980d` 360/0/overlap0, FIFTEEN15/105/0, prior14 identical, gold dev-v1/holdout/history, v9r24 deny lists, UNKNOWN local zero-log + cross-role fatal, reviewer_shape/id_order no_write + audit per-kind + 6 chunks.
+- Static battery PASS (disposable freeze only): compile47, CARRY15, FIFTEEN105, D149358, D150-7, D156-7, ROLE250, PREFLIGHT36, SLOT6+5, STAGING41, GATE, LIFECYCLE53, REACH87, CLIGATE64, REGISTRY37, BINDING87, RERUN66, CONFINEMENT. Caches removed, zero lock/hashes/runlock/source/anchors/slots/candidates.
+- Durable records: new D156 doc + append-only DECISIONS/SESSION-LOG. No Smoke A/B, real freeze, source snapshot, semantic roles, Phase C, selector, protected eval, audit append, or production.
+- **D-156 PRE-SMOKE PASS; STOP before Smoke A.** Next separate `진행해` only may authorize Smoke-A prelaunch/execution.
