@@ -3450,3 +3450,14 @@ Mandatory pool merge + THIRTEEN validation then returned rc1 `STRUCTURAL_FAIL` w
 Independent post-failure reviewer returned FINAL CONTRACT_INVALID / HARD HOLD, confirming frozen bytes exact, one coordinator/call/result, the rc3 failure boundary, preserved run lock/evidence and zero downstream/protected/prod/audit change.
 
 **Decision:** D-149 closes v9r23 permanently as `CONTRACT_INVALID_GENERATION / NON-RESUMABLE / NON-REPAIRABLE`. Preserve all freeze/runtime/session/cache evidence. No retry, resume, run-lock removal, frozen patch, failed-row edit, manual merge/downstream role launch, selector, or second coordinator. A successor requires a new separate `진행해`, fresh logical stage and fresh generation identity after standing failed-generation freshness/provenance reconciliation; this closure authorizes no protected dev-v2/holdout/production/audit execution and does not yet choose successor repairs.
+## D-150 · Retrieval v3 generation-v9r24 PRE-SMOKE WEB PASS — 2026-09-09
+
+Full record: `docs/RETRIEVAL_V3_D150_GENERATION_V9R24_PRESMOKE.md`.
+
+D-149 base `56c9138ef9a1ad3db2d0dfa949d5d31764cf5d61` freshly reconciled local=upstream=direct origin clean with ml-service0, audit4 SHA `90cfb54d...c506`, protected dev/dev-v2/holdout absent. D-149 reconciliation: durable closure and current v9r23 local bytes agree (stale handoff metadata, not mutation); canonical lock `b8c1fa42...68c3f`, hashes `bda5f88c...8aeb2`, runlock `6f8ff2f7...db2`, source truth `9fe19465...c1a5`, anchors/slots/candidates SHAs verified; terminal v9r23 stays immutable/non-resumable/non-repairable.
+
+Fresh D-150 successor v9r24: plan 73,596B SHA `ce6b55d1...f832c05`, rubric 3334B SHA `08e598a4...b02fe`, D149 358 unique/360 rows/2 dup groups SHA `e6c5beea...9bcea`, 14 sets/91 pairs/overlap0, mechanics63/63 parity PASS. Sequential authors with hidden hash-only 180-fp Author-1 reservation only to Author-2; four retryable pre-write codes with allowed:true/REJECT_RETRYABLE/no_write semantics; fatal DENYs stay fatal; no post-final repair; validate_pool terminal. D141 C 12x30, D143/D144/D135 preserved.
+
+Repair history: initial Web review found plan/runtime drift; same executor `c4fef7ce-6b72-4418-b341-f8d28e07b66a` repaired; second review caught contract/docstring drift; same executor repaired and extended narrow assertions to both plan locations plus freeze summary; final review/battery PASS (15 suites rc0, disposable fixtures only; caches cleaned to 0 with plan SHA unchanged).
+
+**Decision:** D-150 PRE-SMOKE WEB PASS for static/PRE-SMOKE only; NOT Smoke-A authorization. STOP before Smoke A. A future fresh explicit user `진행해` is required for a separate Smoke-A prelaunch/execution stage. No Smoke/real freeze/source truth/PhaseC/semantic generation/protected eval/holdout/audit/prod change in D-150.

@@ -2270,3 +2270,10 @@ One short section per working session: what was worked on, what was decided (wit
 - Read-only mechanical reconciliation, no query text and no validator rerun: 168 changed immutable intended_location false→true; normalized query fingerprints 358 unique/360 with duplicate pairs 009↔198 and 010↔202; 181..184 have no `ledger.constraints`; 358 unique set overlaps none of prior 13 frozen query sets.
 - Failure occurred before `candidates_merged.json`; Reviewer A/B/C agents0 and raw/keymap/agreement/C/selector/final eval artifacts absent. Protected/holdout/prod/audit unchanged. Independent reviewer: FINAL CONTRACT_INVALID / HARD HOLD.
 - **D-149 closes v9r23 permanently NON-RESUMABLE/NON-REPAIRABLE.** Preserve run lock, source/Author/coordinator evidence and runtime caches. No retry/resume/run-lock deletion/frozen patch/row edit/manual merge/downstream launch/selector/second coordinator. Next separate `진행해` only may start fresh-successor strategy/reconciliation; no successor repair or protected evaluation is authorized here.
+## 2026-09-09 — Retrieval v3 D-150 v9r24 PRE-SMOKE WEB PASS
+
+- Fresh D-149 closure reconcile: repo `56c9138...5d61` local=upstream=direct origin clean, ml-service0, audit4 SHA `90cfb54d...c506`, protected dev/dev-v2/holdout absent; v9r23 canonical lock/hash/runlock/source/anchors/slots/candidates SHAs all match (stale-handoff correction, no mutation); terminal v9r23 immutable.
+- Fresh D-150 successor v9r24 (executor `c4fef7ce...b66a`): plan 73,596B `ce6b55d1...f832c05`, rubric 3334B, D149 358/360/2, 14 sets/91 pairs/overlap0, mechanics63 parity PASS, zero-state + cache0.
+- Two same-executor repair rounds (plan/runtime drift, then contract/docstring drift with extended narrow assertions); final Web review FINAL PRE-SMOKE PASS; battery 15/15 rc0 on final bytes with disposable fixtures only.
+- Durable records: new presmoke doc + append-only DECISIONS/SESSION-LOG. No builder/repo other changes; no Smoke/freeze/source/PhaseC/generation/protected/audit/prod.
+- **D-150 PRE-SMOKE WEB PASS (static only; NOT Smoke-A authorization). STOP before Smoke A.** Next separate `진행해` only may open a Smoke-A prelaunch/execution stage.
