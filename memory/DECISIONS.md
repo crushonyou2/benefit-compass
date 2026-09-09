@@ -3533,3 +3533,7 @@ Driver consumed the run lock once (`started 04:35:06Z, pid 51880`) and exited rc
 Independent read-only review returned FINAL CONTRACT_INVALID / HARD HOLD with no mutation.
 
 **Decision:** D-155 closes v9r24 permanently as `CONTRACT_INVALID_GENERATION / NON-RESUMABLE / NON-REPAIRABLE`. Preserve all freeze/runtime/session/cache evidence. No retry, resume, run-lock deletion, frozen patch, row edit, manual merge/downstream launch, selector, or second coordinator. A successor requires a new separate `진행해`, fresh logical stage and fresh generation identity; this closure authorizes no protected dev-v2/holdout/production/audit execution and does not yet choose successor repairs.
+
+## D-155 CORRECTION · closure-provenance wording repair — 2026-09-09
+
+Supersedes only the tooling-note wording in the initial `ad2f039` D-155 closure; the **D-155 CONTRACT_INVALID_GENERATION verdict is unchanged**. Correct fact: the D-155 prelaunch reconcile used live git/shell checks successfully before the one-shot execute (local/upstream/direct origin, clean tree, frozen exactness, zero-state directly verified). The Click failure (stale 0.94.1 hook vs installed 0.96.0) occurred only after terminal failure + independent review, during closure recording; same agent `d87e6ca0` reloaded via `paseo agent reload` with ID/ownership preserved, then applied the closure. Zero effect on execution, verdict, evidence, protected boundaries, production, or audit. The no-semantic/protected-read scope covers closure-reconcile direct reads only, not Phase-C role-agent contract processing.

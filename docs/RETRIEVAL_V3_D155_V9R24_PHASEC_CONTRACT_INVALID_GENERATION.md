@@ -107,3 +107,11 @@ V9r24 is permanently closed as `CONTRACT_INVALID_GENERATION`. Preserve the immut
 Do not retry or resume the driver, delete/recreate the run lock, patch frozen bytes, edit failed Reviewer rows, manually freeze/merge the pool, launch Reviewer B/C, run selector, or launch a second execute coordinator for v9r24.
 
 A future successor, if authorized by a separate user `진행해`, is a **fresh logical stage and fresh generation identity only** after reconciling standing failed-generation freshness/provenance rules. This D-155 closure does not yet decide successor repairs (reviewer-surface resource vocabulary, writer-envelope shape discipline), quota/selector changes, or any protected evaluation. Protected dev-v2, holdout, production change, and canonical audit append remain prohibited.
+
+## CORRECTION · closure-provenance wording repair — 2026-09-09
+
+Supersedes only two provenance wordings in the initial `ad2f039` closure; the **D-155 CONTRACT_INVALID_GENERATION verdict and all execution evidence are unchanged**.
+
+(1) The committed "Tooling note" and SESSION-LOG line wrongly say the missing Click hook affected the pre-launch/reconcile gate. Correct fact: the D-155 prelaunch reconcile ran **before** the one-shot execute using live git/shell checks successfully, directly verifying local/upstream/direct origin, clean tree, frozen exactness, and full zero-state. The Click adapter failure happened only **after** the Phase-C terminal failure and the independent Web review, during the later durable-closure recording attempt; it referenced stale Click 0.94.1 while the installed Click was 0.96.0. The same agent `d87e6ca0` was officially reloaded (`paseo agent reload`, same agent ID and stage ownership preserved), exec/write recovered, and the closure was applied. This tooling issue had zero effect on Phase-C execution, the failure verdict, frozen/runtime evidence, protected boundaries, production, or audit.
+
+(2) The "no semantic/protected content read" language is scoped to the **closure-reconcile direct reads** performed by the stage owner. It does not imply the Phase-C role agents (Author-1/2, Reviewer A) did not process their frozen contract inputs — they ran to completion under the frozen driver, as the preserved chunks, packets, and access logs attest.

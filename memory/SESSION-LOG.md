@@ -2329,3 +2329,7 @@ One short section per working session: what was worked on, what was decided (wit
 - Independent read-only review: FINAL CONTRACT_INVALID / HARD HOLD, no mutation.
 - Durable records: new D155 doc + append-only DECISIONS/SESSION-LOG. No builder/runtime/evidence/audit/production effect from closure.
 - **D-155 closes v9r24 permanently NON-RESUMABLE/NON-REPAIRABLE.** No retry/resume/run-lock deletion/frozen patch/row edit/manual merge/downstream launch/selector/second coordinator. Next separate `진행해` only may start a fresh-successor stage; no successor repair or protected evaluation authorized here.
+
+## 2026-09-09 — D-155 closure-provenance wording correction
+
+- Supersedes only the tooling-note wording in `ad2f039`; D-155 verdict unchanged. Prelaunch reconcile ran live git/shell checks successfully before execute (local/upstream/direct origin, clean tree, frozen exactness, zero-state). Click failure (stale 0.94.1 vs installed 0.96.0) hit only the post-failure closure recording; same agent `d87e6ca0` reloaded (`paseo agent reload`), exec/write recovered, closure applied. Zero effect on execution/verdict/evidence/boundaries/production/audit. No-semantic/protected-read scope is closure-reconcile direct reads only.
