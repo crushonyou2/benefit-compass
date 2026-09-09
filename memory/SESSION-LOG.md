@@ -2341,3 +2341,9 @@ One short section per working session: what was worked on, what was decided (wit
 - Static battery PASS (disposable freeze only): compile47, CARRY15, FIFTEEN105, D149358, D150-7, D156-7, ROLE250, PREFLIGHT36, SLOT6+5, STAGING41, GATE, LIFECYCLE53, REACH87, CLIGATE64, REGISTRY37, BINDING87, RERUN66, CONFINEMENT. Caches removed, zero lock/hashes/runlock/source/anchors/slots/candidates.
 - Durable records: new D156 doc + append-only DECISIONS/SESSION-LOG. No Smoke A/B, real freeze, source snapshot, semantic roles, Phase C, selector, protected eval, audit append, or production.
 - **D-156 PRE-SMOKE PASS; STOP before Smoke A.** Next separate `진행해` only may authorize Smoke-A prelaunch/execution.
+
+## 2026-09-09 — D-156 CORRECTION Web-found static gaps repaired same-stage
+
+- Initial `5b310e3` PRE-SMOKE PASS was premature: Web found author_brief FOURTEEN/D-155 omission, freeze fourteen-gate/360+FOURTEEN/lock gaps, carry docstring gap, static-only local-reject proof, and vacuous `or True`. Same executor repaired without runtime: operative FIFTEEN wording (history preserved), freeze fifteen-gate/FIFTEEN summary/fifteenth lock, carry D155 15th-set doc, Bun hermetic probe (`d156_unknown_spawns:0`, `d156_cross_spawns:1`) invoked by D156 test, chunk_1 absent-before/after hardening. Re-synced plan76168 `58b8b1c8` / manifest4766 `d917de37` via disposable repro; full battery PASS; cache0/pyc0; zero runtime.
+
+- **D-156 CORRECTION PASS same-stage. STOP before Smoke A.**
