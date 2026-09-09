@@ -3557,3 +3557,9 @@ Supersedes only the premature PRE-SMOKE bytes in `5b310e3`; the **D-156 PRE-SMOK
 Supersedes nothing; appends to `eb2f9d0` correction without rewriting history. **D-156 PRE-SMOKE PASS stands corrected (2) on final bytes** (no runtime). Web found adversarial/log gaps: reviewer shape/id branches could echo model IDs and 60-row log could truncate. Fixed reviewerA/B/C only to expected packet-derived IDs fail-closed with compact `reviewer_retryable:<code>:<count>:<first>:<last>` logging; audit accepts compact with frozen whitelist; authors unchanged. Regressions: marker `LEAKMARKER_9R25_ADVERSARIAL_XQZ7` absent from stdout/log with expected-only rejects; 60 shape rejects compact-parseable with no mutation. Re-synced plan76168 `c017d6578` via disposable repro; prior14/FIFTEEN/D155/battery/cache0/zero-state reverified. Full record: D156 doc CORRECTION 2 section.
 
 **Decision:** D-156 CORRECTION 2 PASS same-stage. STOP before Smoke A.
+
+## D-156 CORRECTION 3 · Post-closure cache provenance repair — 2026-09-09
+
+Web post-closure check found one v9r25 byproduct (`__pycache__/role_fs_helper.cpython-311.pyc`, 2026-09-09T06:58:41Z, inspection/import after the prior cache0 claim; freeze-excluded, no runtime). Removed ONLY that resolved target inside the v9r25 builder; no source/mechanics/plan/input bytes altered, no Smoke/freeze/Phase-C run. Reverified cache0/pyc0, zero runtime, plan `c017d6578` unchanged, audit/protected/ml unchanged. Full record: D156 doc CORRECTION 3 section.
+
+**Decision:** D-156 CORRECTION 3 PASS same-stage. STOP before Smoke A.

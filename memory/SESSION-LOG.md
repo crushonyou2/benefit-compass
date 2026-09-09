@@ -2353,3 +2353,9 @@ One short section per working session: what was worked on, what was decided (wit
 - Web found reviewer retryable could echo model IDs and 60-row log could truncate. Same executor hardened reviewerA/B/C only to expected IDs fail-closed with compact reviewer_retryable logging; audit compact support with frozen whitelist; authors unchanged. Added marker-leak (LEAKMARKER absent, expected-only) and 60-shape compact-parseable regressions (D156 checks 9). Re-synced plan76168 c017d6578 via disposable repro; battery PASS; cache0/pyc0; zero runtime.
 
 - **D-156 CORRECTION 2 PASS same-stage. STOP before Smoke A.**
+
+## 2026-09-09 — D-156 CORRECTION 3 post-closure cache provenance repair
+
+- Web found one v9r25 byproduct (`__pycache__/role_fs_helper.cpython-311.pyc`, 2026-09-09T06:58:41Z) from post-closure inspection/import. Removed ONLY that resolved target inside the builder; source/mechanics/plan/input untouched, no Smoke/freeze/Phase-C. Reverified cache0/pyc0, zero runtime, plan c017d6578 unchanged, audit/protected/ml unchanged.
+
+- **D-156 CORRECTION 3 PASS same-stage. STOP before Smoke A.**
